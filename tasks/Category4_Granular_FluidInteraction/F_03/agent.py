@@ -1,0 +1,115 @@
+"""
+F-03: The Excavator — agent module.
+Reference: base at (-2, 0), arm + bucket (2 DOF via revolute joints). Motor control to scoop and dump.
+"""
+import math
+
+BASE_X = -2.0
+BASE_Y = 0.0
+HOPPER_X = -5.0
+HOPPER_Y = 3.0
+PIT_CENTER_X = 2.5
+
+# Store revolute joints for agent_action (set by build_agent via sandbox)
+_arm_joint = None
+_bucket_joint = None
+
+
+def build_agent(sandbox):
+    """
+    Build excavator per user spec: fixed base at (-2, 0), Arm + Bucket (2 DOF).
+    Arm: revolute at base. Bucket: revolute at end of arm.
+    """
+    global _arm_joint, _bucket_joint
+    # Base: fixed at (-2, 0)
+    base = sandbox.add_anchored_base(BASE_X, BASE_Y, 0.4, 0.2, angle=0, density=400.0)
+    # Arm: long enough to reach pit (x~0–2) and hopper (x=-5, y=3). Pivot at (-2, 0.5), need reach ~3.9 to (-5,3)
+    arm_len = 4.0
+    arm_cx = BASE_X + arm_len / 2
+    arm_cy = 0.5
+    arm = sandbox.add_beam(arm_cx, arm_cy, arm_len, 0.2, angle=0, density=200.0)
+    sandbox.set_material_properties(arm, restitution=0.05)
+    # Arm+ bucket mass; longer arm needs higher torque (~6e3 N·m when horizontal)
+    _arm_joint = sandbox.add_revolute_joint(base, arm, (BASE_X, 0.5), enable_motor=True, motor_speed=0.0, max_motor_torque=8000.0)
+    # L-shaped scoop (new primitive) at arm tip; hinge at (arm_tip_x, arm_tip_y); opens toward -x so in build zone
+    arm_tip_x = BASE_X + arm_len
+    arm_tip_y = 0.5
+    scoop_w, scoop_h = 0.65, 0.42
+    scoop = sandbox.add_scoop(arm_tip_x, arm_tip_y, scoop_w, scoop_h, angle=0, density=280.0)
+    _bucket_joint = sandbox.add_revolute_joint(arm, scoop, (arm_tip_x, arm_tip_y), enable_motor=True, motor_speed=0.0, max_motor_torque=2000.0)
+    sandbox.agent_arm_joint = _arm_joint
+    sandbox.agent_bucket_joint = _bucket_joint
+    return scoop
+
+
+def agent_action(sandbox, agent_body, step_count):
+    """
+    Control arm and bucket motors: wall-clearing path (lift high before swing), then dump into valid zone.
+    Central wall at x=0, y in [0, 2.2]: arm must be above 2.2 when crossing x=0 -> lift to ~1.25 rad first.
+    """
+    global _arm_joint, _bucket_joint
+    if agent_body is None or not agent_body.active:
+        return
+    if _arm_joint is None or _bucket_joint is None:
+        _arm_joint = sandbox.agent_arm_joint
+        _bucket_joint = sandbox.agent_bucket_joint
+        if _arm_joint is None or _bucket_joint is None:
+            return
+    for body in sandbox.bodies:
+        if body.active:
+            body.awake = True
+    dt = 1.0 / 60.0
+    t = step_count * dt
+    has_wall = sandbox.has_central_wall()
+    phase_duration = 12.0  # ~3.3 cycles; with cap 999 and mild drift we target 50+
+    phase = (t % phase_duration) / phase_duration
+    arm_angle = _arm_joint.angle
+    ANGLE_PIT = 0.0
+    ANGLE_CLEAR = 1.32
+    ANGLE_HOPPER = 2.35
+    ARM_K = 3.0
+    ARM_SPEED_CAP = 3.0
+    BUCKET_SCOOP = -1.2
+    BUCKET_DUMP = 1.2
+    # Arm: original-style swing; if wall, lift to clear first in swing segment
+    if phase < 0.25:
+        target_arm = ANGLE_PIT
+        _arm_joint.motorSpeed = max(-ARM_SPEED_CAP, min(ARM_SPEED_CAP, ARM_K * (target_arm - arm_angle)))
+        _arm_joint.motorEnabled = True
+    elif phase < 0.48:
+        if has_wall:
+            target_arm = ANGLE_CLEAR if arm_angle < 1.2 else ANGLE_HOPPER
+        else:
+            target_arm = 1.6 if arm_angle < 1.4 else ANGLE_HOPPER
+        _arm_joint.motorSpeed = max(-ARM_SPEED_CAP, min(ARM_SPEED_CAP, ARM_K * (target_arm - arm_angle)))
+        _arm_joint.motorEnabled = True
+    elif phase < 0.56:
+        _arm_joint.motorSpeed = 0.0
+        _arm_joint.motorEnabled = True
+    elif phase < 0.88:
+        target_arm = ANGLE_CLEAR if has_wall else ANGLE_PIT
+        _arm_joint.motorSpeed = max(-ARM_SPEED_CAP, min(ARM_SPEED_CAP, ARM_K * (target_arm - arm_angle)))
+        _arm_joint.motorEnabled = True
+    else:
+        target_arm = ANGLE_PIT
+        _arm_joint.motorSpeed = max(-ARM_SPEED_CAP, min(ARM_SPEED_CAP, ARM_K * (target_arm - arm_angle)))
+        _arm_joint.motorEnabled = True
+    # Bucket: original boundaries and speeds
+    if phase < 0.18:
+        _bucket_joint.motorSpeed = BUCKET_SCOOP
+        _bucket_joint.motorEnabled = True
+    elif phase < 0.28:
+        _bucket_joint.motorSpeed = 0.4
+        _bucket_joint.motorEnabled = True
+    elif phase < 0.46:
+        _bucket_joint.motorSpeed = 0.15
+        _bucket_joint.motorEnabled = True
+    elif phase < 0.58:
+        _bucket_joint.motorSpeed = BUCKET_DUMP
+        _bucket_joint.motorEnabled = True
+    elif phase < 0.86:
+        _bucket_joint.motorSpeed = -0.6
+        _bucket_joint.motorEnabled = True
+    else:
+        _bucket_joint.motorSpeed = BUCKET_SCOOP
+        _bucket_joint.motorEnabled = True
