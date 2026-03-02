@@ -26,7 +26,7 @@ def build_agent(sandbox):
     BOTTOM_BEAM_WIDTH = 1.8
     MID_BEAM_WIDTH = 1.4
     TOP_BEAM_WIDTH = 0.8
-    NUM_LEVELS = 45  # Increased from 42 to provide more height buffer
+    NUM_LEVELS = 45 
     
     BOTTOM_SECTION_HEIGHT = 20.0 
     MID_SECTION_HEIGHT = 30.0
@@ -109,10 +109,9 @@ def agent_action(sandbox, agent_body, step_count):
 def build_agent_stage_1(sandbox):
     """
     Stage-1: 6.0m Amplitude Earthquake.
-    Strategy: Ultra-heavy central leg and massive foundation plate to lower CoM.
-    We also use thicker beams to maintain height.
+    Strategy: Two widely spaced, extremely dense legs connected to a foundation plate.
     """
-    return _build_extreme_tower(sandbox, base_density=5000.0, tower_scale=5.0, earthquake_freq=2.0)
+    return _build_extreme_tower(sandbox, base_density=10000.0, tower_scale=10.0, earthquake_freq=2.0)
 
 def agent_action_stage_1(sandbox, agent_body, step_count):
     pass
@@ -120,9 +119,8 @@ def agent_action_stage_1(sandbox, agent_body, step_count):
 def build_agent_stage_2(sandbox):
     """
     Stage-2: 600N Wind.
-    Strategy: Wide base, heavy bottom section to resist tipping torque.
     """
-    return _build_extreme_tower(sandbox, base_density=2000.0, tower_scale=3.0, earthquake_freq=2.0)
+    return _build_extreme_tower(sandbox, base_density=5000.0, tower_scale=5.0, earthquake_freq=2.0)
 
 def agent_action_stage_2(sandbox, agent_body, step_count):
     pass
@@ -130,9 +128,8 @@ def agent_action_stage_2(sandbox, agent_body, step_count):
 def build_agent_stage_3(sandbox):
     """
     Stage-3: 18.0 Hz Earthquake (High frequency).
-    Strategy: Stiff connections and retuned TMD.
     """
-    return _build_extreme_tower(sandbox, base_density=5000.0, tower_scale=2.0, earthquake_freq=18.0)
+    return _build_extreme_tower(sandbox, base_density=10000.0, tower_scale=5.0, earthquake_freq=18.0)
 
 def agent_action_stage_3(sandbox, agent_body, step_count):
     pass
@@ -140,9 +137,8 @@ def agent_action_stage_3(sandbox, agent_body, step_count):
 def build_agent_stage_4(sandbox):
     """
     Stage-4: Perfect Storm (Combined Extreme Conditions).
-    Strategy: Maximum robustness across all parameters.
     """
-    return _build_extreme_tower(sandbox, base_density=6000.0, tower_scale=5.0, earthquake_freq=18.0)
+    return _build_extreme_tower(sandbox, base_density=15000.0, tower_scale=10.0, earthquake_freq=18.0)
 
 def agent_action_stage_4(sandbox, agent_body, step_count):
     pass
@@ -159,7 +155,7 @@ def _build_extreme_tower(sandbox, base_density=100.0, tower_scale=1.0, earthquak
     base_center_x = 0.0
     foundation = sandbox._terrain_bodies.get("foundation")
     
-    # 1. Base Plate - ULTRA HEAVY to keep CoM in stability zone
+    # 1. Foundation Plate - ULTRA HEAVY
     plate_width = 4.0
     foundation_plate = sandbox.add_beam(x=0, y=foundation_y + 0.75, width=plate_width, height=1.5, density=100000.0)
     if foundation:
@@ -167,21 +163,33 @@ def _build_extreme_tower(sandbox, base_density=100.0, tower_scale=1.0, earthquak
             ax = -2.0 + (j * 4.0 / 99)
             sandbox.add_joint(foundation, foundation_plate, (ax, foundation_y), type='rigid')
 
-    # Single robust central leg
-    base_beam = sandbox.add_beam(x=0, y=foundation_y + BEAM_HEIGHT * 1.5, width=3.8,
-                                height=BEAM_HEIGHT*3.0, density=base_density)
-    for j in range(100):
-        jx = -1.9 + (j * 3.8 / 99)
-        sandbox.add_joint(base_beam, foundation_plate, (jx, foundation_y + 1.5), type='rigid')
+    # Two robust spaced legs
+    leg_l = sandbox.add_beam(x=-1.5, y=foundation_y + BEAM_HEIGHT * 1.5, width=1.0,
+                            height=BEAM_HEIGHT*3.0, density=base_density)
+    leg_r = sandbox.add_beam(x=1.5, y=foundation_y + BEAM_HEIGHT * 1.5, width=1.0,
+                            height=BEAM_HEIGHT*3.0, density=base_density)
+    
+    for j in range(30):
+        jx = -1.5 - 0.2 + (j * 0.4 / 29)
+        sandbox.add_joint(leg_l, foundation_plate, (jx, foundation_y + 1.5), type='rigid')
+        jx = 1.5 - 0.2 + (j * 0.4 / 29)
+        sandbox.add_joint(leg_r, foundation_plate, (jx, foundation_y + 1.5), type='rigid')
 
-    # 2. Main Tower starts from above leg
-    previous_beam = base_beam
+    # 2. Main Tower starts from above legs
     previous_y = foundation_y + BEAM_HEIGHT * 3.0
-    beams = [base_beam]
+    previous_beam = sandbox.add_beam(x=0, y=previous_y + BEAM_HEIGHT/2, width=4.0, height=BEAM_HEIGHT, density=base_density)
+    for j in range(40):
+        jx = -1.5 - 0.2 + (j * 0.4 / 39)
+        sandbox.add_joint(leg_l, previous_beam, (jx, previous_y), type='rigid')
+        jx = 1.5 - 0.2 + (j * 0.4 / 39)
+        sandbox.add_joint(leg_r, previous_beam, (jx, previous_y), type='rigid')
+    
+    beams = [previous_beam]
+    previous_y = previous_y + BEAM_HEIGHT
     
     for i in range(1, NUM_LEVELS):
         current_y = previous_y + BEAM_HEIGHT
-        w = max(1.0, 3.8 * (1 - current_y / 45.0))
+        w = max(1.0, 4.0 * (1 - current_y / 45.0))
         d = 100.0 * tower_scale if current_y < 15 else 10.0
         current_beam = sandbox.add_beam(x=0, y=current_y, width=w, height=BEAM_HEIGHT, density=d)
         
