@@ -3,41 +3,48 @@ S-05: The Shelter task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
-    ADD_BEAM_01_10,
-    ADD_JOINT_STATICS,
+    ADD_BEAM,
+    ADD_JOINT_RIGID,
     GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES_STATICS,
+    SET_MATERIAL_PROPERTIES,
 )
 
 TASK_PROMPT = {
     'task_description': """
-Protect a fragile Core (1x1m box at origin) from falling boulders that come from BOTH sides and mostly from the CENTER.
-Meteors spawn from the left (x in [-5,-2]), right (x in [2,5]), and two out of every three from the CENTER (x in [-2,2]) so the core is heavily targeted. The core fails if any single impact force exceeds 14N.
+Protect a fragile Core (a square box at the origin) from heavy falling boulders that come from multiple directions.
+Boulders will spawn above the core, mostly targeting the center, but some will fall from the left and right sides. The core is extremely delicate and will fail if subjected to significant impact forces.
 
 ## Task Environment
-- **Core**: 1x1m box centered at (0, 0.5). Fails if any impact force > 14N.
-- **Ground**: Static ground, top at y=0.5. Structure must be supported by the ground (outside keep-out zone).
-- **Meteors**: 28 boulders (260kg each, radius 0.5m) fall from y=20m. Spawn pattern: CENTER, CENTER, left/right, repeat (19 of 28 are center hits). You must deflect or absorb impacts from all directions with very little force reaching the core.
-- **Beam Limits**: 0.1 <= width, height <= 10.0 m. Cannot build within 1.3m of core center (0,0). No beam may extend above y=4.5m (enforced at build time). The check uses a conservative bound: for each beam, center_y + max(width, height)/2 must be <= 4.5 (so any orientation of the beam stays within limit).
+- **Core**: A 1x1m box centered at (0, 0.5). It fails if any single impact force exceeds its structural limit.
+- **Ground**: A static surface at y=0.5. Your shelter must be supported by the ground outside the designated keep-out zone.
+- **Boulders**: Numerous heavy meteors fall from a high altitude (y=20m). They target the center heavily, but also strike from the sides. You must design a structure to deflect or absorb these impacts.
+- **Beam Dimensions**: 0.1 <= width, height <= 10.0 m. 
 
 ## Task Objective
 Design a shelter structure that:
-1. Protects the core from impact from BOTH sides and from CENTER (most impacts are directly above)
-2. Deflects or absorbs 260kg meteor energy so that core never sees >14N
-3. Remains stable under its own weight
-4. Stays within the mass budget (120kg) and never exceeds y=4.5m
+1. Effectively shields the core from impacts originating from the center, left, and right.
+2. Deflects or absorbs the kinetic energy of heavy falling boulders so that the force reaching the core remains minimal.
+3. Maintains structural stability under its own weight and during repeated impacts.
+4. Complies with the total mass budget and height restrictions.
+
+## Constraints (must satisfy)
+- **Keep-Out Zone**: You cannot build any structural components within 1.3m of the core center (0,0).
+- **Height Limit**: No part of the shelter may extend above y=4.5m. This is strictly enforced at build time.
+- **Mass Budget**: Total structure mass must be less than 120 kg.
+- **Structural Integrity**: The shelter must remain standing throughout the bombardment.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Protection**: No single impact on the core may exceed 14N. (Max force on core must stay < 14N.)
-2. **Stability**: Shelter does not collapse under its own weight.
+1. **Protection**: The core survives the entire bombardment without exceeding its impact force threshold.
+2. **Stability**: The shelter does not collapse under its own weight or the weight of the debris.
 
 ## Design Constraints
-- **Keep-Out Zone**: Cannot build within 1.3m of the Core center (0,0). Beam center distance to (0,0) must be >= 1.3m.
-- **Budget**: Max mass 120kg. Meteors are 260kg each.
-- **Height Limit**: No beam may extend above y=4.5m (enforced at build time). Enforcement: center_y + max(width, height)/2 <= 4.5 for every beam.
+- **Keep-Out Zone**: Beam center distance to (0,0) must be >= 1.3m.
+- **Mass Budget**: < 120 kg.
+- **Height Limit**: No beam may extend above y=4.5m (center_y + max(width, height)/2 <= 4.5).
+- **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + ADD_BEAM_01_10 + ADD_JOINT_STATICS + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES_STATICS,
+    'primitives_api': API_INTRO + ADD_BEAM + ADD_JOINT_RIGID + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES,
 }

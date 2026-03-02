@@ -33,7 +33,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from evaluation.utils import get_evaluation_results_dir, extract_run_number_from_filename
+from evaluation.utils import get_evaluation_results_dir
 
 RESULTS_DIR = get_evaluation_results_dir()
 
@@ -141,16 +141,16 @@ def load_results(results_dir, task_filter='all'):
                 for fn in os.listdir(method_path):
                     if not fn.endswith('.json'):
                         continue
-                    # Only process files starting with 'all_'
-                    if not fn.startswith('all_'):
+                    # Only process files starting with 'all_' or matching current context (e.g. 'all', 'previous')
+                    if not fn.startswith('all_') and not fn.startswith('previous_'):
                         continue
-                    pass_num = extract_run_number_from_filename(fn)
-                    if pass_num is None:
-                        continue
+                    
+                    pass_num = 1 # Only one run per task now
+                    
                     try:
                         with open(os.path.join(method_path, fn)) as f:
                             data = json.load(f)
-                        # When multiple JSONs share the same pass_num, keep only the one with highest best_score
+                        # When multiple JSONs exist, keep only the one with highest best_score
                         existing = results[model][method][task_name].get(pass_num)
                         best_score_new = float(data.get('best_score') or 0.0)
                         if math.isnan(best_score_new):
@@ -204,8 +204,8 @@ def compute_metrics(task_results, all_tasks):
     joint_discovery = {k: 0 for k in DISCOVERY_K_VALUES}
     _MAX_ITER_PENALTY = 20
 
-    # Nominal passes per task for Joint denominator (match Pass@3); slots = n_tasks * this * num_mutations
-    num_passes_nominal = 3
+    # Nominal passes per task for Joint denominator (match Pass@1); slots = n_tasks * this * num_mutations
+    num_passes_nominal = 1
     num_mutations = 4
 
     for task in all_tasks:
@@ -295,31 +295,31 @@ def compute_metrics(task_results, all_tasks):
             joint_code_usage_sum += 0.0
 
     return {
-        'Initial-Pass@3': init_success_cnt / n_tasks * 100,
-        'Initial-Score@3-avg': sum(init_scores_avg) / n_tasks,
-        'Initial-Iteration@3': (
+        'Initial-Pass@1': init_success_cnt / n_tasks * 100,
+        'Initial-Score@1-avg': sum(init_scores_avg) / n_tasks,
+        'Initial-Iteration@1': (
             sum(init_iters) / len(init_iters) if init_iters else float('nan')
         ),
-        'Initial-Efficiency@3': sum(init_efficiency) / n_tasks,
-        'Initial-CodeUsage@3': sum(init_code_usage) / n_tasks,
+        'Initial-Efficiency@1': sum(init_efficiency) / n_tasks,
+        'Initial-CodeUsage@1': sum(init_code_usage) / n_tasks,
         **{
             f'Initial-Discovery@{k}': sum(init_discovery[k]) / n_tasks * 100
             for k in DISCOVERY_K_VALUES
         },
         # Joint (pair-aware, no conditioning on T0): denominator = all (task, run, mi) slots
-        'Joint-Pass@3': (
+        'Joint-Pass@1': (
             joint_pass_cnt / joint_total * 100 if joint_total else float('nan')
         ),
-        'Joint-Score@3-avg': (
+        'Joint-Score@1-avg': (
             joint_scores_sum / joint_total if joint_total else float('nan')
         ),
-        'Joint-Iteration@3': (
+        'Joint-Iteration@1': (
             joint_iters_sum / joint_total if joint_total else float('nan')
         ),
-        'Joint-Efficiency@3': (
+        'Joint-Efficiency@1': (
             joint_eff_sum / joint_total if joint_total else float('nan')
         ),
-        'Joint-CodeUsage@3': (
+        'Joint-CodeUsage@1': (
             joint_code_usage_sum / joint_total if joint_total else float('nan')
         ),
         **{
@@ -350,7 +350,7 @@ def _latex_escape(s):
 
 
 def _metric_to_label_suffix(metric_name):
-    """Convert metric name to a short slug for tab: label (e.g. Initial-Pass@3 -> pass_initial)."""
+    """Convert metric name to a short slug for tab: label (e.g. Initial-Pass@1 -> pass_initial)."""
     s = metric_name.replace('@', '_').replace('-', '_').lower()
     return s[:40]
 
@@ -793,10 +793,10 @@ def plot_results(tables, models, methods, output_dir='.', task_filter='all', sho
     # Heatmap metrics: pass, score_avg, iteration, efficiency — methods ordered by category, category annotations below
     n_methods_ordered = len(ordered_methods)
     for (joint_key, init_key, cbar_label, filename_base, metric_dir) in [
-        ('Joint-Pass@3', 'Initial-Pass@3', 'Pass Rate (%)', 'pass_at_3', d_pass),
-        ('Joint-Score@3-avg', 'Initial-Score@3-avg', 'Score (Avg)', 'score_at_3_avg', d_score_avg),
-        ('Joint-Iteration@3', 'Initial-Iteration@3', 'Iterations', 'iteration_at_3', d_iteration),
-        ('Joint-Efficiency@3', 'Initial-Efficiency@3', 'Efficiency', 'efficiency_at_3', d_efficiency),
+        ('Joint-Pass@1', 'Initial-Pass@1', 'Pass Rate (%)', 'pass_at_1', d_pass),
+        ('Joint-Score@1-avg', 'Initial-Score@1-avg', 'Score (Avg)', 'score_at_1_avg', d_score_avg),
+        ('Joint-Iteration@1', 'Initial-Iteration@1', 'Iterations', 'iteration_at_1', d_iteration),
+        ('Joint-Efficiency@1', 'Initial-Efficiency@1', 'Efficiency', 'efficiency_at_1', d_efficiency),
     ]:
         data_joint = np.array([[value_for_plot(tables.get(joint_key, {}).get((model, method), float('nan'))) for method in ordered_methods] for model in models])
         data_init = np.array([[value_for_plot(tables.get(init_key, {}).get((model, method), float('nan'))) for method in ordered_methods] for model in models])
@@ -827,8 +827,8 @@ def plot_results(tables, models, methods, output_dir='.', task_filter='all', sho
         print(f"Saved: {os.path.join(metric_dir, f'{filename_base}_initial.pdf')}")
 
     # ---- Score-avg: two dedicated plot types, each for Initial and Joint ----
-    score_init = tables.get('Initial-Score@3-avg', {})
-    score_joint = tables.get('Joint-Score@3-avg', {})
+    score_init = tables.get('Initial-Score@1-avg', {})
+    score_joint = tables.get('Joint-Score@1-avg', {})
     methods_ce = [m for m in methods if m in ('baseline', 'sys_feedback')]
     qwen_models = [m for m in models if short_model_name(m) in ('Qwen3-8B', 'Qwen3-14B')]
     # Bar colors for 2-series bar charts (muted, harmonize with pastel backgrounds)
@@ -934,8 +934,8 @@ def plot_results(tables, models, methods, output_dir='.', task_filter='all', sho
         print(f"Saved: {os.path.join(d_score_avg, f'score_qwen8b_14b_by_method_{suffix}.pdf')}")
 
     # Code usage: bar chart (combined Initial+Joint average), x=methods, y=Token, legend at top
-    init_cu = tables.get('Initial-CodeUsage@3', {})
-    joint_cu = tables.get('Joint-CodeUsage@3', {})
+    init_cu = tables.get('Initial-CodeUsage@1', {})
+    joint_cu = tables.get('Joint-CodeUsage@1', {})
     combined_cu = {}
     for model in models:
         for method in methods:
@@ -961,9 +961,9 @@ def plot_results(tables, models, methods, output_dir='.', task_filter='all', sho
     ax_cu.legend(loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=ncol_legend, frameon=True, fontsize=16,
                  bbox_transform=ax_cu.transAxes)
     for ext in ['pdf', 'png']:
-        fig_cu.savefig(os.path.join(d_efficiency, f'code_usage_at_3.{ext}'), format=ext)
+        fig_cu.savefig(os.path.join(d_efficiency, f'code_usage_at_1.{ext}'), format=ext)
     plt.close(fig_cu)
-    print(f"Saved: {os.path.join(d_efficiency, 'code_usage_at_3.pdf')} (bar chart)")
+    print(f"Saved: {os.path.join(d_efficiency, 'code_usage_at_1.pdf')} (bar chart)")
 
     def _discovery_ylim(values):
         """Compute y-axis limits from data so the plot is filled; clamp to [0, 100]. Ignores NaN."""
@@ -1151,16 +1151,16 @@ def main():
     methods = sorted({m for model in models for m in all_results[model] if m not in _IGNORED_METHODS})
 
     metric_names = [
-        'Initial-Pass@3',
-        'Initial-Score@3-avg',
-        'Initial-Iteration@3',
-        'Initial-Efficiency@3',
-        'Initial-CodeUsage@3',
-        'Joint-Pass@3',
-        'Joint-Score@3-avg',
-        'Joint-Iteration@3',
-        'Joint-Efficiency@3',
-        'Joint-CodeUsage@3',
+        'Initial-Pass@1',
+        'Initial-Score@1-avg',
+        'Initial-Iteration@1',
+        'Initial-Efficiency@1',
+        'Initial-CodeUsage@1',
+        'Joint-Pass@1',
+        'Joint-Score@1-avg',
+        'Joint-Iteration@1',
+        'Joint-Efficiency@1',
+        'Joint-CodeUsage@1',
     ] + [f'Initial-Discovery@{k}' for k in DISCOVERY_K_VALUES] + [f'Joint-Discovery@{k}' for k in DISCOVERY_K_VALUES]
 
     # tables[metric][(model, method)] = value
@@ -1174,7 +1174,7 @@ def main():
                 tables[mn][(model, method)] = metrics.get(mn, float('nan'))
 
     # Normalize efficiency: final score = raw score / max(all raw scores)
-    for eff_key in ('Initial-Efficiency@3', 'Joint-Efficiency@3'):
+    for eff_key in ('Initial-Efficiency@1', 'Joint-Efficiency@1'):
         vals = [v for v in tables[eff_key].values() if math.isfinite(v)]
         max_eff = max(vals) if vals else 0.0
         if max_eff > 0:

@@ -1,0 +1,1063 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.10.19)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+📋 Work items (missing runs): 18
+🔀 Workers: 1 (GPUs: 5,7) [2 GPUs per worker: TP2 or theta_evolve]
+   Worker 0 (GPU 5,7): 18 run(s) — ['category_1_01:1', 'category_1_01:2', 'category_1_01:3', 'category_1_02:1', 'category_1_02:2'] ... +13
+
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+[GPU 5,7]   from pkg_resources import resource_stream, resource_exists
+[GPU 5,7] 
+[GPU 5,7] 📋 Found 1 task(s) to evaluate:
+[GPU 5,7]   1. category_1_01
+[GPU 5,7] 
+[GPU 5,7] 
+[GPU 5,7] ================================================================================
+[GPU 5,7] Evaluating task: category_1_01
+[GPU 5,7] ================================================================================
+[GPU 5,7] 
+[GPU 5,7] 🔄 Running only round 1 (run_number_override)
+[GPU 5,7] 
+[GPU 5,7] ================================================================================
+[GPU 5,7] 🔄 Round 1/3 - Run 1
+[GPU 5,7] ================================================================================
+[GPU 5,7] 
+[GPU 5,7] [theta_evolve] Starting ThetaEvolve: task=category_1_01, run=1, num_rollout=3000, seed=43
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[GPU 5,7]   import pynvml  # type: ignore[import]
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[GPU 5,7]   import pynvml  # type: ignore[import]
+[GPU 5,7] W0224 11:01:41.731000 3406631 site-packages/torch/utils/cpp_extension.py:2425] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. 
+[GPU 5,7] W0224 11:01:41.731000 3406631 site-packages/torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.
+[GPU 5,7] WARNING:root:deep_ep is not installed, some functionalities may be limited.
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/utils.py:109: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_scale
+[GPU 5,7]   warnings.warn(
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/backends.py:21: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7]   warnings.warn("Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/training/utils.py:22: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_l2norm
+[GPU 5,7]   warnings.warn(
+[GPU 5,7] WARNING:megatron.core.utils:fused_indices_to_multihot has reached end of life. Please migrate to a non-experimental function.
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/gpt/gpt_layer_specs.py:67: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7]   warnings.warn("Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/retro/encoder_spec.py:49: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7]   warnings.warn(f'Apex is not installed. Falling back to Torch Norm')
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/retro/decoder_spec.py:38: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7]   warnings.warn(f"Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/__init__.py:18: UserWarning: Transformer Engine and Apex are not installed. Falling back to Torch optimizers.
+[GPU 5,7]   warnings.warn(
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/optimizer.py:27: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_scale
+[GPU 5,7]   warnings.warn(
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/clip_grads.py:29: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+[GPU 5,7]   warnings.warn(
+[GPU 5,7] Argument num_query_groups is not consistent. num_query_groups in args is 1, but from HF config is 8.
+[GPU 5,7] Argument normalization is not consistent. normalization in args is LayerNorm, but from HF config is RMSNorm.
+[GPU 5,7] Argument add_bias_linear is not consistent. add_bias_linear in args is True, but from HF config is False.
+[GPU 5,7] Argument qk_layernorm is not consistent. qk_layernorm in args is False, but from HF config is True.
+[GPU 5,7] Argument rotary_base is not consistent. rotary_base in args is 10000, but from HF config is 1000000.
+[GPU 5,7] Argument position_embedding_type is not consistent. position_embedding_type in args is learned_absolute, but from HF config is rope.
+[GPU 5,7] Argument untie_embeddings_and_output_weights is not consistent. untie_embeddings_and_output_weights in args is False, but from HF config is True.
+[GPU 5,7]  > padded vocab (size: 151936) with 128 dummy tokens (new size: 152064)
+[GPU 5,7] --tokenizer-model not set, use --hf-checkpoint as tokenizer model.
+[GPU 5,7] [ARGS] No valid training checkpoint, using ref_load for model initialization (evolving_gym=True, debug_rollout_only=False)
+[GPU 5,7] rollout_num_gpus None != actor_num_gpus_per_node 2 * actor_num_nodes 1, overriding rollout_num_gpus to match actor_num_gpus_per_node * actor_num_nodes.
+[GPU 5,7] using world size: 2, data-parallel size: 1, context-parallel size: 1, hierarchical context-parallel sizes: None, tensor-model-parallel size: 2, pipeline-model-parallel size: 1
+[GPU 5,7] Number of virtual stages per pipeline stage: None
+[GPU 5,7] accumulate and all-reduce gradients in fp32 for bfloat16 data type.
+[GPU 5,7] using torch.bfloat16 for parameters ...
+[GPU 5,7] ------------------------ arguments ------------------------
+[GPU 5,7]   account_for_embedding_in_pipeline_split ......... False
+[GPU 5,7]   account_for_loss_in_pipeline_split .............. False
+[GPU 5,7]   accumulate_allreduce_grads_in_fp32 .............. True
+[GPU 5,7]   activation_func ................................. <function silu at 0x7f366c17ab00>
+[GPU 5,7]   actor_num_gpus_per_node ......................... 2
+[GPU 5,7]   actor_num_nodes ................................. 1
+[GPU 5,7]   adam_beta1 ...................................... 0.9
+[GPU 5,7]   adam_beta2 ...................................... 0.999
+[GPU 5,7]   adam_eps ........................................ 1e-08
+[GPU 5,7]   add_bias_linear ................................. False
+[GPU 5,7]   add_position_embedding .......................... True
+[GPU 5,7]   add_qkv_bias .................................... False
+[GPU 5,7]   adlr_autoresume ................................. False
+[GPU 5,7]   adlr_autoresume_interval ........................ 1000
+[GPU 5,7]   advantage_estimator ............................. grpo
+[GPU 5,7]   align_grad_reduce ............................... True
+[GPU 5,7]   align_param_gather .............................. False
+[GPU 5,7]   app_tag_run_name ................................ None
+[GPU 5,7]   app_tag_run_version ............................. 0.0.0
+[GPU 5,7]   apply_chat_template ............................. True
+[GPU 5,7]   apply_layernorm_1p .............................. False
+[GPU 5,7]   apply_query_key_layer_scaling ................... False
+[GPU 5,7]   apply_residual_connection_post_layernorm ........ False
+[GPU 5,7]   apply_rope_fusion ............................... False
+[GPU 5,7]   async_save ...................................... None
+[GPU 5,7]   async_tensor_model_parallel_allreduce ........... True
+[GPU 5,7]   attention_backend ............................... AttnBackend.auto
+[GPU 5,7]   attention_dropout ............................... 0.1
+[GPU 5,7]   attention_softmax_in_fp32 ....................... False
+[GPU 5,7]   auto_detect_ckpt_format ......................... False
+[GPU 5,7]   balance_data .................................... False
+[GPU 5,7]   barrier_with_L1_time ............................ True
+[GPU 5,7]   bert_binary_head ................................ True
+[GPU 5,7]   bert_embedder_type .............................. megatron
+[GPU 5,7]   bert_load ....................................... None
+[GPU 5,7]   bf16 ............................................ True
+[GPU 5,7]   bias_dropout_fusion ............................. True
+[GPU 5,7]   bias_gelu_fusion ................................ False
+[GPU 5,7]   bias_swiglu_fusion .............................. True
+[GPU 5,7]   biencoder_projection_dim ........................ 0
+[GPU 5,7]   biencoder_shared_query_context_model ............ False
+[GPU 5,7]   block_data_path ................................. None
+[GPU 5,7]   buffer_filter_path .............................. None
+[GPU 5,7]   cache_mla_latents ............................... False
+[GPU 5,7]   calc_ft_timeouts ................................ False
+[GPU 5,7]   calculate_per_token_loss ........................ False
+[GPU 5,7]   check_for_large_grads ........................... False
+[GPU 5,7]   check_for_nan_in_loss_and_grad .................. True
+[GPU 5,7]   check_for_spiky_loss ............................ False
+[GPU 5,7]   check_weight_hash_across_dp_replicas_interval ... None
+[GPU 5,7]   ci_test ......................................... False
+[GPU 5,7]   ckpt_assume_constant_structure .................. False
+[GPU 5,7]   ckpt_convert_format ............................. None
+[GPU 5,7]   ckpt_convert_save ............................... None
+[GPU 5,7]   ckpt_convert_update_legacy_dist_opt_format ...... False
+[GPU 5,7]   ckpt_format ..................................... torch_dist
+[GPU 5,7]   ckpt_fully_parallel_load ........................ False
+[GPU 5,7]   ckpt_fully_parallel_save ........................ True
+[GPU 5,7]   ckpt_fully_parallel_save_deprecated ............. False
+[GPU 5,7]   ckpt_step ....................................... None
+[GPU 5,7]   classes_fraction ................................ 1.0
+[GPU 5,7]   clip_grad ....................................... 1.0
+[GPU 5,7]   clone_scatter_output_in_embedding ............... True
+[GPU 5,7]   colocate ........................................ True
+[GPU 5,7]   compute_advantages_and_returns .................. True
+[GPU 5,7]   config_logger_dir ............................... 
+[GPU 5,7]   consumed_train_samples .......................... 0
+[GPU 5,7]   consumed_valid_samples .......................... 0
+[GPU 5,7]   context_parallel_size ........................... 1
+[GPU 5,7]   cp_comm_type .................................... ['p2p']
+[GPU 5,7]   create_attention_mask_in_dataloader ............. True
+[GPU 5,7]   critic_load ..................................... /home/test/testdata/models/Qwen3-8B
+[GPU 5,7]   critic_lr ....................................... 1e-06
+[GPU 5,7]   critic_num_gpus_per_node ........................ 2
+[GPU 5,7]   critic_num_nodes ................................ 1
+[GPU 5,7]   critic_save ..................................... None
+[GPU 5,7]   cross_entropy_fusion_impl ....................... native
+[GPU 5,7]   cross_entropy_loss_fusion ....................... False
+[GPU 5,7]   cuda_graph_scope ................................ full
+[GPU 5,7]   cuda_graph_warmup_steps ......................... 3
+[GPU 5,7]   custom_generate_function_path ................... None
+[GPU 5,7]   custom_loss_function_path ....................... None
+[GPU 5,7]   custom_megatron_before_log_prob_hook_path ....... None
+[GPU 5,7]   custom_megatron_before_train_step_hook_path ..... None
+[GPU 5,7]   custom_megatron_init_path ....................... None
+[GPU 5,7]   custom_reward_post_process_path ................. None
+[GPU 5,7]   custom_rm_path .................................. None
+[GPU 5,7]   data_args_path .................................. None
+[GPU 5,7]   data_cache_path ................................. None
+[GPU 5,7]   data_parallel_random_init ....................... False
+[GPU 5,7]   data_parallel_sharding_strategy ................. no_shard
+[GPU 5,7]   data_parallel_size .............................. 1
+[GPU 5,7]   data_path ....................................... None
+[GPU 5,7]   data_per_class_fraction ......................... 1.0
+[GPU 5,7]   data_sharding ................................... True
+[GPU 5,7]   dataloader_type ................................. single
+[GPU 5,7]   ddp_average_in_collective ....................... False
+[GPU 5,7]   ddp_bucket_size ................................. None
+[GPU 5,7]   ddp_num_buckets ................................. None
+[GPU 5,7]   ddp_pad_buckets_for_high_nccl_busbw ............. False
+[GPU 5,7]   debug_rollout_only .............................. False
+[GPU 5,7]   debug_train_only ................................ False
+[GPU 5,7]   decoder_first_pipeline_num_layers ............... None
+[GPU 5,7]   decoder_last_pipeline_num_layers ................ None
+[GPU 5,7]   decoder_num_layers .............................. None
+[GPU 5,7]   decoder_seq_length .............................. None
+[GPU 5,7]   decoupled_lr .................................... None
+[GPU 5,7]   decoupled_min_lr ................................ None
+[GPU 5,7]   decrease_batch_size_if_needed ................... False
+[GPU 5,7]   defer_embedding_wgrad_compute ................... False
+[GPU 5,7]   delay_wgrad_compute ............................. False
+[GPU 5,7]   deprecated_use_mcore_models ..................... False
+[GPU 5,7]   deterministic_mode .............................. False
+[GPU 5,7]   dino_bottleneck_size ............................ 256
+[GPU 5,7]   dino_freeze_last_layer .......................... 1
+[GPU 5,7]   dino_head_hidden_size ........................... 2048
+[GPU 5,7]   dino_local_crops_number ......................... 10
+[GPU 5,7]   dino_local_img_size ............................. 96
+[GPU 5,7]   dino_norm_last_layer ............................ False
+[GPU 5,7]   dino_teacher_temp ............................... 0.07
+[GPU 5,7]   dino_warmup_teacher_temp ........................ 0.04
+[GPU 5,7]   dino_warmup_teacher_temp_epochs ................. 30
+[GPU 5,7]   disable_bf16_reduced_precision_matmul ........... False
+[GPU 5,7]   disable_mamba_mem_eff_path ...................... False
+[GPU 5,7]   disable_straggler_on_startup .................... False
+[GPU 5,7]   dist_ckpt_format_deprecated ..................... None
+[GPU 5,7]   dist_ckpt_strictness ............................ assume_ok_unexpected
+[GPU 5,7]   distribute_saved_activations .................... False
+[GPU 5,7]   distributed_backend ............................. nccl
+[GPU 5,7]   distributed_timeout_minutes ..................... 10
+[GPU 5,7]   dump_details .................................... None
+[GPU 5,7]   dynamic_sampling_filter_path .................... None
+[GPU 5,7]   embedding_init_method_std ....................... None
+[GPU 5,7]   embedding_path .................................. None
+[GPU 5,7]   empty_unused_memory_level ....................... 0
+[GPU 5,7]   enable_cuda_graph ............................... False
+[GPU 5,7]   enable_experimental ............................. False
+[GPU 5,7]   enable_ft_package ............................... False
+[GPU 5,7]   enable_full_sharding_in_hsdp .................... False
+[GPU 5,7]   enable_gloo_process_groups ...................... True
+[GPU 5,7]   enable_msc ...................................... True
+[GPU 5,7]   enable_one_logger ............................... True
+[GPU 5,7]   encoder_num_layers .............................. 36
+[GPU 5,7]   encoder_seq_length .............................. 4096
+[GPU 5,7]   end_weight_decay ................................ 0.01
+[GPU 5,7]   entropy_coef .................................... 0.0
+[GPU 5,7]   eod_mask_loss ................................... False
+[GPU 5,7]   eps_clip ........................................ 0.2
+[GPU 5,7]   eps_clip_c ...................................... None
+[GPU 5,7]   eps_clip_high ................................... 0.2
+[GPU 5,7]   error_injection_rate ............................ 0
+[GPU 5,7]   error_injection_type ............................ transient_error
+[GPU 5,7]   eval_function_path .............................. slime.rollout.sglang_rollout.generate_rollout
+[GPU 5,7]   eval_input_key .................................. None
+[GPU 5,7]   eval_interval ................................... None
+[GPU 5,7]   eval_iters ...................................... 100
+[GPU 5,7]   eval_label_key .................................. None
+[GPU 5,7]   eval_max_response_len ........................... None
+[GPU 5,7]   eval_min_new_tokens ............................. None
+[GPU 5,7]   eval_prompt_data ................................ None
+[GPU 5,7]   eval_reward_key ................................. reward
+[GPU 5,7]   eval_temperature ................................ None
+[GPU 5,7]   eval_tool_key ................................... None
+[GPU 5,7]   eval_top_k ...................................... None
+[GPU 5,7]   eval_top_p ...................................... None
+[GPU 5,7]   evidence_data_path .............................. None
+[GPU 5,7]   evolving_gym .................................... True
+[GPU 5,7]   evolving_gym_add_historical_programs ............ 0
+[GPU 5,7]   evolving_gym_config_path ........................ /tmp/theta_evolve_2d_nwe0v0ha/config.yaml
+[GPU 5,7]   evolving_gym_database_reinit_ratio .............. 0.0
+[GPU 5,7]   evolving_gym_evaluator_file ..................... /tmp/theta_evolve_2d_nwe0v0ha/evaluate.py
+[GPU 5,7]   evolving_gym_initial_program .................... /tmp/theta_evolve_2d_nwe0v0ha/initial_program.py
+[GPU 5,7]   evolving_gym_largest_restart_step ............... 10000000
+[GPU 5,7]   evolving_gym_lazy_output_penalty_level .......... 2
+[GPU 5,7]   evolving_gym_log_prompts ........................ True
+[GPU 5,7]   evolving_gym_max_concurrent_evals ............... 8
+[GPU 5,7]   evolving_gym_record ............................. False
+[GPU 5,7]   evolving_gym_record_dir ......................... ./gym_output
+[GPU 5,7]   evolving_gym_reward_process_type ................ original_reward
+[GPU 5,7]   evolving_gym_seed ............................... 43
+[GPU 5,7]   evolving_gym_smallest_restart_step .............. 10000000
+[GPU 5,7]   exit_duration_in_mins ........................... None
+[GPU 5,7]   exit_interval ................................... None
+[GPU 5,7]   exit_on_missing_checkpoint ...................... False
+[GPU 5,7]   exit_signal_handler ............................. False
+[GPU 5,7]   exp_avg_dtype ................................... torch.float32
+[GPU 5,7]   exp_avg_sq_dtype ................................ torch.float32
+[GPU 5,7]   expert_model_parallel_size ...................... 1
+[GPU 5,7]   expert_tensor_parallel_size ..................... 2
+[GPU 5,7]   external_cuda_graph ............................. False
+[GPU 5,7]   fetch_trajectory_retry_times .................... -1
+[GPU 5,7]   ffn_hidden_size ................................. 12288
+[GPU 5,7]   finetune ........................................ True
+[GPU 5,7]   first_last_layers_bf16 .......................... False
+[GPU 5,7]   flash_decode .................................... False
+[GPU 5,7]   fp16 ............................................ False
+[GPU 5,7]   fp16_lm_cross_entropy ........................... False
+[GPU 5,7]   fp32_residual_connection ........................ False
+[GPU 5,7]   fp8 ............................................. None
+[GPU 5,7]   fp8_amax_compute_algo ........................... most_recent
+[GPU 5,7]   fp8_amax_history_len ............................ 1
+[GPU 5,7]   fp8_interval .................................... 1
+[GPU 5,7]   fp8_margin ...................................... 0
+[GPU 5,7]   fp8_param_gather ................................ False
+[GPU 5,7]   fp8_recipe ...................................... delayed
+[GPU 5,7]   fp8_wgrad ....................................... True
+[GPU 5,7]   fsdp_double_buffer .............................. False
+[GPU 5,7]   full_validation ................................. False
+[GPU 5,7]   gamma ........................................... 1.0
+[GPU 5,7]   gated_linear_unit ............................... True
+[GPU 5,7]   global_batch_size ............................... 256
+[GPU 5,7]   grad_reduce_in_bf16 ............................. False
+[GPU 5,7]   gradient_accumulation_fusion .................... False
+[GPU 5,7]   gradient_reduce_div_fusion ...................... True
+[GPU 5,7]   group_query_attention ........................... False
+[GPU 5,7]   group_rm ........................................ False
+[GPU 5,7]   grpo_std_normalization .......................... True
+[GPU 5,7]   head_lr_mult .................................... 1.0
+[GPU 5,7]   heterogeneous_layers_config_encoded_json ........ None
+[GPU 5,7]   heterogeneous_layers_config_path ................ None
+[GPU 5,7]   hf_checkpoint ................................... /home/test/testdata/models/Qwen3-8B
+[GPU 5,7]   hidden_dropout .................................. 0.1
+[GPU 5,7]   hidden_size ..................................... 4096
+[GPU 5,7]   hierarchical_context_parallel_sizes ............. None
+[GPU 5,7]   high_priority_stream_groups ..................... []
+[GPU 5,7]   http_proxy ...................................... None
+[GPU 5,7]   hybrid_attention_ratio .......................... 0.0
+[GPU 5,7]   hybrid_mlp_ratio ................................ 0.0
+[GPU 5,7]   hybrid_override_pattern ......................... None
+[GPU 5,7]   hysteresis ...................................... 2
+[GPU 5,7]   ict_head_size ................................... None
+[GPU 5,7]   ict_load ........................................ None
+[GPU 5,7]   img_h ........................................... 224
+[GPU 5,7]   img_w ........................................... 224
+[GPU 5,7]   indexer_batch_size .............................. 128
+[GPU 5,7]   indexer_log_interval ............................ 1000
+[GPU 5,7]   inference_batch_times_seqlen_threshold .......... -1
+[GPU 5,7]   inference_dynamic_batching ...................... False
+[GPU 5,7]   inference_dynamic_batching_buffer_guaranteed_fraction  0.2
+[GPU 5,7]   inference_dynamic_batching_buffer_overflow_factor  None
+[GPU 5,7]   inference_dynamic_batching_buffer_size_gb ....... 40.0
+[GPU 5,7]   inference_dynamic_batching_chunk_size ........... 256
+[GPU 5,7]   inference_dynamic_batching_max_requests_override  None
+[GPU 5,7]   inference_dynamic_batching_max_tokens_override .. None
+[GPU 5,7]   inference_dynamic_batching_num_cuda_graphs ...... 16
+[GPU 5,7]   inference_max_batch_size ........................ 8
+[GPU 5,7]   inference_max_seq_length ........................ 2560
+[GPU 5,7]   inference_rng_tracker ........................... False
+[GPU 5,7]   init_method_std ................................. 0.02
+[GPU 5,7]   init_method_xavier_uniform ...................... False
+[GPU 5,7]   init_model_with_meta_device ..................... False
+[GPU 5,7]   initial_loss_scale .............................. 4294967296
+[GPU 5,7]   inprocess_active_world_size ..................... 1
+[GPU 5,7]   inprocess_barrier_timeout ....................... 120
+[GPU 5,7]   inprocess_completion_timeout .................... 120
+[GPU 5,7]   inprocess_empty_cuda_cache ...................... False
+[GPU 5,7]   inprocess_granularity ........................... node
+[GPU 5,7]   inprocess_hard_timeout .......................... 90
+[GPU 5,7]   inprocess_heartbeat_interval .................... 30
+[GPU 5,7]   inprocess_heartbeat_timeout ..................... 60
+[GPU 5,7]   inprocess_last_call_wait ........................ 1
+[GPU 5,7]   inprocess_max_iterations ........................ None
+[GPU 5,7]   inprocess_monitor_process_interval .............. 1.0
+[GPU 5,7]   inprocess_monitor_thread_interval ............... 1.0
+[GPU 5,7]   inprocess_progress_watchdog_interval ............ 1.0
+[GPU 5,7]   inprocess_restart ............................... False
+[GPU 5,7]   inprocess_soft_timeout .......................... 60
+[GPU 5,7]   inprocess_termination_grace_time ................ 1
+[GPU 5,7]   input_key ....................................... input
+[GPU 5,7]   is_hybrid_model ................................. False
+[GPU 5,7]   iter_per_epoch .................................. 1250
+[GPU 5,7]   iterations_to_skip .............................. []
+[GPU 5,7]   keep_fp8_transpose_cache ........................ False
+[GPU 5,7]   keep_old_actor .................................. False
+[GPU 5,7]   kitchen_config_file ............................. None
+[GPU 5,7]   kitchen_recipe_number ........................... None
+[GPU 5,7]   kl_coef ......................................... 0.0
+[GPU 5,7]   kl_loss_coef .................................... 0.0
+[GPU 5,7]   kl_loss_type .................................... kl
+[GPU 5,7]   kv_channels ..................................... 128
+[GPU 5,7]   kv_lora_rank .................................... 32
+[GPU 5,7]   label_key ....................................... None
+[GPU 5,7]   lambd ........................................... 1.0
+[GPU 5,7]   layernorm_epsilon ............................... 1e-06
+[GPU 5,7]   lazy_mpu_init ................................... None
+[GPU 5,7]   load ............................................ /home/test/testdata/models/Qwen3-8B
+[GPU 5,7]   load_debug_rollout_data ......................... None
+[GPU 5,7]   load_main_params_from_ckpt ...................... None
+[GPU 5,7]   load_model_opt_format ........................... False
+[GPU 5,7]   local_rank ...................................... 0
+[GPU 5,7]   log_energy ...................................... False
+[GPU 5,7]   log_interval .................................... 100
+[GPU 5,7]   log_loss_scale_to_tensorboard ................... True
+[GPU 5,7]   log_memory_to_tensorboard ....................... False
+[GPU 5,7]   log_multi_turn .................................. False
+[GPU 5,7]   log_num_zeros_in_grad ........................... False
+[GPU 5,7]   log_params_norm ................................. False
+[GPU 5,7]   log_passrate .................................... False
+[GPU 5,7]   log_probs_max_tokens_per_gpu .................... None
+[GPU 5,7]   log_progress .................................... False
+[GPU 5,7]   log_straggler ................................... False
+[GPU 5,7]   log_throughput .................................. False
+[GPU 5,7]   log_timers_to_tensorboard ....................... False
+[GPU 5,7]   log_validation_ppl_to_tensorboard ............... False
+[GPU 5,7]   log_world_size_to_tensorboard ................... False
+[GPU 5,7]   logging_level ................................... None
+[GPU 5,7]   loss_mask_type .................................. qwen
+[GPU 5,7]   loss_scale ...................................... None
+[GPU 5,7]   loss_scale_window ............................... 1000
+[GPU 5,7]   loss_type ....................................... policy_loss
+[GPU 5,7]   lr .............................................. 1e-06
+[GPU 5,7]   lr_decay_iters .................................. None
+[GPU 5,7]   lr_decay_samples ................................ None
+[GPU 5,7]   lr_decay_style .................................. linear
+[GPU 5,7]   lr_warmup_fraction .............................. None
+[GPU 5,7]   lr_warmup_init .................................. 0.0
+[GPU 5,7]   lr_warmup_iters ................................. 0
+[GPU 5,7]   lr_warmup_samples ............................... 0
+[GPU 5,7]   lr_wsd_decay_iters .............................. None
+[GPU 5,7]   lr_wsd_decay_samples ............................ None
+[GPU 5,7]   lr_wsd_decay_style .............................. exponential
+[GPU 5,7]   main_grads_dtype ................................ torch.float32
+[GPU 5,7]   main_params_dtype ............................... torch.float32
+[GPU 5,7]   make_vocab_size_divisible_by .................... 128
+[GPU 5,7]   mamba_head_dim .................................. 64
+[GPU 5,7]   mamba_num_groups ................................ 8
+[GPU 5,7]   mamba_num_heads ................................. None
+[GPU 5,7]   mamba_state_dim ................................. 128
+[GPU 5,7]   manual_gc ....................................... False
+[GPU 5,7]   manual_gc_eval .................................. True
+[GPU 5,7]   manual_gc_interval .............................. 0
+[GPU 5,7]   mask_factor ..................................... 1.0
+[GPU 5,7]   mask_prob ....................................... 0.15
+[GPU 5,7]   mask_type ....................................... random
+[GPU 5,7]   masked_softmax_fusion ........................... True
+[GPU 5,7]   max_position_embeddings ......................... 4096
+[GPU 5,7]   max_tokens_per_gpu .............................. None
+[GPU 5,7]   max_tokens_to_oom ............................... 12000
+[GPU 5,7]   memory_snapshot_path ............................ snapshot.pickle
+[GPU 5,7]   merge_file ...................................... None
+[GPU 5,7]   metadata_key .................................... metadata
+[GPU 5,7]   micro_batch_size ................................ 1
+[GPU 5,7]   microbatch_group_size_per_vp_stage .............. None
+[GPU 5,7]   mid_level_dataset_surplus ....................... 0.005
+[GPU 5,7]   min_batch_collection_ratio ...................... 1
+[GPU 5,7]   min_loss_scale .................................. 1.0
+[GPU 5,7]   min_lr .......................................... 0.0
+[GPU 5,7]   mlp_chunks_for_prefill .......................... 1
+[GPU 5,7]   mmap_bin_files .................................. True
+[GPU 5,7]   mock_data ....................................... False
+[GPU 5,7]   model_name ...................................... None
+[GPU 5,7]   moe_apply_probs_on_input ........................ False
+[GPU 5,7]   moe_aux_loss_coeff .............................. 0.0
+[GPU 5,7]   moe_deepep_num_sms .............................. 20
+[GPU 5,7]   moe_enable_deepep ............................... False
+[GPU 5,7]   moe_expert_capacity_factor ...................... None
+[GPU 5,7]   moe_extended_tp ................................. False
+[GPU 5,7]   moe_ffn_hidden_size ............................. None
+[GPU 5,7]   moe_grouped_gemm ................................ False
+[GPU 5,7]   moe_input_jitter_eps ............................ None
+[GPU 5,7]   moe_layer_freq .................................. 1
+[GPU 5,7]   moe_layer_recompute ............................. False
+[GPU 5,7]   moe_pad_expert_input_to_capacity ................ False
+[GPU 5,7]   moe_per_layer_logging ........................... False
+[GPU 5,7]   moe_permute_fusion .............................. False
+[GPU 5,7]   moe_router_bias_update_rate ..................... 0.001
+[GPU 5,7]   moe_router_dtype ................................ None
+[GPU 5,7]   moe_router_enable_expert_bias ................... False
+[GPU 5,7]   moe_router_force_load_balancing ................. False
+[GPU 5,7]   moe_router_fusion ............................... False
+[GPU 5,7]   moe_router_group_topk ........................... None
+[GPU 5,7]   moe_router_load_balancing_type .................. aux_loss
+[GPU 5,7]   moe_router_num_groups ........................... None
+[GPU 5,7]   moe_router_padding_for_fp8 ...................... False
+[GPU 5,7]   moe_router_pre_softmax .......................... False
+[GPU 5,7]   moe_router_score_function ....................... softmax
+[GPU 5,7]   moe_router_topk ................................. 2
+[GPU 5,7]   moe_router_topk_scaling_factor .................. None
+[GPU 5,7]   moe_shared_expert_intermediate_size ............. None
+[GPU 5,7]   moe_shared_expert_overlap ....................... False
+[GPU 5,7]   moe_token_dispatcher_type ....................... allgather
+[GPU 5,7]   moe_token_drop_policy ........................... probs
+[GPU 5,7]   moe_upcycling_granularity ....................... 1
+[GPU 5,7]   moe_use_legacy_grouped_gemm ..................... False
+[GPU 5,7]   moe_use_upcycling ............................... False
+[GPU 5,7]   moe_z_loss_coeff ................................ None
+[GPU 5,7]   mrope_section ................................... None
+[GPU 5,7]   mscale .......................................... 1.0
+[GPU 5,7]   mscale_all_dim .................................. 0.0
+[GPU 5,7]   mtp_loss_scaling_factor ......................... 0.1
+[GPU 5,7]   mtp_num_layers .................................. None
+[GPU 5,7]   multi_latent_attention .......................... False
+[GPU 5,7]   multimodal_keys ................................. None
+[GPU 5,7]   multiple_validation_sets ........................ False
+[GPU 5,7]   n_samples_per_eval_prompt ....................... 1
+[GPU 5,7]   n_samples_per_prompt ............................ 8
+[GPU 5,7]   nccl_all_reduce_for_prefill ..................... False
+[GPU 5,7]   nccl_communicator_config_path ................... None
+[GPU 5,7]   nccl_ub ......................................... False
+[GPU 5,7]   no_load_optim ................................... True
+[GPU 5,7]   no_load_rng ..................................... True
+[GPU 5,7]   no_persist_layer_norm ........................... True
+[GPU 5,7]   no_rope_freq .................................... None
+[GPU 5,7]   no_save_optim ................................... None
+[GPU 5,7]   no_save_rng ..................................... None
+[GPU 5,7]   non_persistent_ckpt_type ........................ None
+[GPU 5,7]   non_persistent_global_ckpt_dir .................. None
+[GPU 5,7]   non_persistent_local_ckpt_algo .................. fully_parallel
+[GPU 5,7]   non_persistent_local_ckpt_dir ................... None
+[GPU 5,7]   non_persistent_save_interval .................... None
+[GPU 5,7]   norm_epsilon .................................... 1e-05
+[GPU 5,7]   normalization ................................... RMSNorm
+[GPU 5,7]   normalize_advantages ............................ False
+[GPU 5,7]   num_attention_heads ............................. 32
+[GPU 5,7]   num_channels .................................... 3
+[GPU 5,7]   num_classes ..................................... 1000
+[GPU 5,7]   num_critic_only_steps ........................... 0
+[GPU 5,7]   num_dataset_builder_threads ..................... 1
+[GPU 5,7]   num_distributed_optimizer_instances ............. 1
+[GPU 5,7]   num_epoch ....................................... None
+[GPU 5,7]   num_experts ..................................... None
+[GPU 5,7]   num_gpus_per_node ............................... 8
+[GPU 5,7]   num_layers ...................................... 36
+[GPU 5,7]   num_layers_at_end_in_bf16 ....................... 1
+[GPU 5,7]   num_layers_at_start_in_bf16 ..................... 1
+[GPU 5,7]   num_layers_per_virtual_pipeline_stage ........... None
+[GPU 5,7]   num_query_groups ................................ 8
+[GPU 5,7]   num_rollout ..................................... 3000
+[GPU 5,7]   num_steps_per_rollout ........................... 1
+[GPU 5,7]   num_virtual_stages_per_pipeline_rank ............ None
+[GPU 5,7]   num_workers ..................................... 2
+[GPU 5,7]   object_storage_cache_path ....................... None
+[GPU 5,7]   offload ......................................... True
+[GPU 5,7]   one_logger_async ................................ False
+[GPU 5,7]   one_logger_project .............................. megatron-lm
+[GPU 5,7]   one_logger_run_name ............................. None
+[GPU 5,7]   onnx_safe ....................................... None
+[GPU 5,7]   openai_gelu ..................................... False
+[GPU 5,7]   optimizer ....................................... adam
+[GPU 5,7]   optimizer_cpu_offload ........................... False
+[GPU 5,7]   optimizer_offload_fraction ...................... 1.0
+[GPU 5,7]   output_bert_embeddings .......................... False
+[GPU 5,7]   over_sampling_batch_size ........................ 32
+[GPU 5,7]   overlap_cpu_optimizer_d2h_h2d ................... False
+[GPU 5,7]   overlap_grad_reduce ............................. False
+[GPU 5,7]   overlap_moe_expert_parallel_comm ................ False
+[GPU 5,7]   overlap_p2p_comm ................................ False
+[GPU 5,7]   overlap_p2p_comm_warmup_flush ................... False
+[GPU 5,7]   overlap_param_gather ............................ False
+[GPU 5,7]   overlap_param_gather_with_optimizer_step ........ False
+[GPU 5,7]   override_opt_param_scheduler .................... False
+[GPU 5,7]   padded_vocab_size ............................... 152064
+[GPU 5,7]   params_dtype .................................... torch.bfloat16
+[GPU 5,7]   partial_rollout ................................. False
+[GPU 5,7]   patch_dim ....................................... 16
+[GPU 5,7]   per_split_data_args_path ........................ None
+[GPU 5,7]   perform_initialization .......................... True
+[GPU 5,7]   pin_cpu_grads ................................... True
+[GPU 5,7]   pin_cpu_params .................................. True
+[GPU 5,7]   pipeline_model_parallel_comm_backend ............ None
+[GPU 5,7]   pipeline_model_parallel_layout .................. None
+[GPU 5,7]   pipeline_model_parallel_size .................... 1
+[GPU 5,7]   position_embedding_type ......................... rope
+[GPU 5,7]   pretrained_checkpoint ........................... None
+[GPU 5,7]   profile ......................................... False
+[GPU 5,7]   profile_ranks ................................... [0]
+[GPU 5,7]   profile_step_end ................................ 12
+[GPU 5,7]   profile_step_start .............................. 10
+[GPU 5,7]   prompt_data ..................................... None
+[GPU 5,7]   q_lora_rank ..................................... None
+[GPU 5,7]   qk_head_dim ..................................... 128
+[GPU 5,7]   qk_l2_norm ...................................... False
+[GPU 5,7]   qk_layernorm .................................... True
+[GPU 5,7]   qk_pos_emb_head_dim ............................. 64
+[GPU 5,7]   query_in_block_prob ............................. 0.1
+[GPU 5,7]   rampup_batch_size ............................... None
+[GPU 5,7]   rank ............................................ 0
+[GPU 5,7]   recompute_granularity ........................... None
+[GPU 5,7]   recompute_method ................................ None
+[GPU 5,7]   recompute_modules ............................... None
+[GPU 5,7]   recompute_num_layers ............................ None
+[GPU 5,7]   record_memory_history ........................... False
+[GPU 5,7]   ref_ckpt_step ................................... None
+[GPU 5,7]   ref_load ........................................ /home/test/testdata/models/Qwen3-8B
+[GPU 5,7]   relative_attention_max_distance ................. 128
+[GPU 5,7]   relative_attention_num_buckets .................. 32
+[GPU 5,7]   replication ..................................... False
+[GPU 5,7]   replication_factor .............................. 2
+[GPU 5,7]   replication_jump ................................ None
+[GPU 5,7]   rerun_mode ...................................... validate_results
+[GPU 5,7]   reset_attention_mask ............................ False
+[GPU 5,7]   reset_position_ids .............................. False
+[GPU 5,7]   result_rejected_tracker_filename ................ None
+[GPU 5,7]   retriever_report_topk_accuracies ................ []
+[GPU 5,7]   retriever_score_scaling ......................... False
+[GPU 5,7]   retriever_seq_length ............................ 256
+[GPU 5,7]   retro_add_retriever ............................. False
+[GPU 5,7]   retro_attention_gate ............................ 1
+[GPU 5,7]   retro_cyclic_train_iters ........................ None
+[GPU 5,7]   retro_encoder_attention_dropout ................. 0.1
+[GPU 5,7]   retro_encoder_hidden_dropout .................... 0.1
+[GPU 5,7]   retro_encoder_layers ............................ 2
+[GPU 5,7]   retro_num_neighbors ............................. 2
+[GPU 5,7]   retro_num_retrieved_chunks ...................... 2
+[GPU 5,7]   retro_project_dir ............................... None
+[GPU 5,7]   retro_verify_neighbor_count ..................... True
+[GPU 5,7]   reuse_grad_buf_for_mxfp8_param_ag ............... False
+[GPU 5,7]   reward_key ...................................... reward
+[GPU 5,7]   rewards_normalization ........................... True
+[GPU 5,7]   rm_type ......................................... evolving-gym
+[GPU 5,7]   rm_url .......................................... None
+[GPU 5,7]   rollout_batch_size .............................. 32
+[GPU 5,7]   rollout_buffer_url .............................. None
+[GPU 5,7]   rollout_data_postprocess_path ................... None
+[GPU 5,7]   rollout_function_path ........................... slime.rollout.sglang_rollout.generate_rollout
+[GPU 5,7]   rollout_global_dataset .......................... False
+[GPU 5,7]   rollout_health_check_first_wait ................. 300.0
+[GPU 5,7]   rollout_health_check_interval ................... 10.0
+[GPU 5,7]   rollout_health_check_timeout .................... 5.0
+[GPU 5,7]   rollout_max_context_len ......................... None
+[GPU 5,7]   rollout_max_prompt_len .......................... None
+[GPU 5,7]   rollout_max_response_len ........................ 8192
+[GPU 5,7]   rollout_num_gpus ................................ 2
+[GPU 5,7]   rollout_num_gpus_per_engine ..................... 1
+[GPU 5,7]   rollout_seed .................................... 42
+[GPU 5,7]   rollout_shuffle ................................. False
+[GPU 5,7]   rollout_skip_special_tokens ..................... False
+[GPU 5,7]   rollout_stop .................................... None
+[GPU 5,7]   rollout_stop_token_ids .......................... None
+[GPU 5,7]   rollout_task_type ............................... math
+[GPU 5,7]   rollout_temperature ............................. 0.8
+[GPU 5,7]   rollout_top_k ................................... -1
+[GPU 5,7]   rollout_top_p ................................... 1.0
+[GPU 5,7]   rope_scaling_factor ............................. 8.0
+[GPU 5,7]   rope_type ....................................... rope
+[GPU 5,7]   rotary_base ..................................... 1000000
+[GPU 5,7]   rotary_interleaved .............................. False
+[GPU 5,7]   rotary_percent .................................. 1.0
+[GPU 5,7]   rotary_scaling_factor ........................... 1.0
+[GPU 5,7]   rotary_seq_len_interpolation_factor ............. None
+[GPU 5,7]   run_workload_inspector_server ................... False
+[GPU 5,7]   sample_rate ..................................... 1.0
+[GPU 5,7]   save ............................................ /tmp/theta_evolve_2d_nwe0v0ha/theta_evolve_save
+[GPU 5,7]   save_debug_rollout_data ......................... None
+[GPU 5,7]   save_debug_train_data ........................... None
+[GPU 5,7]   save_interval ................................... 300
+[GPU 5,7]   save_retain_interval ............................ None
+[GPU 5,7]   scatter_gather_tensors_in_pipeline .............. True
+[GPU 5,7]   seed ............................................ 1234
+[GPU 5,7]   seq_length ...................................... 4096
+[GPU 5,7]   sequence_parallel ............................... False
+[GPU 5,7]   sft ............................................. False
+[GPU 5,7]   sft_tokenizer_prompt_format ..................... nemotron-h-aligned
+[GPU 5,7]   sgd_momentum .................................... 0.9
+[GPU 5,7]   sglang_allow_auto_truncate ...................... False
+[GPU 5,7]   sglang_api_key .................................. None
+[GPU 5,7]   sglang_attention_backend ........................ None
+[GPU 5,7]   sglang_bucket_e2e_request_latency ............... None
+[GPU 5,7]   sglang_bucket_inter_token_latency ............... None
+[GPU 5,7]   sglang_bucket_time_to_first_token ............... None
+[GPU 5,7]   sglang_chat_template ............................ None
+[GPU 5,7]   sglang_chunked_prefill_size ..................... None
+[GPU 5,7]   sglang_collect_tokens_histogram ................. False
+[GPU 5,7]   sglang_completion_template ...................... None
+[GPU 5,7]   sglang_constrained_json_whitespace_pattern ...... None
+[GPU 5,7]   sglang_context_length ........................... None
+[GPU 5,7]   sglang_cpu_offload_gb ........................... 0
+[GPU 5,7]   sglang_crash_dump_folder ........................ None
+[GPU 5,7]   sglang_cuda_graph_bs ............................ None
+[GPU 5,7]   sglang_cuda_graph_max_bs ........................ None
+[GPU 5,7]   sglang_custom_weight_loader ..................... None
+[GPU 5,7]   sglang_data_parallel_size ....................... 1
+[GPU 5,7]   sglang_debug_tensor_dump_inject ................. False
+[GPU 5,7]   sglang_debug_tensor_dump_input_file ............. None
+[GPU 5,7]   sglang_debug_tensor_dump_output_folder .......... None
+[GPU 5,7]   sglang_debug_tensor_dump_prefill_only ........... False
+[GPU 5,7]   sglang_decode_attention_backend ................. None
+[GPU 5,7]   sglang_decode_log_interval ...................... 40
+[GPU 5,7]   sglang_deepep_config ............................ None
+[GPU 5,7]   sglang_deepep_mode .............................. auto
+[GPU 5,7]   sglang_delete_ckpt_after_loading ................ False
+[GPU 5,7]   sglang_device ................................... None
+[GPU 5,7]   sglang_disable_chunked_prefix_cache ............. False
+[GPU 5,7]   sglang_disable_cuda_graph ....................... False
+[GPU 5,7]   sglang_disable_cuda_graph_padding ............... False
+[GPU 5,7]   sglang_disable_custom_all_reduce ................ False
+[GPU 5,7]   sglang_disable_fast_image_processor ............. False
+[GPU 5,7]   sglang_disable_hybrid_swa_memory ................ False
+[GPU 5,7]   sglang_disable_outlines_disk_cache .............. False
+[GPU 5,7]   sglang_disable_overlap_schedule ................. False
+[GPU 5,7]   sglang_disable_radix_cache ...................... False
+[GPU 5,7]   sglang_disable_shared_experts_fusion ............ False
+[GPU 5,7]   sglang_disaggregation_bootstrap_port ............ 8998
+[GPU 5,7]   sglang_disaggregation_decode_dp ................. None
+[GPU 5,7]   sglang_disaggregation_decode_tp ................. None
+[GPU 5,7]   sglang_disaggregation_ib_device ................. None
+[GPU 5,7]   sglang_disaggregation_mode ...................... null
+[GPU 5,7]   sglang_disaggregation_prefill_pp ................ 1
+[GPU 5,7]   sglang_disaggregation_transfer_backend .......... mooncake
+[GPU 5,7]   sglang_dist_timeout ............................. None
+[GPU 5,7]   sglang_download_dir ............................. None
+[GPU 5,7]   sglang_ds_channel_config_path ................... None
+[GPU 5,7]   sglang_ds_heavy_channel_num ..................... 32
+[GPU 5,7]   sglang_ds_heavy_channel_type .................... qk
+[GPU 5,7]   sglang_ds_heavy_token_num ....................... 256
+[GPU 5,7]   sglang_ds_sparse_decode_threshold ............... 4096
+[GPU 5,7]   sglang_enable_cache_report ...................... False
+[GPU 5,7]   sglang_enable_cudagraph_gc ...................... False
+[GPU 5,7]   sglang_enable_custom_logit_processor ............ False
+[GPU 5,7]   sglang_enable_deepep_moe ........................ False
+[GPU 5,7]   sglang_enable_double_sparsity ................... False
+[GPU 5,7]   sglang_enable_dp_attention ...................... False
+[GPU 5,7]   sglang_enable_dp_lm_head ........................ False
+[GPU 5,7]   sglang_enable_ep_moe ............................ False
+[GPU 5,7]   sglang_enable_eplb .............................. False
+[GPU 5,7]   sglang_enable_expert_distribution_metrics ....... False
+[GPU 5,7]   sglang_enable_flashinfer_allreduce_fusion ....... False
+[GPU 5,7]   sglang_enable_flashinfer_cutlass_moe ............ False
+[GPU 5,7]   sglang_enable_flashinfer_mxfp4_moe .............. False
+[GPU 5,7]   sglang_enable_flashinfer_trtllm_moe ............. False
+[GPU 5,7]   sglang_enable_hierarchical_cache ................ False
+[GPU 5,7]   sglang_enable_lora .............................. None
+[GPU 5,7]   sglang_enable_metrics ........................... False
+[GPU 5,7]   sglang_enable_metrics_for_all_schedulers ........ False
+[GPU 5,7]   sglang_enable_mixed_chunk ....................... False
+[GPU 5,7]   sglang_enable_mscclpp ........................... False
+[GPU 5,7]   sglang_enable_multimodal ........................ None
+[GPU 5,7]   sglang_enable_nan_detection ..................... False
+[GPU 5,7]   sglang_enable_nccl_nvls ......................... False
+[GPU 5,7]   sglang_enable_p2p_check ......................... False
+[GPU 5,7]   sglang_enable_pdmux ............................. False
+[GPU 5,7]   sglang_enable_profile_cuda_graph ................ False
+[GPU 5,7]   sglang_enable_request_time_stats_logging ........ False
+[GPU 5,7]   sglang_enable_return_hidden_states .............. False
+[GPU 5,7]   sglang_enable_symm_mem .......................... False
+[GPU 5,7]   sglang_enable_tokenizer_batch_encode ............ False
+[GPU 5,7]   sglang_enable_torch_compile ..................... False
+[GPU 5,7]   sglang_enable_triton_kernel_moe ................. False
+[GPU 5,7]   sglang_enable_two_batch_overlap ................. False
+[GPU 5,7]   sglang_ep_dispatch_algorithm .................... None
+[GPU 5,7]   sglang_ep_num_redundant_experts ................. 0
+[GPU 5,7]   sglang_eplb_algorithm ........................... auto
+[GPU 5,7]   sglang_eplb_rebalance_layers_per_chunk .......... None
+[GPU 5,7]   sglang_eplb_rebalance_num_iterations ............ 1000
+[GPU 5,7]   sglang_expert_distribution_recorder_buffer_size . None
+[GPU 5,7]   sglang_expert_distribution_recorder_mode ........ None
+[GPU 5,7]   sglang_expert_parallel_size ..................... 1
+[GPU 5,7]   sglang_file_storage_path ........................ sglang_storage
+[GPU 5,7]   sglang_flashinfer_mla_disable_ragged ............ False
+[GPU 5,7]   sglang_grammar_backend .......................... None
+[GPU 5,7]   sglang_hicache_io_backend ....................... kernel
+[GPU 5,7]   sglang_hicache_mem_layout ....................... layer_first
+[GPU 5,7]   sglang_hicache_ratio ............................ 2.0
+[GPU 5,7]   sglang_hicache_size ............................. 0
+[GPU 5,7]   sglang_hicache_storage_backend .................. None
+[GPU 5,7]   sglang_hicache_storage_prefetch_policy .......... best_effort
+[GPU 5,7]   sglang_hicache_write_policy ..................... write_through_selective
+[GPU 5,7]   sglang_host ..................................... 127.0.0.1
+[GPU 5,7]   sglang_hybrid_kvcache_ratio ..................... None
+[GPU 5,7]   sglang_init_expert_location ..................... trivial
+[GPU 5,7]   sglang_is_embedding ............................. False
+[GPU 5,7]   sglang_json_model_override_args ................. {}
+[GPU 5,7]   sglang_kv_cache_dtype ........................... auto
+[GPU 5,7]   sglang_kv_events_config ......................... None
+[GPU 5,7]   sglang_load_balance_method ...................... round_robin
+[GPU 5,7]   sglang_load_format .............................. auto
+[GPU 5,7]   sglang_log_level ................................ info
+[GPU 5,7]   sglang_log_level_http ........................... None
+[GPU 5,7]   sglang_log_requests ............................. False
+[GPU 5,7]   sglang_log_requests_level ....................... 2
+[GPU 5,7]   sglang_lora_backend ............................. triton
+[GPU 5,7]   sglang_lora_paths ............................... None
+[GPU 5,7]   sglang_lora_target_modules ...................... None
+[GPU 5,7]   sglang_max_loaded_loras ......................... None
+[GPU 5,7]   sglang_max_lora_rank ............................ None
+[GPU 5,7]   sglang_max_loras_per_batch ...................... 8
+[GPU 5,7]   sglang_max_micro_batch_size ..................... None
+[GPU 5,7]   sglang_max_prefill_tokens ....................... 16384
+[GPU 5,7]   sglang_max_queued_requests ...................... 9223372036854775807
+[GPU 5,7]   sglang_max_running_requests ..................... None
+[GPU 5,7]   sglang_max_total_tokens ......................... None
+[GPU 5,7]   sglang_mem_fraction_static ...................... None
+[GPU 5,7]   sglang_mm_attention_backend ..................... None
+[GPU 5,7]   sglang_model_impl ............................... auto
+[GPU 5,7]   sglang_model_loader_extra_config ................ {}
+[GPU 5,7]   sglang_moe_a2a_backend .......................... None
+[GPU 5,7]   sglang_moe_dense_tp_size ........................ None
+[GPU 5,7]   sglang_num_continuous_decode_steps .............. 1
+[GPU 5,7]   sglang_num_reserved_decode_tokens ............... 512
+[GPU 5,7]   sglang_page_size ................................ None
+[GPU 5,7]   sglang_pdlb_url ................................. None
+[GPU 5,7]   sglang_pipeline_parallel_size ................... 1
+[GPU 5,7]   sglang_preferred_sampling_params ................ None
+[GPU 5,7]   sglang_prefill_attention_backend ................ None
+[GPU 5,7]   sglang_quantization ............................. None
+[GPU 5,7]   sglang_quantization_param_path .................. None
+[GPU 5,7]   sglang_reasoning_parser ......................... None
+[GPU 5,7]   sglang_revision ................................. None
+[GPU 5,7]   sglang_router_ip ................................ None
+[GPU 5,7]   sglang_router_port .............................. None
+[GPU 5,7]   sglang_router_request_timeout_secs .............. 3600
+[GPU 5,7]   sglang_sampling_backend ......................... None
+[GPU 5,7]   sglang_schedule_conservativeness ................ 1.0
+[GPU 5,7]   sglang_schedule_policy .......................... fcfs
+[GPU 5,7]   sglang_scheduler_recv_interval .................. 1
+[GPU 5,7]   sglang_served_model_name ........................ None
+[GPU 5,7]   sglang_server_concurrency ....................... 512
+[GPU 5,7]   sglang_show_time_cost ........................... False
+[GPU 5,7]   sglang_skip_tokenizer_init ...................... False
+[GPU 5,7]   sglang_sleep_on_idle ............................ False
+[GPU 5,7]   sglang_sm_group_num ............................. 3
+[GPU 5,7]   sglang_speculative_accept_threshold_acc ......... 1.0
+[GPU 5,7]   sglang_speculative_accept_threshold_single ...... 1.0
+[GPU 5,7]   sglang_speculative_algorithm .................... None
+[GPU 5,7]   sglang_speculative_draft_model_path ............. None
+[GPU 5,7]   sglang_speculative_eagle_topk ................... None
+[GPU 5,7]   sglang_speculative_num_draft_tokens ............. None
+[GPU 5,7]   sglang_speculative_num_steps .................... None
+[GPU 5,7]   sglang_speculative_token_map .................... None
+[GPU 5,7]   sglang_stream_interval .......................... 1
+[GPU 5,7]   sglang_stream_output ............................ False
+[GPU 5,7]   sglang_swa_full_tokens_ratio .................... 0.8
+[GPU 5,7]   sglang_tbo_token_distribution_threshold ......... 0.48
+[GPU 5,7]   sglang_tensor_parallel_size ..................... 1
+[GPU 5,7]   sglang_tokenizer_mode ........................... auto
+[GPU 5,7]   sglang_tokenizer_path ........................... None
+[GPU 5,7]   sglang_tool_call_parser ......................... None
+[GPU 5,7]   sglang_tool_server .............................. None
+[GPU 5,7]   sglang_torch_compile_max_bs ..................... 32
+[GPU 5,7]   sglang_torchao_config ........................... 
+[GPU 5,7]   sglang_triton_attention_num_kv_splits ........... 8
+[GPU 5,7]   sglang_triton_attention_reduce_in_fp32 .......... False
+[GPU 5,7]   sglang_warmups .................................. None
+[GPU 5,7]   sglang_watchdog_timeout ......................... 300
+[GPU 5,7]   sglang_weight_loader_disable_mmap ............... False
+[GPU 5,7]   sharp_enabled_group ............................. None
+[GPU 5,7]   short_seq_prob .................................. 0.1
+[GPU 5,7]   skip_train ...................................... False
+[GPU 5,7]   skipped_train_samples ........................... 0
+[GPU 5,7]   slime_router_middleware_paths ................... None
+[GPU 5,7]   spec ............................................ None
+[GPU 5,7]   split ........................................... None
+[GPU 5,7]   squared_relu .................................... False
+[GPU 5,7]   start_rollout_id ................................ 0
+[GPU 5,7]   start_weight_decay .............................. 0.01
+[GPU 5,7]   straggler_ctrlr_port ............................ 65535
+[GPU 5,7]   straggler_minmax_count .......................... 1
+[GPU 5,7]   strict_fsdp_dtensor_load ........................ True
+[GPU 5,7]   suggested_communication_unit_size ............... None
+[GPU 5,7]   swiglu .......................................... False
+[GPU 5,7]   swin_backbone_type .............................. tiny
+[GPU 5,7]   symmetric_ar_type ............................... None
+[GPU 5,7]   tb_experiment_name .............................. None
+[GPU 5,7]   tb_project_name ................................. None
+[GPU 5,7]   te_rng_tracker .................................. False
+[GPU 5,7]   tensor_model_parallel_size ...................... 2
+[GPU 5,7]   tensorboard_dir ................................. None
+[GPU 5,7]   tensorboard_log_interval ........................ 1
+[GPU 5,7]   tensorboard_queue_size .......................... 1000
+[GPU 5,7]   test_data_path .................................. None
+[GPU 5,7]   test_mode ....................................... False
+[GPU 5,7]   tiktoken_num_special_tokens ..................... 1000
+[GPU 5,7]   tiktoken_pattern ................................ None
+[GPU 5,7]   tiktoken_special_tokens ......................... None
+[GPU 5,7]   timing_log_level ................................ 0
+[GPU 5,7]   timing_log_option ............................... minmax
+[GPU 5,7]   tis_clip ........................................ 2.0
+[GPU 5,7]   tis_clip_low .................................... 0
+[GPU 5,7]   titles_data_path ................................ None
+[GPU 5,7]   tokenizer_model ................................. /home/test/testdata/models/Qwen3-8B
+[GPU 5,7]   tokenizer_type .................................. HuggingFaceTokenizer
+[GPU 5,7]   tool_key ........................................ None
+[GPU 5,7]   torch_fsdp2_reshard_after_forward ............... True
+[GPU 5,7]   tp_comm_bootstrap_backend ....................... nccl
+[GPU 5,7]   tp_comm_bulk_dgrad .............................. True
+[GPU 5,7]   tp_comm_bulk_wgrad .............................. True
+[GPU 5,7]   tp_comm_overlap ................................. False
+[GPU 5,7]   tp_comm_overlap_ag .............................. True
+[GPU 5,7]   tp_comm_overlap_cfg ............................. None
+[GPU 5,7]   tp_comm_overlap_rs .............................. True
+[GPU 5,7]   tp_comm_overlap_rs_dgrad ........................ False
+[GPU 5,7]   tp_comm_split_ag ................................ True
+[GPU 5,7]   tp_comm_split_rs ................................ True
+[GPU 5,7]   train_data_path ................................. None
+[GPU 5,7]   train_iters ..................................... None
+[GPU 5,7]   train_samples ................................... None
+[GPU 5,7]   train_sync_interval ............................. None
+[GPU 5,7]   transformer_impl ................................ local
+[GPU 5,7]   transformer_pipeline_model_parallel_size ........ 1
+[GPU 5,7]   trust_remote_code ............................... False
+[GPU 5,7]   untie_embeddings_and_output_weights ............. True
+[GPU 5,7]   update_weight_buffer_size ....................... 536870912
+[GPU 5,7]   update_weights_interval ......................... 1
+[GPU 5,7]   use_checkpoint_args ............................. False
+[GPU 5,7]   use_checkpoint_opt_param_scheduler .............. False
+[GPU 5,7]   use_cpu_initialization .......................... None
+[GPU 5,7]   use_critic ...................................... False
+[GPU 5,7]   use_dist_ckpt ................................... True
+[GPU 5,7]   use_dist_ckpt_deprecated ........................ False
+[GPU 5,7]   use_distributed_optimizer ....................... True
+[GPU 5,7]   use_distributed_post ............................ False
+[GPU 5,7]   use_dynamic_batch_size .......................... False
+[GPU 5,7]   use_flash_attn .................................. False
+[GPU 5,7]   use_fused_weighted_squared_relu ................. False
+[GPU 5,7]   use_hf_config_for_megatron ...................... False
+[GPU 5,7]   use_kl_loss ..................................... False
+[GPU 5,7]   use_legacy_models ............................... False
+[GPU 5,7]   use_megatron_fsdp ............................... False
+[GPU 5,7]   use_mp_args_from_checkpoint_args ................ False
+[GPU 5,7]   use_one_sent_docs ............................... False
+[GPU 5,7]   use_persistent_ckpt_worker ...................... False
+[GPU 5,7]   use_precision_aware_optimizer ................... False
+[GPU 5,7]   use_pytorch_profiler ............................ False
+[GPU 5,7]   use_ring_exchange_p2p ........................... False
+[GPU 5,7]   use_rollout_entropy ............................. False
+[GPU 5,7]   use_rope_scaling ................................ False
+[GPU 5,7]   use_rotary_position_embeddings .................. False
+[GPU 5,7]   use_routing_replay .............................. False
+[GPU 5,7]   use_sharp ....................................... False
+[GPU 5,7]   use_slime_router ................................ False
+[GPU 5,7]   use_te_activation_func .......................... False
+[GPU 5,7]   use_tensorboard ................................. False
+[GPU 5,7]   use_tis ......................................... False
+[GPU 5,7]   use_tokenizer_model_from_checkpoint_args ........ True
+[GPU 5,7]   use_torch_fsdp2 ................................. False
+[GPU 5,7]   use_torch_optimizer_for_cpu_offload ............. False
+[GPU 5,7]   use_tp_pp_dp_mapping ............................ False
+[GPU 5,7]   use_wandb ....................................... False
+[GPU 5,7]   v_head_dim ...................................... 128
+[GPU 5,7]   valid_data_path ................................. None
+[GPU 5,7]   value_clip ...................................... 0.2
+[GPU 5,7]   variable_seq_lengths ............................ False
+[GPU 5,7]   virtual_pipeline_model_parallel_size ............ None
+[GPU 5,7]   vision_backbone_type ............................ vit
+[GPU 5,7]   vision_pretraining .............................. False
+[GPU 5,7]   vision_pretraining_type ......................... classify
+[GPU 5,7]   vocab_extra_ids ................................. 0
+[GPU 5,7]   vocab_file ...................................... None
+[GPU 5,7]   vocab_size ...................................... 151936
+[GPU 5,7]   wandb_always_use_train_step ..................... False
+[GPU 5,7]   wandb_dir ....................................... None
+[GPU 5,7]   wandb_entity .................................... 
+[GPU 5,7]   wandb_exp_name .................................. 
+[GPU 5,7]   wandb_group ..................................... None
+[GPU 5,7]   wandb_host ...................................... None
+[GPU 5,7]   wandb_key ....................................... None
+[GPU 5,7]   wandb_mode ...................................... None
+[GPU 5,7]   wandb_project ................................... None
+[GPU 5,7]   wandb_random_suffix ............................. True
+[GPU 5,7]   wandb_run_id .................................... None
+[GPU 5,7]   wandb_save_dir .................................. 
+[GPU 5,7]   wandb_team ...................................... None
+[GPU 5,7]   weight_decay .................................... 0.01
+[GPU 5,7]   weight_decay_incr_style ......................... constant
+[GPU 5,7]   wgrad_deferral_limit ............................ 0
+[GPU 5,7]   world_size ...................................... 2
+[GPU 5,7]   yaml_cfg ........................................ None
+[GPU 5,7] -------------------- end of arguments ---------------------
+[GPU 5,7] --moe-token-dispatcher-type allgather does not support variable sequence length, please use alltoall dispatcher instead.
+[GPU 5,7] Creating placement group with 2 GPUs...
+[GPU 5,7] 2026-02-24 11:01:56,563	INFO worker.py:2004 -- Started a local Ray instance. View the dashboard at [1m[32m127.0.0.1:8265 [39m[22m
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/ray/_private/worker.py:2052: FutureWarning: Tip: In future versions of Ray, Ray will no longer override accelerator visible devices env var if num_gpus=0 or num_gpus=None (default). To enable this behavior and turn off this error message, set RAY_ACCEL_ENV_VAR_OVERRIDE_ON_ZERO=0
+[GPU 5,7]   warnings.warn(
+[GPU 5,7]   bundle    0, actual_bundle_index:    0, node: 11.11.8.1, gpu: 5
+[GPU 5,7]   bundle    1, actual_bundle_index:    1, node: 11.11.8.1, gpu: 7
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[GPU 5,7] [36m(pid=3422166)[0m   import pynvml  # type: ignore[import]
+[GPU 5,7] [36m(pid=3422166)[0m WARNING:root:deep_ep is not installed, some functionalities may be limited.
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/utils.py:109: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_scale
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3422166)[0m W0224 11:02:13.616000 3422166 site-packages/torch/utils/cpp_extension.py:2425] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. 
+[GPU 5,7] [36m(pid=3422166)[0m W0224 11:02:13.616000 3422166 site-packages/torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/backends.py:21: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn("Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/training/utils.py:22: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_l2norm
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3422166)[0m WARNING:megatron.core.utils:fused_indices_to_multihot has reached end of life. Please migrate to a non-experimental function.
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/gpt/gpt_layer_specs.py:67: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn("Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/retro/encoder_spec.py:49: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn(f'Apex is not installed. Falling back to Torch Norm')
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/retro/decoder_spec.py:38: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn(f"Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/__init__.py:18: UserWarning: Transformer Engine and Apex are not installed. Falling back to Torch optimizers.
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/optimizer.py:27: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_scale
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/clip_grads.py:29: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+[GPU 5,7] [36m(pid=3422166)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+[GPU 5,7] [36m(pid=3424225)[0m   import pynvml  # type: ignore[import]
+[GPU 5,7] [36m(pid=3424225)[0m WARNING:root:deep_ep is not installed, some functionalities may be limited.
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/distributed/fsdp/src/megatron_fsdp/utils.py:109: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_scale
+[GPU 5,7] [36m(pid=3424225)[0m W0224 11:02:29.970000 3424225 site-packages/torch/utils/cpp_extension.py:2425] TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. 
+[GPU 5,7] [36m(pid=3424225)[0m W0224 11:02:29.970000 3424225 site-packages/torch/utils/cpp_extension.py:2425] If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'] to specific architectures.
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/backends.py:21: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn("Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/training/utils.py:22: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_l2norm
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3424225)[0m WARNING:megatron.core.utils:fused_indices_to_multihot has reached end of life. Please migrate to a non-experimental function.
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/gpt/gpt_layer_specs.py:67: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn("Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/retro/encoder_spec.py:49: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn(f'Apex is not installed. Falling back to Torch Norm')
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/retro/decoder_spec.py:38: UserWarning: Apex is not installed. Falling back to Torch Norm
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn(f"Apex is not installed. Falling back to Torch Norm")
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/__init__.py:18: UserWarning: Transformer Engine and Apex are not installed. Falling back to Torch optimizers.
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/optimizer.py:27: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier and multi_tensor_scale
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn(
+[GPU 5,7] [36m(pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/optimizer/clip_grads.py:29: UserWarning: Transformer Engine and Apex are not installed. Falling back to local implementations of multi_tensor_applier, multi_tensor_l2norm, and multi_tensor_scale
+[GPU 5,7] [36m(pid=3424225)[0m   warnings.warn(
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m [Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m Set NUMA affinity for GPU 0
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m > setting random seeds to 1234 ...
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m > building HuggingFaceTokenizer tokenizer ...
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/gpt/gpt_layer_specs.py:241: UserWarning: The fp8 argument in "get_gpt_layer_local_spec" has been deprecated and will be removed soon. Please update your code accordingly.
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m  > number of parameters on (tensor, pipeline) model parallel rank (0, 0): 4549030912
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m WARNING: could not find the metadata file /home/test/testdata/models/Qwen3-8B/latest_checkpointed_iteration.txt
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m     will not load any checkpoints and will start from random
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m WARNING:slime.backends.megatron_utils.model:Failed to load from HF checkpoint /home/test/testdata/models/Qwen3-8B: Unsupported parameter name: decoder.layers.0.input_layernorm.weight. Model will start from random init. For cold start, convert HF to Megatron once: python tools/convert_hf_to_torch_dist.py ... && pass --ref-load <converted_dir>
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0[32m [repeated 8x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/user-guides/configure-logging.html#log-deduplication for more options.)[0m
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m Set NUMA affinity for GPU 1
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m  > number of parameters on (tensor, pipeline) model parallel rank (1, 0): 4549030912
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3422166)[0m Memory-Usage before offload model: {'gpu': '0', 'total_GB': 79.32, 'free_GB': 0.95, 'used_GB': 78.37}
+[GPU 5,7] Traceback (most recent call last):
+[GPU 5,7]   File "/home/test/test1709/THUNLP/DaVinciBench/baseline/Parameter_Policy/ThetaEvolve/train.py", line 96, in <module>
+[GPU 5,7]     train(args)
+[GPU 5,7]   File "/home/test/test1709/THUNLP/DaVinciBench/baseline/Parameter_Policy/ThetaEvolve/train.py", line 19, in train
+[GPU 5,7]     actor_model, critic_model = create_training_models(args, pgs, wandb_run_id=wandb_run_id)
+[GPU 5,7]   File "/home/test/test1709/THUNLP/DaVinciBench/baseline/Parameter_Policy/ThetaEvolve/slime/ray/placement_group.py", line 154, in create_training_models
+[GPU 5,7]     start_rollout_ids = ray.get(
+[GPU 5,7]   File "/home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/ray/_private/auto_init_hook.py", line 22, in auto_init_wrapper
+[GPU 5,7]     return fn(*args, **kwargs)
+[GPU 5,7]   File "/home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/ray/_private/client_mode_hook.py", line 104, in wrapper
+[GPU 5,7]     return func(*args, **kwargs)
+[GPU 5,7]   File "/home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/ray/_private/worker.py", line 2981, in get
+[GPU 5,7]     values, debugger_breakpoint = worker.get_objects(
+[GPU 5,7]   File "/home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/ray/_private/worker.py", line 1014, in get_objects
+[GPU 5,7]     raise value
+[GPU 5,7] ray.exceptions.OutOfMemoryError: Task was killed due to the node running low on memory.
+[GPU 5,7] Memory on the node (IP: 11.11.8.1, ID: 41aa98c74ca9a30db71251060498a7d4df78c02879ec8d3844dec4a9) where the lease (lease ID: 03000000a4825b7ef79ae23f574f4f965835a9652b6b76939f831d76e50b3e15, name=MegatronTrainRayActor.__init__, pid=3424225, memory used=42.71GB) was running was 977.61GB / 1007.50GB (0.970336), which exceeds the memory usage threshold of 0.95. Ray killed this worker (ID: a5f643c291a4d99edfd94f006d6f519c69cee2c7e6a1a716d213a7da) because it was the most recently scheduled task; to see more information about memory usage on this node, use `ray logs raylet.out -ip 11.11.8.1`. To see the logs of the worker, use `ray logs worker-a5f643c291a4d99edfd94f006d6f519c69cee2c7e6a1a716d213a7da*out -ip 11.11.8.1. Top 10 memory users:
+[GPU 5,7] PID	MEM(GB)	COMMAND
+[GPU 5,7] 3422166	48.20	ray::MegatronTrainRayActor.init
+[GPU 5,7] 3424225	42.71	ray::MegatronTrainRayActor.init
+[GPU 5,7] 1985304	4.68	/home/test/test1709/miniconda3/bin/python evaluation/evaluate.py --model-type local --model-name /ho...
+[GPU 5,7] 2403771	3.94	python evaluation/run_evaluate_parallel.py --task category_1 --api-parallel 18 --model-type openai -...
+[GPU 5,7] 2137091	2.25	/home/test/test1709/miniconda3/bin/python evaluation/evaluate.py --model-type local --model-name /ho...
+[GPU 5,7] 3161589	2.09	/home/test/test1709/miniconda3/bin/python evaluation/evaluate.py --model-type local --model-name /ho...
+[GPU 5,7] 3281976	2.01	/home/test/test1709/miniconda3/bin/python evaluation/evaluate.py --model-type local --model-name /ho...
+[GPU 5,7] 2137444	1.95	python evaluation/evaluate.py --task category_1_01 --model-type local --model-name /home/test/testda...
+[GPU 5,7] 3414378	0.62	/home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/ray/core/src/ray/gcs/gcs_...
+[GPU 5,7] 3406631	0.58	/home/test/test1709/miniconda3/envs/theta_env/bin/python train.py --actor-num-nodes 1 --actor-num-gp...
+[GPU 5,7] Refer to the documentation on how to address the out of memory issue: https://docs.ray.io/en/latest/ray-core/scheduling/ray-oom-prevention.html. Consider provisioning more memory on this node or reducing task parallelism by requesting more CPUs per task. Set max_restarts and max_task_retries to enable retry when the task crashes due to OOM. To adjust the kill threshold, set the environment variable `RAY_memory_usage_threshold` when starting Ray. To disable worker killing, set the environment variable `RAY_memory_monitor_refresh_ms` to zero.
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m [Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/vision/vit_layer_specs.py:30: UserWarning: Apex is not installed. Falling back to Torch Norm[32m [repeated 4x across cluster][0m
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m   warnings.warn("Apex is not installed. Falling back to Torch Norm")[32m [repeated 2x across cluster][0m
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m   warnings.warn([32m [repeated 2x across cluster][0m
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m   warnings.warn(f"Apex is not installed. Falling back to Torch Norm")[32m [repeated 2x across cluster][0m
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/megatron/core/models/gpt/gpt_layer_specs.py:241: UserWarning: The fp8 argument in "get_gpt_layer_local_spec" has been deprecated and will be removed soon. Please update your code accordingly.
+[GPU 5,7] [36m(MegatronTrainRayActor pid=3424225)[0m WARNING:slime.backends.megatron_utils.model:Failed to load from HF checkpoint /home/test/testdata/models/Qwen3-8B: Unsupported parameter name: decoder.layers.0.input_layernorm.weight. Model will start from random init. For cold start, convert HF to Megatron once: python tools/convert_hf_to_torch_dist.py ... && pass --ref-load <converted_dir>
+[GPU 5,7] 
+[GPU 5,7] ================================================================================
+[GPU 5,7] 📊 Summary of all runs for task: category_1_01
+[GPU 5,7] ================================================================================
+[GPU 5,7]   Run 1: ❌ Failed (Score: 0.0/100)
+[GPU 5,7] ================================================================================
+[GPU 5,7] 
+[GPU 5,7] 
+[GPU 5,7] ================================================================================
+[GPU 5,7] 📊 Evaluation Summary
+[GPU 5,7] ================================================================================
+[GPU 5,7] Runs completed (exit 0): 0/1
+[GPU 5,7] 
+[GPU 5,7] Detailed results (per task, exit code):
+[GPU 5,7]   category_1_01: ❌ Failed/Crashed
+[GPU 5,7] ================================================================================
+[GPU 5,7] 
+[GPU 5,7] /home/test/test1709/miniconda3/envs/theta_env/lib/python3.10/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+[GPU 5,7]   from pkg_resources import resource_stream, resource_exists
+[GPU 5,7] 
+[GPU 5,7] 📋 Found 1 task(s) to evaluate:
+[GPU 5,7]   1. category_1_01
+[GPU 5,7] 
+[GPU 5,7] 
+[GPU 5,7] ================================================================================
+[GPU 5,7] Evaluating task: category_1_01
+[GPU 5,7] ================================================================================
+[GPU 5,7] 
+[GPU 5,7] 🔄 Running only round 2 (run_number_override)
+[GPU 5,7] 
+[GPU 5,7] ================================================================================
+[GPU 5,7] 🔄 Round 2/3 - Run 2
+[GPU 5,7] ================================================================================
+[GPU 5,7] 
+[GPU 5,7] [theta_evolve] Starting ThetaEvolve: task=category_1_01, run=2, num_rollout=3000, seed=44

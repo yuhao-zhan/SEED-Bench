@@ -16,9 +16,6 @@ def build_agent(sandbox):
     """
     Center-pinned bar; 6 segments to cover [1,12]; strong motor for 100% cleaning.
     """
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
-
     base = sandbox.add_beam(x=CENTER_X, y=GROUND_Y, width=0.5, height=0.12, angle=0, density=1.0)
     sandbox.set_material_properties(base, restitution=0.0, friction=0.5)
     if hasattr(sandbox, 'weld_to_glass'):
@@ -55,8 +52,10 @@ def build_agent(sandbox):
 def agent_action(sandbox, agent_body, step_count):
     if not hasattr(sandbox, '_wiper_motor_joint') or sandbox._wiper_motor_joint is None:
         return
-    for body in sandbox.bodies[1:]:
-        body.awake = True
+    # Ensure structure stays awake
+    if hasattr(sandbox, 'set_awake'):
+        for body in sandbox.bodies:
+            sandbox.set_awake(body, True)
     # Longer period = more dwell at extremes = better clearance (target 100%)
     period = 500
     half = (step_count // period) % 2

@@ -13,6 +13,16 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update task description for visible changes."""
+    return base_description
+
+
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update success criteria for visible changes."""
+    return base_success_criteria
+
+
 def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
     """Returns ordered stage configs for C-06: The Governor task variants.
 

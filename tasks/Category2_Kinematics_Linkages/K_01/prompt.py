@@ -3,48 +3,47 @@ K-01: The Walker task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
-    ADD_BEAM_05_5,
-    ADD_WHEEL_05_08,
+    ADD_BEAM,
     ADD_JOINT_PIVOT,
     SET_MOTOR,
     GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES_KINEMATICS,
+    SET_MATERIAL_PROPERTIES,
     JOINTS_LIST,
 )
 
 TASK_PROMPT = {
     'task_description': """
-Design a 2D side-view walker that moves forward using only motor rotation.
+Design a 2D side-view walker that moves forward using motor-driven joints.
 
 ## Task Environment
-- **Ground**: Flat surface at y=1.0m.
+- **Ground**: A flat horizontal surface at y=1.0m.
 - **Build Zone**: x=[0, 50], y=[2, 10]. All structure components must be placed within this zone.
-- **Starting Position**: Walker spawns at approximately x=10m, y=3m.
+- **Starting Position**: Walker components should be centered around x=10m, y=4.5m for an initial drop.
+- **Target**: Move the walker's torso to at least x=20.0m (10 meters forward from starting x).
 
 ## Constraints (must satisfy)
-- **Build Zone**: All components within x=[0, 50], y=[2, 10].
-- **Structure Mass**: Total mass < 100 kg.
-- **Beam**: 0.05 <= width, height <= 5.0 (see API).
-- **Wheel** (if used): 0.05 <= radius <= 0.8 (see API).
+- **Stability**: The torso (main body) must always stay above y=1.5m. If the torso touches the ground or falls below y=1.5m, the task fails.
+- **Motion**: The walker must maintain forward motion for at least 5.0 seconds.
+- **Mass Budget**: Total structure mass must be less than 100 kg.
+- **Build Zone**: All components must stay within x=[0, 50], y=[2, 10].
+- **Beam Dimensions**: 0.05 <= width, height <= 5.0 meters.
+- **Wheel Radius** (if used): 0.05 <= radius <= 0.8 meters.
 
-## Task Objective
-Design a walker that can:
-1. Move forward continuously using only motor-driven joints
-2. Keep the torso above the ground (torso y > 1.5m)
-3. Achieve stable forward locomotion
+## Instructions
+1. **Design**: Create a walker structure (e.g., bipedal, quadrupedal, or using rotating linkages).
+2. **Control**: Use `set_motor` on pivot joints in `agent_action` to drive the walker forward.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Movement**: Walker moves forward at least 10 meters from starting position.
-2. **Stability**: Torso never touches the ground (torso y > 1.5m at all times).
-3. **Locomotion**: Walker maintains forward motion for at least 5 seconds.
+1. **Movement**: Reaches x >= 20.0m.
+2. **Stability**: Torso y > 1.5m at all times.
+3. **Locomotion**: Maintains active motion for >= 5.0 seconds.
 
 ## Design Constraints
-- **Build Zone**: x=[0, 50], y=[2, 10].
 - **Mass Budget**: < 100 kg.
-- **APIs**: Use only the primitives documented below. Do not access internal attributes.
+- **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + ADD_BEAM_05_5 + ADD_WHEEL_05_08 + ADD_JOINT_PIVOT + SET_MOTOR + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES_KINEMATICS + JOINTS_LIST,
+    'primitives_api': API_INTRO + ADD_BEAM + ADD_JOINT_PIVOT + SET_MOTOR + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES + JOINTS_LIST,
 }

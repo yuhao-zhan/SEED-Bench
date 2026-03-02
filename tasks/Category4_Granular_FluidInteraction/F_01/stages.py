@@ -10,20 +10,41 @@ Ordered by difficulty (ascending).
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
 def update_task_description_for_visible_changes(
-    base_description: str, terrain_config: Dict[str, Any]
+    base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
-    """Update task description for visible changes. No visible terrain changes in current mutations."""
-    return base_description
+    """Update task description for visible changes."""
+    description = base_description
+    
+    # Leakage rate
+    target_leakage = target_terrain_config.get("max_leakage_rate", 0.001) # Default 0.1%
+    base_leakage = base_terrain_config.get("max_leakage_rate", 0.001)
+    
+    if target_leakage != base_leakage:
+        pattern = r"(leakage remains below )(\d+\.?\d*%)"
+        description = re.sub(pattern, f"\\g<1>\\g<2> (FROM: {base_leakage*100:.2f}%, TO: {target_leakage*100:.2f}%)", description)
+        
+    return description
 
 
 def update_success_criteria_for_visible_changes(
-    base_success_criteria: str, terrain_config: Dict[str, Any]
+    base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
-    """Update success criteria for visible changes. No visible terrain changes in current mutations."""
-    return base_success_criteria
+    """Update success criteria for visible changes."""
+    criteria = base_success_criteria
+    
+    # Leakage rate
+    target_leakage = target_terrain_config.get("max_leakage_rate", 0.001)
+    base_leakage = base_terrain_config.get("max_leakage_rate", 0.001)
+    
+    if target_leakage != base_leakage:
+        pattern = r"(Leakage Rate\*\*: Total leakage < )(\d+\.?\d*%)"
+        criteria = re.sub(pattern, f"\\g<1>\\g<2> (FROM: < {base_leakage*100:.2f}%, TO: < {target_leakage*100:.2f}%)", criteria)
+        
+    return criteria
 
 
 def get_f01_curriculum_stages() -> List[Dict[str, Any]]:

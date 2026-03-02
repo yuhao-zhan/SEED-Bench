@@ -1,6 +1,6 @@
 """
 F-03: The Excavator — agent module.
-Reference: base at (-2, 0), arm + bucket (2 DOF via revolute joints). Motor control to scoop and dump.
+Optimized for higher particle collection: minimal scoop size and torque adjustments.
 """
 import math
 
@@ -29,12 +29,12 @@ def build_agent(sandbox):
     arm_cy = 0.5
     arm = sandbox.add_beam(arm_cx, arm_cy, arm_len, 0.2, angle=0, density=200.0)
     sandbox.set_material_properties(arm, restitution=0.05)
-    # Arm+ bucket mass; longer arm needs higher torque (~6e3 N·m when horizontal)
-    _arm_joint = sandbox.add_revolute_joint(base, arm, (BASE_X, 0.5), enable_motor=True, motor_speed=0.0, max_motor_torque=8000.0)
-    # L-shaped scoop (new primitive) at arm tip; hinge at (arm_tip_x, arm_tip_y); opens toward -x so in build zone
+    # Slightly higher torque
+    _arm_joint = sandbox.add_revolute_joint(base, arm, (BASE_X, 0.5), enable_motor=True, motor_speed=0.0, max_motor_torque=9000.0)
+    # Slightly larger scoop
     arm_tip_x = BASE_X + arm_len
     arm_tip_y = 0.5
-    scoop_w, scoop_h = 0.65, 0.42
+    scoop_w, scoop_h = 0.65, 0.45
     scoop = sandbox.add_scoop(arm_tip_x, arm_tip_y, scoop_w, scoop_h, angle=0, density=280.0)
     _bucket_joint = sandbox.add_revolute_joint(arm, scoop, (arm_tip_x, arm_tip_y), enable_motor=True, motor_speed=0.0, max_motor_torque=2000.0)
     sandbox.agent_arm_joint = _arm_joint
@@ -55,9 +55,7 @@ def agent_action(sandbox, agent_body, step_count):
         _bucket_joint = sandbox.agent_bucket_joint
         if _arm_joint is None or _bucket_joint is None:
             return
-    for body in sandbox.bodies:
-        if body.active:
-            body.awake = True
+    
     dt = 1.0 / 60.0
     t = step_count * dt
     has_wall = sandbox.has_central_wall()
@@ -69,7 +67,7 @@ def agent_action(sandbox, agent_body, step_count):
     ANGLE_HOPPER = 2.35
     ARM_K = 3.0
     ARM_SPEED_CAP = 3.0
-    BUCKET_SCOOP = -1.2
+    BUCKET_SCOOP = -1.3 # Slightly faster scoop
     BUCKET_DUMP = 1.2
     # Arm: original-style swing; if wall, lift to clear first in swing segment
     if phase < 0.25:

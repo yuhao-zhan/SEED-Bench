@@ -11,7 +11,40 @@ from typing import Any, Dict, List
 import re
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """
+    Update task description to reflect visible physical changes (e.g., balance time, angle limit).
+    """
+    description = base_description
+    
+    # Default values
+    default_balance_time = 15.0
+    default_max_angle_deviation_deg = 10.0
+    
+    # Get values
+    target_balance_time = target_terrain_config.get("balance_time", default_balance_time)
+    base_balance_time = base_terrain_config.get("balance_time", default_balance_time)
+    
+    target_angle = target_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
+    base_angle = base_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
+    
+    # Update balance requirement in description if changed
+    if target_balance_time != base_balance_time or target_angle != base_angle:
+        # Update "3. Maintains a level orientation (horizontal angle within ±10 degrees) for 15 seconds. "
+        balance_pattern = r"(3\. Maintains a level orientation \(horizontal angle within ±)(\d+\.?\d*)( degrees\) for )(\d+\.?\d*)( seconds\.)"
+        if re.search(balance_pattern, description):
+            angle_part = f"{target_angle:.0f} degrees (FROM: ±{base_angle:.0f}°, TO: ±{target_angle:.0f}°)" if target_angle != base_angle else f"{target_angle:.0f} degrees"
+            time_part = f"{target_balance_time:.0f} seconds (FROM: {base_balance_time:.0f}s, TO: {target_balance_time:.0f}s)" if target_balance_time != base_balance_time else f"{target_balance_time:.0f} seconds"
+            description = re.sub(
+                balance_pattern,
+                f"3. Maintains a level orientation (horizontal angle within ±{angle_part}) for {time_part}",
+                description
+            )
+            
+    return description
+
+
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update success criteria to reflect visible physical changes (e.g., balance time, angle limit).
     """
@@ -21,31 +54,23 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, terr
     default_balance_time = 15.0
     default_max_angle_deviation_deg = 10.0
     
-    # Get current values
-    balance_time = terrain_config.get("balance_time", default_balance_time)
-    max_angle_deviation_deg = terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
+    # Get values
+    target_balance_time = target_terrain_config.get("balance_time", default_balance_time)
+    base_balance_time = base_terrain_config.get("balance_time", default_balance_time)
+    
+    target_angle = target_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
+    base_angle = base_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
     
     # Update balance criteria if changed
-    if balance_time != default_balance_time or max_angle_deviation_deg != default_max_angle_deviation_deg:
-        # Update "2. **Balance**: Keep the main beam angle within ±10 degrees for 15s."
-        balance_pattern = r"(2\. \*\*Balance\*\*: Keep the main beam angle within ±)(\d+\.?\d*)( degrees for )(\d+\.?\d*)(s\.)"
+    if target_balance_time != base_balance_time or target_angle != base_angle:
+        # Update "2. Static Balance: Maintain the main beam's angle within ±10 degrees for at least 15 seconds after the load is attached."
+        balance_pattern = r"(2\. \*\*Static Balance\*\*: Maintain the main beam's angle within ±)(\d+\.?\d*)( degrees for at least )(\d+\.?\d*)( seconds)"
         if re.search(balance_pattern, criteria):
-            angle_part = f"\\g<2> degrees (ORIGINAL: ±{default_max_angle_deviation_deg:.0f}°, NOW: ±{max_angle_deviation_deg:.0f}°)" if max_angle_deviation_deg != default_max_angle_deviation_deg else "\\g<2> degrees"
-            time_part = f"\\g<4>s (ORIGINAL: {default_balance_time:.0f}s, NOW: {balance_time:.0f}s)" if balance_time != default_balance_time else "\\g<4>s"
+            angle_part = f"{target_angle:.0f} degrees (FROM: ±{base_angle:.0f}°, TO: ±{target_angle:.0f}°)" if target_angle != base_angle else f"{target_angle:.0f} degrees"
+            time_part = f"{target_balance_time:.0f} seconds (FROM: {base_balance_time:.0f}s, TO: {target_balance_time:.0f}s)" if target_balance_time != base_balance_time else f"{target_balance_time:.0f} seconds"
             criteria = re.sub(
                 balance_pattern,
-                f"\\g<1>{angle_part} for {time_part}.",
-                criteria
-            )
-    
-    # Update angle limit in task objective if changed
-    if max_angle_deviation_deg != default_max_angle_deviation_deg:
-        # Update "3. Maintains level orientation (±10 degrees)"
-        angle_pattern = r"(3\. Maintains level orientation \(±)(\d+\.?\d*)( degrees\))"
-        if re.search(angle_pattern, criteria):
-            criteria = re.sub(
-                angle_pattern,
-                f"\\g<1>\\g<2> degrees (ORIGINAL: ±{default_max_angle_deviation_deg:.0f}°, NOW: ±{max_angle_deviation_deg:.0f}°))",
+                f"2. **Static Balance**: Maintain the main beam's angle within ±{angle_part} for at least {time_part}",
                 criteria
             )
     

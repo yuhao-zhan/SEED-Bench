@@ -1,9 +1,9 @@
 """
 S-01: The Bridge task Agent module
 Reference solution: Clean flat bridge with minimal supports
+Mutated task solutions: Stage 1-4
 """
 import math
-
 
 def build_agent(sandbox):
     """
@@ -153,14 +153,13 @@ def build_agent(sandbox):
     return deck_left
 
 
-def agent_action(sandbox, agent_body, step_count):
+def _base_agent_action(sandbox, agent_body, step_count, target_speed=4.0):
     """
-    Agent control logic - prevent vehicle from flipping
+    Common agent control logic to prevent vehicle from flipping and maintain target speed.
     """
     if hasattr(sandbox, '_terrain_bodies'):
         vehicle_chassis = sandbox._terrain_bodies.get("vehicle_chassis")
         if vehicle_chassis:
-            target_speed = 4.0
             current_vx = vehicle_chassis.linearVelocity.x
             current_vy = vehicle_chassis.linearVelocity.y
             angular_vel = vehicle_chassis.angularVelocity
@@ -169,20 +168,142 @@ def agent_action(sandbox, agent_body, step_count):
             # Normalize angle to [-pi, pi]
             normalized_angle = (angle + math.pi) % (2 * math.pi) - math.pi
             
-            # Anti-flip control
+            # Anti-flip control - reduce speed if tilting
+            eff_target_speed = target_speed
             if abs(normalized_angle) > 0.3:
-                target_speed = 2.0
+                eff_target_speed = target_speed * 0.5
             elif abs(normalized_angle) > 0.1:
-                target_speed = 2.5
+                eff_target_speed = target_speed * 0.75
             
             if abs(angular_vel) > 0.5:
-                target_speed = 1.5
+                eff_target_speed = target_speed * 0.4
             
             # Smooth velocity control
-            if abs(current_vx - target_speed) > 0.01:
-                new_vx = current_vx + (target_speed - current_vx) * 0.1
+            if abs(current_vx - eff_target_speed) > 0.01:
+                new_vx = current_vx + (eff_target_speed - current_vx) * 0.1
                 vehicle_chassis.linearVelocity = (new_vx, current_vy)
             
-            # Apply angular damping
+            # Apply angular damping to stabilize
             if abs(angular_vel) > 0.3:
                 vehicle_chassis.angularVelocity = angular_vel * 0.95
+
+def agent_action(sandbox, agent_body, step_count):
+    _base_agent_action(sandbox, agent_body, step_count)
+
+# --- Mutated Task Solutions ---
+
+# Helper for common bridge building across mutations
+def _build_generic_bridge(sandbox, num_segments=2, deck_density=5.0, support_density=3.0, 
+                         num_layers=1, support_y_offset=1.5, num_verticals=12):
+    """
+    Generic bridge builder that can handle different gap widths and load conditions.
+    - num_segments: Number of segments to span the gap
+    - num_layers: Number of overlapping beams per segment (for heavy loads)
+    """
+    bounds = sandbox.get_terrain_bounds()
+    LEFT_CLIFF_X = bounds["left_cliff"]["x_end"]
+    RIGHT_CLIFF_X = bounds["right_cliff"]["start"] if "start" in bounds["right_cliff"] else bounds["right_cliff"]["x_start"]
+    GAP_WIDTH = bounds["gap"]["width"]
+    
+    DECK_TOP_Y = 10.0
+    DECK_HEIGHT = 0.6
+    DECK_Y = DECK_TOP_Y - DECK_HEIGHT/2
+    support_y = DECK_TOP_Y - support_y_offset
+    
+    segment_width = GAP_WIDTH / num_segments
+    
+    # Create deck segments (possibly multiple layers)
+    deck_segments = []
+    for i in range(num_segments):
+        center_x = LEFT_CLIFF_X + (i + 0.5) * segment_width
+        layer_beams = []
+        for _ in range(num_layers):
+            deck = sandbox.add_beam(x=center_x, y=DECK_Y, width=segment_width, height=DECK_HEIGHT, density=deck_density/num_layers)
+            for f in deck.fixtures: f.friction = 0.9
+            layer_beams.append(deck)
+        deck_segments.append(layer_beams)
+            
+    # Connect deck segments horizontally
+    for i in range(num_segments - 1):
+        joint_x = LEFT_CLIFF_X + (i + 1) * segment_width
+        for j in range(num_layers):
+            sandbox.add_joint(deck_segments[i][j], deck_segments[i+1][j], (joint_x, DECK_TOP_Y), type='rigid')
+            
+    # Create support segments (possibly multiple layers)
+    support_segments = []
+    for i in range(num_segments):
+        center_x = LEFT_CLIFF_X + (i + 0.5) * segment_width
+        layer_beams = []
+        for _ in range(num_layers):
+            # Support beams are slightly shorter to avoid clipping cliffs
+            support = sandbox.add_beam(x=center_x, y=support_y, width=segment_width-0.1, height=0.6, density=support_density/num_layers)
+            layer_beams.append(support)
+        support_segments.append(layer_beams)
+            
+    # Connect support segments horizontally
+    for i in range(num_segments - 1):
+        joint_x = LEFT_CLIFF_X + (i + 1) * segment_width
+        for j in range(num_layers):
+            sandbox.add_joint(support_segments[i][j], support_segments[i+1][j], (joint_x, support_y), type='rigid')
+            
+    # Create vertical truss members
+    for i in range(num_verticals + 1):
+        x = LEFT_CLIFF_X + (i * GAP_WIDTH / num_verticals)
+        if x < LEFT_CLIFF_X + 0.05 or x > RIGHT_CLIFF_X - 0.05: continue
+        seg_idx = min(int(i * num_segments / num_verticals), num_segments - 1)
+        
+        v = sandbox.add_beam(x=x, y=(support_y + DECK_Y) / 2, width=0.3, height=abs(DECK_Y - support_y), density=support_density)
+        for j in range(num_layers):
+            sandbox.add_joint(deck_segments[seg_idx][j], v, (x, DECK_TOP_Y), type='rigid')
+            sandbox.add_joint(support_segments[seg_idx][j], v, (x, support_y), type='rigid')
+
+    left_cliff = sandbox._terrain_bodies.get("left_cliff")
+    right_cliff = sandbox._terrain_bodies.get("right_cliff")
+    
+    # Anchor all layers to cliffs for maximum stability
+    for j in range(num_layers):
+        sandbox.add_joint(left_cliff, deck_segments[0][j], (LEFT_CLIFF_X, DECK_TOP_Y), type='rigid')
+        sandbox.add_joint(left_cliff, support_segments[0][j], (LEFT_CLIFF_X, support_y), type='rigid')
+        sandbox.add_joint(right_cliff, deck_segments[-1][j], (RIGHT_CLIFF_X, DECK_TOP_Y), type='rigid')
+        sandbox.add_joint(right_cliff, support_segments[-1][j], (RIGHT_CLIFF_X, support_y), type='rigid')
+    
+    # Extension from right cliff to target zone
+    dn = deck_segments[-1][0]
+    ext_width = 5.0 - 0.1
+    ext_center_x = RIGHT_CLIFF_X + 0.1 + ext_width/2
+    extension = sandbox.add_beam(x=ext_center_x, y=DECK_Y, width=ext_width, height=DECK_HEIGHT, density=deck_density)
+    for f in extension.fixtures: f.friction = 0.9
+    sandbox.add_joint(dn, extension, (RIGHT_CLIFF_X, DECK_TOP_Y), type='rigid')
+    sandbox.add_joint(right_cliff, extension, (RIGHT_CLIFF_X, DECK_TOP_Y), type='rigid')
+    
+    return deck_segments[0][0]
+
+def build_agent_stage_1(sandbox):
+    # Stage 1: Wider Gap (21m)
+    return _build_generic_bridge(sandbox, num_segments=3)
+
+def agent_action_stage_1(sandbox, agent_body, step_count):
+    _base_agent_action(sandbox, agent_body, step_count)
+
+def build_agent_stage_2(sandbox):
+    # Stage 2: Heavy Gravity (-15)
+    return _build_generic_bridge(sandbox, num_segments=2, num_layers=2)
+
+def agent_action_stage_2(sandbox, agent_body, step_count):
+    # Slower target speed for heavy gravity stability
+    _base_agent_action(sandbox, agent_body, step_count, target_speed=3.0)
+
+def build_agent_stage_3(sandbox):
+    # Stage 3: Wider Gap (21m) + Lightweight (950kg)
+    return _build_generic_bridge(sandbox, num_segments=3, deck_density=4.0, support_density=2.0)
+
+def agent_action_stage_3(sandbox, agent_body, step_count):
+    _base_agent_action(sandbox, agent_body, step_count)
+
+def build_agent_stage_4(sandbox):
+    # Stage 4: Extreme Challenge (20m gap, -15 gravity, 1200kg mass)
+    return _build_generic_bridge(sandbox, num_segments=4, num_layers=3, support_y_offset=3.5, num_verticals=20)
+
+def agent_action_stage_4(sandbox, agent_body, step_count):
+    # Very slow and careful for extreme conditions
+    _base_agent_action(sandbox, agent_body, step_count, target_speed=2.5)

@@ -1,57 +1,44 @@
 """
-E-02: Thick Air (Hard) — prompt.
+E-02: The Thick Air task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
+    APPLY_THRUST,
     GET_CRAFT_POSITION,
-    GET_CRAFT_VELOCITY,
     GET_HEAT,
     GET_OVERHEAT_LIMIT,
-    IS_OVERHEATED,
-    APPLY_THRUST_CRAFT,
     GET_STEP_COUNT,
+    IS_OVERHEATED,
 )
 
 TASK_PROMPT = {
     "task_description": """
-You must move a craft to a target zone in a thick, viscous fluid. Thrust is required to make progress;
-cumulative thrust use causes heating — exceed the heat budget and you fail.
+Design a controller for a craft navigating through a high-friction, "thick air" environment.
 
 ## Task Environment
-- **Start**: Craft (rigid body) starts near (8, 2) m.
-- **Target**: Craft center must enter the zone: x in [28, 32] m, y in [2, 5] m.
-- **Path**: Between start and target there are physical obstacles (narrow gaps you must pass through) and regions where the environment behaves differently (e.g. strong momentum loss, slippery-like effects, or time-varying disturbances). Exact positions and behaviors discover via get_craft_position(), get_craft_velocity(), get_heat(), get_overheat_limit(), and evaluation feedback.
-- **Failure**: (1) Time runs out without the craft ever entering the target zone. (2) Overheat — cumulative thrust usage exceeds the heat limit (use get_overheat_limit() to check).
+- **Craft**: A vehicle subject to intense drag and heating.
+- **Goal**: Reach a target coordinate while managing internal heat levels.
+- **Heat**: Applying thrust increases craft heat. Overheating causes mission failure.
 
-## Constraints
-- **Overheat limit**: Use get_overheat_limit() to read the limit; stay under it.
-- **Heat**: Cumulative |thrust|×time adds to heat; use get_heat() each step.
-
-You may ONLY use the APIs documented below. Do not access internal attributes.
+## Task Objective
+Design a control loop that:
+1. Navigates the craft toward the target position.
+2. Monitors heat levels and manages thrust to avoid overheating.
+3. Successfully reaches the target within simulation time limits.
 """,
     "success_criteria": """
-## Success
-- Craft center enters the target zone (x in [28, 32], y in [2, 5]) at some time.
-- Heat stays below the overheat limit (use get_overheat_limit() and get_heat()).
+## Success Criteria
+1. **Target Reach**: Craft reaches the target position.
+2. **Thermal Safety**: Craft does not overheat during the mission.
 
-## Failure
-- Time out without ever entering the target zone.
-- Overheat (heat ≥ limit).
+## Design Constraints
+- **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO
-    + """
-## Required Code Structure
-
-### 1. build_agent(sandbox)
-Return None (craft is pre-built).
-### 2. agent_action(sandbox, agent_body, step_count)
-Called every step. Read position, velocity, heat; apply thrust. Use get_step_count() for time-varying disturbance compensation.
-"""
     + GET_CRAFT_POSITION
-    + GET_CRAFT_VELOCITY
+    + IS_OVERHEATED
     + GET_HEAT
     + GET_OVERHEAT_LIMIT
-    + IS_OVERHEATED
-    + APPLY_THRUST_CRAFT
-    + GET_STEP_COUNT,
+    + GET_STEP_COUNT
+    + APPLY_THRUST,
 }

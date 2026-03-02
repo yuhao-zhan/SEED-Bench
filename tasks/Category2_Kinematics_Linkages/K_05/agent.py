@@ -38,9 +38,6 @@ def build_agent(sandbox):
     """
     Build 4-stage scissor with top platform ~8.5m（低于红线 9m），短稳后立即升到 9m，GIF 里可见明显上升过程。
     """
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
-
     base = sandbox.add_beam(
         x=CENTER_X, y=BASE_Y + 0.05,
         width=PLATFORM_W, height=0.22,
@@ -85,13 +82,6 @@ def build_agent(sandbox):
 
     sandbox._lifter_motor_joints = motor_joints
     sandbox._top_platform = prev_plat
-
-    plat_y = prev_plat.position.y
-    # Place object on platform (no-op if environment enforces object at ground)
-    if hasattr(sandbox, 'set_object_position'):
-        sandbox.set_object_position(CENTER_X, plat_y + 0.6)
-    if hasattr(sandbox, 'set_object_damping'):
-        sandbox.set_object_damping(linear_damping=2.0, angular_damping=1.0)
 
     total_mass = sandbox.get_structure_mass()
     if total_mass > sandbox.MAX_STRUCTURE_MASS:

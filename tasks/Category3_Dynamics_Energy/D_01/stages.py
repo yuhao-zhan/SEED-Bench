@@ -14,58 +14,56 @@ from typing import Any, Dict, List
 
 
 def update_task_description_for_visible_changes(
-    base_description: str, terrain_config: Dict[str, Any]
+    base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
     """
     Update task description for visible terrain/config changes (e.g. target zone position/size).
-    Invisible physical parameters (gravity, damping, friction) are NOT reflected here.
     """
-    tx_min = terrain_config.get("target_x_min")
-    tx_max = terrain_config.get("target_x_max")
-    ty_min = terrain_config.get("target_y_min")
-    ty_max = terrain_config.get("target_y_max")
-    if tx_min is None and tx_max is None and ty_min is None and ty_max is None:
-        return base_description
+    tx_min = target_terrain_config.get("target_x_min")
+    tx_max = target_terrain_config.get("target_x_max")
+    ty_min = target_terrain_config.get("target_y_min")
+    ty_max = target_terrain_config.get("target_y_max")
+    
+    base_tx_min = base_terrain_config.get("target_x_min", 40.0)
+    base_tx_max = base_terrain_config.get("target_x_max", 45.0)
+    base_ty_min = base_terrain_config.get("target_y_min", 2.0)
+    base_ty_max = base_terrain_config.get("target_y_max", 5.0)
 
     out = base_description
     # Replace target zone numbers when explicitly overridden
-    if tx_min is not None and tx_max is not None:
-        out = re.sub(r"x from 40 m to 45 m", f"x from {tx_min:.0f} m to {tx_max:.0f} m", out)
-        out = re.sub(r"\[40, 45\]", f"[{tx_min:.0f}, {tx_max:.0f}]", out)
-        out = re.sub(r"40 m to 45 m", f"{tx_min:.0f} m to {tx_max:.0f} m", out)
-        out = re.sub(r"x in \[40, 45\]", f"x in [{tx_min:.0f}, {tx_max:.0f}]", out)
-    if ty_min is not None and ty_max is not None:
-        out = re.sub(r"y from \*\*2 m to 5 m\*\*", f"y from **{ty_min:.0f} m to {ty_max:.0f} m**", out)
-        out = re.sub(r"\[2, 5\]", f"[{ty_min:.0f}, {ty_max:.0f}]", out)
-        out = re.sub(r"y from 2 m to 5 m", f"y from {ty_min:.0f} m to {ty_max:.0f} m", out)
-        out = re.sub(r"y ∈ \[2, 5\]", f"y ∈ [{ty_min:.0f}, {ty_max:.0f}]", out)
-        out = re.sub(r"y in \[2, 5\]", f"y in [{ty_min:.0f}, {ty_max:.0f}]", out)
-        out = re.sub(r"y ∈ \[2, 5\] m", f"y ∈ [{ty_min:.0f}, {ty_max:.0f}] m", out)
-        out = re.sub(r"y &lt; 2 m", f"y &lt; {ty_min:.0f} m", out)
+    if tx_min is not None and tx_max is not None and (tx_min != base_tx_min or tx_max != base_tx_max):
+        # We use a more robust replacement that includes the transition
+        out = re.sub(r"x from 40 m to 45 m", f"x from 40 m to 45 m (FROM: {base_tx_min:.0f}-{base_tx_max:.0f}m, TO: {tx_min:.0f}-{tx_max:.0f}m)", out)
+        out = re.sub(r"\[40, 45\]", f"[40, 45] (FROM: [{base_tx_min:.0f}, {base_tx_max:.0f}], TO: [{tx_min:.0f}, {tx_max:.0f}])", out)
+
+    if ty_min is not None and ty_max is not None and (ty_min != base_ty_min or ty_max != base_ty_max):
+        out = re.sub(r"y from \*\*2 m to 5 m\*\*", f"y from **2 m to 5 m** (FROM: {base_ty_min:.0f}-{base_ty_max:.0f}m, TO: {ty_min:.0f}-{ty_max:.0f}m)", out)
+        out = re.sub(r"\[2, 5\]", f"[2, 5] (FROM: [{base_ty_min:.0f}, {base_ty_max:.0f}], TO: [{ty_min:.0f}, {ty_max:.0f}])", out)
+
     return out
 
 
 def update_success_criteria_for_visible_changes(
-    base_success_criteria: str, terrain_config: Dict[str, Any]
+    base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
     """Update success criteria for visible changes (e.g. target zone bounds)."""
-    tx_min = terrain_config.get("target_x_min")
-    tx_max = terrain_config.get("target_x_max")
-    ty_min = terrain_config.get("target_y_min")
-    ty_max = terrain_config.get("target_y_max")
-    if tx_min is None and tx_max is None and ty_min is None and ty_max is None:
-        return base_success_criteria
+    tx_min = target_terrain_config.get("target_x_min")
+    tx_max = target_terrain_config.get("target_x_max")
+    ty_min = target_terrain_config.get("target_y_min")
+    ty_max = target_terrain_config.get("target_y_max")
+    
+    base_tx_min = base_terrain_config.get("target_x_min", 40.0)
+    base_tx_max = base_terrain_config.get("target_x_max", 45.0)
+    base_ty_min = base_terrain_config.get("target_y_min", 2.0)
+    base_ty_max = base_terrain_config.get("target_y_max", 5.0)
 
     out = base_success_criteria
-    if tx_min is not None and tx_max is not None:
-        out = re.sub(r"x in \[40, 45\]", f"x in [{tx_min:.0f}, {tx_max:.0f}]", out)
-        out = re.sub(r"\[40, 45\]", f"[{tx_min:.0f}, {tx_max:.0f}]", out)
-    if ty_min is not None and ty_max is not None:
-        out = re.sub(r"y in \*\*\[2, 5\]\*\*", f"y in **[{ty_min:.0f}, {ty_max:.0f}]**", out)
-        out = re.sub(r"y &lt; 2 m", f"y &lt; {ty_min:.0f} m", out)
-        out = re.sub(r"\[2, 5\]", f"[{ty_min:.0f}, {ty_max:.0f}]", out)
-        out = re.sub(r"y ∈ \[2, 5\]", f"y ∈ [{ty_min:.0f}, {ty_max:.0f}]", out)
-        out = re.sub(r"y ∈ \[2, 5\] m", f"y ∈ [{ty_min:.0f}, {ty_max:.0f}] m", out)
+    if tx_min is not None and tx_max is not None and (tx_min != base_tx_min or tx_max != base_tx_max):
+        out = re.sub(r"x in \[40, 45\]", f"x in [40, 45] (FROM: [{base_tx_min:.0f}, {base_tx_max:.0f}], TO: [{tx_min:.0f}, {tx_max:.0f}])", out)
+        out = re.sub(r"\[40, 45\]", f"[40, 45] (FROM: [{base_tx_min:.0f}, {base_tx_max:.0f}], TO: [{tx_min:.0f}, {tx_max:.0f}])", out)
+    if ty_min is not None and ty_max is not None and (ty_min != base_ty_min or ty_max != base_ty_max):
+        out = re.sub(r"y in \*\*\[2, 5\]\*\*", f"y in **[2, 5]** (FROM: [{base_ty_min:.0f}, {base_ty_max:.0f}], TO: [{ty_min:.0f}, {ty_max:.0f}])", out)
+        out = re.sub(r"\[2, 5\]", f"[2, 5] (FROM: [{base_ty_min:.0f}, {base_ty_max:.0f}], TO: [{ty_min:.0f}, {ty_max:.0f}])", out)
     return out
 
 

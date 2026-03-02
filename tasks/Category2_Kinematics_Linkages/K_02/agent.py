@@ -8,11 +8,6 @@ import math
 def build_agent(sandbox):
     """
     Build a climber using suction pads (add_pad) to stick to the wall and rotating legs to push up.
-    
-    Design:
-    - Main body with suction pads on the wall-facing side (pads pull toward wall when active)
-    - Two rotating leg wheels; motors drive them to create upward motion against the wall
-    - Pads keep the climber pressed to the wall so the legs can grip and push
     """
     wall_x = 5.0
     start_x = 4.25

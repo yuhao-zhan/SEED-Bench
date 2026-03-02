@@ -1,0 +1,373 @@
+#!/usr/bin/env python3
+"""
+Cross-Mutation evaluation module.
+Pairs all environments (Initial + Stages) to evaluate adaptive capability.
+Total 20 pairs: (env_i, env_j) for i != j.
+Agent starts with reference solution of env_i and tries to solve env_j.
+All experiments are run ONLY ONCE.
+"""
+import os
+import sys
+import json
+import traceback
+from datetime import datetime
+from typing import Dict, Any, Optional, List, Tuple
+
+# Add path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from evaluation.prompt import (
+    load_task_prompt,
+    format_mutated_prompt,
+    format_mutated_revision_prompt,
+    format_mutated_revision_prompt_best_plus_previous,
+)
+from evaluation.feedback import format_feedback
+from evaluation.evaluate import TaskEvaluator
+from evaluation.utils import get_model_identifier
+
+def get_all_stages(base_task_name: str) -> List[Dict[str, Any]]:
+    """Get initial task + all curriculum stages."""
+    from evaluation.prompt import parse_task_name
+    import importlib.util
+    
+    try:
+        task_path, _ = parse_task_name(base_task_name)
+    except Exception as e:
+        print(f"⚠️  Failed to parse task name {base_task_name}: {e}")
+        return []
+
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    task_dir = os.path.join(script_dir, 'tasks', task_path)
+    stages_file = os.path.join(task_dir, 'stages.py')
+    
+    all_envs = []
+    all_envs.append({
+        "stage_id": "Initial",
+        "title": "Initial Task",
+        "terrain_config": {},
+        "physics_config": {}
+    })
+    
+    if os.path.exists(stages_file):
+        try:
+            spec = importlib.util.spec_from_file_location("task_stages", stages_file)
+            stages_mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(stages_mod)
+            
+            curriculum_func = None
+            for name in dir(stages_mod):
+                if 'curriculum_stages' in name.lower() and callable(getattr(stages_mod, name)):
+                    curriculum_func = getattr(stages_mod, name)
+                    break
+            
+            if curriculum_func:
+                stages = curriculum_func()
+                all_envs.extend(stages)
+        except Exception as e:
+            print(f"⚠️  Failed to load stages from {stages_file}: {e}")
+            
+    return all_envs
+
+def next_line_is_def(lines, current_idx):
+    for i in range(current_idx + 1, len(lines)):
+        if lines[i].strip() == "": continue
+        return lines[i].startswith("def ")
+    return False
+
+def get_reference_solution(base_task_name: str, stage_id: str) -> str:
+    """Extract reference solution for a specific stage from agent.py."""
+    from evaluation.prompt import parse_task_name
+    task_path, _ = parse_task_name(base_task_name)
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    agent_path = os.path.join(script_dir, 'tasks', task_path, 'agent.py')
+    
+    if not os.path.exists(agent_path):
+        raise FileNotFoundError(f"Reference agent file not found: {agent_path}")
+
+    with open(agent_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    if stage_id == "Initial":
+        build_func = "build_agent"
+        action_func = "agent_action"
+    else:
+        try:
+            num = stage_id.split("-")[1]
+            build_func = f"build_agent_stage_{num}"
+            action_func = f"agent_action_stage_{num}"
+        except (IndexError, ValueError):
+            build_func = f"build_agent_{stage_id}"
+            action_func = f"agent_action_{stage_id}"
+    
+    lines = content.splitlines()
+    extracted_build = []
+    in_build = False
+    for i, line in enumerate(lines):
+        if line.startswith(f"def {build_func}("):
+            in_build = True
+            extracted_build.append("def build_agent" + line[len(f"def {build_func}"):])
+            continue
+        if in_build:
+            if line.startswith("def ") or (line.strip() == "" and next_line_is_def(lines, i)):
+                in_build = False
+            else:
+                extracted_build.append(line)
+                
+    extracted_action = []
+    in_action = False
+    for i, line in enumerate(lines):
+        if line.startswith(f"def {action_func}("):
+            in_action = True
+            extracted_action.append("def agent_action" + line[len(f"def {action_func}"):])
+            continue
+        if in_action:
+            if line.startswith("def ") or (line.strip() == "" and next_line_is_def(lines, i)):
+                in_action = False
+            else:
+                extracted_action.append(line)
+                
+    final_parts = []
+    if extracted_build:
+        final_parts.append("\n".join(extracted_build))
+    
+    if any("_base_agent_action" in l for l in extracted_action):
+        extracted_base = []
+        in_base = False
+        for i, line in enumerate(lines):
+            if line.startswith("def _base_agent_action("):
+                in_base = True
+                extracted_base.append(line)
+                continue
+            if in_base:
+                if line.startswith("def ") or (line.strip() == "" and next_line_is_def(lines, i)):
+                    in_base = False
+                else:
+                    extracted_base.append(line)
+        if extracted_base:
+            final_parts.append("\n".join(extracted_base))
+
+    if extracted_action:
+        final_parts.append("\n".join(extracted_action))
+
+    return "\n\n".join(final_parts)
+
+def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_name: str,
+                                 method: str, context: str = 'previous', max_iterations: int = 10,
+                                 max_steps: int = 10000, headless: bool = True, api_key: Optional[str] = None,
+                                 output_dir: str = "evaluation_results"):
+    """
+    Run the new paradigm: all-pairs evaluation.
+    Total pairs = N * (N-1). For N=5, pairs=20.
+    """
+    all_envs = get_all_stages(base_task_name)
+    num_envs = len(all_envs)
+    
+    print(f"\n🚀 Starting Cross-Mutation Evaluation for {base_task_name}")
+    print(f"Total Environments: {num_envs}")
+    print(f"Total Pairs: {num_envs * (num_envs - 1)}")
+    
+    # Load stages module for visible changes
+    from evaluation.prompt import parse_task_name
+    import importlib.util
+    task_path, _ = parse_task_name(base_task_name)
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    task_dir = os.path.join(script_dir, 'tasks', task_path)
+    stages_file = os.path.join(task_dir, 'stages.py')
+    
+    stages_mod = None
+    update_desc_func = None
+    update_criteria_func = None
+    if os.path.exists(stages_file):
+        try:
+            spec = importlib.util.spec_from_file_location("task_stages", stages_file)
+            stages_mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(stages_mod)
+            for name in dir(stages_mod):
+                if 'update_task_description_for_visible_changes' in name.lower() and callable(getattr(stages_mod, name)):
+                    update_desc_func = getattr(stages_mod, name)
+                if 'update_success_criteria_for_visible_changes' in name.lower() and callable(getattr(stages_mod, name)):
+                    update_criteria_func = getattr(stages_mod, name)
+        except Exception as e:
+            print(f"⚠️  Failed to load stages module for updates: {e}")
+
+    results = []
+    
+    for i, env_i in enumerate(all_envs):
+        try:
+            ref_code = get_reference_solution(base_task_name, env_i["stage_id"])
+        except Exception as e:
+            print(f"⚠️  Failed to get reference solution for {env_i['stage_id']}: {e}")
+            continue
+            
+        for j, env_j in enumerate(all_envs):
+            if i == j: continue
+            
+            pair_name = f"{env_i['stage_id']}_to_{env_j['stage_id']}"
+            print(f"\n--- Evaluating Pair: {pair_name} ---")
+            
+            env_overrides = {
+                "terrain_config": env_j.get("terrain_config", {}),
+                "physics_config": env_j.get("physics_config", {}),
+            }
+            
+            # Prepare task prompt override with visible changes
+            task_prompt_override = None
+            try:
+                base_prompt = load_task_prompt(base_task_name)
+                task_prompt_override = dict(base_prompt)
+                
+                desc = base_prompt.get("task_description", "")
+                criteria = base_prompt.get("success_criteria", "")
+                
+                target_terrain = env_j.get("terrain_config", {})
+                base_terrain = env_i.get("terrain_config", {})
+                
+                if update_desc_func:
+                    desc = update_desc_func(desc, target_terrain, base_terrain)
+                if update_criteria_func:
+                    criteria = update_criteria_func(criteria, target_terrain, base_terrain)
+                
+                # Add suffix from target environment if it exists
+                suffix = env_j.get("task_description_suffix", "")
+                if suffix:
+                    desc += "\n" + suffix
+                
+                task_prompt_override["task_description"] = desc
+                task_prompt_override["success_criteria"] = criteria
+            except Exception as e:
+                print(f"⚠️  Failed to prepare prompt override: {e}")
+
+            try:
+                evaluator = TaskEvaluator(
+                    task_name=base_task_name,
+                    model_type=model_type,
+                    model_name=model_name,
+                    api_key=api_key,
+                    max_iterations=max_iterations,
+                    max_steps=max_steps,
+                    headless=headless,
+                    method=method,
+                    context=context,
+                    env_overrides=env_overrides,
+                    is_mutated_task=True,
+                    task_prompt_override=task_prompt_override
+                )
+                evaluator.mutated_task_name = pair_name
+                evaluator._setup_gif_directory()
+                
+                report = run_single_pair(evaluator, ref_code, base_task_name, pair_name)
+                results.append({
+                    "pair": pair_name,
+                    "source_env": env_i["stage_id"],
+                    "target_env": env_j["stage_id"],
+                    "result": report
+                })
+            except Exception as e:
+                print(f"❌ Error evaluating pair {pair_name}: {e}")
+                traceback.print_exc()
+            
+    try:
+        model_id = get_model_identifier(model_type, model_name)
+        save_dir = os.path.join(output_dir, base_task_name, model_id, method)
+        os.makedirs(save_dir, exist_ok=True)
+        
+        timestamp = datetime.now().strftime("%Y%m%d")
+        filename = f"cross_mutation_{timestamp}.json"
+        save_path = os.path.join(save_dir, filename)
+        with open(save_path, 'w') as f:
+            json.dump(results, f, indent=2)
+        print(f"✅ Cross-mutation results saved to {save_path}")
+    except Exception as e:
+        print(f"⚠️  Failed to save combined results: {e}")
+        
+    return results
+
+def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
+    """
+    Run evaluation for a single (env_i, env_j) pair.
+    The agent starts with initial_ref_code (from env_i) and tries to solve env_j.
+    """
+    current_code = initial_ref_code
+    evaluator.best_score = -1.0
+    evaluator.best_code = None
+    evaluator.best_metrics = {}
+    evaluator.iteration_history = []
+    
+    source_stage_id = pair_name.split('_to_')[0]
+    
+    for iteration in range(1, evaluator.max_iterations + 1):
+        print(f"Iteration {iteration}/{evaluator.max_iterations}")
+        
+        gif_filename = f"ref_from_{source_stage_id}_iter_{iteration}.gif"
+        gif_path = os.path.join(evaluator.gif_dir, gif_filename)
+        
+        try:
+            success, score, metrics, error = evaluator.verifier.verify_code(
+                current_code, headless=evaluator.headless, save_gif_path=gif_path
+            )
+        except Exception as e:
+            print(f"❌ Verification error at iteration {iteration}: {e}")
+            success, score, metrics, error = False, 0.0, {}, str(e)
+        
+        failed = metrics.get('failed', False) if metrics else True
+        failure_reason = metrics.get('failure_reason') if metrics else "Unknown error"
+        
+        feedback = format_feedback(
+            metrics or {}, score, success, failed, failure_reason,
+            iteration, error=error, task_name=base_task_name
+        )
+        
+        evaluator.iteration_history.append({
+            'iteration': iteration,
+            'code': current_code,
+            'success': success,
+            'score': score,
+            'metrics': metrics or {},
+            'error': error,
+            'feedback': feedback
+        })
+        
+        if score > evaluator.best_score:
+            evaluator.best_score = score
+            evaluator.best_code = current_code
+            evaluator.best_metrics = metrics or {}
+            
+        if success:
+            print(f"✅ Success at iteration {iteration}!")
+            break
+            
+        try:
+            if iteration == 1:
+                prompt = format_mutated_prompt(evaluator.task_prompt, initial_ref_code, feedback)
+            else:
+                best_item = max(evaluator.iteration_history, key=lambda x: x['score'])
+                previous_item = evaluator.iteration_history[-1]
+                
+                if evaluator.context == 'all' or evaluator.context == 'best_score_plus_previous':
+                    prompt = format_mutated_revision_prompt_best_plus_previous(
+                        evaluator.task_prompt, initial_ref_code, evaluator.iteration_history[0]['feedback'],
+                        best_item['code'], best_item['feedback'],
+                        previous_item['code'], previous_item['feedback'],
+                        previous_item['feedback'],
+                        best_item['iteration'], previous_item['iteration'], iteration
+                    )
+                else:
+                    prompt = format_mutated_revision_prompt(
+                        evaluator.task_prompt, initial_ref_code, evaluator.iteration_history[0]['feedback'],
+                        previous_item['code'], previous_item['feedback'],
+                        previous_item['feedback']
+                    )
+                
+            new_code, raw_output, token_usage = evaluator.solver.generate_code(prompt)
+            if new_code: 
+                current_code = new_code
+            else:
+                print(f"⚠️  Solver returned no code at iteration {iteration}")
+                break
+        except Exception as e:
+            print(f"❌ Solver error at iteration {iteration}: {e}")
+            break
+            
+    evaluator.verifier.cleanup()
+    return evaluator._generate_report()

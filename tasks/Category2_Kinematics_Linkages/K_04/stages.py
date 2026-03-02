@@ -11,33 +11,16 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes.
-    
-    For invisible physical parameters (gravity, damping, friction, CoM), changes are NOT reflected.
-    
-    Args:
-        base_description: Original task description
-        terrain_config: Terrain configuration with changes
-        
-    Returns:
-        Updated task description with visible changes explicitly marked
     """
-    # K-04 mutations use only invisible params; no visible changes to describe
     return base_description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update success criteria to reflect visible physical changes.
-    
-    Args:
-        base_success_criteria: Original success criteria
-        terrain_config: Terrain configuration with changes
-        
-    Returns:
-        Updated success criteria with visible changes explicitly marked
     """
     return base_success_criteria
 

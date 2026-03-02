@@ -1,49 +1,41 @@
 """
-E-05: The Magnet task prompt.
+E-05: The Drag Racer task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
+    APPLY_THRUST,
     GET_BODY_POSITION,
     GET_BODY_VELOCITY,
     GET_STEP_COUNT,
-    APPLY_THRUST_CRAFT,
 )
 
 TASK_PROMPT = {
     "task_description": """
-You need to move a body to a target zone in an environment with invisible force fields.
-You control the body via thrust only. The fields can create local minima and block direct paths.
+Design a controller for a drag racer to reach maximum velocity while staying on track in a high-drag environment.
 
 ## Task Environment
-- **Ground**: Flat surface. Body rests on it when low enough.
-- **Body**: A rigid body starts at (8, 5) m. It experiences gravity.
-- **Invisible force fields**: Repulsive and attractive fields exist. Their layout, number, and behavior are unknown — infer from motion, position, and velocity feedback.
-- **Target zone**: Body center must enter x in [28, 32] m, y in [8.2, 9.5] m. The target is elevated.
-- **Fail condition**: Stuck — the body never reaches the target zone before time runs out.
+- **Racer**: A high-speed vehicle subject to exotic drag forces.
+- **Track**: A straight course with limited width.
+- **Goal**: Reach the finish line at x=50.0m as quickly as possible.
 
-## Constraints
-- **Thrust**: Magnitude may be limited by the environment. Use get_step_count() for timing (e.g. fields may oscillate).
-
-You may ONLY use the APIs documented below. Do not access internal attributes.
+## Task Objective
+Design a control loop that:
+1. Applies thrust to accelerate the racer toward the finish line.
+2. Maintains lateral stability to stay within track bounds.
+3. Optimizes acceleration against the environment's drag.
 """,
     "success_criteria": """
 ## Success Criteria
-- **Reach target**: Body center enters the zone (x in [28, 32], y in [8.2, 9.5]) at some time.
+1. **Finish Line**: Racer reaches x >= 50.0m.
+2. **Speed**: Minimizes time to completion.
+3. **Survival**: Racer stays within lateral track boundaries.
 
-## Failure Conditions
-- **Stuck**: Simulation ends without ever entering the target zone.
+## Design Constraints
+- **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO
-    + """
-## Required Code Structure
-
-### 1. build_agent(sandbox)
-Return None (body is pre-built).
-### 2. agent_action(sandbox, agent_body, step_count)
-Called every step. Read position and velocity; apply thrust. Use get_step_count() for timing.
-"""
     + GET_BODY_POSITION
     + GET_BODY_VELOCITY
     + GET_STEP_COUNT
-    + APPLY_THRUST_CRAFT,
+    + APPLY_THRUST,
 }

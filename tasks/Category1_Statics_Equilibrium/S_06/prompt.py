@@ -4,42 +4,46 @@ S-06: The Overhang task Prompt and Primitives definition
 from ...primitives_api import (
     API_INTRO,
     ADD_BLOCK,
-    ADD_BLOCK_S06_EXTRA,
     GET_STRUCTURE_MASS,
 )
 
 TASK_PROMPT = {
     'task_description': """
-Stack blocks on a table to create the longest possible overhang over the edge.
-This is a test of Center of Mass management and Friction.
-You cannot use joints or glue. Gravity and Friction only.
+Stack blocks on a table to create the longest possible overhang beyond the edge.
+This task tests your ability to manage the Center of Mass and utilize friction effectively.
+You cannot use joints or any form of artificial bonding. The structure must rely entirely on gravity and friction between surfaces.
 
 ## Task Environment
-- **Table**: Static surface x=[-10, 0], edge at x=0. Table top at y=1.0.
-- **Friction**: Table friction = 0.5. Block-to-block friction = 0.5.
-- **Block Limits**: width <= 1.0m, height <= 0.5m. Minimum 0.1m for each dimension.
-- **Spawn Rule**: All blocks must spawn at x < 0 (on the table). Block center x must be < 0.
-- **Block Count**: Maximum 20 blocks.
-- **Stability**: The structure's center of mass (COM) must lie over the table (COM x < 0); otherwise the structure tips and the task fails.
+- **Table**: A static horizontal surface extending from x=-10 to x=0. The table edge is at x=0.
+- **Table Height**: The table surface is at y=1.0.
+- **Surface Properties**: Both the table and the blocks provide friction, which you must utilize to stabilize the stack.
+- **Block Dimensions**: width <= 1.0m, height <= 0.5m. Minimum dimension is 0.1m.
+- **Spawn Rule**: All blocks must spawn with their center of mass at x < 0 (on the table). 
+- **Block Count**: You are limited to a maximum of 20 blocks.
 
 ## Task Objective
-Design a block stacking structure that:
-1. Creates maximum overhang beyond x=0
-2. Remains stable for 10 seconds
-3. Uses only friction and gravity (no joints - add_joint is DISABLED)
+Design a block-stacking configuration that:
+1. Achieves the maximum horizontal reach (overhang) beyond the edge at x=0.
+2. Remains statically stable for at least 10 seconds without tipping or collapsing.
+3. Uses only friction and gravity (the `add_joint` primitive is DISABLED).
+
+## Constraints (must satisfy)
+- **Stability**: The global center of mass (COM) of the entire stack must remain over the table surface (COM x < 0). If the COM moves beyond the edge, the structure will tip.
+- **No Joints**: You cannot weld or pivot blocks together.
+- **Build Zone**: Blocks must be placed such that their initial centers are on the table.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Stability**: Structure stays still for 10s. For the structure to be stable, its center of mass (COM) must remain over the table: COM x < 0. If COM x >= 0 the structure will tip and fail.
-2. **Score**: Max X position of any block. Target > 0.1m.
+1. **Static Stability**: The structure remains upright and motionless for at least 10 seconds.
+2. **Reach**: The horizontal extent of any part of the stack exceeds the table edge (x > 0).
 
 ## Design Constraints
-- **No Joints**: `add_joint` is DISABLED.
-- **Primitive Limit**: Maximum block width = 1.0m. Maximum block height = 0.5m. (Crucial!)
-- **Start Zone**: All blocks must spawn at x < 0 (block center x < 0).
-- **Block Count**: Max 20 blocks.
+- **Primitive Limits**: Max block width = 1.0m, Max block height = 0.5m.
+- **Block Count**: Maximum of 20 blocks.
+- **Start Zone**: All initial block positions must have x < 0.
+- **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + ADD_BLOCK + ADD_BLOCK_S06_EXTRA + GET_STRUCTURE_MASS,
+    'primitives_api': API_INTRO + ADD_BLOCK + GET_STRUCTURE_MASS,
 }

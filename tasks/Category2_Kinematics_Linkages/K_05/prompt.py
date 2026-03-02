@@ -1,50 +1,49 @@
 """
-K-05: The Lifter task Prompt and Primitives definition.
+K-05: The Lifter task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
-    ADD_BEAM_05_4,
+    ADD_BEAM,
     ADD_JOINT_PIVOT,
+    ADD_JOINT_RIGID,
     SET_MOTOR,
     GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES_KINEMATICS,
-    REMOVE_INITIAL_TEMPLATE,
+    SET_MATERIAL_PROPERTIES,
     JOINTS_LIST,
 )
 
 TASK_PROMPT = {
     'task_description': """
-Design a lift mechanism that can lift objects vertically to a specified height using only motor rotation.
+Design a lift mechanism that can lift an object vertically from the ground to a specified height using only motor rotation.
 
 ## Task Environment
-- **Object**: At x=4.0m, y=1.8m (on ground). Mass 20 kg, size 0.6m × 0.4m.
-- **Build Zone**: x=[0, 8], y=[1, 12]. All components must be placed within this zone.
-- **Object Start**: The object is always at ground (4m, 1.8m) when simulation starts. Your mechanism must physically lift it. Do not place the object on a pre-built high platform at build time.
+- **Ground**: Flat surface at y=1.0m.
+- **Object**: Located at x=4.0m, y=1.8m (resting on the ground).
+- **Build Zone**: x=[0, 8], y=[1, 12]. All structure components must be placed within this zone.
+- **Target (Red Line)**: Lift the object to at least y=9.0m (8.0 meters above the ground).
 
 ## Constraints (must satisfy)
-- **Build Zone**: All components within x=[0, 8], y=[1, 12].
-- **Structure Mass**: Total mass < 60 kg.
-- **Beam**: 0.05 <= width, height <= 4.0 (see API).
-- **Remove template**: Call `remove_initial_template()` at the start of build_agent if available.
+- **Sustain**: Once reached, the object must be held at or above y=9.0m for at least 3.0 seconds. The sustain count only increments when the object is NOT sliding down (vertical velocity >= -0.4 m/s).
+- **Integrity**: The lifter structure must remain intact; the task fails if any joints break under the load.
+- **Mass Budget**: Total structure mass must be less than 60 kg.
+- **Build Zone**: All components must be within x=[0, 8], y=[1, 12].
+- **Beam Dimensions**: 0.05 <= width, height <= 4.0 meters.
 
-## Task Objective
-Design a lift mechanism that can:
-1. Lift the object vertically from ground to at least y=9m
-2. Sustain the object at y>=9m for at least 3 seconds (180 steps) without the object sliding down (vertical velocity >= -0.4 m/s)
-3. Keep structure intact (no joints break)
+## Instructions
+1. **Design**: Create a lifting structure (e.g., a scissor lift or an arm) that starts below or around the object and moves it upward.
+2. **Control**: Use `set_motor` on pivot joints in `agent_action` to drive the lifting motion and maintain the target height.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Lifting**: Object is lifted to height y >= 9m.
-2. **Stability**: Lifter structure remains intact (no joints break).
-3. **Sustain**: Object maintains y>=9m for at least 3 seconds. Sustain counts only when object is not sliding down (velocity_y >= -0.4 m/s).
+1. **Lifting**: Reaches y >= 9.0m.
+2. **Sustain**: Holds the object at target for >= 3.0 seconds (velocity_y >= -0.4 m/s).
+3. **Integrity**: Structure remains intact (no joint breaks).
 
 ## Design Constraints
-- **Build Zone**: x=[0, 8], y=[1, 12].
 - **Mass Budget**: < 60 kg.
-- **APIs**: Use only the primitives documented below. Do not access internal attributes.
+- **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + REMOVE_INITIAL_TEMPLATE + ADD_BEAM_05_4 + ADD_JOINT_PIVOT + SET_MOTOR + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES_KINEMATICS + JOINTS_LIST,
+    'primitives_api': API_INTRO + ADD_BEAM + ADD_JOINT_PIVOT + ADD_JOINT_RIGID + SET_MOTOR + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES + JOINTS_LIST,
 }

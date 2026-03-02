@@ -18,13 +18,13 @@ Physical conditions in this stage may differ from the default. Use simulation fe
 """
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
-    """No visible terrain changes in D-04 mutations; base description unchanged."""
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update task description for visible changes."""
     return base_description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
-    """No visible success-criteria changes in D-04 mutations."""
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update success criteria for visible changes."""
     return base_success_criteria
 
 

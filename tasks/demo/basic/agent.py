@@ -5,6 +5,14 @@ Contains Agent construction logic and control logic
 import math
 
 
+def build_agent(sandbox):
+    """
+    Standard entry point for the benchmark.
+    Uses build_agent_raw as the default.
+    """
+    return build_agent_raw(sandbox)
+
+
 def build_agent_raw(sandbox):
     """
     Minimal design: chassis + 2 wheels + 2 motors

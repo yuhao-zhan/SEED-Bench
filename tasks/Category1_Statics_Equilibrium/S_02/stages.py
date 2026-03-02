@@ -9,11 +9,17 @@ from typing import Any, Dict, List
 import re
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes (e.g., earthquake parameters, wind force).
     
-    For invisible physical parameters (gravity, damping, etc.), changes are NOT reflected in description.
+    Args:
+        base_description: Original task description
+        target_terrain_config: Target terrain configuration with changes
+        base_terrain_config: Base terrain configuration to compare against
+        
+    Returns:
+        Updated task description with visible changes explicitly marked
     """
     description = base_description
     
@@ -23,20 +29,27 @@ def update_task_description_for_visible_changes(base_description: str, terrain_c
     default_earthquake_start_time = 2.0
     default_wind_force = 100.0
     
-    # Get current values
-    earthquake_amplitude = terrain_config.get("earthquake_amplitude", default_earthquake_amplitude)
-    earthquake_frequency = terrain_config.get("earthquake_frequency", default_earthquake_frequency)
-    earthquake_start_time = terrain_config.get("earthquake_start_time", default_earthquake_start_time)
-    wind_force = terrain_config.get("wind_force", default_wind_force)
+    # Get values
+    target_amplitude = target_terrain_config.get("earthquake_amplitude", default_earthquake_amplitude)
+    base_amplitude = base_terrain_config.get("earthquake_amplitude", default_earthquake_amplitude)
+    
+    target_frequency = target_terrain_config.get("earthquake_frequency", default_earthquake_frequency)
+    base_frequency = base_terrain_config.get("earthquake_frequency", default_earthquake_frequency)
+    
+    target_start_time = target_terrain_config.get("earthquake_start_time", default_earthquake_start_time)
+    base_start_time = base_terrain_config.get("earthquake_start_time", default_earthquake_start_time)
+    
+    target_wind = target_terrain_config.get("wind_force", default_wind_force)
+    base_wind = base_terrain_config.get("wind_force", default_wind_force)
     
     # Update earthquake parameters if changed
-    if earthquake_amplitude != default_earthquake_amplitude or earthquake_frequency != default_earthquake_frequency or earthquake_start_time != default_earthquake_start_time:
+    if target_amplitude != base_amplitude or target_frequency != base_frequency or target_start_time != base_start_time:
         # Update "- **Earthquake**: Horizontal oscillation x(t) = 0.5 * sin(2.0 * t) starting at t=2s."
         earthquake_pattern = r"(- \*\*Earthquake\*\*: Horizontal oscillation x\(t\) = )(\d+\.?\d*)( \* sin\()(\d+\.?\d*)( \* t\) starting at t=)(\d+\.?\d*)(s\.)"
         if re.search(earthquake_pattern, description):
-            amplitude_part = f"{earthquake_amplitude:.1f} (ORIGINAL: {default_earthquake_amplitude:.1f}, NOW: {earthquake_amplitude:.1f})" if earthquake_amplitude != default_earthquake_amplitude else "\\g<2>"
-            frequency_part = f"{earthquake_frequency:.1f} (ORIGINAL: {default_earthquake_frequency:.1f}, NOW: {earthquake_frequency:.1f})" if earthquake_frequency != default_earthquake_frequency else "\\g<4>"
-            start_time_part = f"{earthquake_start_time:.1f}s (ORIGINAL: t={default_earthquake_start_time:.1f}s, NOW: t={earthquake_start_time:.1f}s)" if earthquake_start_time != default_earthquake_start_time else "\\g<6>s"
+            amplitude_part = f"{target_amplitude:.1f} (FROM: {base_amplitude:.1f}, TO: {target_amplitude:.1f})" if target_amplitude != base_amplitude else "\\g<2>"
+            frequency_part = f"{target_frequency:.1f} (FROM: {base_frequency:.1f}, TO: {target_frequency:.1f})" if target_frequency != base_frequency else "\\g<4>"
+            start_time_part = f"{target_start_time:.1f}s (FROM: t={base_start_time:.1f}s, TO: t={target_start_time:.1f}s)" if target_start_time != base_start_time else "\\g<6>s"
             description = re.sub(
                 earthquake_pattern,
                 f"\\g<1>{amplitude_part} * sin({frequency_part} * t) starting at {start_time_part}.",
@@ -44,17 +57,22 @@ def update_task_description_for_visible_changes(base_description: str, terrain_c
             )
     
     # Update wind force if changed
-    if wind_force != default_wind_force:
+    if target_wind != base_wind:
         # Update "- **Wind**: Constant lateral force of 100N applied to all blocks above y=20m."
         wind_pattern = r"(- \*\*Wind\*\*: Constant lateral force of )(\d+\.?\d*)N( applied to all blocks above y=20m\.)"
         if re.search(wind_pattern, description):
             description = re.sub(
                 wind_pattern,
-                f"\\g<1>\\g<2>N (ORIGINAL: {default_wind_force:.0f}N, NOW: {wind_force:.0f}N)\\g<3>",
+                f"\\g<1>\\g<2>N (FROM: {base_wind:.0f}N, TO: {target_wind:.0f}N)\\g<3>",
                 description
             )
     
     return description
+
+
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update success criteria for visible changes."""
+    return base_success_criteria
 
 
 def get_s02_curriculum_stages() -> List[Dict[str, Any]]:

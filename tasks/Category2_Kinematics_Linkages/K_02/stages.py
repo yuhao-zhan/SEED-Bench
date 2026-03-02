@@ -11,15 +11,14 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes only.
-    For invisible physical parameters (gravity, wall friction, damping, pad force), no change.
     """
     return base_description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes only."""
     return base_success_criteria
 

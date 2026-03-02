@@ -20,55 +20,62 @@ DEFAULT_MAX_MASS = 120.0
 DEFAULT_METEOR_SPAWN_INTERVAL = 0.85
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes (e.g., meteor mass, core force limit, max mass).
     For invisible physical parameters (gravity, spawn_interval, earthquake, wind), changes are NOT reflected in description.
     """
     description = base_description
 
-    meteor_mass = terrain_config.get("meteor_mass", DEFAULT_METEOR_MASS)
-    core_max_force = terrain_config.get("core_max_force", DEFAULT_CORE_MAX_FORCE)
-    max_mass = terrain_config.get("max_mass", DEFAULT_MAX_MASS)
-    meteor_count = terrain_config.get("meteor_count", DEFAULT_METEOR_COUNT)
+    target_meteor_mass = target_terrain_config.get("meteor_mass", DEFAULT_METEOR_MASS)
+    base_meteor_mass = base_terrain_config.get("meteor_mass", DEFAULT_METEOR_MASS)
+    
+    target_core_force = target_terrain_config.get("core_max_force", DEFAULT_CORE_MAX_FORCE)
+    base_core_force = base_terrain_config.get("core_max_force", DEFAULT_CORE_MAX_FORCE)
+    
+    target_max_mass = target_terrain_config.get("max_mass", DEFAULT_MAX_MASS)
+    base_max_mass = base_terrain_config.get("max_mass", DEFAULT_MAX_MASS)
+    
+    target_meteor_count = target_terrain_config.get("meteor_count", DEFAULT_METEOR_COUNT)
+    base_meteor_count = base_terrain_config.get("meteor_count", DEFAULT_METEOR_COUNT)
 
-    if meteor_mass != DEFAULT_METEOR_MASS:
+    if target_meteor_mass != base_meteor_mass:
         description = re.sub(
             r"28 boulders \(260kg each\)",
-            f"28 boulders ({meteor_mass:.0f}kg each)",
+            f"28 boulders (260kg each) (FROM: {base_meteor_mass:.0f}kg, TO: {target_meteor_mass:.0f}kg)",
             description,
             1,
         )
         description = re.sub(
             r"Meteors are 260kg and",
-            f"Meteors are {meteor_mass:.0f}kg and",
+            f"Meteors are 260kg (FROM: {base_meteor_mass:.0f}kg, TO: {target_meteor_mass:.0f}kg) and",
             description,
             1,
         )
 
-    if core_max_force != DEFAULT_CORE_MAX_FORCE:
-        description = re.sub(r"exceeds 14N", f"exceeds {core_max_force:.0f}N", description, 1)
-        description = re.sub(r"Force > 14N", f"Force > {core_max_force:.0f}N", description, 1)
-        description = re.sub(r"stay < 14N", f"stay < {core_max_force:.0f}N", description, 1)
+    if target_core_force != base_core_force:
+        description = re.sub(r"exceeds 14N", f"exceeds 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)", description, 1)
+        description = re.sub(r"Force > 14N", f"Force > 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)", description, 1)
+        description = re.sub(r"stay < 14N", f"stay < 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)", description, 1)
 
-    if max_mass != DEFAULT_MAX_MASS:
+    if target_max_mass != base_max_mass:
         description = re.sub(
             r"mass budget \(120kg\)",
-            f"mass budget ({max_mass:.0f}kg)",
+            f"mass budget (120kg) (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
             description,
             1,
         )
         description = re.sub(
             r"must be < 120kg",
-            f"must be < {max_mass:.0f}kg",
+            f"must be < 120kg (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
             description,
             1,
         )
 
-    if meteor_count != DEFAULT_METEOR_COUNT:
+    if target_meteor_count != base_meteor_count:
         description = re.sub(
             r"\d+ boulders \(\d+kg each\)",
-            f"{meteor_count:.0f} boulders ({meteor_mass:.0f}kg each)",
+            f"{target_meteor_count:.0f} boulders ({target_meteor_mass:.0f}kg each) (FROM: {base_meteor_count} meteors, TO: {target_meteor_count} meteors)",
             description,
             1,
         )
@@ -76,45 +83,48 @@ def update_task_description_for_visible_changes(base_description: str, terrain_c
     return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update success criteria to reflect visible physical changes (core force limit, max mass).
     """
     criteria = base_success_criteria
 
-    core_max_force = terrain_config.get("core_max_force", DEFAULT_CORE_MAX_FORCE)
-    max_mass = terrain_config.get("max_mass", DEFAULT_MAX_MASS)
+    target_core_force = target_terrain_config.get("core_max_force", DEFAULT_CORE_MAX_FORCE)
+    base_core_force = base_terrain_config.get("core_max_force", DEFAULT_CORE_MAX_FORCE)
+    
+    target_max_mass = target_terrain_config.get("max_mass", DEFAULT_MAX_MASS)
+    base_max_mass = base_terrain_config.get("max_mass", DEFAULT_MAX_MASS)
 
-    if core_max_force != DEFAULT_CORE_MAX_FORCE:
+    if target_core_force != base_core_force:
         criteria = re.sub(
             r"exceed 14N",
-            f"exceed {core_max_force:.0f}N",
+            f"exceed 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)",
             criteria,
             1,
         )
         criteria = re.sub(
             r"stay < 14N",
-            f"stay < {core_max_force:.0f}N",
+            f"stay < 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)",
             criteria,
             1,
         )
         criteria = re.sub(
             r"Max force on core must stay < 14N",
-            f"Max force on core must stay < {core_max_force:.0f}N",
+            f"Max force on core must stay < 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)",
             criteria,
             1,
         )
 
-    if max_mass != DEFAULT_MAX_MASS:
+    if target_max_mass != base_max_mass:
         criteria = re.sub(
             r"Max mass 120kg",
-            f"Max mass {max_mass:.0f}kg",
+            f"Max mass 120kg (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
             criteria,
             1,
         )
         criteria = re.sub(
             r"must be < 120kg",
-            f"must be < {max_mass:.0f}kg",
+            f"must be < 120kg (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
             criteria,
             1,
         )

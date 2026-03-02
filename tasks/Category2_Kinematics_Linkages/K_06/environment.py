@@ -308,6 +308,13 @@ class Sandbox:
             if friction is not None:
                 fixture.friction = float(friction)
 
+    def set_awake(self, body, awake=True):
+        """
+        API: Force a body to wake up (participate in physics)
+        """
+        if body:
+            body.awake = bool(awake)
+
     def step(self, time_step):
         """Physics step"""
         self._world.Step(time_step, 10, 10)

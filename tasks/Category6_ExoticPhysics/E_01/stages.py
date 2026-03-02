@@ -35,20 +35,24 @@ def gravity_extreme(t: float) -> tuple:
     return (g_x, g_y)
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description when arena bounds change (visible)."""
-    if "arena_y_max" in terrain_config:
-        y_max = terrain_config["arena_y_max"]
-        suffix = f"\n\n## Arena Change (visible)\nThe arena ceiling has been lowered: valid y range is now [0, {y_max}]. The structure must fit within this reduced height. Build zone y_max may also be reduced accordingly."
+    target_y_max = target_terrain_config.get("arena_y_max")
+    base_y_max = base_terrain_config.get("arena_y_max", 20.0)
+    
+    if target_y_max is not None and target_y_max != base_y_max:
+        suffix = f"\n\n## Arena Change (visible)\nThe arena ceiling has changed: valid y range is now [0, {target_y_max}] (FROM: y_max={base_y_max}, TO: y_max={target_y_max}). The structure must fit within this reduced height."
         return base_description + suffix
     return base_description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
-    if "arena_y_max" in terrain_config:
-        y_max = terrain_config["arena_y_max"]
-        suffix = f"\n- **Arena bounds**: x in [0, 40], y in [0, {y_max}] (reduced ceiling)."
+    target_y_max = target_terrain_config.get("arena_y_max")
+    base_y_max = base_terrain_config.get("arena_y_max", 20.0)
+    
+    if target_y_max is not None and target_y_max != base_y_max:
+        suffix = f"\n- **Arena bounds**: x in [0, 40], y in [0, {target_y_max}] (FROM: y_max={base_y_max}, TO: y_max={target_y_max})."
         return base_success_criteria + suffix
     return base_success_criteria
 

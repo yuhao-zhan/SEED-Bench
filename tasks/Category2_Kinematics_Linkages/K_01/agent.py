@@ -8,11 +8,6 @@ import math
 def build_agent(sandbox):
     """
     Build a stable walker with rotating leg wheels that can move forward.
-    
-    Design:
-    - Torso (main body)
-    - Two leg wheels on each side, each with 6 legs for smooth rotation
-    - Motors rotate the leg wheels to create forward motion
     """
     # Starting position - higher for stability
     start_x = 10.0

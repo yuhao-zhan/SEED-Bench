@@ -11,15 +11,14 @@ from typing import Any, Dict, List
 import re
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes (e.g., gap width, cliff positions).
     
-    For invisible physical parameters (gravity, damping, etc.), changes are NOT reflected in description.
-    
     Args:
         base_description: Original task description
-        terrain_config: Terrain configuration with changes
+        target_terrain_config: Target terrain configuration with changes
+        base_terrain_config: Base terrain configuration to compare against
         
     Returns:
         Updated task description with visible changes explicitly marked
@@ -28,91 +27,80 @@ def update_task_description_for_visible_changes(base_description: str, terrain_c
     
     # Default values
     default_gap_width = 15.0
-    default_right_cliff_start = 10.0 + default_gap_width  # 25.0
-    default_max_structure_mass = 2000.0
     
-    # Get current values
-    gap_width = terrain_config.get("gap_width", default_gap_width)
-    max_structure_mass = terrain_config.get("max_structure_mass", default_max_structure_mass)
-    right_cliff_start = 10.0 + gap_width
+    # Get values
+    target_gap_width = target_terrain_config.get("gap_width", default_gap_width)
+    base_gap_width = base_terrain_config.get("gap_width", default_gap_width)
+    
+    target_right_cliff_start = 10.0 + target_gap_width
+    base_right_cliff_start = 10.0 + base_gap_width
     
     # Update gap width if changed
-    if gap_width != default_gap_width:
-        # Update "- **Gap**: 15m wide." -> "- **Gap**: 15m wide (ORIGINAL: 15m, NOW: 18m)."
-        gap_pattern = r"(- \*\*Gap\*\*: )(\d+\.?\d*)m wide\."
-        if re.search(gap_pattern, description):
-            description = re.sub(
-                gap_pattern,
-                f"\\g<1>\\g<2>m wide (ORIGINAL: {default_gap_width:.0f}m, NOW: {gap_width:.0f}m).",
-                description
-            )
+    if target_gap_width != base_gap_width:
+        # The prompt doesn't have a direct "Gap: 15m wide" line, it's inferred from cliffs.
+        # But we can add a note or replace the right cliff start.
         
-        # Update "- **Right Cliff**: Starts at x=25m, y=10m." -> "- **Right Cliff**: Starts at x=25m (ORIGINAL: x=25m, NOW: x=28m), y=10m."
+        # Update "- **Right Cliff**: Starts at x=25.0m, y=10.0m."
         right_cliff_pattern = r"(- \*\*Right Cliff\*\*: Starts at x=)(\d+\.?\d*)m"
         if re.search(right_cliff_pattern, description):
             description = re.sub(
                 right_cliff_pattern,
-                f"\\g<1>\\g<2>m (ORIGINAL: x={default_right_cliff_start:.0f}m, NOW: x={right_cliff_start:.0f}m)",
+                f"\\g<1>\\g<2>m (FROM: x={base_right_cliff_start:.1f}m, TO: x={target_right_cliff_start:.1f}m)",
                 description
             )
     
     return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update success criteria to reflect visible physical changes (e.g., max structure mass, build zone).
     
     Args:
         base_success_criteria: Original success criteria
-        terrain_config: Terrain configuration with changes
+        target_terrain_config: Target terrain configuration with changes
+        base_terrain_config: Base terrain configuration to compare against
         
     Returns:
         Updated success criteria with visible changes explicitly marked
     """
+    # Note: Build Zone info is actually in task_description, but we keep the logic here for consistency
+    # and also update success_criteria if it contained any such info.
     criteria = base_success_criteria
     
     # Default values
     default_gap_width = 15.0
-    default_right_cliff_start = 10.0 + default_gap_width  # 25.0
     default_max_structure_mass = 2000.0
     
-    # Get current values
-    gap_width = terrain_config.get("gap_width", default_gap_width)
-    max_structure_mass = terrain_config.get("max_structure_mass", default_max_structure_mass)
-    right_cliff_start = 10.0 + gap_width
+    # Get values
+    target_gap_width = target_terrain_config.get("gap_width", default_gap_width)
+    base_gap_width = base_terrain_config.get("gap_width", default_gap_width)
     
-    # Update Build Zone if gap width changed
-    if gap_width != default_gap_width:
-        # Update "- **Build Zone**: x=[10, 25], y=[5, 15]." -> "- **Build Zone**: x=[10, 25] (ORIGINAL: [10, 25], NOW: [10, 28]), y=[5, 15]."
-        build_zone_pattern = r"(- \*\*Build Zone\*\*: x=\[10, )(\d+\.?\d*)\], y=\[5, 15\]\."
-        if re.search(build_zone_pattern, criteria):
-            criteria = re.sub(
-                build_zone_pattern,
-                f"\\g<1>\\g<2>] (ORIGINAL: [10, {default_right_cliff_start:.0f}], NOW: [10, {right_cliff_start:.0f}]), y=[5, 15].",
-                criteria
-            )
-        
-        # Update target position: "1. **Passage**: Vehicle reaches x=30m." -> "1. **Passage**: Vehicle reaches x=30m (ORIGINAL: x=30m, NOW: x=33m)."
-        # target_x = right_cliff_start + 5.0
-        default_target_x = default_right_cliff_start + 5.0  # 30.0
-        target_x = right_cliff_start + 5.0
-        target_pattern = r"(1\. \*\*Passage\*\*: Vehicle reaches x=)(\d+\.?\d*)m\."
+    target_right_cliff_start = 10.0 + target_gap_width
+    base_right_cliff_start = 10.0 + base_gap_width
+    
+    target_max_mass = target_terrain_config.get("max_structure_mass", default_max_structure_mass)
+    base_max_mass = base_terrain_config.get("max_structure_mass", default_max_structure_mass)
+    
+    # Update target position: "1. **Passage**: Vehicle reaches x >= 30.0m."
+    if target_gap_width != base_gap_width:
+        base_target_x = base_right_cliff_start + 5.0
+        target_x = target_right_cliff_start + 5.0
+        target_pattern = r"(1\. \*\*Passage\*\*: Vehicle reaches x >= )(\d+\.?\d*)m\."
         if re.search(target_pattern, criteria):
             criteria = re.sub(
                 target_pattern,
-                f"\\g<1>\\g<2>m (ORIGINAL: x={default_target_x:.0f}m, NOW: x={target_x:.0f}m).",
+                f"\\g<1>\\g<2>m (FROM: x >= {base_target_x:.1f}m, TO: x >= {target_x:.1f}m).",
                 criteria
             )
     
     # Update max structure mass if changed
-    if max_structure_mass != default_max_structure_mass:
-        # Update "- **Material Budget**: Total mass < 2000kg." -> "- **Material Budget**: Total mass < 2000kg (ORIGINAL: < 2000kg, NOW: < 1500kg)."
-        mass_pattern = r"(- \*\*Material Budget\*\*: Total mass < )(\d+\.?\d*)kg\."
+    if target_max_mass != base_max_mass:
+        mass_pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*) kg\."
         if re.search(mass_pattern, criteria):
             criteria = re.sub(
                 mass_pattern,
-                f"\\g<1>\\g<2>kg (ORIGINAL: < {default_max_structure_mass:.0f}kg, NOW: < {max_structure_mass:.0f}kg).",
+                f"\\g<1>\\g<2> kg (FROM: < {base_max_mass:.0f}kg, TO: < {target_max_mass:.0f}kg).",
                 criteria
             )
     

@@ -171,7 +171,7 @@ def run_mutation_sequence(base_task_name: str, model_type: str, model_name: str,
                           headless: bool = True, api_key: Optional[str] = None,
                           model_path: Optional[str] = None, device: Optional[str] = None,
                           output_dir: str = "evaluation_results", initial_code: Optional[str] = None,
-                          base_log_path: Optional[str] = None, run_number: Optional[int] = None,
+                          base_log_path: Optional[str] = None,
                           reflect_model_name: Optional[str] = None,
                           textgrad_engine_name: Optional[str] = None,
                           a_mem_sys_llm_model: Optional[str] = None,
@@ -440,7 +440,6 @@ def run_mutation_sequence(base_task_name: str, model_type: str, model_name: str,
                         output_dir=output_dir,
                         log_task_name=m_log_task_name,
                         generate_gif_only=m_already_succeeded,
-                        run_number=run_number,
                         reflect_model_name=reflect_model_name,
                         textgrad_engine_name=textgrad_engine_name,
                         a_mem_sys_llm_model=a_mem_sys_llm_model,
@@ -583,7 +582,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                              max_iterations: int = 20, max_steps: int = 10000, headless: bool = True,
                              api_key: Optional[str] = None, model_path: Optional[str] = None,
                              device: Optional[str] = None, output_dir: str = "evaluation_results", log_task_name: str = None,
-                             generate_gif_only: bool = False, run_number: Optional[int] = None,
+                             generate_gif_only: bool = False,
                              reflect_model_name: Optional[str] = None,
                              textgrad_engine_name: Optional[str] = None,
                              a_mem_sys_llm_model: Optional[str] = None,
@@ -816,16 +815,18 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                             update_criteria_func = getattr(stages_mod, name)
                     
                     terrain_config = env_overrides.get("terrain_config", {})
+                    # For evaluate_mutated, the base is always the initial task (empty config)
+                    base_terrain_config = {}
                     
                     if update_desc_func:
                         # Update description with visible changes explicitly marked
-                        updated_description = update_desc_func(base_description, terrain_config)
+                        updated_description = update_desc_func(base_description, terrain_config, base_terrain_config)
                     else:
                         updated_description = base_description
                     
                     if update_criteria_func:
                         # Update success criteria with visible changes explicitly marked
-                        updated_criteria = update_criteria_func(base_success_criteria, terrain_config)
+                        updated_criteria = update_criteria_func(base_success_criteria, terrain_config, base_terrain_config)
                     else:
                         updated_criteria = base_success_criteria
                     
@@ -867,9 +868,9 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
             base_log_for_memory = load_log_file(base_log_path)
             if base_log_for_memory and base_log_for_memory.get('iteration_history'):
                 model_identifier = get_model_identifier(model_type, model_name)
-                # Use log_task_name (mutated task name for dir) and run_number for this mutation run
+                # Use log_task_name (mutated task name for dir) for this mutation run
                 memento_memory_path = get_memory_path(
-                    output_dir, log_task_name or evaluator_task_name, model_identifier, run_number
+                    output_dir, log_task_name or evaluator_task_name, model_identifier
                 )
                 restore_memory_from_base_log(base_log_for_memory, memento_memory_path)
                 initial_memory_system = memento_memory_path  # pass path (str) so evaluator uses pre-filled JSONL
@@ -898,7 +899,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
             if base_log_for_rb and base_log_for_rb.get('iteration_history'):
                 model_identifier = get_model_identifier(model_type, model_name)
                 reasoning_bank_path = get_memory_path(
-                    output_dir, log_task_name or evaluator_task_name, model_identifier, run_number
+                    output_dir, log_task_name or evaluator_task_name, model_identifier
                 )
                 restore_memory_from_base_log(base_log_for_rb, reasoning_bank_path)
                 initial_memory_system = reasoning_bank_path
@@ -924,7 +925,6 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
         context=context,
         env_overrides=env_overrides,
         task_prompt_override=task_prompt_override,
-        run_number=run_number,  # Pass run_number for directory structure (1st_pass, 2nd_pass, etc.)
         is_mutated_task=True,  # Mark this as a mutated task evaluation
         reflect_model_name=reflect_model_name,  # Reflexion method
         textgrad_engine_name=textgrad_engine_name,  # TextGrad method

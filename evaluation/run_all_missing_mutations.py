@@ -91,8 +91,8 @@ def is_incomplete_mutations(log_path: str) -> bool:
     return len(results) < total
 
 
-# Only consider JSON files whose filename starts with one of these (e.g. all_1st_pass_*, all_2nd_pass_*, all_3rd_pass_*)
-ALLOWED_FILENAME_PREFIXES = ("all_1st", "all_2nd", "all_3rd")
+# Only consider JSON files whose filename starts with one of these (e.g. all_raw_*, all_1st_pass_*, etc.)
+ALLOWED_FILENAME_PREFIXES = ("all_", "previous_")
 
 
 def parse_gpu_ids_from_device(device: str) -> list[int] | None:

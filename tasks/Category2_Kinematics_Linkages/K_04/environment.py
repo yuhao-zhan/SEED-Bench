@@ -298,6 +298,13 @@ class Sandbox:
             if friction is not None:
                 fixture.friction = float(friction)
 
+    def set_fixed_rotation(self, body, fixed=True):
+        """
+        API: Set fixed rotation for a body
+        """
+        if body:
+            body.fixedRotation = bool(fixed)
+
     def step(self, time_step):
         """Physics step"""
         # Demo only: apply initial pusher velocity once so GIF shows visible motion (test can pass pusher_initial_velocity_x in terrain_config)

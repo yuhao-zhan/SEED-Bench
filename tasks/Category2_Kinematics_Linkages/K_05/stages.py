@@ -9,20 +9,45 @@ Visible changes (e.g. target lift height) are reflected in task_description_suff
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes.
-    For invisible physical parameters (gravity, damping, etc.), changes are NOT reflected in description.
     """
-    # Base description is unchanged; visible overrides are applied via task_description_suffix in stage config
-    return base_description
+    description = base_description
+    target_y = target_terrain_config.get("target_object_y", 9.0)
+    base_y = base_terrain_config.get("target_object_y", 9.0)
+    
+    if target_y != base_y:
+        # Update "at least y=9.0m"
+        pattern = r"(at least y=)(\d+\.?\d*)m"
+        description = re.sub(pattern, f"\\g<1>\\g<2>m (FROM: y={base_y:.1f}m, TO: y={target_y:.1f}m)", description)
+        
+        # Update "at or above y=9.0m"
+        pattern2 = r"(at or above y=)(\d+\.?\d*)m"
+        description = re.sub(pattern2, f"\\g<1>\\g<2>m (FROM: y={base_y:.1f}m, TO: y={target_y:.1f}m)", description)
+        
+    return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria to reflect visible physical changes."""
-    return base_success_criteria
+    criteria = base_success_criteria
+    target_y = target_terrain_config.get("target_object_y", 9.0)
+    base_y = base_terrain_config.get("target_object_y", 9.0)
+    
+    if target_y != base_y:
+        # Update "Reaches y >= 9.0m"
+        pattern = r"(Reaches y >= )(\d+\.?\d*)m"
+        criteria = re.sub(pattern, f"\\g<1>\\g<2>m (FROM: >= {base_y:.1f}m, TO: >= {target_y:.1f}m)", criteria)
+        
+        # Update "holds the object at or above y=9.0m"
+        pattern2 = r"(at or above y=)(\d+\.?\d*)m"
+        criteria = re.sub(pattern2, f"\\g<1>\\g<2>m (FROM: y={base_y:.1f}m, TO: y={target_y:.1f}m)", criteria)
+        
+    return criteria
 
 
 def get_k05_curriculum_stages() -> List[Dict[str, Any]]:

@@ -31,7 +31,7 @@ if not os.environ.get("CUDA_VISIBLE_DEVICES"):
             break
 
 from evaluation.evaluate_mutated import run_mutation_sequence
-from evaluation.utils import load_best_code_from_log, extract_run_number_from_filename
+from evaluation.utils import load_best_code_from_log
 
 
 
@@ -132,8 +132,7 @@ def run_mutation_for_log(
         print("❌ Could not determine base_task_name from log file")
         return 1, None
 
-    log_filename = os.path.basename(log_path)
-    run_number = extract_run_number_from_filename(log_filename)
+    run_number = None
 
     if verbose:
         print(f"\n{'='*80}")

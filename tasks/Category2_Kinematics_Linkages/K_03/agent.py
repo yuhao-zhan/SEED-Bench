@@ -17,9 +17,6 @@ def build_agent(sandbox):
     Reference gripper: base on gantry, vertical slider (prismatic), wrist + two fingers.
     No rotating arm — only vertical伸缩 (up/down).
     """
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
-
     gantry = sandbox.get_anchor_for_gripper()
     if gantry is None:
         raise ValueError("Gantry anchor not found. Use get_anchor_for_gripper() to attach base.")
@@ -34,7 +31,7 @@ def build_agent(sandbox):
     # Slider: vertical beam, no rotation
     slider_half_h = 2.0
     slider_center_y = pivot_y - slider_half_h
-    stroke = 5.0  # how far down the slider can go (meters)
+    stroke = 7.0  # further stroke
     slider = sandbox.add_beam(
         x=base_x, y=slider_center_y, width=0.35, height=slider_half_h, angle=0, density=0.6
     )
@@ -46,8 +43,8 @@ def build_agent(sandbox):
         lower_translation=0.0,
         upper_translation=stroke,
         enable_motor=True,
-        motor_speed=2.0,
-        max_motor_force=5000.0,
+        motor_speed=1.2,
+        max_motor_force=10000.0,
     )
     wrist_y = slider_center_y - slider_half_h  # bottom of slider
     finger_w, finger_h = 0.28, 0.5
@@ -61,14 +58,14 @@ def build_agent(sandbox):
         angle=0.1 * math.pi, density=finger_density
     )
     sandbox.set_material_properties(left_finger, restitution=0.05, friction=0.95)
-    sandbox.add_joint(slider, left_finger, (base_x, wrist_y), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=150.0)
+    sandbox.add_joint(slider, left_finger, (base_x, wrist_y), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=5000.0)
 
     right_finger = sandbox.add_beam(
         x=base_x + finger_offset_x, y=wrist_y - finger_h / 2, width=finger_w, height=finger_h,
         angle=-0.1 * math.pi, density=finger_density
     )
     sandbox.set_material_properties(right_finger, restitution=0.05, friction=0.95)
-    sandbox.add_joint(slider, right_finger, (base_x, wrist_y), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=150.0)
+    sandbox.add_joint(slider, right_finger, (base_x, wrist_y), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=5000.0)
 
     slider_joint = left_finger_joint = right_finger_joint = None
     for joint in sandbox.joints:
@@ -95,39 +92,45 @@ def build_agent(sandbox):
 
 def agent_action(sandbox, agent_body, step_count):
     """
-    Lower → grasp → lift. During lift we hold finger angle (motor_speed=0, high torque) so the gripper does not flip.
-    Success = object held at/above red line (3.5m) for 80 steps; run stops at that point.
+    Lower → grasp → lift.
     """
     if not hasattr(sandbox, '_gripper_joints'):
         return
     joints = sandbox._gripper_joints
     t = step_count / 60.0
     slider_j = joints.get('slider')
-    max_force = 5000.0
+    max_force = 10000.0
 
-    # Phase 1 (0~3.5s): Lower slider until fingers reach object (y~2)
-    if t < 3.5:
+    obj_pos = sandbox.get_object_position()
+    obj_y = obj_pos[1] if obj_pos else 0.0
+
+    # Phase 1 (0~5s): Lower slider slowly
+    if t < 5.0:
         if slider_j is not None:
-            sandbox.set_slider_motor(slider_j, 2.0, max_force)
+            sandbox.set_slider_motor(slider_j, 1.2, max_force)
         if joints.get('left_finger'):
-            sandbox.set_motor(joints['left_finger'], 0.0, 5.0)
+            sandbox.set_motor(joints['left_finger'], 0.0, 100.0)
         if joints.get('right_finger'):
-            sandbox.set_motor(joints['right_finger'], 0.0, 5.0)
-    # Phase 2 (3.5~6.5s): Hold slider, close fingers to grasp
-    elif t < 6.5:
+            sandbox.set_motor(joints['right_finger'], 0.0, 100.0)
+    # Phase 2 (5~7s): Wait for settle
+    elif t < 7.0:
         if slider_j is not None:
             sandbox.set_slider_motor(slider_j, 0.0, max_force)
-        grip_torque = 600.0
+    # Phase 3 (7~10s): Grasp
+    elif t < 10.0:
+        if slider_j is not None:
+            sandbox.set_slider_motor(slider_j, 0.0, max_force)
+        grip_torque = 5000.0
         if joints.get('left_finger'):
-            sandbox.set_motor(joints['left_finger'], 2.5, grip_torque)
+            sandbox.set_motor(joints['left_finger'], 4.0, grip_torque)
         if joints.get('right_finger'):
-            sandbox.set_motor(joints['right_finger'], -2.5, grip_torque)
-    # Phase 3 (6.5s+): Lift; hold finger angle (motor_speed=0, high torque) to avoid flip from continuous rotation
+            sandbox.set_motor(joints['right_finger'], -4.0, grip_torque)
+    # Phase 4 (10s+): Lift
     else:
         if slider_j is not None:
-            sandbox.set_slider_motor(slider_j, -1.4, max_force)
-        finger_torque = 800.0  # high torque to hold grip without rotating (avoid flip)
+            sandbox.set_slider_motor(slider_j, -2.0, max_force)
+        finger_torque = 5000.0
         if joints.get('left_finger'):
-            sandbox.set_motor(joints['left_finger'], 0.0, finger_torque)
+            sandbox.set_motor(joints['left_finger'], 2.0, finger_torque)
         if joints.get('right_finger'):
-            sandbox.set_motor(joints['right_finger'], 0.0, finger_torque)
+            sandbox.set_motor(joints['right_finger'], -2.0, finger_torque)

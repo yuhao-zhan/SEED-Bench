@@ -10,16 +10,45 @@ Mutated stages are tuned so the reference agent fails (cannot reach 100% or cann
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
-    """Update task description to reflect visible physical changes. Invisible params not reflected."""
-    return base_description
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update task description to reflect visible physical changes."""
+    description = base_description
+    
+    # Particle count
+    target_count = target_terrain_config.get("particles", {}).get("count", 45)
+    base_count = base_terrain_config.get("particles", {}).get("count", 45)
+    
+    if target_count != base_count:
+        pattern = r"(- \*\*Particles\*\*: )(\d+)( small particles)"
+        description = re.sub(pattern, f"\\g<1>\\g<2> small particles (FROM: {base_count}, TO: {target_count})", description)
+
+    # Mass limit
+    target_mass = target_terrain_config.get("max_structure_mass", 15.0)
+    base_mass = base_terrain_config.get("max_structure_mass", 15.0)
+    
+    if target_mass != base_mass:
+        pattern = r"(total mass below )(\d+\.?\d*)( kg)"
+        description = re.sub(pattern, f"\\g<1>\\g<2> kg (FROM: {base_mass:.2f}kg, TO: {target_mass:.2f}kg)", description)
+        
+    return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria to reflect visible physical changes."""
-    return base_success_criteria
+    criteria = base_success_criteria
+    
+    # Mass limit
+    target_mass = target_terrain_config.get("max_structure_mass", 15.0)
+    base_mass = base_terrain_config.get("max_structure_mass", 15.0)
+    
+    if target_mass != base_mass:
+        pattern = r"(Mass Budget\*\*: < )(\d+\.?\d*)( kg)"
+        criteria = re.sub(pattern, f"\\g<1>\\g<2> kg (FROM: < {base_mass:.2f}kg, TO: < {target_mass:.2f}kg)", criteria)
+        
+    return criteria
 
 
 def get_k06_curriculum_stages() -> List[Dict[str, Any]]:

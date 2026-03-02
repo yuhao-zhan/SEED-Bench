@@ -11,45 +11,27 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
-def update_task_description_for_visible_changes(base_description: str, terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes.
-    
-    For invisible physical parameters (gravity, damping, friction coefficient, etc.), changes are NOT reflected.
-    For visible changes (e.g. object shape: circle, triangle), we add an explicit note so task and environment match.
-    
-    Args:
-        base_description: Original task description
-        terrain_config: Terrain configuration with changes
-        
-    Returns:
-        Updated task description with visible changes explicitly marked
     """
-    objects = terrain_config.get("objects") or {}
-    shape = objects.get("shape", "box")
-    if shape == "circle":
-        extra = "\n\n**Note (this environment)**: The object to grasp is **circular** (cylinder-like cross-section). Design your gripper and grasp strategy accordingly."
-        if extra.strip() not in base_description:
-            return base_description.rstrip() + extra
-    elif shape == "triangle":
-        extra = "\n\n**Note (this environment)**: The object to grasp is **triangular** in cross-section. Design your gripper and grasp strategy accordingly."
-        if extra.strip() not in base_description:
-            return base_description.rstrip() + extra
+    target_objects = target_terrain_config.get("objects") or {}
+    target_shape = target_objects.get("shape", "box")
+    
+    base_objects = base_terrain_config.get("objects") or {}
+    base_shape = base_objects.get("shape", "box")
+    
+    if target_shape != base_shape:
+        extra = f"\n\n**Note (this environment)**: The object to grasp is now **{target_shape}** in cross-section (was **{base_shape}**). Design your gripper and grasp strategy accordingly."
+        return base_description.rstrip() + extra
+        
     return base_description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update success criteria to reflect visible physical changes.
-    
-    Args:
-        base_success_criteria: Original success criteria
-        terrain_config: Terrain configuration with changes
-        
-    Returns:
-        Updated success criteria with visible changes explicitly marked
     """
-    # K-03 success criteria do not depend on object shape explicitly; keep as is.
     return base_success_criteria
 
 

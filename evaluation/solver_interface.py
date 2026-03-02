@@ -59,7 +59,7 @@ class SolverInterface:
     
     # API configuration for all OpenAI-compatible models (single gateway)
     API_KEY = 'sk-LRhP4AOlyeHBJh4NiVlg7YYPE8DdUTgykbEsMR7UVoNIQxS3'
-    BASE_URL = 'https://yeysai.com/v1'
+    BASE_URL = 'sk-LRhP4AOlyeHBJh4NiVlg7YYPE8DdUTgykbEsMR7UVoNIQxS3'
 
     def __init__(self, model_type='openai', model_name='gpt-4', api_key=None,
                  model_path: Optional[str] = None, device: Optional[str] = None):
@@ -513,27 +513,53 @@ class SolverInterface:
         return code.strip()
     
     def _mock_code_generator(self) -> tuple[str, str]:
-        """Mock code generator (for testing)"""
+        """Mock code generator (for testing) - returns a simple but stable bridge"""
         code = """def build_agent(sandbox):
-    # Mock implementation
-    GROUND_TOP = 1.0
-    WHEEL_RADIUS = 1.0
-    CHASSIS_HEIGHT = 0.4
-    wheel_y = GROUND_TOP + WHEEL_RADIUS - 0.05
-    chassis_y = wheel_y + CHASSIS_HEIGHT / 2
+    # Mock implementation for Bridge task (Stable version)
+    LEFT_CLIFF_X = 10.0
+    RIGHT_CLIFF_X = 25.0
+    GAP_WIDTH = 15.0
+    DECK_TOP_Y = 10.0
+    DECK_HEIGHT = 0.6
+    DECK_Y = DECK_TOP_Y - DECK_HEIGHT/2
     
-    chassis = sandbox.add_beam(x=5, y=chassis_y, width=4, height=CHASSIS_HEIGHT, density=2.0)
-    wheel_back = sandbox.add_wheel(x=3, y=wheel_y, radius=WHEEL_RADIUS, density=1.0, friction=4.0)
-    wheel_front = sandbox.add_wheel(x=7, y=wheel_y, radius=WHEEL_RADIUS, density=1.0, friction=4.0)
+    left_cliff = sandbox._terrain_bodies.get("left_cliff")
+    right_cliff = sandbox._terrain_bodies.get("right_cliff")
     
-    sandbox.connect(chassis, wheel_back, anchor_x=3, anchor_y=wheel_y, 
-                    motor_speed=-9.0, max_torque=1000.0)
-    sandbox.connect(chassis, wheel_front, anchor_x=7, anchor_y=wheel_y, 
-                    motor_speed=-9.0, max_torque=800.0)
+    # Simple deck (split into two 10m segments to stay in build zone)
+    d1 = sandbox.add_beam(x=15.0, y=DECK_Y, width=10.0, height=DECK_HEIGHT, density=5.0)
+    d2 = sandbox.add_beam(x=25.0, y=DECK_Y, width=10.0, height=DECK_HEIGHT, density=5.0)
+    for d in [d1, d2]:
+        for fixture in d.fixtures: fixture.friction = 0.8
     
-    return chassis
+    sandbox.add_joint(d1, d2, (20.0, 10.0), type='rigid')
+    sandbox.add_joint(left_cliff, d1, (10.0, 10.0), type='rigid')
+    sandbox.add_joint(right_cliff, d2, (25.0, 10.0), type='rigid')
+    
+    # Support layer to prevent collapse
+    s1 = sandbox.add_beam(x=15.0, y=8.0, width=10.0, height=0.4, density=3.0)
+    s2 = sandbox.add_beam(x=25.0, y=8.0, width=10.0, height=0.4, density=3.0)
+    sandbox.add_joint(s1, s2, (20.0, 8.0), type='rigid')
+    sandbox.add_joint(left_cliff, s1, (10.0, 8.0), type='rigid')
+    sandbox.add_joint(right_cliff, s2, (25.0, 8.0), type='rigid')
+    
+    # Verticals
+    for x in [12.5, 17.5, 22.5]:
+        v = sandbox.add_beam(x=x, y=9.0, width=0.3, height=2.0, density=3.0)
+        target_d = d1 if x < 20.0 else d2
+        target_s = s1 if x < 20.0 else s2
+        sandbox.add_joint(target_d, v, (x, 10.0), type='rigid')
+        sandbox.add_joint(target_s, v, (x, 8.0), type='rigid')
+
+    return d1
 
 def agent_action(sandbox, agent_body, step_count):
-    pass
+    if hasattr(sandbox, '_terrain_bodies'):
+        vehicle = sandbox._terrain_bodies.get("vehicle_chassis")
+        if vehicle:
+            target_vx = 4.0
+            curr_vx = vehicle.linearVelocity.x
+            if curr_vx < target_vx:
+                vehicle.linearVelocity = (curr_vx + 0.1, vehicle.linearVelocity.y)
 """
         return code, code

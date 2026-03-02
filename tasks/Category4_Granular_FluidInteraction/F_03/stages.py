@@ -14,14 +14,14 @@ from typing import Any, Dict, List
 
 
 def update_task_description_for_visible_changes(
-    base_description: str, terrain_config: Dict[str, Any]
+    base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
-    """Update task description when stage has visible changes (e.g. min_particles_in_hopper)."""
+    """Update task description when stage has visible changes."""
     return base_description
 
 
 def update_success_criteria_for_visible_changes(
-    base_success_criteria: str, terrain_config: Dict[str, Any]
+    base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
     """Update success criteria when stage has visible changes."""
     return base_success_criteria

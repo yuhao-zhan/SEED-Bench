@@ -10,6 +10,29 @@ Ordered by difficulty ascending.
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
+
+
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update task description for visible changes."""
+    description = base_description
+    
+    # Target zone height
+    target_y_min = target_terrain_config.get("target_y_min", 5.0) # Prompt default
+    target_y_max = target_terrain_config.get("target_y_max", 10.0)
+    base_y_min = base_terrain_config.get("target_y_min", 5.0)
+    base_y_max = base_terrain_config.get("target_y_max", 10.0)
+    
+    if target_y_min != base_y_min or target_y_max != base_y_max:
+        pattern = r"(y in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m)"
+        description = re.sub(pattern, f"\\g<1>\\g<2>\\g<3>\\g<4>\\g<5> (FROM: y=[{base_y_min:.1f}, {base_y_max:.1f}], TO: y=[{target_y_min:.1f}, {target_y_max:.1f}])", description)
+        
+    return description
+
+
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update success criteria for visible changes."""
+    return base_success_criteria
 
 
 def get_f06_curriculum_stages() -> List[Dict[str, Any]]:

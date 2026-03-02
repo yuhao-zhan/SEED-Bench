@@ -12,7 +12,7 @@ import random
 class BallClassificationSandbox:
     """Ball classification task environment"""
     
-    def __init__(self):
+    def __init__(self, terrain_config=None, physics_config=None):
         # 1. Initialize physics world
         self.world = world(gravity=(0, -9.8), doSleep=True)
         self.bodies = []
