@@ -61,7 +61,7 @@ Colliding with the obstacle during construction or oscillation will destabilize 
             "terrain_config": {
                 "force_pivot_joint": True,
                 "obstacle_active": True,
-                "obstacle_rect": [-2.5, -0.1, -1.5, 1.5], # Blocks straight path to counterweight
+                "obstacle_rect": [-3.5, -0.1, -1.0, 5.0], # Blocks almost all counterweight space
             },
             "physics_config": {},
         },
@@ -77,7 +77,7 @@ The impact force from the drop will induce massive rotational momentum that must
             "terrain_config": {
                 "force_pivot_joint": True,
                 "drop_load": True,
-                "load_mass": 200.0,
+                "load_mass": 3000.0, # Extreme mass
             },
             "physics_config": {},
         },
@@ -94,7 +94,7 @@ Due to the pivot, this will translate into a powerful overturning torque that ca
             "terrain_config": {
                 "force_pivot_joint": True,
                 "wind_active": True,
-                "wind_force_multiplier": 8.0,
+                "wind_force_multiplier": 200.0, # Extreme wind
             },
             "physics_config": {},
         },
@@ -110,14 +110,14 @@ You must navigate obstacles, catch a falling mass, and manage continuous wind to
             "terrain_config": {
                 "force_pivot_joint": True,
                 "obstacle_active": True,
-                "obstacle_rect": [-3.0, -0.1, -2.0, 1.5],
+                "obstacle_rect": [-3.5, -0.1, -1.0, 5.0],
                 "drop_load": True,
                 "wind_active": True,
-                "wind_force_multiplier": 5.0,
-                "load_mass": 250.0,
+                "wind_force_multiplier": 50.0,
+                "load_mass": 1000.0,
             },
             "physics_config": {
-                "gravity": (0, -15.0),
+                "gravity": (0, -20.0),
             },
         },
     ]

@@ -295,81 +295,85 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
 def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
     """
     Run evaluation for a single (env_i, env_j) pair.
-    The agent starts with initial_ref_code (from env_i) and tries to solve env_j.
+    - Iteration 0: Run the source env's reference solution in the target env (no model call).
+    - Iteration 1..max: First revision and beyond; each iteration builds prompt, generates code, runs it, records prompt+result.
     """
-    current_code = initial_ref_code
     evaluator.best_score = -1.0
     evaluator.best_code = None
     evaluator.best_metrics = {}
     evaluator.iteration_history = []
-    
     source_stage_id = pair_name.split('_to_')[0]
-    
-    for iteration in range(1, evaluator.max_iterations + 1):
-        print(f"Iteration {iteration}/{evaluator.max_iterations}")
-        
-        gif_filename = f"ref_from_{source_stage_id}_iter_{iteration}.gif"
-        gif_path = os.path.join(evaluator.gif_dir, gif_filename)
-        
-        try:
-            success, score, metrics, error = evaluator.verifier.verify_code(
-                current_code, headless=evaluator.headless, save_gif_path=gif_path
-            )
-        except Exception as e:
-            print(f"❌ Verification error at iteration {iteration}: {e}")
-            success, score, metrics, error = False, 0.0, {}, str(e)
-        
-        failed = metrics.get('failed', False) if metrics else True
-        failure_reason = metrics.get('failure_reason') if metrics else "Unknown error"
-        
-        feedback = format_feedback(
-            metrics or {}, score, success, failed, failure_reason,
-            iteration, error=error, task_name=base_task_name
+
+    # --- Iteration 0: run reference solution in target env (before any revision) ---
+    print("Iteration 0 (reference in target env)")
+    gif_path_0 = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_0.gif")
+    try:
+        success_0, score_0, metrics_0, error_0 = evaluator.verifier.verify_code(
+            initial_ref_code, headless=evaluator.headless, save_gif_path=gif_path_0
         )
-        
-        evaluator.iteration_history.append({
-            'iteration': iteration,
-            'code': current_code,
-            'success': success,
-            'score': score,
-            'metrics': metrics or {},
-            'error': error,
-            'feedback': feedback
-        })
-        
-        if score > evaluator.best_score:
-            evaluator.best_score = score
-            evaluator.best_code = current_code
-            evaluator.best_metrics = metrics or {}
-            
-        if success:
-            print(f"✅ Success at iteration {iteration}!")
-            break
-            
-        try:
-            if iteration == 1:
-                prompt = format_mutated_prompt(evaluator.task_prompt, initial_ref_code, feedback)
+    except Exception as e:
+        print(f"❌ Verification error at iteration 0: {e}")
+        success_0, score_0, metrics_0, error_0 = False, 0.0, {}, str(e)
+    failed_0 = metrics_0.get('failed', False) if metrics_0 else True
+    failure_reason_0 = metrics_0.get('failure_reason') if metrics_0 else "Unknown error"
+    feedback_0 = format_feedback(
+        metrics_0 or {}, score_0, success_0, failed_0, failure_reason_0,
+        0, error=error_0, task_name=base_task_name
+    )
+    evaluator.iteration_history.append({
+        'iteration': 0,
+        'code': initial_ref_code,
+        'prompt': None,
+        'success': success_0,
+        'score': score_0,
+        'metrics': metrics_0 or {},
+        'error': error_0,
+        'feedback': feedback_0,
+    })
+    if score_0 > evaluator.best_score:
+        evaluator.best_score = score_0
+        evaluator.best_code = initial_ref_code
+        evaluator.best_metrics = metrics_0 or {}
+    if success_0:
+        print("✅ Reference already passes in target env. Skipping this pair (no revisions).")
+        evaluator.verifier.cleanup()
+        report = evaluator._generate_report()
+        report['skipped'] = True
+        report['skip_reason'] = 'reference_passes_in_target'
+        return report
+
+    # ref_feedback: used for building revision prompts (iteration 0 result)
+    ref_feedback = feedback_0
+    current_code = initial_ref_code
+
+    for iteration in range(1, evaluator.max_iterations + 1):
+        print(f"Iteration {iteration}/{evaluator.max_iterations} (revision)")
+        gif_path = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_{iteration}.gif")
+
+        # Build prompt for this revision (prompt that will produce the code we run in this iteration)
+        if iteration == 1:
+            prompt = format_mutated_prompt(evaluator.task_prompt, initial_ref_code, ref_feedback)
+        else:
+            best_item = max(evaluator.iteration_history, key=lambda x: x['score'])
+            previous_item = evaluator.iteration_history[-1]
+            if evaluator.context == 'all' or evaluator.context == 'best_score_plus_previous':
+                prompt = format_mutated_revision_prompt_best_plus_previous(
+                    evaluator.task_prompt, initial_ref_code, evaluator.iteration_history[0]['feedback'],
+                    best_item['code'], best_item['feedback'],
+                    previous_item['code'], previous_item['feedback'],
+                    previous_item['feedback'],
+                    best_item['iteration'], previous_item['iteration'], iteration
+                )
             else:
-                best_item = max(evaluator.iteration_history, key=lambda x: x['score'])
-                previous_item = evaluator.iteration_history[-1]
-                
-                if evaluator.context == 'all' or evaluator.context == 'best_score_plus_previous':
-                    prompt = format_mutated_revision_prompt_best_plus_previous(
-                        evaluator.task_prompt, initial_ref_code, evaluator.iteration_history[0]['feedback'],
-                        best_item['code'], best_item['feedback'],
-                        previous_item['code'], previous_item['feedback'],
-                        previous_item['feedback'],
-                        best_item['iteration'], previous_item['iteration'], iteration
-                    )
-                else:
-                    prompt = format_mutated_revision_prompt(
-                        evaluator.task_prompt, initial_ref_code, evaluator.iteration_history[0]['feedback'],
-                        previous_item['code'], previous_item['feedback'],
-                        previous_item['feedback']
-                    )
-                
+                prompt = format_mutated_revision_prompt(
+                    evaluator.task_prompt, initial_ref_code, evaluator.iteration_history[0]['feedback'],
+                    previous_item['code'], previous_item['feedback'],
+                    previous_item['feedback']
+                )
+
+        try:
             new_code, raw_output, token_usage = evaluator.solver.generate_code(prompt)
-            if new_code: 
+            if new_code:
                 current_code = new_code
             else:
                 print(f"⚠️  Solver returned no code at iteration {iteration}")
@@ -377,6 +381,45 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
         except Exception as e:
             print(f"❌ Solver error at iteration {iteration}: {e}")
             break
-            
+
+        # Mock in cross-mutation: do not "improve" (return ref so score stays baseline-consistent with test_mutated_tasks)
+        if getattr(evaluator.solver, 'model_type', None) == 'mock':
+            current_code = initial_ref_code
+
+        try:
+            success, score, metrics, error = evaluator.verifier.verify_code(
+                current_code, headless=evaluator.headless, save_gif_path=gif_path
+            )
+        except Exception as e:
+            print(f"❌ Verification error at iteration {iteration}: {e}")
+            success, score, metrics, error = False, 0.0, {}, str(e)
+
+        failed = metrics.get('failed', False) if metrics else True
+        failure_reason = metrics.get('failure_reason') if metrics else "Unknown error"
+        feedback = format_feedback(
+            metrics or {}, score, success, failed, failure_reason,
+            iteration, error=error, task_name=base_task_name
+        )
+
+        evaluator.iteration_history.append({
+            'iteration': iteration,
+            'code': current_code,
+            'prompt': prompt,
+            'success': success,
+            'score': score,
+            'metrics': metrics or {},
+            'error': error,
+            'feedback': feedback,
+        })
+
+        if score > evaluator.best_score:
+            evaluator.best_score = score
+            evaluator.best_code = current_code
+            evaluator.best_metrics = metrics or {}
+
+        if success:
+            print(f"✅ Success at iteration {iteration}!")
+            break
+
     evaluator.verifier.cleanup()
     return evaluator._generate_report()

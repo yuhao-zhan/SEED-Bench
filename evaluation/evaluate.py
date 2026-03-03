@@ -345,10 +345,52 @@ def evaluate_single_task(task_name, args):
                 print(f"🚀 Running Cross-Mutation Pair: {pair_name}")
                 
                 all_envs = get_all_stages(task_name)
+                env_i = next((e for e in all_envs if e["stage_id"] == source_env), None)
                 env_j = next((e for e in all_envs if e["stage_id"] == target_env), None)
                 if not env_j: raise ValueError(f"Target env {target_env} not found")
+                if not env_i: env_i = {"terrain_config": {}}
                 
                 ref_code = get_reference_solution(task_name, source_env)
+                
+                # Compute task_prompt_override
+                from evaluation.prompt import parse_task_name, load_task_prompt
+                import importlib.util
+                task_path, _ = parse_task_name(task_name)
+                script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                task_dir = os.path.join(script_dir, 'tasks', task_path)
+                stages_file = os.path.join(task_dir, 'stages.py')
+                
+                update_desc_func = None
+                update_criteria_func = None
+                if os.path.exists(stages_file):
+                    spec = importlib.util.spec_from_file_location("task_stages", stages_file)
+                    stages_mod = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(stages_mod)
+                    for name in dir(stages_mod):
+                        if 'update_task_description_for_visible_changes' in name.lower() and callable(getattr(stages_mod, name)):
+                            update_desc_func = getattr(stages_mod, name)
+                        if 'update_success_criteria_for_visible_changes' in name.lower() and callable(getattr(stages_mod, name)):
+                            update_criteria_func = getattr(stages_mod, name)
+
+                base_prompt = load_task_prompt(task_name)
+                task_prompt_override = dict(base_prompt)
+                desc = base_prompt.get("task_description", "")
+                criteria = base_prompt.get("success_criteria", "")
+                
+                target_terrain = env_j.get("terrain_config", {})
+                base_terrain = env_i.get("terrain_config", {})
+                
+                if update_desc_func:
+                    desc = update_desc_func(desc, target_terrain, base_terrain)
+                if update_criteria_func:
+                    criteria = update_criteria_func(criteria, target_terrain, base_terrain)
+                    
+                suffix = env_j.get("task_description_suffix", "")
+                if suffix:
+                    desc += "\n" + suffix
+                    
+                task_prompt_override["task_description"] = desc
+                task_prompt_override["success_criteria"] = criteria
                 
                 evaluator = TaskEvaluator(
                     task_name=task_name,
@@ -361,12 +403,14 @@ def evaluate_single_task(task_name, args):
                     method=args.method,
                     context=args.context,
                     env_overrides={"terrain_config": env_j.get("terrain_config", {}), "physics_config": env_j.get("physics_config", {})},
-                    is_mutated_task=True
+                    is_mutated_task=True,
+                    task_prompt_override=task_prompt_override
                 )
                 evaluator.mutated_task_name = pair_name
                 
                 report = run_single_pair(evaluator, ref_code, task_name, pair_name)
-                evaluator.save_report(report, output_dir='evaluation_results')
+                if not report.get('skipped'):
+                    evaluator.save_report(report, output_dir='evaluation_results')
             else:
                 # Run full suite
                 run_cross_mutation_evaluation(

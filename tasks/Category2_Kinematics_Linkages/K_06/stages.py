@@ -23,7 +23,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     
     if target_count != base_count:
         pattern = r"(- \*\*Particles\*\*: )(\d+)( small particles)"
-        description = re.sub(pattern, f"\\g<1>\\g<2> small particles (FROM: {base_count}, TO: {target_count})", description)
+        description = re.sub(pattern, f"\\g<1>{target_count} small particles (originally {base_count} small particles in the source environment)", description)
 
     # Mass limit
     target_mass = target_terrain_config.get("max_structure_mass", 15.0)
@@ -31,7 +31,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     
     if target_mass != base_mass:
         pattern = r"(total mass below )(\d+\.?\d*)( kg)"
-        description = re.sub(pattern, f"\\g<1>\\g<2> kg (FROM: {base_mass:.2f}kg, TO: {target_mass:.2f}kg)", description)
+        description = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally {base_mass:.2f} kg in the source environment)", description)
         
     return description
 
@@ -46,7 +46,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     
     if target_mass != base_mass:
         pattern = r"(Mass Budget\*\*: < )(\d+\.?\d*)( kg)"
-        criteria = re.sub(pattern, f"\\g<1>\\g<2> kg (FROM: < {base_mass:.2f}kg, TO: < {target_mass:.2f}kg)", criteria)
+        criteria = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally < {base_mass:.2f} kg in the source environment)", criteria)
         
     return criteria
 

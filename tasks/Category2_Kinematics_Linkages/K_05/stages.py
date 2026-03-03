@@ -23,11 +23,11 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     if target_y != base_y:
         # Update "at least y=9.0m"
         pattern = r"(at least y=)(\d+\.?\d*)m"
-        description = re.sub(pattern, f"\\g<1>\\g<2>m (FROM: y={base_y:.1f}m, TO: y={target_y:.1f}m)", description)
+        description = re.sub(pattern, f"\\g<1>{target_y:.1f}m (originally y={base_y:.1f}m in the source environment)", description)
         
         # Update "at or above y=9.0m"
         pattern2 = r"(at or above y=)(\d+\.?\d*)m"
-        description = re.sub(pattern2, f"\\g<1>\\g<2>m (FROM: y={base_y:.1f}m, TO: y={target_y:.1f}m)", description)
+        description = re.sub(pattern2, f"\\g<1>{target_y:.1f}m (originally y={base_y:.1f}m in the source environment)", description)
         
     return description
 
@@ -41,11 +41,11 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     if target_y != base_y:
         # Update "Reaches y >= 9.0m"
         pattern = r"(Reaches y >= )(\d+\.?\d*)m"
-        criteria = re.sub(pattern, f"\\g<1>\\g<2>m (FROM: >= {base_y:.1f}m, TO: >= {target_y:.1f}m)", criteria)
+        criteria = re.sub(pattern, f"\\g<1>{target_y:.1f}m (originally y >= {base_y:.1f}m in the source environment)", criteria)
         
         # Update "holds the object at or above y=9.0m"
         pattern2 = r"(at or above y=)(\d+\.?\d*)m"
-        criteria = re.sub(pattern2, f"\\g<1>\\g<2>m (FROM: y={base_y:.1f}m, TO: y={target_y:.1f}m)", criteria)
+        criteria = re.sub(pattern2, f"\\g<1>{target_y:.1f}m (originally y={base_y:.1f}m in the source environment)", criteria)
         
     return criteria
 

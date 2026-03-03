@@ -69,18 +69,18 @@ class Evaluator:
         failed = False
         failure_reason = None
         
-        # Check if any body touches ground
-        for body in self.environment._bodies:
-            if body.position.y < -0.1:
-                failed = True
-                failure_reason = "Structure touched ground (y < -0.1)"
-                break
-                
         # Check if load touches ground
         load_body = self.environment._terrain_bodies.get("load")
         if load_body and load_body.position.y < -0.1:
             failed = True
-            failure_reason = "Load fell to the ground (y < -0.1)"
+            failure_reason = f"Load fell to the ground (y={load_body.position.y:.2f} < -0.1)"
+        
+        # Check if any body touches ground
+        for i, body in enumerate(self.environment._bodies):
+            if body.position.y < -0.1:
+                failed = True
+                failure_reason = f"Structure body {i} touched ground (y={body.position.y:.2f} < -0.1)"
+                break
         
         # Fail fast only for hard-constraint violations:
         # - load not caught early

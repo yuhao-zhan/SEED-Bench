@@ -41,41 +41,41 @@ def update_task_description_for_visible_changes(base_description: str, target_te
 
     if target_meteor_mass != base_meteor_mass:
         description = re.sub(
-            r"28 boulders \(260kg each\)",
-            f"28 boulders (260kg each) (FROM: {base_meteor_mass:.0f}kg, TO: {target_meteor_mass:.0f}kg)",
+            r"28 boulders \((\d+\.?\d*)kg each\)",
+            f"28 boulders ({target_meteor_mass:.0f}kg each) (originally {base_meteor_mass:.0f}kg each in the source environment)",
             description,
             1,
         )
         description = re.sub(
-            r"Meteors are 260kg and",
-            f"Meteors are 260kg (FROM: {base_meteor_mass:.0f}kg, TO: {target_meteor_mass:.0f}kg) and",
+            r"Meteors are (\d+\.?\d*)kg and",
+            f"Meteors are {target_meteor_mass:.0f}kg (originally {base_meteor_mass:.0f}kg in the source environment) and",
             description,
             1,
         )
 
     if target_core_force != base_core_force:
-        description = re.sub(r"exceeds 14N", f"exceeds 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)", description, 1)
-        description = re.sub(r"Force > 14N", f"Force > 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)", description, 1)
-        description = re.sub(r"stay < 14N", f"stay < 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)", description, 1)
+        description = re.sub(r"exceeds \d+\.?\d*N", f"exceeds {target_core_force:.0f}N (originally {base_core_force:.0f}N in the source environment)", description, 1)
+        description = re.sub(r"Force > \d+\.?\d*N", f"Force > {target_core_force:.0f}N (originally {base_core_force:.0f}N in the source environment)", description, 1)
+        description = re.sub(r"stay < \d+\.?\d*N", f"stay < {target_core_force:.0f}N (originally {base_core_force:.0f}N in the source environment)", description, 1)
 
     if target_max_mass != base_max_mass:
         description = re.sub(
-            r"mass budget \(120kg\)",
-            f"mass budget (120kg) (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
+            r"mass budget \((\d+\.?\d*)kg\)",
+            f"mass budget ({target_max_mass:.0f}kg) (originally {base_max_mass:.0f}kg in the source environment)",
             description,
             1,
         )
         description = re.sub(
-            r"must be < 120kg",
-            f"must be < 120kg (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
+            r"must be < \d+\.?\d*kg",
+            f"must be < {target_max_mass:.0f}kg (originally < {base_max_mass:.0f}kg in the source environment)",
             description,
             1,
         )
 
     if target_meteor_count != base_meteor_count:
         description = re.sub(
-            r"\d+ boulders \(\d+kg each\)",
-            f"{target_meteor_count:.0f} boulders ({target_meteor_mass:.0f}kg each) (FROM: {base_meteor_count} meteors, TO: {target_meteor_count} meteors)",
+            r"\d+ boulders \(\d+\.?\d*kg each\)",
+            f"{target_meteor_count:.0f} boulders ({target_meteor_mass:.0f}kg each) (originally {base_meteor_count} boulders in the source environment)",
             description,
             1,
         )
@@ -97,34 +97,34 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 
     if target_core_force != base_core_force:
         criteria = re.sub(
-            r"exceed 14N",
-            f"exceed 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)",
+            r"exceed \d+\.?\d*N",
+            f"exceed {target_core_force:.0f}N (originally {base_core_force:.0f}N in the source environment)",
             criteria,
             1,
         )
         criteria = re.sub(
-            r"stay < 14N",
-            f"stay < 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)",
+            r"stay < \d+\.?\d*N",
+            f"stay < {target_core_force:.0f}N (originally {base_core_force:.0f}N in the source environment)",
             criteria,
             1,
         )
         criteria = re.sub(
-            r"Max force on core must stay < 14N",
-            f"Max force on core must stay < 14N (FROM: {base_core_force:.0f}N, TO: {target_core_force:.0f}N)",
+            r"Max force on core must stay < \d+\.?\d*N",
+            f"Max force on core must stay < {target_core_force:.0f}N (originally < {base_core_force:.0f}N in the source environment)",
             criteria,
             1,
         )
 
     if target_max_mass != base_max_mass:
         criteria = re.sub(
-            r"Max mass 120kg",
-            f"Max mass 120kg (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
+            r"Max mass \d+\.?\d*kg",
+            f"Max mass {target_max_mass:.0f}kg (originally {base_max_mass:.0f}kg in the source environment)",
             criteria,
             1,
         )
         criteria = re.sub(
-            r"must be < 120kg",
-            f"must be < 120kg (FROM: {base_max_mass:.0f}kg, TO: {target_max_mass:.0f}kg)",
+            r"must be < \d+\.?\d*kg",
+            f"must be < {target_max_mass:.0f}kg (originally < {base_max_mass:.0f}kg in the source environment)",
             criteria,
             1,
         )

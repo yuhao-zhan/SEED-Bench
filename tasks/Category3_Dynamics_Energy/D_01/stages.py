@@ -33,12 +33,12 @@ def update_task_description_for_visible_changes(
     # Replace target zone numbers when explicitly overridden
     if tx_min is not None and tx_max is not None and (tx_min != base_tx_min or tx_max != base_tx_max):
         # We use a more robust replacement that includes the transition
-        out = re.sub(r"x from 40 m to 45 m", f"x from 40 m to 45 m (FROM: {base_tx_min:.0f}-{base_tx_max:.0f}m, TO: {tx_min:.0f}-{tx_max:.0f}m)", out)
-        out = re.sub(r"\[40, 45\]", f"[40, 45] (FROM: [{base_tx_min:.0f}, {base_tx_max:.0f}], TO: [{tx_min:.0f}, {tx_max:.0f}])", out)
+        out = re.sub(r"x from 40 m to 45 m", f"x from {tx_min:.0f} m to {tx_max:.0f} m (originally x from {base_tx_min:.0f} m to {base_tx_max:.0f} m in the source environment)", out)
+        out = re.sub(r"\[40, 45\]", f"[{tx_min:.0f}, {tx_max:.0f}] (originally [{base_tx_min:.0f}, {base_tx_max:.0f}] in the source environment)", out)
 
     if ty_min is not None and ty_max is not None and (ty_min != base_ty_min or ty_max != base_ty_max):
-        out = re.sub(r"y from \*\*2 m to 5 m\*\*", f"y from **2 m to 5 m** (FROM: {base_ty_min:.0f}-{base_ty_max:.0f}m, TO: {ty_min:.0f}-{ty_max:.0f}m)", out)
-        out = re.sub(r"\[2, 5\]", f"[2, 5] (FROM: [{base_ty_min:.0f}, {base_ty_max:.0f}], TO: [{ty_min:.0f}, {ty_max:.0f}])", out)
+        out = re.sub(r"y from \*\*2 m to 5 m\*\*", f"y from **{ty_min:.0f} m to {ty_max:.0f} m** (originally y from **2 m to 5 m** in the source environment)", out)
+        out = re.sub(r"\[2, 5\]", f"[{ty_min:.0f}, {ty_max:.0f}] (originally [{base_ty_min:.0f}, {base_ty_max:.0f}] in the source environment)", out)
 
     return out
 
@@ -59,11 +59,11 @@ def update_success_criteria_for_visible_changes(
 
     out = base_success_criteria
     if tx_min is not None and tx_max is not None and (tx_min != base_tx_min or tx_max != base_tx_max):
-        out = re.sub(r"x in \[40, 45\]", f"x in [40, 45] (FROM: [{base_tx_min:.0f}, {base_tx_max:.0f}], TO: [{tx_min:.0f}, {tx_max:.0f}])", out)
-        out = re.sub(r"\[40, 45\]", f"[40, 45] (FROM: [{base_tx_min:.0f}, {base_tx_max:.0f}], TO: [{tx_min:.0f}, {tx_max:.0f}])", out)
+        out = re.sub(r"x in \[40, 45\]", f"x in [{tx_min:.0f}, {tx_max:.0f}] (originally x in [{base_tx_min:.0f}, {base_tx_max:.0f}] in the source environment)", out)
+        out = re.sub(r"\[40, 45\]", f"[{tx_min:.0f}, {tx_max:.0f}] (originally [{base_tx_min:.0f}, {base_tx_max:.0f}] in the source environment)", out)
     if ty_min is not None and ty_max is not None and (ty_min != base_ty_min or ty_max != base_ty_max):
-        out = re.sub(r"y in \*\*\[2, 5\]\*\*", f"y in **[2, 5]** (FROM: [{base_ty_min:.0f}, {base_ty_max:.0f}], TO: [{ty_min:.0f}, {ty_max:.0f}])", out)
-        out = re.sub(r"\[2, 5\]", f"[2, 5] (FROM: [{base_ty_min:.0f}, {base_ty_max:.0f}], TO: [{ty_min:.0f}, {ty_max:.0f}])", out)
+        out = re.sub(r"y in \*\*\[2, 5\]\*\*", f"y in **[{ty_min:.0f}, {ty_max:.0f}]** (originally y in **[{base_ty_min:.0f}, {base_ty_max:.0f}]** in the source environment)", out)
+        out = re.sub(r"\[2, 5\]", f"[{ty_min:.0f}, {ty_max:.0f}] (originally [{base_ty_min:.0f}, {base_ty_max:.0f}] in the source environment)", out)
     return out
 
 

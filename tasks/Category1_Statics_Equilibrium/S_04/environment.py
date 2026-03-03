@@ -71,8 +71,10 @@ class DaVinciSandbox:
                     friction=pivot_friction,
                 ),
             )
+            self._terrain_bodies["pivot"] = pivot
         else:
             # Default: sharp triangle pivot
+            # Ensure pivot is created and added to _terrain_bodies
             pivot = self._world.CreateStaticBody(
                 position=(0, 0),
                 fixtures=Box2D.b2FixtureDef(
@@ -80,8 +82,7 @@ class DaVinciSandbox:
                     friction=pivot_friction,
                 ),
             )
-        self._terrain_bodies["pivot"] = pivot
-        
+            self._terrain_bodies["pivot"] = pivot        
         if self._obstacle_active:
             xmin, ymin, xmax, ymax = self._obstacle_rect
             cx, cy = (xmin + xmax) / 2.0, (ymin + ymax) / 2.0
@@ -134,6 +135,8 @@ class DaVinciSandbox:
         if self._wind_active:
             for body in self._bodies:
                 body.ApplyForceToCenter((body.mass * self._wind_force_multiplier, 0), wake=True)
+            if self._load_body:
+                self._load_body.ApplyForceToCenter((self._load_body.mass * self._wind_force_multiplier, 0), wake=True)
         
         # Auto-attach load if structure present at (3,0)
         if not self._load_attached and not self._drop_load and self._bodies:

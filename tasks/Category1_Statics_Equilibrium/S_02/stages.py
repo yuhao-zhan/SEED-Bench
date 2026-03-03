@@ -31,7 +31,7 @@ def get_s02_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Earthquake amplitude increased significantly. Original design will fail due to larger displacement.",
             "task_description_suffix": "## Environmental Warning\nThe earthquake intensity has increased. The ground oscillations are now much larger. Structural flexibility and damping are key.",
             "terrain_config": {
-                "earthquake_amplitude": 2.0, 
+                "earthquake_amplitude": 5.0, 
             },
             "physics_config": {},
         },

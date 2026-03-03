@@ -40,12 +40,12 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         # The prompt doesn't have a direct "Gap: 15m wide" line, it's inferred from cliffs.
         # But we can add a note or replace the right cliff start.
         
-        # Update "- **Right Cliff**: Starts at x=25.0m, y=10.0m."
-        right_cliff_pattern = r"(- \*\*Right Cliff\*\*: Starts at x=)(\d+\.?\d*)m"
+        # Update "- **Right Cliff**: use new env value, note original in source env (keep trailing ", y=10.0m." if present)
+        right_cliff_pattern = r"(- \*\*Right Cliff\*\*: Starts at x=)(\d+\.?\d*)m(, y=[\d.]+m\.)?"
         if re.search(right_cliff_pattern, description):
             description = re.sub(
                 right_cliff_pattern,
-                f"\\g<1>\\g<2>m (FROM: x={base_right_cliff_start:.1f}m, TO: x={target_right_cliff_start:.1f}m)",
+                lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}m (originally x={base_right_cliff_start:.1f}m in the source environment){m.group(3) if m.group(3) else '.'}",
                 description
             )
     
@@ -82,7 +82,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_max_mass = target_terrain_config.get("max_structure_mass", default_max_structure_mass)
     base_max_mass = base_terrain_config.get("max_structure_mass", default_max_structure_mass)
     
-    # Update target position: "1. **Passage**: Vehicle reaches x >= 30.0m."
+    # Update target position: use new env value in main text, note original in source env
     if target_gap_width != base_gap_width:
         base_target_x = base_right_cliff_start + 5.0
         target_x = target_right_cliff_start + 5.0
@@ -90,17 +90,17 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         if re.search(target_pattern, criteria):
             criteria = re.sub(
                 target_pattern,
-                f"\\g<1>\\g<2>m (FROM: x >= {base_target_x:.1f}m, TO: x >= {target_x:.1f}m).",
+                f"\\g<1>{target_x:.1f}m (originally x >= {base_target_x:.1f}m in the source environment).",
                 criteria
             )
     
-    # Update max structure mass if changed
+    # Update max structure mass: use new env value in main text, note original in source env
     if target_max_mass != base_max_mass:
         mass_pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*) kg\."
         if re.search(mass_pattern, criteria):
             criteria = re.sub(
                 mass_pattern,
-                f"\\g<1>\\g<2> kg (FROM: < {base_max_mass:.0f}kg, TO: < {target_max_mass:.0f}kg).",
+                f"\\g<1>{target_max_mass:.0f} kg (originally < {base_max_mass:.0f} kg in the source environment).",
                 criteria
             )
     
@@ -123,7 +123,7 @@ def get_s01_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "Wider Gap",
-            "mutation_description": "Gap width increased from 15m to 18m. Bridge must span longer distance.",
+            "mutation_description": "Gap width increased from 15m to 21m. Bridge must span longer distance.",
             "task_description_suffix": """
 ## Environmental Warning
 The gap between the cliffs has widened.
@@ -153,7 +153,7 @@ Your bridge must be designed to withstand higher structural stresses.
         {
             "stage_id": "Stage-3",
             "title": "Wider Gap and Lightweight Constraint",
-            "mutation_description": "Gap width 18m + max structure mass reduced to 1500kg. Need efficient design.",
+            "mutation_description": "Gap width 21m + max structure mass reduced to 950kg. Need efficient design.",
             "task_description_suffix": """
 ## Environmental Warning
 The gap has widened, and material resources are limited.

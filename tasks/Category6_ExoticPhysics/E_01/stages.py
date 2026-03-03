@@ -41,7 +41,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_y_max = base_terrain_config.get("arena_y_max", 20.0)
     
     if target_y_max is not None and target_y_max != base_y_max:
-        suffix = f"\n\n## Arena Change (visible)\nThe arena ceiling has changed: valid y range is now [0, {target_y_max}] (FROM: y_max={base_y_max}, TO: y_max={target_y_max}). The structure must fit within this reduced height."
+        suffix = f"\n\n## Arena Change (visible)\nThe arena ceiling has changed: valid y range is now [0, {target_y_max}] (originally [0, {base_y_max}] in the source environment). The structure must fit within this reduced height."
         return base_description + suffix
     return base_description
 
@@ -52,7 +52,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_y_max = base_terrain_config.get("arena_y_max", 20.0)
     
     if target_y_max is not None and target_y_max != base_y_max:
-        suffix = f"\n- **Arena bounds**: x in [0, 40], y in [0, {target_y_max}] (FROM: y_max={base_y_max}, TO: y_max={target_y_max})."
+        suffix = f"\n- **Arena bounds**: x in [0, 40], y in [0, {target_y_max}] (originally [0, {base_y_max}] in the source environment)."
         return base_success_criteria + suffix
     return base_success_criteria
 

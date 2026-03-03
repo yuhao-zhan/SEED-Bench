@@ -482,6 +482,12 @@ def agent_action(sandbox, agent_components, step_count):
 """
 
 
+# Task setting for all mutated (cross-environment) prompts: clarify that we migrated from old to new env
+MUTATED_TASK_SETTING = """## Task Setting
+
+You are adapting a solution from an **old (source) environment** to a **new (target) environment**. The environment has changed (e.g. terrain, physics, constraints). Your goal is to revise the code so it works in the **new** environment. Numbers and criteria in the task description and success criteria below are for the **new** environment; where the source environment differed, it is noted as "(originally ... in the source environment)".
+"""
+
 # Mutated environment demonstration: shows how to adapt when environment changes
 # Contains two examples: one requiring only build_agent changes, one requiring both build_agent and agent_action
 MUTATED_DEMONSTRATION = """# Example: Environment Change Adaptation
@@ -1491,7 +1497,9 @@ def format_mutated_revision_prompt_best_plus_previous(
         else True
     )
 
-    prompt = f"""# Task Description
+    prompt = f"""{MUTATED_TASK_SETTING}
+
+# Task Description
 
 {task_prompt['task_description']}
 
@@ -1571,7 +1579,9 @@ def format_mutated_revision_prompt(
     Mutated task revision prompt (previous attempt only): env change + original code + its feedback,
     then previous attempt + latest feedback. One whole prompt.
     """
-    prompt = f"""# Task Description
+    prompt = f"""{MUTATED_TASK_SETTING}
+
+# Task Description
 
 {task_prompt['task_description']}
 
@@ -1683,7 +1693,9 @@ def format_mutated_prompt(task_prompt, previous_successful_code, feedback):
     is a revision/adaptation given previous successful code and its feedback in the new environment.
     Self-contained: task description, success criteria, API, env-change notice, previous code, feedback.
     """
-    prompt = f"""# Task Description
+    prompt = f"""{MUTATED_TASK_SETTING}
+
+# Task Description
 
 {task_prompt['task_description']}
 

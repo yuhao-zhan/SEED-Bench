@@ -10,12 +10,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 from common.renderer import Renderer
 from Box2D.b2 import dynamicBody, staticBody
 
-# Zoom: smaller = camera further away (1.8 gives more context, 3.0 was too close)
-RENDER_SCALE = 1.8
-# World position to place at screen center (midpoint between pivot and load, slightly above ground)
-CENTER_WORLD_X = 1.5
-CENTER_WORLD_Y = 0.5
-
+# Zoom: smaller = camera further away
+RENDER_SCALE = 1.2
+# World position to place at screen center
+CENTER_WORLD_X = 0.0
+CENTER_WORLD_Y = 1.5
 
 class S04Renderer(Renderer):
     """S-04: The Balancer task specific renderer — zoomed and centered."""
@@ -52,7 +51,6 @@ class S04Renderer(Renderer):
         # Draw weld line from load to the structure body it's welded to (so the line clearly connects orange load to green structure)
         if load_body is not None and getattr(sandbox, "_bodies", None):
             lx, ly = load_body.position.x, load_body.position.y
-            # Find the structure body closest to the load — that's the one it's welded to (e.g. hook beam)
             best = None
             best_d = float("inf")
             for b in sandbox._bodies:
@@ -65,7 +63,6 @@ class S04Renderer(Renderer):
             if best is not None:
                 self.draw_line(best.position.x, best.position.y, lx, ly, (180, 180, 180), width=2)
 
-        # Draw load in distinct color (200kg block — welded to structure, not hanging by rope)
         if load_body is not None:
             self.draw_body(
                 load_body,

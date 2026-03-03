@@ -25,7 +25,11 @@ def update_task_description_for_visible_changes(
     
     if target_leakage != base_leakage:
         pattern = r"(leakage remains below )(\d+\.?\d*%)"
-        description = re.sub(pattern, f"\\g<1>\\g<2> (FROM: {base_leakage*100:.2f}%, TO: {target_leakage*100:.2f}%)", description)
+        description = re.sub(
+            pattern,
+            f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+            description
+        )
         
     return description
 
@@ -42,7 +46,11 @@ def update_success_criteria_for_visible_changes(
     
     if target_leakage != base_leakage:
         pattern = r"(Leakage Rate\*\*: Total leakage < )(\d+\.?\d*%)"
-        criteria = re.sub(pattern, f"\\g<1>\\g<2> (FROM: < {base_leakage*100:.2f}%, TO: < {target_leakage*100:.2f}%)", criteria)
+        criteria = re.sub(
+            pattern,
+            f"\\g<1>{target_leakage*100:.2f}% (originally < {base_leakage*100:.2f}% in the source environment)",
+            criteria
+        )
         
     return criteria
 
