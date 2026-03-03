@@ -16,13 +16,13 @@ Boulders will spawn above the core, mostly targeting the center, but some will f
 
 ## Task Environment
 - **Core**: A circular object centered at (10.0, 1.0). It fails if any single impact force exceeds its structural limit.
-- **Ground**: A static surface at y=0.5. Your shelter must be supported by the ground outside the designated keep-out zone.
-- **Boulders**: 28 boulders (10.0kg each) fall from a high altitude (y=20m). They target the center heavily, but also strike from the sides. You must design a structure to deflect or absorb these impacts.
+- **Ground**: A static surface at y=0.0. Your shelter must be supported by the ground outside the designated keep-out zone.
+- **Boulders**: 12 boulders fall from a high altitude (y=15m). They target the build zone broadly. You must design a structure to deflect or absorb these impacts.
 - **Beam Dimensions**: 0.1 <= width, height <= 10.0 m. 
 
 ## Task Objective
 Design a shelter structure that:
-1. Effectively shields the core from impacts originating from the center, left, and right.
+1. Effectively shields the core from impacts originating from above.
 2. Deflects or absorbs the kinetic energy of heavy falling boulders so that the force reaching the core remains minimal (< 150.0N).
 3. Maintains structural stability under its own weight and during repeated impacts.
 4. Complies with the total mass budget and height restrictions.
@@ -30,9 +30,9 @@ Design a shelter structure that:
 ## Constraints (must satisfy)
 - **Keep-Out Zone**: You cannot build any structural components within 1.3m of the core center (10.0, 1.0).
 - **Height Limit**: No part of the shelter may extend above y=7.5m. This is strictly enforced at build time.
-- **Mass Budget**: Total structure mass must be less than 300 kg.
+- **Mass Budget**: Total structure mass must be less than 300.0 kg.
 - **Structural Integrity**: The shelter must remain standing throughout the bombardment.
-""",,old_string:""",
+""",
     
     'success_criteria': """
 ## Success Criteria
@@ -41,7 +41,7 @@ Design a shelter structure that:
 
 ## Design Constraints
 - **Keep-Out Zone**: Beam center distance to (10.0, 1.0) must be >= 1.3m.
-- **Mass Budget**: < 300 kg.
+- **Mass Budget**: < 300.0 kg.
 - **Height Limit**: No beam may extend above y=7.5m.
 - **APIs**: Use only the primitives documented below.
 """,
