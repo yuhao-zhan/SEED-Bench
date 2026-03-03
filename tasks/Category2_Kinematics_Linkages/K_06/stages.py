@@ -61,7 +61,7 @@ def get_k06_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "More Particles and Difficult Layout",
-            "mutation_description": "Particle count increased to 60 and layout seed changed. Ref agent tuned for 45 particles cannot clear all within step limit.",
+            "mutation_description": "Particle count increased to 80 and layout seed changed. Ref agent tuned for 45 particles cannot clear all within step limit.",
             "task_description_suffix": """
 ## Environmental Warning
 Particle distribution and load have changed in this region.

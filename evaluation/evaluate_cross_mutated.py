@@ -139,6 +139,8 @@ def get_reference_solution(base_task_name: str, stage_id: str) -> str:
         
     if extracted_build:
         final_parts.append("\n".join(extracted_build))
+    else:
+        raise ValueError(f"Function {build_func} not found in {agent_path}")
     
     if any("_base_agent_action" in l for l in extracted_action):
         extracted_base = []

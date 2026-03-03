@@ -20,6 +20,7 @@ try:
     import matplotlib
     matplotlib.use('Agg')  # Non-interactive backend
     import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -329,11 +330,18 @@ def plot_results(tables, models, methods, output_dir):
     method_labels = [method_display_name(m) for m in ordered_methods]
     model_labels = [short_model_name(m) for m in models]
     
-    # 1. Main Performance Heatmap (Pass@1)
-    if ordered_methods and models:
+    # --- 1. Primary Metrics Heatmaps ---
+    for metric, label, filename in [
+        ('Pass@1', 'Pass Rate (%)', 'pass_rate_heatmap'),
+        ('Score-Avg', 'Average Score', 'score_avg_heatmap'),
+        ('Iteration-Avg', 'Avg Iterations', 'iteration_avg_heatmap'),
+        ('Efficiency-Avg', 'Efficiency (Score/Token)', 'efficiency_avg_heatmap'),
+        ('CodeUsage-Avg', 'Code Usage (Tokens)', 'code_usage_avg_heatmap'),
+    ]:
+        if not tables.get(metric) or not ordered_methods or not models:
+            continue
+            
         fig, ax = plt.subplots(figsize=(len(ordered_methods)*0.8 + 2, len(models)*0.6 + 2))
-        metric = 'Pass@1'
-        
         data = []
         for model in models:
             row = []
@@ -343,9 +351,15 @@ def plot_results(tables, models, methods, output_dir):
             data.append(row)
         
         # Manually mask NaNs for imshow
+        v_min = 0
+        v_max = 100 if 'Pass' in metric else None
+        if v_max is None:
+            finite_vals = [v for row in data for v in row if not math.isnan(v)]
+            v_max = max(finite_vals) if finite_vals else 1.0
+            
         masked_data = [[(v if not math.isnan(v) else 0) for v in row] for row in data]
         
-        im = ax.imshow(masked_data, cmap='Blues', vmin=0, vmax=100)
+        im = ax.imshow(masked_data, cmap='Blues', vmin=v_min, vmax=v_max)
         ax.set_xticks(range(len(ordered_methods)))
         ax.set_yticks(range(len(models)))
         ax.set_xticklabels(method_labels, rotation=45, ha='right')
@@ -355,15 +369,37 @@ def plot_results(tables, models, methods, output_dir):
             for j in range(len(ordered_methods)):
                 val = data[i][j]
                 if not math.isnan(val):
-                    ax.text(j, i, f'{val:.0f}', ha='center', va='center', color='white' if val > 50 else 'black')
+                    txt = f'{val:.1f}' if 'Efficiency' in metric or 'Score' in metric else f'{val:.0f}'
+                    ax.text(j, i, txt, ha='center', va='center', color='white' if val > v_max/2 else 'black', fontsize=9)
         
-        plt.title('Pass@1 Rate (%) Across Task Pairs')
-        plt.colorbar(im, label='Pass@1 (%)')
+        plt.title(f'{label} Across Task Pairs')
+        plt.colorbar(im, label=label)
         plt.tight_layout()
-        fig.savefig(os.path.join(output_dir, 'pass_rate_heatmap.png'))
+        fig.savefig(os.path.join(output_dir, f'{filename}.png'))
         plt.close(fig)
 
-    # 2. Discovery Rate Line Plot (Aggregated)
+    # --- 2. Qwen Model Comparison ---
+    qwen_models = [m for m in models if short_model_name(m) in ('Qwen3-8B', 'Qwen3-14B')]
+    if qwen_models and ordered_methods:
+        fig, ax = plt.subplots(figsize=(max(12, len(ordered_methods)*0.6), 6))
+        x = list(range(len(ordered_methods)))
+        width = 0.35
+        
+        for i, model in enumerate(qwen_models):
+            vals = [tables['Score-Avg'].get((model, m), 0) for m in ordered_methods]
+            vals = [v if not math.isnan(v) else 0 for v in vals]
+            ax.bar([pos + (i-0.5)*width for pos in x], vals, width, label=short_model_name(model))
+            
+        ax.set_ylabel('Average Score')
+        ax.set_title('Qwen3-8B vs Qwen3-14B Score Comparison')
+        ax.set_xticks(x)
+        ax.set_xticklabels(method_labels, rotation=45, ha='right')
+        ax.legend()
+        plt.tight_layout()
+        fig.savefig(os.path.join(output_dir, 'qwen_score_comparison.png'))
+        plt.close(fig)
+
+    # --- 3. Discovery Rate Line Plot ---
     if models:
         fig, ax = plt.subplots(figsize=(8, 6))
         k_vals = list(DISCOVERY_K_VALUES)
@@ -412,6 +448,7 @@ def main():
             for mn in metric_names:
                 tables[mn][(model, method)] = metrics.get(mn, float('nan'))
 
+    # Efficiency Normalization (Global)
     eff_key = 'Efficiency-Avg'
     all_eff = [v for v in tables[eff_key].values() if not math.isnan(v)]
     if all_eff:

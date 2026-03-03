@@ -42,7 +42,7 @@ def get_k02_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "Low Wall Friction",
-            "mutation_description": "Wall friction reduced from 1.0 to 0.16. Legs and pads slip very easily; original grip is insufficient.",
+            "mutation_description": "Wall friction reduced from 1.0 to 0.12. Legs and pads slip very easily; original grip is insufficient.",
             "task_description_suffix": """
 ## Environmental Warning
 Physical conditions at the wall have changed.

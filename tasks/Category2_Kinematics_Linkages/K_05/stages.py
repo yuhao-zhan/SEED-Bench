@@ -68,7 +68,7 @@ def get_k05_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "Increased Gravity",
-            "mutation_description": "Gravity increased from -10 to -18 m/s². Structure and motors experience much higher loads.",
+            "mutation_description": "Gravity increased from -10 to -28 m/s². Structure and motors experience much higher loads.",
             "task_description_suffix": """
 ## Environmental Warning
 Physical conditions in this region have changed.

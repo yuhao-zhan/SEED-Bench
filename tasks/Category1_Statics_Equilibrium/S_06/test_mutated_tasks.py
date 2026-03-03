@@ -52,7 +52,7 @@ def test_stage_with_reference_solution(stage_config, reference_code):
     
     # Create verifier with environment overrides
     # Use path format for task name
-    task_name = "Category1_Statics_Equilibrium/S-06"
+    task_name = "Category1_Statics_Equilibrium/S_06"
     verifier = CodeVerifier(
         task_name=task_name,
         max_steps=10000,  # 10s stability check at 60fps = 600 steps, but need more for settling

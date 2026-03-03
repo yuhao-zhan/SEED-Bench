@@ -58,7 +58,7 @@ class Sandbox:
         # 3. Set build zone and constraints
         self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
         self.BUILD_ZONE_X_MAX = 15.0  # Build zone x end
-        self.BUILD_ZONE_Y_MIN = 1.0  # Build zone y start (ground top at 1.0; allow sitting on ground)
+        self.BUILD_ZONE_Y_MIN = 1.5  # Build zone y start (consistent with prompt)
         self.BUILD_ZONE_Y_MAX = 8.0  # Build zone y end
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 40.0))  # Maximum total structure mass (kg)
         

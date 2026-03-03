@@ -53,7 +53,7 @@ def get_k01_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "Low Ground Friction",
-            "mutation_description": "Ground friction 0.04. Extremely slippery surface.",
+            "mutation_description": "Ground friction 0.01. Extremely slippery surface.",
             "task_description_suffix": """
 ## Environmental Warning
 Surface contact properties in this region have changed.
@@ -68,7 +68,7 @@ Your walker must adapt to achieve stable forward locomotion.
         {
             "stage_id": "Stage-2",
             "title": "Restricted Joint Limits",
-            "mutation_description": "Pivot joints have default angle limits ±π/10 (18°). Leg wheel rotation severely blocked.",
+            "mutation_description": "Pivot joints have default angle limits ±π/20 (9°). Leg rotation severely blocked.",
             "task_description_suffix": """
 ## Environmental Warning
 Joint behavior in this region has changed.
@@ -84,7 +84,7 @@ Your walker design must account for these constraints.
         {
             "stage_id": "Stage-3",
             "title": "Reduced Friction + Restricted Joints",
-            "mutation_description": "Ground friction 0.5 (reduced from 0.8) + joint limits ±π/10 (18°). Dual params.",
+            "mutation_description": "Ground friction 0.12 + joint limits ±π/10 (18°). Dual params.",
             "task_description_suffix": """
 ## Environmental Warning
 Both surface contact and joint behavior have changed in this region.
@@ -101,7 +101,7 @@ Your walker must adapt to achieve stable forward locomotion under these conditio
         {
             "stage_id": "Stage-4",
             "title": "Extreme Challenge",
-            "mutation_description": "Gravity -20, ground friction 0.04, max_body_friction 0.15, joint limits ±π/12 (15°), damping 2.0.",
+            "mutation_description": "Gravity -30, ground friction 0.01, max_body_friction 0.06, joint limits ±π/24 (7.5°), damping 3.0.",
             "task_description_suffix": """
 ## Environmental Warning
 Multiple environmental anomalies detected simultaneously.

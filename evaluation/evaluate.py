@@ -350,7 +350,11 @@ def evaluate_single_task(task_name, args):
                 if not env_j: raise ValueError(f"Target env {target_env} not found")
                 if not env_i: env_i = {"terrain_config": {}}
                 
-                ref_code = get_reference_solution(task_name, source_env)
+                try:
+                    ref_code = get_reference_solution(task_name, source_env)
+                except Exception as e:
+                    print(f"⏭️  Skipping pair {pair_name}: reference solution for {source_env} not found: {e}")
+                    return 0
                 
                 # Compute task_prompt_override
                 from evaluation.prompt import parse_task_name, load_task_prompt

@@ -37,11 +37,19 @@ def collect_work_items(task_list, model_type, model_name, method, context):
             
         try:
             all_envs = get_all_stages(task_name)
+            from evaluation.evaluate_cross_mutated import get_reference_solution
             for i, env_i in enumerate(all_envs):
+                source = env_i["stage_id"]
+                try:
+                    # Check if reference solution exists for source env
+                    get_reference_solution(task_name, source)
+                except Exception as e:
+                    print(f"⏭️  Skipping all pairs with source {source} in {task_name}: {e}")
+                    continue
+
                 for j, env_j in enumerate(all_envs):
                     if i == j: continue
                     
-                    source = env_i["stage_id"]
                     target = env_j["stage_id"]
                     pair_name = f"{source}_to_{target}"
                     
