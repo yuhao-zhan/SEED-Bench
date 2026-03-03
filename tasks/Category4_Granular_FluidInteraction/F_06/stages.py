@@ -52,11 +52,13 @@ def get_f06_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Fluid viscosity increased significantly; particles respond slowly to forces.",
             "task_description_suffix": """
 ## Environmental Warning
-The fluid in this environment behaves differently (slower response to forces). In addition, **a pit is now active** in the corridor (x about 13.5–15.5); particles entering it are lost. You must route particles above the pit and adapt to the fluid behavior using feedback.
+Environmental hazards in the corridor have changed. A new region of particle loss (pit) is active.
+In addition, the fluid in this region behaves differently than nominal conditions.
+Use simulation feedback to adapt your strategy.
 """,
             "terrain_config": {
-                "fluid": {"viscosity": 4.0},  # high drag
-                "pit1_y_max": 1.5,  # enable pit: ref strategy pushes low and loses many
+                "fluid": {"viscosity": 4.0},
+                "pit1_y_max": 1.5,
             },
             "physics_config": {
                 "force_budget": 10000.0,
@@ -68,8 +70,9 @@ The fluid in this environment behaves differently (slower response to forces). I
             "mutation_description": "Target zone moved to higher elevation; ground-level push strategy fails.",
             "task_description_suffix": """
 ## Environmental Warning
-The **target zone has been moved to a higher elevation**. The delivery zone is now in the band y=[2.0, 3.5] (same x range as before).
-You must push particles to this higher target; strategies that only reach ground level will not succeed.
+The **target zone has been moved to a different elevation**.
+The delivery zone coordinates have been updated in the task description.
+You must adapt your routing strategy to reach this new target.
 """,
             "terrain_config": {
                 "target_y_min": 2.0,
@@ -83,7 +86,7 @@ You must push particles to this higher target; strategies that only reach ground
             "mutation_description": "Higher fluid viscosity + stronger gravity; arcs fall short, delivery drops.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple physical conditions have changed. The fluid responds more slowly to forces, and gravity is stronger.
+Multiple physical conditions in the transport corridor have changed. Fluid resistance and particle dynamics differ from nominal.
 Infer the new dynamics from simulation feedback and adapt your strategy.
 """,
             "terrain_config": {
@@ -100,8 +103,9 @@ Infer the new dynamics from simulation feedback and adapt your strategy.
             "mutation_description": "Raised target + high viscosity + stronger headwind + deeper gravity well + reduced force budget.",
             "task_description_suffix": """
 ## Environmental Warning
-The **target zone is at a higher elevation** (y=[2.5, 4.0]). In addition, several physical conditions have changed:
-stronger headwind, a deeper gravity well, and a tighter per-step force budget. Use feedback to adapt.
+The **target zone is at a new elevation**.
+In addition, several environmental conditions have changed: fluid resistance, external forces, and resource constraints differ from nominal.
+Use simulation feedback to adapt and meet the delivery requirements.
 """,
             "terrain_config": {
                 "target_y_min": 2.5,

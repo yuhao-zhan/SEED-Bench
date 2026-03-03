@@ -199,23 +199,15 @@ class Sandbox:
     # --- Physical constraint constants ---
     MIN_BEAM_SIZE = 0.1  # Minimum beam width/height (meters)
     MAX_BEAM_SIZE = 10.0  # Maximum beam width/height (meters)
-    # BUILD_ZONE_X_MIN, BUILD_ZONE_X_MAX, BUILD_ZONE_Y_MIN, BUILD_ZONE_Y_MAX, MAX_STRUCTURE_MASS
-    # are set in __init__ based on terrain_config
-    BUILD_ZONE_X_MIN = 10.0  # Default, will be updated in __init__
-    BUILD_ZONE_X_MAX = 25.0  # Default, will be updated in __init__
-    BUILD_ZONE_Y_MIN = 5.0  # Build zone y start
-    BUILD_ZONE_Y_MAX = 15.0  # Build zone y end
-    MAX_STRUCTURE_MASS = 2000.0  # Default, will be updated in __init__
-    MIN_DECK_FRICTION = 0.5  # Minimum friction for deck beams
-
-    # --- Below are Primitives API open to LLM (with physical constraints) ---
+    BUILD_ZONE_X_MIN = 10.0
+    BUILD_ZONE_X_MAX = 25.0
+    BUILD_ZONE_Y_MIN = 5.0
+    BUILD_ZONE_Y_MAX = 15.0
+    MAX_STRUCTURE_MASS = 2000.0
+    MIN_DECK_FRICTION = 0.5
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
-        """
-        API: Add a beam (rigid rectangular structural element)
-        Constraint: 0.1 <= width, height <= 10.0 (unless restricted by task)
-        """
-        # Validate constraints
+        """API: Add a beam."""
         width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_SIZE))
         height = max(self.MIN_BEAM_SIZE, min(height, self.MAX_BEAM_SIZE))
         
@@ -234,219 +226,101 @@ class Sandbox:
         return body
 
     def add_joint(self, body_a, body_b, anchor_point, type='rigid'):
-        """
-        API: Add a joint between two bodies
-        - type='rigid': Locks relative rotation (Weld)
-        - type='pivot': Allows free rotation (Hinge)
-        - body_b can be None to anchor to static cliff walls (automatically selects based on anchor_point x position)
-        """
-        # Validate body_a (must not be None)
+        """API: Add a joint."""
         if body_a is None:
-            raise ValueError("add_joint: body_a cannot be None. You must provide a valid body object (e.g., from add_beam).")
-        
+            raise ValueError("add_joint: body_a cannot be None.")
         anchor_x, anchor_y = anchor_point[0], anchor_point[1]
-        
-        # If body_b is None, anchor to the appropriate cliff wall based on anchor position
         if body_b is None:
             left_cliff = self._terrain_bodies.get("left_cliff")
             right_cliff = self._terrain_bodies.get("right_cliff")
-            
-            # Determine which cliff to anchor to based on x position
-            # Left cliff ends at x=10, right cliff starts at right_cliff_start
-            if left_cliff and right_cliff:
-                # Use midpoint between cliffs to decide
-                mid_x = 10.0 + self._gap_width / 2
-                if anchor_x <= mid_x:
-                    body_b = left_cliff
-                else:
-                    body_b = right_cliff
-            elif left_cliff:
+            mid_x = 10.0 + self._gap_width / 2
+            if anchor_x <= mid_x:
                 body_b = left_cliff
-            elif right_cliff:
-                body_b = right_cliff
             else:
-                raise ValueError("Cannot anchor to cliff: cliff bodies not found")
-        
+                body_b = right_cliff
         if type == 'rigid':
-            # Weld joint (no relative rotation)
-            joint = self._world.CreateWeldJoint(
-                bodyA=body_a,
-                bodyB=body_b,
-                anchor=(anchor_x, anchor_y),
-                collideConnected=False
-            )
+            joint = self._world.CreateWeldJoint(bodyA=body_a, bodyB=body_b, anchor=(anchor_x, anchor_y), collideConnected=False)
         elif type == 'pivot':
-            # Revolute joint (allows rotation)
-            joint = self._world.CreateRevoluteJoint(
-                bodyA=body_a,
-                bodyB=body_b,
-                anchor=(anchor_x, anchor_y),
-                collideConnected=False
-            )
+            joint = self._world.CreateRevoluteJoint(bodyA=body_a, bodyB=body_b, anchor=(anchor_x, anchor_y), collideConnected=False)
         else:
             raise ValueError(f"Unknown joint type: {type}")
-        
         self._joints.append(joint)
         return joint
 
     def get_structure_mass(self):
-        """
-        API: Returns total mass of created objects
-        """
-        total_mass = 0.0
-        for body in self._bodies:
-            total_mass += body.mass
-        return total_mass
+        """API: Returns total mass of created objects"""
+        return sum(body.mass for body in self._bodies)
 
     def set_material_properties(self, body, restitution=0.2):
-        """
-        API: Set material properties for a body
-        - 'restitution': Bounciness (0.0 = clay, 1.0 = superball)
-        """
+        """API: Set restitution for a body"""
         for fixture in body.fixtures:
             fixture.restitution = float(restitution)
 
     def step(self, time_step):
-        """Physics step with airborne rotation tracking"""
-        # Real-time airborne rotation tracking (every physics step!)
+        """Physics step with constant joint strength thresholds"""
         if self._tracked_body is not None and not self._airborne_rotation_exceeded:
             current_angle = self._tracked_body.angle
             current_y = self._tracked_body.position.y
-            
-            # Check if vehicle is airborne (y > cliff_top + threshold)
-            cliff_top = 10.0  # Cliff top is at y=10m (both cliffs are at same height)
+            cliff_top = 10.0
             is_airborne = current_y > (cliff_top + self._AIRBORNE_THRESHOLD)
-            
             if is_airborne:
                 if self._last_tracked_angle is not None:
-                    # Calculate angle change from last step
                     angle_diff = current_angle - self._last_tracked_angle
-                    
-                    # Normalize to [-pi, pi] to get the shortest angular distance
                     angle_diff_normalized = ((angle_diff + math.pi) % (2 * math.pi)) - math.pi
-                    
-                    # Use normalized difference if it's smaller, otherwise use unwrapped
-                    if abs(angle_diff) < math.pi:
-                        angle_diff_unwrapped = angle_diff
-                    else:
-                        angle_diff_unwrapped = angle_diff_normalized
-                    
-                    # Accumulate rotation in each direction
-                    if angle_diff_unwrapped > 1e-6:  # Counterclockwise rotation (positive)
+                    angle_diff_unwrapped = angle_diff if abs(angle_diff) < math.pi else angle_diff_normalized
+                    if angle_diff_unwrapped > 1e-6:
                         self._airborne_rotation_counterclockwise += angle_diff_unwrapped
-                    elif angle_diff_unwrapped < -1e-6:  # Clockwise rotation (negative)
+                    elif angle_diff_unwrapped < -1e-6:
                         self._airborne_rotation_clockwise += abs(angle_diff_unwrapped)
-                    
-                    # Calculate net rotation: absolute difference between clockwise and counterclockwise
                     net_rotation = abs(self._airborne_rotation_counterclockwise - self._airborne_rotation_clockwise)
-                    
-                    # Check if net rotation exceeded 180 degrees (true flip)
                     if net_rotation > self._MAX_AIRBORNE_ROTATION:
                         self._airborne_rotation_exceeded = True
             else:
-                # Reset when on ground
                 self._airborne_rotation_clockwise = 0.0
                 self._airborne_rotation_counterclockwise = 0.0
-            
-            # Always update last angle
             self._last_tracked_angle = current_angle
         
         self._world.Step(time_step, 10, 10)
         
-        # Check joint breaking (for structural integrity under load)
-        # Track peak forces/torques throughout simulation and break joints when thresholds exceeded
         joints_to_remove = []
-        
-        # Track max forces/torques for debugging (only print occasionally)
-        if not hasattr(self, '_joint_debug_counter'):
-            self._joint_debug_counter = 0
-        self._joint_debug_counter += 1
-        
-        max_force_seen = 0.0
-        max_torque_seen = 0.0
-        
         for joint in self._joints:
             try:
-                # Check reaction force magnitude
                 if hasattr(joint, 'GetReactionForce'):
-                    force = joint.GetReactionForce(1.0 / 60.0)  # Get force at current time step
+                    force = joint.GetReactionForce(1.0 / 60.0)
                     force_magnitude = math.sqrt(force.x**2 + force.y**2)
-                    
-                    # Update peak force for this joint
-                    if joint not in self._joint_peak_forces:
-                        self._joint_peak_forces[joint] = 0.0
+                    if joint not in self._joint_peak_forces: self._joint_peak_forces[joint] = 0.0
                     self._joint_peak_forces[joint] = max(self._joint_peak_forces[joint], force_magnitude)
-                    max_force_seen = max(max_force_seen, self._joint_peak_forces[joint])
                     
-                    # Check reaction torque
                     torque_magnitude = 0.0
                     if hasattr(joint, 'GetReactionTorque'):
                         torque_magnitude = abs(joint.GetReactionTorque(1.0 / 60.0))
-                        
-                        # Update peak torque for this joint
-                        if joint not in self._joint_peak_torques:
-                            self._joint_peak_torques[joint] = 0.0
+                        if joint not in self._joint_peak_torques: self._joint_peak_torques[joint] = 0.0
                         self._joint_peak_torques[joint] = max(self._joint_peak_torques[joint], torque_magnitude)
-                        max_torque_seen = max(max_torque_seen, self._joint_peak_torques[joint])
                     
-                    # Joint breaking thresholds
-                    # Higher threshold for anchor joints (connected to cliffs), lower for structural joints
-                    # Check if joint connects to a cliff (static body)
-                    body_a = joint.bodyA
-                    body_b = joint.bodyB
-                    is_anchor_joint = (
-                        body_a.type == staticBody or body_b.type == staticBody or
-                        body_a in self._terrain_bodies.values() or body_b in self._terrain_bodies.values()
-                    )
+                    body_a, body_b = joint.bodyA, joint.bodyB
+                    is_anchor = (body_a.type == staticBody or body_b.type == staticBody or
+                                 body_a in self._terrain_bodies.values() or body_b in self._terrain_bodies.values())
                     
-                    # Adjust thresholds based on gravity increase
-                    # Default gravity is -10, so if gravity is -15, that's 1.5x increase
-                    gravity_y = abs(self._world.gravity[1]) if len(self._world.gravity) > 1 else 10.0
-                    gravity_multiplier = gravity_y / 10.0  # Normalize to default gravity
-                    
-                    # Base thresholds based on observed values at rest (~2.7 N force, ~9.1 Nm torque)
-                    # Under normal gravity, joints see small forces. Under increased gravity, forces scale up.
-                    # We set thresholds as multiples of normal values, scaled by gravity
-                    if is_anchor_joint:
-                        # Anchor joints: at rest see ~2.7 N, under 1.5x gravity might see ~4-5 N
-                        # Set threshold to 3-4x the expected increase to allow some margin
-                        base_force = 15.0  # ~3x expected increase
-                        base_torque = 50.0  # ~5x expected increase (torques scale more)
+                    # Use fixed thresholds; higher gravity naturally increases forces/torques
+                    if is_anchor:
+                        max_force, max_torque = 15.0, 50.0
                     else:
-                        # Structural joints: more vulnerable, lower thresholds
-                        base_force = 10.0  # ~2x expected increase
-                        base_torque = 30.0  # ~3x expected increase
+                        max_force, max_torque = 10.0, 30.0
                     
-                    # Scale thresholds inversely with gravity increase
-                    # Higher gravity = lower effective strength (joints break easier)
-                    # For gravity -15 (1.5x): threshold = base / 1.5
-                    # This makes joints break when forces exceed base/1.5 under 1.5x gravity
-                    max_force = base_force / gravity_multiplier
-                    max_torque = base_torque / gravity_multiplier
-                    
-                    # Break joint if peak force or torque exceeds limit
-                    peak_force = self._joint_peak_forces.get(joint, 0.0)
-                    peak_torque = self._joint_peak_torques.get(joint, 0.0)
-                    if peak_force > max_force or peak_torque > max_torque:
+                    if self._joint_peak_forces[joint] > max_force or self._joint_peak_torques[joint] > max_torque:
                         joints_to_remove.append(joint)
-            except Exception:
-                # Skip if joint is invalid or destroyed
-                continue
+            except Exception: continue
         
-        # Remove broken joints
         for joint in joints_to_remove:
             try:
                 self._world.DestroyJoint(joint)
                 if joint in self._joints:
                     self._joints.remove(joint)
-                    # Clean up tracking dictionaries
                     self._joint_peak_forces.pop(joint, None)
                     self._joint_peak_torques.pop(joint, None)
-            except Exception:
-                pass
+            except Exception: pass
     
     def set_tracked_body(self, body):
-        """Set the body to track for airborne rotation"""
         self._tracked_body = body
         self._last_tracked_angle = body.angle if body else None
         self._airborne_rotation_clockwise = 0.0
@@ -454,15 +328,10 @@ class Sandbox:
         self._airborne_rotation_exceeded = False
     
     def get_airborne_rotation_status(self):
-        """Get airborne rotation tracking status"""
         net_rotation = abs(self._airborne_rotation_counterclockwise - self._airborne_rotation_clockwise)
-        return {
-            'accumulated': net_rotation,  # Net rotation (true flip amount)
-            'exceeded': self._airborne_rotation_exceeded
-        }
+        return {'accumulated': net_rotation, 'exceeded': self._airborne_rotation_exceeded}
     
     def get_terrain_bounds(self):
-        """Get terrain bounds (for evaluation)"""
         gap_width = getattr(self, '_gap_width', 15.0)
         right_cliff_start = getattr(self, '_right_cliff_start', 25.0)
         return {
@@ -477,14 +346,12 @@ class Sandbox:
         }
     
     def get_vehicle_position(self):
-        """Get vehicle position (for evaluation)"""
         if "vehicle_chassis" in self._terrain_bodies:
             chassis = self._terrain_bodies["vehicle_chassis"]
             return (chassis.position.x, chassis.position.y)
         return None
     
     def get_vehicle_velocity(self):
-        """Get vehicle velocity (for evaluation)"""
         if "vehicle_chassis" in self._terrain_bodies:
             chassis = self._terrain_bodies["vehicle_chassis"]
             return (chassis.linearVelocity.x, chassis.linearVelocity.y)

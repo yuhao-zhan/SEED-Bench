@@ -11,6 +11,7 @@ Ordered by difficulty ascending.
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
 def update_task_description_for_visible_changes(
@@ -24,7 +25,26 @@ def update_success_criteria_for_visible_changes(
     base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
     """Update success criteria when stage has visible changes."""
-    return base_success_criteria
+    criteria = base_success_criteria
+    
+    # Target particle count
+    target_count = target_terrain_config.get("min_particles_in_hopper", 50) # Default 50
+    base_count = base_terrain_config.get("min_particles_in_hopper", 50)
+    
+    if target_count != base_count:
+        pattern = r"(1\. \*\*Material Transfer\*\*: Significant amount of granular material moved to the target zone \(x > 2.0m\)\.)"
+        # Since the original prompt is vague ("Significant amount"), we can append the specific number if it's explicitly set.
+        # But wait, environment.py uses min_particles_in_hopper.
+        # Let's see if prompt.py success_criteria has a specific number.
+        # Prompt.py success_criteria for F_03: "1. **Material Transfer**: Significant amount of granular material moved to the target zone (x > 2.0m)."
+        # It doesn't mention 50. But evaluator probably does.
+        # If the stage says "at least 70", we should reflect that.
+        criteria = criteria.replace(
+            "Significant amount",
+            f"At least {target_count} particles (originally {base_count} particles in the source environment)"
+        )
+        
+    return criteria
 
 
 def get_f03_curriculum_stages() -> List[Dict[str, Any]]:
@@ -40,7 +60,7 @@ def get_f03_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Particle friction reduced; sand slides off scoop more easily, fewer grains retained per trip.",
             "task_description_suffix": """
 ## Environmental Warning
-The granular material in the pit behaves differently than nominal conditions. It may be more prone to sliding or spilling.
+The granular material in the pit behaves differently than nominal conditions. It may be more prone to sliding or spilling from your scoop.
 Use simulation feedback to adapt your scooping and dumping strategy.
 """,
             "terrain_config": {
@@ -54,7 +74,7 @@ Use simulation feedback to adapt your scooping and dumping strategy.
             "mutation_description": "Gravity increased; arm and scoop feel heavier, timing and clearance may be affected.",
             "task_description_suffix": """
 ## Environmental Warning
-Local gravity differs from nominal. Structural loads and motion dynamics may change.
+Local physical conditions differ from nominal. Structural loads and motion dynamics may change.
 Infer the new behavior from simulation feedback and adapt your control timing.
 """,
             "terrain_config": {},
@@ -66,7 +86,7 @@ Infer the new behavior from simulation feedback and adapt your control timing.
             "mutation_description": "Higher linear/angular damping and lower particle friction; grains slide off more and mechanism coasts less.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple physical conditions differ from nominal: material behavior and motion resistance.
+Multiple physical conditions differ from nominal. Motion resistance and material behavior are affected.
 Use feedback to infer the new environment and adapt your design or control.
 """,
             "terrain_config": {
@@ -83,8 +103,9 @@ Use feedback to infer the new environment and adapt your design or control.
             "mutation_description": "Lower particle friction, stronger gravity, pit drift, higher target count, and limited scoop capacity per trip.",
             "task_description_suffix": """
 ## Environmental Warning
-Several physical and task conditions have changed. The pit material may slide more easily; gravity and drift may differ; the required number of particles to deposit is **at least 70** (stricter than nominal). Scoop carry capacity per trip may also be more limited.
-Infer the new environment from simulation feedback and adapt to meet the stricter requirement.
+Several physical and environmental parameters have changed. Material behavior, weight, and internal drift differ from nominal.
+In addition, the success criteria for material transfer have been updated.
+Infer the new environment from simulation feedback and adapt to meet all requirements.
 """,
             "terrain_config": {
                 "particles": {"friction": 0.26, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},

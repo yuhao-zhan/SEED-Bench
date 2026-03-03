@@ -180,7 +180,8 @@ def run_mutation_sequence(base_task_name: str, model_type: str, model_name: str,
                           n_select_sample: Optional[int] = None,
                           n_generate_sample: Optional[int] = None,
                           reasoning_bank_k: Optional[int] = None,
-                          solver_override: Optional[Any] = None) -> Dict[str, Any]:
+                          solver_override: Optional[Any] = None,
+                          save_gif: bool = True) -> Dict[str, Any]:
     """
     Run mutation sequence evaluation.
     
@@ -451,6 +452,7 @@ def run_mutation_sequence(base_task_name: str, model_type: str, model_name: str,
                         reasoning_bank_k=reasoning_bank_k,  # ReasoningBank: parallel K
                         genome_best_lora_path=genome_best_lora_path,  # GENOME: best LoRA from base task
                         solver_override=solver_override,  # Reuse base task's vLLM model (avoids OOM)
+                        save_gif=save_gif
                     )
                 except Exception as exc:
                     if is_cuda_oom(exc):
@@ -593,7 +595,8 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                              n_generate_sample: Optional[int] = None,
                              reasoning_bank_k: Optional[int] = None,
                              genome_best_lora_path: Optional[str] = None,
-                             solver_override: Optional[Any] = None) -> Dict[str, Any]:
+                             solver_override: Optional[Any] = None,
+                             save_gif: bool = True) -> Dict[str, Any]:
     # Science-CodeEvolve: run CodeEvolve for mutated task with base best_code as initial (same idea as baseline: env mutation only)
     if method == 'science_codeevolve':
         from methods.Inference_time_search.science_codeevolve_method import run_single_task
@@ -939,6 +942,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
         reasoning_bank_k=reasoning_bank_k,  # ReasoningBank: parallel K
         genome_best_lora_path=genome_best_lora_path,  # GENOME: best LoRA from base task
         solver_override=solver_override,  # Reuse base task's vLLM (avoids OOM)
+        save_gif=save_gif
     )
 
     # Mutated task: same context and method as top-level; one whole prompt per round (no system/user split)
@@ -985,7 +989,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                         gif_filename = f"raw_in_{mutated_task_name}.gif"
                     else:
                         gif_filename = f"raw_in_{mutated_task_name}.gif"
-                    gif_path = os.path.join(evaluator.gif_dir, gif_filename)
+                    gif_path = os.path.join(evaluator.gif_dir, gif_filename) if evaluator.save_gif else None
                     success, score, metrics, error = evaluator.verifier.verify_code(
                         current_code, headless=evaluator.headless, save_gif_path=gif_path
                     )
@@ -1049,7 +1053,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                         evaluator.tg_code_var.set_value(tg_current_code)
                         current_code = tg_current_code
                         
-                        gif_path = evaluator._get_gif_path(iteration)
+                        gif_path = evaluator._get_gif_path(iteration) if evaluator.save_gif else None
                         success, score, metrics, error = evaluator.verifier.verify_code(
                             current_code, headless=evaluator.headless, save_gif_path=gif_path
                         )
@@ -1162,7 +1166,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                                 current_code = new_code
                             else:
                                 break
-                    gif_path = evaluator._get_gif_path(iteration)
+                    gif_path = evaluator._get_gif_path(iteration) if evaluator.save_gif else None
                     success, score, metrics, error = evaluator.verifier.verify_code(
                         current_code if (current_code and 'def build_agent' in current_code) else (current_code or ""),
                         headless=evaluator.headless, save_gif_path=gif_path
@@ -1257,7 +1261,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                             evaluator.best_score = sc
                             evaluator.best_code = c['code']
                             evaluator.best_metrics = met
-                            gif_path = evaluator._get_gif_path(iteration)
+                            gif_path = evaluator._get_gif_path(iteration) if evaluator.save_gif else None
                             evaluator.verifier.verify_code(c['code'], headless=evaluator.headless, save_gif_path=gif_path)
                     all_candidates.sort(key=lambda x: x['score'], reverse=True)
                     tot_states = all_candidates[:b]
@@ -1378,7 +1382,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                 
                 # Verify new code
                 print("🔍 Verifying new code...")
-                gif_path = evaluator._get_gif_path(iteration)
+                gif_path = evaluator._get_gif_path(iteration) if evaluator.save_gif else None
                 success, score, metrics, error = evaluator.verifier.verify_code(
                     current_code, headless=evaluator.headless, save_gif_path=gif_path
                 )

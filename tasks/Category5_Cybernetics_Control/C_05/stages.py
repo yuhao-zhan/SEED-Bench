@@ -1,8 +1,8 @@
 """
 C-05: The Logic Lock task curriculum stages (mutations).
 
-TODO: For later mutated tasks, define stages here.
 Mutation dimensions: trigger time window, false-trigger penalty.
+All mutations use non-visible physical parameters; agent must infer from feedback.
 """
 
 from __future__ import annotations
@@ -36,10 +36,13 @@ def get_c05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Tighter Temporal Window",
             "mutation_description": "Reduce the allowed 'recent A' window so B must be visited shortly after A.",
-            "task_description_suffix": "\n## Environmental Warning\nTiming constraints are stricter in this stage; sequence windows are tighter.\n",
+            "task_description_suffix": """
+## Environmental Warning
+Timing conditions in this region differ from nominal. Some temporal windows for the sequence may be more demanding.
+Use feedback to infer the new timing requirements and adapt your control.
+""",
             "terrain_config": {},
             "physics_config": {
-                # Reduce the allowed time between A and B (hidden timing parameter)
                 "recent_a_for_b": 40,
             },
         },
@@ -47,12 +50,15 @@ def get_c05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "Delayed Gate + Longer Cooldown",
             "mutation_description": "Barrier opens later and cooldowns are longer, increasing wait/coordination requirements.",
-            "task_description_suffix": "\n## Environmental Warning\nBarriers and timing behavior are altered; expect longer waits when interacting with the gate.\n",
+            "task_description_suffix": """
+## Environmental Warning
+Behavioral requirements for progression differ from nominal. Interaction timing with environmental elements may be altered.
+Infer the new requirements from simulation feedback and adapt your strategy.
+""",
             "terrain_config": {},
             "physics_config": {
                 "barrier_delay_steps": 140,
                 "cooldown_steps": 120,
-                # Narrow the allowed B->C recent window and raise the high-path threshold
                 "recent_b_for_c": 80,
                 "c_required_max_y": 3.1,
             },
@@ -61,7 +67,11 @@ def get_c05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "Environmental Disturbance",
             "mutation_description": "Introduce stronger repulsion and gusting wind, and tighten allowed speed inside zones.",
-            "task_description_suffix": "\n## Environmental Warning\nThe environment has stronger hidden disturbances (wind/repulsion). Maintain controlled low-speed entries.\n",
+            "task_description_suffix": """
+## Environmental Warning
+The environment exhibits stronger disturbances than nominal. Precise control and speed management are required.
+Use simulation feedback to identify and adapt to these environmental dynamics.
+""",
             "terrain_config": {},
             "physics_config": {
                 "repulsion_mag": 40.0,
@@ -75,7 +85,11 @@ def get_c05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Compound Timing & Forces",
             "mutation_description": "Combine several hidden parameter changes: longer stay requirement, narrower B→C window, stronger repulsion, and reduced high-path history window.",
-            "task_description_suffix": "\n## Environmental Warning\nMultiple hidden dynamics changed simultaneously — timing and precise control are critical.\n",
+            "task_description_suffix": """
+## Environmental Warning
+Multiple environmental and behavioral parameters have changed simultaneously. Timing, precise control, and spatial requirements differ from nominal.
+You must infer the new environment from simulation feedback and ensure the sequence is completed successfully.
+""",
             "terrain_config": {},
             "physics_config": {
                 "trigger_stay_steps": 40,

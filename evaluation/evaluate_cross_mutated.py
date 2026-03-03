@@ -166,7 +166,7 @@ def get_reference_solution(base_task_name: str, stage_id: str) -> str:
 def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_name: str,
                                  method: str, context: str = 'previous', max_iterations: int = 10,
                                  max_steps: int = 10000, headless: bool = True, api_key: Optional[str] = None,
-                                 output_dir: str = "evaluation_results"):
+                                 output_dir: str = "evaluation_results", save_gif: bool = True):
     """
     Run the new paradigm: all-pairs evaluation.
     Total pairs = N * (N-1). For N=5, pairs=20.
@@ -262,7 +262,8 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
                     context=context,
                     env_overrides=env_overrides,
                     is_mutated_task=True,
-                    task_prompt_override=task_prompt_override
+                    task_prompt_override=task_prompt_override,
+                    save_gif=save_gif
                 )
                 evaluator.mutated_task_name = pair_name
                 evaluator._setup_gif_directory()
@@ -308,7 +309,7 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
 
     # --- Iteration 0: run reference solution in target env (before any revision) ---
     print("Iteration 0 (reference in target env)")
-    gif_path_0 = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_0.gif")
+    gif_path_0 = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_0.gif") if evaluator.save_gif else None
     try:
         success_0, score_0, metrics_0, error_0 = evaluator.verifier.verify_code(
             initial_ref_code, headless=evaluator.headless, save_gif_path=gif_path_0
@@ -350,7 +351,7 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
 
     for iteration in range(1, evaluator.max_iterations + 1):
         print(f"Iteration {iteration}/{evaluator.max_iterations} (revision)")
-        gif_path = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_{iteration}.gif")
+        gif_path = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_{iteration}.gif") if evaluator.save_gif else None
 
         # Build prompt for this revision (prompt that will produce the code we run in this iteration)
         if iteration == 1:

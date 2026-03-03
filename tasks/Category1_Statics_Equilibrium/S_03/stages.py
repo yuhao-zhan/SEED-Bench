@@ -1,130 +1,118 @@
 """
 S-03: The Cantilever task curriculum stages (mutations).
+
+Mutated tasks vary invisible physical parameters: obstacle positions, dynamic loads,
+forbidden anchor zones, anchor strength, target reach, gravity.
 """
+
 from __future__ import annotations
+
 from typing import Any, Dict, List
 import re
 
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """
-    Update task description to reflect visible physical changes.
-    """
+    """Update task description for visible changes."""
     description = base_description
-    
-    if target_terrain_config.get("obstacle_active"):
-        description += "\n- **Obstacle Detected**: A static obstruction has been placed in the path. You must design your structure to avoid or bypass it."
-    
-    if target_terrain_config.get("drop_load"):
-        description = description.replace(
-            "A second heavy weight will attach later to a node within the x=[5, 10] range.",
-            "A heavy payload will be DROPPED from above onto your structure at x=7.5m. You must catch and support it."
-        )
-        
-    if target_terrain_config.get("forbidden_anchor_y"):
-        ymin, ymax = target_terrain_config["forbidden_anchor_y"]
-        description += f"\n- **Corroded Wall Zone**: The wall section between y={ymin}m and y={ymax}m is structurally unsound. Anchors CANNOT be placed in this zone."
-
+    target_reach = target_terrain_config.get("target_reach", 12.0)
+    base_reach = base_terrain_config.get("target_reach", 12.0)
+    if target_reach != base_reach:
+        pattern = r"(- \*\*Goal\*\*: Reach x >= )(\d+\.?\d*)m"
+        description = re.sub(pattern, f"\\g<1>{target_reach:.1f}m (originally {base_reach:.1f}m)", description)
     return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """
-    Update success criteria to reflect visible physical changes.
-    """
+def update_success_criteria_for_visible_criteria(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update success criteria for visible changes."""
     criteria = base_success_criteria
-    
-    if target_terrain_config.get("drop_load"):
-        criteria = criteria.replace(
-            "Successfully holds both loads for the duration of the test.",
-            "Successfully catches and holds the falling payload without structural failure."
-        )
-    
+    target_reach = target_terrain_config.get("target_reach", 12.0)
+    base_reach = base_terrain_config.get("target_reach", 12.0)
+    if target_reach != base_reach:
+        pattern = r"(Tip reaches x >= )(\d+\.?\d*)m"
+        criteria = re.sub(pattern, f"\\g<1>{target_reach:.1f}m (originally {base_reach:.1f}m)", criteria)
     return criteria
 
 
 def get_s03_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for S-03: The Cantilever task variants.
+    Targets set to 30m+ to ensure the ~24m reference agents fail.
     """
     return [
         {
             "stage_id": "Stage-1",
             "title": "Structural Obstruction",
-            "mutation_description": "Static obstacle placed in the span. Requires spatial reasoning to build around/over it.",
+            "mutation_description": "Obstacle + extreme reach. Mutated solution must reach 30m.",
             "task_description_suffix": """
 ## Environmental Warning
-A physical obstruction is blocking the standard cantilever path.
-Colliding with the obstacle during construction or under load may destabilize your design.
+A structural obstruction is present. The target reach has been significantly increased.
 """,
             "terrain_config": {
                 "obstacle_active": True,
-                "obstacle_rect": [6.0, 0.0, 8.5, 3.5], # Tall block
+                "obstacle_rect": [6.0, 0.0, 8.5, 3.5],
+                "target_reach": 30.0, 
+                "load_mass": 1500.0, 
+                "max_structure_mass": 5000.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
             "title": "Dynamic Impact Loading",
-            "mutation_description": "Secondary load is dropped instead of welded. Requires impact absorption and high stiffness.",
+            "mutation_description": "Impact load + extreme reach.",
             "task_description_suffix": """
 ## Environmental Warning
-Dynamic loading detected. The secondary payload is no longer stationary.
-The impact force from the drop will be significantly higher than the static weight.
+Secondary loads involve dynamic impacts. Target reach and mass budget updated.
 """,
             "terrain_config": {
                 "drop_load": True,
                 "drop_mass": 800.0,
-                "drop_x": 7.5,
-                "drop_y": 12.0,
-                "drop_time": 8.0,
-                "target_reach": 18.0,
-                "max_anchor_torque": 800.0,
+                "target_reach": 30.0,
                 "forbidden_anchor_y": [0.8, 1.2],
+                "load_mass": 1200.0,
+                "max_structure_mass": 5000.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
             "title": "Restricted Anchor Zones",
-            "mutation_description": "Corroded wall section prevents ideal anchor spacing. Combined with high gravity.",
+            "mutation_description": "Corroded wall. Target reach 30m.",
             "task_description_suffix": """
 ## Environmental Warning
-Corrosion detected on the support wall. 
-A significant vertical section of the wall cannot support structural anchors.
-This will restrict your leverage and amplify torque on remaining joints.
+Anchor heights are restricted. Local gravity is higher. Target reach updated.
 """,
             "terrain_config": {
                 "forbidden_anchor_y": [0.5, 1.5],
-                "target_reach": 14.5,
+                "target_reach": 30.0,
+                "max_anchor_force": 1200.0, 
+                "load_mass": 800.0,
+                "max_structure_mass": 5000.0,
             },
             "physics_config": {
-                "gravity": (0, -18.0),
+                "gravity": (0, -15.0),
             },
         },
         {
             "stage_id": "Stage-4",
             "title": "The Perfect Storm",
-            "mutation_description": "Obstacle + Drop Load + Forbidden Zone + High Gravity + Weak Anchors.",
+            "mutation_description": "Extreme challenge. Target reach 32m.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple critical failure modes active.
-You must navigate obstacles, catch a falling mass, and manage extreme gravity with restricted wall attachment points.
+Multiple extreme factors present. Target reach updated.
 """,
             "terrain_config": {
                 "obstacle_active": True,
                 "obstacle_rect": [5.5, -1.0, 7.5, 2.0],
                 "drop_load": True,
-                "drop_mass": 500.0,
-                "drop_x": 9.5,
-                "drop_y": 15.0,
-                "drop_time": 7.0,
                 "forbidden_anchor_y": [0.2, 1.8],
-                "max_anchor_torque": 1200.0,
-                "target_reach": 16.0,
+                "max_anchor_force": 1000.0,
+                "target_reach": 32.0, 
+                "load_mass": 1500.0, 
+                "max_structure_mass": 6000.0,
             },
             "physics_config": {
-                "gravity": (0, -15.0),
+                "gravity": (0, -18.0), 
             },
         },
     ]

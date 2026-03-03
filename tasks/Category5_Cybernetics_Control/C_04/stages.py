@@ -36,8 +36,8 @@ def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Whisker sensors return readings with 8-step delay; obstacle avoidance and timing break.",
             "task_description_suffix": """
 ## Environmental Warning
-Sensing may be subject to latency. Observed distances may not reflect the current physical state.
-Use feedback to infer and compensate for any lag or misalignment.
+Sensing in this region may exhibit unexpected discrepancies from nominal conditions. Observed distances may not reflect the immediate physical state.
+Use feedback to infer and compensate for any environmental effects.
 """,
             "terrain_config": {
                 "whisker_delay_steps": 8,
@@ -50,8 +50,8 @@ Use feedback to infer and compensate for any lag or misalignment.
             "mutation_description": "Behavioral unlock requires more consecutive backward-slow steps and lower max speed; agent's 25-step unlock fails.",
             "task_description_suffix": """
 ## Environmental Warning
-Conditions for progressing may differ from nominal. Some behavioral requirements may be stricter.
-Infer from feedback what is needed before the exit can be reached.
+Conditions for progressing may differ from nominal. Some behavioral requirements may be more demanding.
+Infer from feedback what is needed before the target destination can be reached.
 """,
             "terrain_config": {},
             "physics_config": {
@@ -65,8 +65,8 @@ Infer from feedback what is needed before the exit can be reached.
             "mutation_description": "Sensor delay (6 steps), stronger momentum drain, and higher slip friction; navigation and passage through zones harder.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple environmental factors have shifted. Sensing, zone resistances, and terrain friction may all differ from nominal.
-Infer from feedback and adapt your strategy accordingly.
+Multiple environmental factors have shifted. Sensing, movement resistance, and terrain properties all differ from nominal.
+Infer the new environment from simulation feedback and adapt your strategy accordingly.
 """,
             "terrain_config": {
                 "whisker_delay_steps": 6,
@@ -82,8 +82,8 @@ Infer from feedback and adapt your strategy accordingly.
             "mutation_description": "Gravity, damping, stricter unlock, stronger momentum drain, current, and front sensor blind zone in obstacle region.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple environmental factors have shifted. Sensing, actuation, dynamics, and behavioral requirements may all differ from nominal.
-Infer from feedback and adapt your strategy accordingly.
+Multiple environmental factors have shifted simultaneously. Sensing, actuation, dynamics, and behavioral requirements all differ from nominal.
+You must infer the new environment from simulation feedback and adapt your strategy accordingly.
 """,
             "terrain_config": {
                 "whisker_delay_steps": 5,

@@ -3,44 +3,35 @@ D-02: The Jumper task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    GET_JUMPER,
-    GET_STRUCTURE_MASS,
-    SET_JUMPER_VELOCITY,
-    SET_MATERIAL_PROPERTIES,
+    SET_VELOCITY,
+    GET_BODY_POSITION,
 )
 
 TASK_PROMPT = {
     "task_description": """
-Design a jumping mechanism that allows a jumper body to reach a target platform.
+Design a jumping mechanism to clear a pit and land on a distant platform by passing through multiple narrow slots.
 
 ## Task Environment
-- **Starting Position**: The jumper starts on the ground at x=5.0m, y=1.5m.
-- **Target Platform**: Located at x=15.0m, y=6.0m.
-- **Build Zone**: x=[0, 10] m, y=[1, 5] m. All structural components must be placed within this zone.
-- **Success Criteria**: The jumper body must land and stay on the target platform for at least 2.0 seconds.
+- **Platforms**: A left platform (start) and a right platform (target) separated by a wide pit.
+- **Barriers**: Multiple vertical barriers with narrow horizontal slots (gaps) are positioned between the platforms.
+- **Build Zone**: x in [5.0, 15.0] m, y in [1.5, 8.0] m.
+- **Goal**: Reach the right platform (x >= 26.0m) by jumping from the left platform.
 
 ## Task Objective
-Design a mechanism that:
-1. Provides the necessary initial velocity to the jumper.
-2. Uses structural components to support or guide the jump.
-3. Ensures the jumper reaches and stabilizes on the target platform.
+Design a controller that:
+1. Determines the optimal launch velocity (magnitude and direction) to jump over the pit.
+2. Ensures the trajectory passes through the narrow gaps in all intermediate barriers.
+3. Successfully lands on the right platform without falling into the pit or hitting the red sections of the barriers.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Reach**: Jumper reaches the target platform (y >= 6.0m, x around 15.0m).
-2. **Stability**: Jumper stays on the platform for >= 2.0 seconds.
+1. **Target Reach**: Body reaches the right platform (x >= 26.0m, y >= 1.0m).
+2. **Gap Clearance**: Trajectory successfully passes through all barrier slots without collision.
 
 ## Design Constraints
-- **Mass Budget**: Total structure mass < 200 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO
-    + GET_JUMPER
-    + ADD_BEAM
-    + ADD_JOINT_RIGID
-    + SET_MATERIAL_PROPERTIES
-    + SET_JUMPER_VELOCITY
-    + GET_STRUCTURE_MASS,
+    + GET_BODY_POSITION
+    + SET_VELOCITY,
 }

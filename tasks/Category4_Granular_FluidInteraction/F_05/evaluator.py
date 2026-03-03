@@ -1,6 +1,6 @@
 """
 F-05: The Boat task evaluation module
-Failure: cargo in water, boat capsizes (angle > 60°).
+Failure: cargo in water, boat capsizes (angle > threshold).
 """
 import sys
 import os
@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 class Evaluator:
     """
     Evaluation for F-05: The Boat.
-    Success: no cargo in water, boat angle <= 60°, structure intact. Failure: cargo lost or capsize.
+    Success: no cargo in water, boat angle <= threshold, structure intact. Failure: cargo lost or capsize.
     """
 
     def __init__(self, terrain_bounds, environment=None):
@@ -29,8 +29,8 @@ class Evaluator:
         self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 18.0))
         self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', getattr(env_class, 'BUILD_ZONE_Y_MIN', 2.0))
         self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 4.5))
-        self.BOAT_MAX_ANGLE_RAD = getattr(environment, 'BOAT_MAX_ANGLE_RAD', math.radians(60.0))
-        self.CARGO_WATER_Y = getattr(environment, 'CARGO_WATER_Y', 1.5)
+        self.BOAT_MAX_ANGLE_RAD = getattr(environment, 'BOAT_MAX_ANGLE_RAD', math.radians(18.0))
+        self.CARGO_WATER_Y = getattr(environment, 'CARGO_WATER_Y', 1.98)
 
     def evaluate(self, agent_body, step_count, max_steps):
         """
@@ -163,13 +163,14 @@ class Evaluator:
         return violations
 
     def get_task_description(self):
+        max_angle_deg = math.degrees(self.BOAT_MAX_ANGLE_RAD)
         return {
             "task": "F-05: The Boat",
-            "description": "Keep cargo on boat in rough water; boat must not capsize (angle <= 60°)",
+            "description": f"Keep cargo on boat in rough water; boat must not capsize (angle <= {max_angle_deg:.0f}°)",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": "No cargo in water (all above y=1.5m)",
-                "secondary": f"Boat angle <= {math.degrees(self.BOAT_MAX_ANGLE_RAD):.0f}°",
+                "primary": f"No cargo in water (all above y={self.CARGO_WATER_Y:.2f}m)",
+                "secondary": f"Boat angle <= {max_angle_deg:.0f}°",
                 "tertiary": "Structure remains intact",
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},

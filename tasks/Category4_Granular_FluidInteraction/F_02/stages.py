@@ -33,11 +33,11 @@ def get_f02_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "Slower Paddle Rhythm",
-            "mutation_description": "Thrust cooldown increased; each body can thrust only every 6 steps. 9 paddles give ~1.5 thrust/step avg.",
+            "mutation_description": "Thrust cooldown increased; each body can thrust only every 6 steps. 9 bodies give ~1.5 thrust/step avg.",
             "task_description_suffix": """
 ## Environmental Warning
-Paddle stroke rhythm has changed. Each body can apply thrust less frequently than before.
-You may need more paddles or a different propulsion strategy.
+Propulsion dynamics in this region differ from nominal. Your vehicle's stroke or thrust capabilities may be affected.
+Use simulation feedback to adapt your design or control strategy.
 """,
             "terrain_config": {
                 "thrust_cooldown_steps": 6,  # Default 3 -> 9 bodies give ~1.5 thrust/step
@@ -50,7 +50,7 @@ You may need more paddles or a different propulsion strategy.
             "mutation_description": "Opposing current force per kg increased ~2.5x. Vehicle cannot make headway with nominal thrust.",
             "task_description_suffix": """
 ## Environmental Warning
-The water current has strengthened. The opposing force is higher than nominal.
+Water conditions have become more challenging for crossing. Opposing forces may be stronger than nominal.
 Thrust strategies tuned for nominal conditions may no longer suffice.
 """,
             "terrain_config": {
@@ -64,8 +64,8 @@ Thrust strategies tuned for nominal conditions may no longer suffice.
             "mutation_description": "Low liquid density (weak buoyancy) + high water drag. Both buoyancy and propulsion severely affected.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple water properties have changed. Buoyancy and water resistance differ from nominal.
-Infer the new dynamics from simulation feedback and adapt your design and control.
+Multiple hydrodynamic properties have changed. Buoyancy and fluid resistance differ from nominal.
+Infer the new dynamics from simulation feedback and adapt your design.
 """,
             "terrain_config": {
                 "liquid_density": 350.0,
@@ -81,8 +81,8 @@ Infer the new dynamics from simulation feedback and adapt your design and contro
             "mutation_description": "Weak buoyancy + high drag + strong current + strong headwind + thrust cooldown increased. Full hostile environment.",
             "task_description_suffix": """
 ## Environmental Warning
-Several physical conditions have changed: buoyancy, water resistance, opposing current, mid-water headwind, and propulsion rhythm.
-The crossing is significantly harder than nominal. Infer changes from feedback and adapt accordingly.
+Several environmental parameters have changed simultaneously. Buoyancy, resistance, and propulsion effectiveness all differ from nominal.
+The crossing is significantly harder. Infer changes from feedback and adapt accordingly.
 """,
             "terrain_config": {
                 "liquid_density": 400.0,

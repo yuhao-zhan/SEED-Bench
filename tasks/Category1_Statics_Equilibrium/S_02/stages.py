@@ -1,37 +1,41 @@
 """
 S-02: The Skyscraper task curriculum stages (mutations).
 
-All stage definitions live under tasks/Category1_Statics_Equilibrium/S_02.
-The solver agent is NOT told the exact parameter changes; it must infer from feedback.
+Mutated tasks change invisible physical parameters: earthquake amplitude/frequency, 
+wind force, gravity, damping. The solver agent must infer from feedback.
 """
+
+from __future__ import annotations
 
 from typing import Any, Dict, List
 
+
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """
-    Update task description to reflect visible physical changes.
-    For S-02, earthquake and wind parameters are considered INVISIBLE variables
-    (not explicitly numbered in the prompt), so we don't modify the base description here.
-    """
+    """Update task description for visible changes."""
     return base_description
+
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
     return base_success_criteria
 
+
 def get_s02_curriculum_stages() -> List[Dict[str, Any]]:
     """
-    Returns ordered stage configs for S-02.
-    Using abstract descriptions for invisible parameters as requested.
+    Returns ordered stage configs for S-02: The Skyscraper task variants.
     """
     return [
         {
             "stage_id": "Stage-1",
             "title": "Increased Earthquake Amplitude",
             "mutation_description": "Earthquake amplitude increased significantly. Original design will fail due to larger displacement.",
-            "task_description_suffix": "## Environmental Warning\nThe earthquake intensity has increased. The ground oscillations are now much larger. Structural flexibility and damping are key.",
+            "task_description_suffix": """
+## Environmental Warning
+Seismic activity in this region is significantly more intense than nominal. 
+Large ground displacements are expected. Your tower must be flexible yet stable.
+""",
             "terrain_config": {
-                "earthquake_amplitude": 5.0, 
+                "earthquake_amplitude": 12.0, # Increased from 5.0
             },
             "physics_config": {},
         },
@@ -39,9 +43,13 @@ def get_s02_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "Increased Wind Force",
             "mutation_description": "Wind force increased. Structure needs better lateral resistance.",
-            "task_description_suffix": "## Environmental Warning\nHigh-altitude wind forces have significantly increased. Ensure your tower has enough lateral stability to avoid tipping over.",
+            "task_description_suffix": """
+## Environmental Warning
+High-altitude winds are much stronger than nominal. 
+The lateral pressure on the upper sections of your tower will be severe.
+""",
             "terrain_config": {
-                "wind_force": 400.0, 
+                "wind_force": 1200.0, # Increased from 400.0
             },
             "physics_config": {},
         },
@@ -49,10 +57,14 @@ def get_s02_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "High-Frequency Earthquake",
             "mutation_description": "Earthquake frequency increased significantly. Resonance tuning is critical.",
-            "task_description_suffix": "## Environmental Warning\nA high-frequency earthquake has been detected. The ground vibrates much faster now. Precise TMD tuning is essential to survive the resonance.",
+            "task_description_suffix": """
+## Environmental Warning
+The frequency of seismic oscillations has shifted. 
+Structures with certain natural frequencies may experience resonance.
+""",
             "terrain_config": {
-                "earthquake_amplitude": 1.0,
-                "earthquake_frequency": 12.0,
+                "earthquake_amplitude": 1.5,
+                "earthquake_frequency": 15.0,
             },
             "physics_config": {},
         },
@@ -60,12 +72,19 @@ def get_s02_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "The Perfect Storm",
             "mutation_description": "Combined high-frequency, high-amplitude earthquake and strong wind.",
-            "task_description_suffix": "## Environmental Warning\nExtreme environmental conditions: Your structure must now survive a high-frequency, high-amplitude earthquake combined with violent high-altitude wind.",
+            "task_description_suffix": """
+## Environmental Warning
+Multiple extreme environmental factors are present. 
+High-frequency seismic waves and intense high-altitude winds occur simultaneously.
+This is an extreme engineering challenge.
+""",
             "terrain_config": {
-                "earthquake_amplitude": 1.5,
+                "earthquake_amplitude": 2.5,
                 "earthquake_frequency": 12.0,
-                "wind_force": 300.0,
+                "wind_force": 800.0,
             },
-            "physics_config": {},
+            "physics_config": {
+                "gravity": (0, -12.0),
+            },
         },
     ]

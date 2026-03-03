@@ -24,6 +24,7 @@ The structure must extend as far right as possible and support multiple heavy ve
 ## Task Objective
 Design a robust cantilever structure that can:
 1. Extend horizontally from the wall to reach the target distance.
+- **Goal**: Reach x >= 12.0m.
 2. Support all applied payloads (stationary or dynamic) without collapsing.
 3. Manage internal stresses so that the wall anchors do not exceed their structural strength (overloaded anchors will break).
 4. **Stiffness**: Maintain vertical stability under load. If the structure sags beyond the allowed threshold, the task fails.
@@ -36,12 +37,13 @@ Design a robust cantilever structure that can:
     
     'success_criteria': """
 ## Success Criteria
-1. **Reach**: Structure reaches the required horizontal distance.
+1. **Reach**: Structure reaches the required horizontal distance (Tip reaches x >= 12.0m).
 2. **Load Bearing**: Successfully supports all payloads for the duration of the test.
 3. **Anchor Integrity**: All wall anchors remain intact (no breakage due to excessive torque).
 4. **Stability**: The structure does not sag below the failure limit.
 
 ## Design Constraints
+- **Mass Budget**: < 2000 kg.
 - **Anchor Limit**: Maximum 2 anchor points on the wall.
 - **Strength Limits**: Wall joints have finite capacity; excessive torque will cause them to snap.
 - **Geometry**: The structure must reach the target and provide suitable nodes for payload attachment.

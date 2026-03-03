@@ -22,7 +22,7 @@ Design a pusher mechanism that can push a heavy object forward along high-fricti
 - **Object**: A heavy box at x=8.0m.
 - **Build Zone**: x=[0, 15], y=[1.5, 8.0]. All structure components must be placed within this zone.
 - **Starting Position**: Pusher components should be centered around x≈3.0m, y≈2.5m (behind the object).
-- **Target**: Push the object forward at least 8.0 meters.
+- **Target**: Push the object forward at least 10.0 meters.
 
 ## Constraints (must satisfy)
 - **Stability**: The pusher must not tip over. Its tilt angle must stay within ±30 degrees from horizontal (radians: [-π/6, π/6]).
@@ -40,7 +40,7 @@ Design a pusher mechanism that can push a heavy object forward along high-fricti
     
     'success_criteria': """
 ## Success Criteria
-1. **Pushing**: Object reaches x >= 16.0m.
+1. **Pushing**: Object reaches x >= 18.0m.
 2. **Stability**: Pusher tilt angle stays within ±30°.
 3. **Locomotion**: Sustained forward progress (no excessive wheel spinning or lifting).
 

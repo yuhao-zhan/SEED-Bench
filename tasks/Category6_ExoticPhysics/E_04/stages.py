@@ -1,7 +1,7 @@
 """
 E-04: Variable Mass task curriculum stages (mutations).
 
-Mutated tasks change invisible physical parameters (mass variation frequency/amplitude,
+Mutated tasks vary invisible physical parameters (mass variation frequency/amplitude,
 base excitation, joint limits, fatigue, damping). The solver agent is NOT told the exact
 parameter changes; it must infer from feedback.
 """
@@ -71,13 +71,17 @@ def get_e04_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Altered dynamics and fatigue",
             "mutation_description": "Mass freq/amp changed; stronger base excitation; fast fatigue; increased gravity.",
-            "task_description_suffix": "",
+            "task_description_suffix": """
+## Environmental Warning
+Multiple environmental conditions have changed simultaneously. Mass variation and base vibration dynamics differ from nominal.
+You must infer the new environment from simulation feedback and ensure your structure remains intact.
+""",
             "terrain_config": {},
             "physics_config": {
                 "mass_freq_1": 1.0,
                 "mass_freq_2": 1.8,
-                "mass_amp_1": 0.55,
-                "mass_amp_2": 0.48,
+                "mass_amp_1": 0.45,  # Adjusted from 0.55 to avoid amp sum > 1.0 (negative density crash)
+                "mass_amp_2": 0.45,  # Adjusted from 0.48
                 "base_excitation_frequency": 0.65,
                 "base_excitation_vertical_amplitude": 0.28,
                 "base_excitation_horizontal_amplitude": 0.20,

@@ -1,5 +1,5 @@
 """
-C-04: The Whisker Bot task Prompt and Primitives definition
+C-04: The Escaper task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
@@ -11,23 +11,26 @@ from ...primitives_api import (
 
 TASK_PROMPT = {
     "task_description": """
-Design a controller for a whisker-equipped robot to navigate through a narrow, dark passage.
+Design a controller for a whisker-equipped robot to unlock and escape a narrow maze.
 
 ## Task Environment
 - **Agent**: A small robot with three whisker sensors (front, left, right).
 - **Passage**: A winding path with walls.
-- **Goal**: Navigate from the start to the end of the passage without getting stuck.
+- **Goal**: Reach the exit zone at the end of the passage.
+- **Unlock Condition**: The exit is initially locked. To unlock it, the agent must perform a specific behavioral sequence: stay within the activation zone and move backward at a very low speed for a sustained period (discover exact thresholds via feedback).
+- **Exit Zone**: Located at x >= 18.0m. Once reached, the agent must hold its position there for a minimum duration.
 
 ## Task Objective
 Design a control loop that:
-1. Uses whisker sensor readings to detect nearby walls.
-2. Applies forces to the agent to navigate the center of the path.
-3. Successfully reaches the target destination at the end of the passage.
+1. Uses whisker sensor readings to navigate the winding passage.
+2. Identifies the activation zone and performs the required "unlock" behavior.
+3. Reaches the exit zone and maintains its position for at least 60 consecutive steps to complete the escape.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Passage Completion**: Agent reaches the end of the passage.
-2. **Survival**: No sustained collisions or getting stuck.
+1. **Unlock & Reach**: Successfully unlock the exit and reach the zone x >= 18.0m.
+2. **Hold**: Maintain position in the exit zone for at least 60 consecutive steps.
+3. **Survival**: No sustained collisions or getting stuck.
 
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.

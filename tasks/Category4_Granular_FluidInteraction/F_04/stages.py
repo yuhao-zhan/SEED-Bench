@@ -10,6 +10,7 @@ Ordered by difficulty ascending.
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
@@ -19,13 +20,27 @@ def update_task_description_for_visible_changes(base_description: str, target_te
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
-    return base_success_criteria
+    criteria = base_success_criteria
+    
+    # min_purity
+    target_purity = target_terrain_config.get("min_purity", 0.35)
+    base_purity = base_terrain_config.get("min_purity", 0.35)
+    
+    if target_purity != base_purity:
+        pattern = r"(1\. \*\*Classification Purity\*\*: Overall purity \(correctly categorized particles / total particles\) >= )(\d+\.?\d*%)"
+        # The prompt has >= 35%. Let's use string replace for simplicity if pattern match is tricky
+        criteria = criteria.replace(
+            f">= {base_purity*100:.0f}%",
+            f">= {target_purity*100:.0f}% (originally >= {base_purity*100:.0f}% in the source environment)"
+        )
+        
+    return criteria
 
 
 def get_f04_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for F-04 mutated tasks.
-    Original reference solution (two-layer sieve, fixed gaps/nudge) should fail in all mutated stages.
+    Each stage: terrain_config + physics_config. Original solution (two-layer sieve, fixed gaps/nudge) should fail in all mutated stages.
     """
     return [
         {
@@ -34,9 +49,9 @@ def get_f04_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Linear and angular damping increased; particles respond more slowly to nudge.",
             "task_description_suffix": """
 ## Environmental Warning
-The atmosphere in the feed and separation region has become more viscous.
-Particle motion and settling behavior may differ from nominal conditions.
-Use simulation feedback to infer the new dynamics and adapt your design and control.
+The local atmosphere in the separation region has changed. Particle motion and settling behavior may differ from nominal conditions.
+In addition, the required classification purity has been updated.
+Use simulation feedback to infer the new dynamics and adapt your design.
 """,
             "terrain_config": {"min_purity": 0.42},
             "physics_config": {
@@ -50,9 +65,8 @@ Use simulation feedback to infer the new dynamics and adapt your design and cont
             "mutation_description": "Mix ratio changed: more large and medium, fewer small. Load and contamination risk increase.",
             "task_description_suffix": """
 ## Environmental Warning
-The composition of the particle mixture has changed.
-The relative proportions of particle types may differ from what you expect.
-Use feedback to ensure your separator still achieves the required purity.
+The composition of the particle mixture has changed. The relative proportions of particle types differ from nominal.
+Use feedback to ensure your filter still achieves the required purity under the new load.
 """,
             "terrain_config": {
                 "mix": {
@@ -72,9 +86,9 @@ Use feedback to ensure your separator still achieves the required purity.
             "mutation_description": "Higher damping + skewed mix + raised purity target.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple physical conditions have changed: fluid viscosity and mixture composition differ from nominal.
-The required separation quality may also be stricter.
-Infer the new environment from simulation feedback and adapt your design and control.
+Multiple physical conditions have changed: fluid resistance and mixture composition differ from nominal.
+The required classification purity has also been updated.
+Infer the new environment from simulation feedback and adapt your design.
 """,
             "terrain_config": {
                 "mix": {
@@ -98,7 +112,8 @@ Infer the new environment from simulation feedback and adapt your design and con
             "mutation_description": "Stronger gravity + high damping + skewed mix + higher purity + stickier particles.",
             "task_description_suffix": """
 ## Environmental Warning
-Several physical conditions have changed: effective weight, viscosity, mixture composition, and particle-surface interaction may all differ from nominal.
+Several environmental parameters have changed. Effective weight, fluid resistance, and mixture composition all differ from nominal.
+The required classification purity has also been updated.
 Infer the new environment from feedback and adapt accordingly.
 """,
             "terrain_config": {

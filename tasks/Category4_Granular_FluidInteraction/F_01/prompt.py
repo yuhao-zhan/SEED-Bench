@@ -1,5 +1,5 @@
 """
-F-01: The Filtration task Prompt and Primitives definition
+F-01: The Dam (extreme) task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
@@ -14,28 +14,31 @@ from ...primitives_api import (
 
 TASK_PROMPT = {
     "task_description": """
-Design a filtration structure to separate larger granular particles from smaller ones.
+Design a free-standing dam to block water particles in an extreme environment.
 
 ## Task Environment
-- **Particles**: A mix of small and large particles will flow through the structure.
-- **Build Zone**: x=[10, 20] m, y=[2, 8] m.
-- **Target**: Retain large particles while allowing small ones to pass through.
+- **Water Particles**: 300 particles in a reservoir.
+- **Surge Events**: Nine surge waves of increasing intensity will push the water.
+- **Debris**: Heavy debris will impact the dam at regular intervals.
+- **Build Zone**: Three disjoint narrow vertical strips: x=[12.4, 12.6], [12.9, 13.1], and [13.4, 13.6]. Max height y=7.5m.
+- **Constraint**: Mandatory underflow gap; no beams allowed below y=0.5m.
+- **Constraint**: ZERO floor anchors; the dam must be free-standing.
 
 ## Task Objective
-Design a filter that:
-1. Effectively blocks large particles.
-2. Minimizes the blockage of small particles.
-3. Maintains structural stability under the weight of the particles.
+Design a structure that:
+1. Blocks water particles such that the leakage rate remains below 0.10%.
+2. Maintains structural integrity under surge and debris impact (welds can break).
+3. Fits within narrow build strips and respects the underflow requirement.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Filtration**: High ratio of large particles retained vs small particles passed.
-2. **Integrity**: Structure does not collapse or break joints.
+1. **Leakage Rate**: Total leakage < 0.10%.
+2. **Integrity**: Structure does not collapse; all beams must remain connected (no broken joints).
 
 ## Design Constraints
-- **Mass Budget**: Total structure mass < 150 kg.
-- **Beam Limit**: Maximum 30 beams.
-- **Joint Limit**: Maximum 40 joints.
+- **Mass Budget**: Total structure mass <= 380 kg.
+- **Beam Limit**: Maximum 18 beams.
+- **Joint Limit**: Maximum 11 beam-to-beam joints.
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO

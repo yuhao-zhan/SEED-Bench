@@ -19,12 +19,12 @@ def update_task_description_for_visible_changes(
     """Update task description for visible changes."""
     description = base_description
     
-    # Leakage rate
-    target_leakage = target_terrain_config.get("max_leakage_rate", 0.001) # Default 0.1%
+    # Leakage rate (success criteria often in description too)
+    target_leakage = target_terrain_config.get("max_leakage_rate", 0.001)
     base_leakage = base_terrain_config.get("max_leakage_rate", 0.001)
     
     if target_leakage != base_leakage:
-        pattern = r"(leakage remains below )(\d+\.?\d*%)"
+        pattern = r"(leakage rate remains below )(\d+\.?\d*%)"
         description = re.sub(
             pattern,
             f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
@@ -45,7 +45,7 @@ def update_success_criteria_for_visible_changes(
     base_leakage = base_terrain_config.get("max_leakage_rate", 0.001)
     
     if target_leakage != base_leakage:
-        pattern = r"(Leakage Rate\*\*: Total leakage < )(\d+\.?\d*%)"
+        pattern = r"(1\. \*\*Leakage Rate\*\*: Total leakage < )(\d+\.?\d*%)"
         criteria = re.sub(
             pattern,
             f"\\g<1>{target_leakage*100:.2f}% (originally < {base_leakage*100:.2f}% in the source environment)",
@@ -69,11 +69,11 @@ def get_f01_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Fluid density increased; higher hydrostatic pressure on dam, more leakage or joint stress.",
             "task_description_suffix": """
 ## Environmental Warning
-The reservoir fluid behaves differently than nominal conditions. Containment and structure stress may be affected.
+Environmental conditions have changed. The reservoir fluid may exert different pressures on the containment structure.
 Use simulation feedback to adapt your design.
 """,
             "terrain_config": {
-                "fluid": {"density": 1850.0},  # default 1000; ref passed at 1450
+                "fluid": {"density": 1850.0},
             },
             "physics_config": {},
         },
@@ -83,11 +83,11 @@ Use simulation feedback to adapt your design.
             "mutation_description": "Joint break force lowered; welds fail more easily under surge and debris.",
             "task_description_suffix": """
 ## Environmental Warning
-Structural conditions have changed. Joints may fail under load more easily than in nominal conditions.
+Structural integrity thresholds have changed. The connection points may be more sensitive to loads than in nominal conditions.
 Use feedback to ensure your dam remains intact.
 """,
             "terrain_config": {
-                "joint_break_force": 22000.0,  # default 50000
+                "joint_break_force": 22000.0,
             },
             "physics_config": {},
         },
@@ -97,7 +97,7 @@ Use feedback to ensure your dam remains intact.
             "mutation_description": "Fluid density and fill height increased; joint break force reduced. Multiple stress factors.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple reservoir and structural conditions differ from nominal. Pressure and integrity thresholds are affected.
+Multiple reservoir and structural conditions differ from nominal. Stability and integrity requirements are more demanding.
 Infer the new behavior from simulation feedback and adapt your design.
 """,
             "terrain_config": {
@@ -113,8 +113,9 @@ Infer the new behavior from simulation feedback and adapt your design.
             "mutation_description": "Stronger gravity, heavier fluid, higher fill, weaker joints, stronger surges, stricter leakage threshold.",
             "task_description_suffix": """
 ## Environmental Warning
-Several physical and structural parameters have changed. Gravity, fluid behavior, joint strength, and success criteria may all differ from nominal.
-You must infer the new environment from simulation feedback and design a dam that meets the (possibly stricter) containment and integrity requirements.
+Several physical and structural parameters have changed. Reservoir behavior and joint strength may differ from nominal.
+In addition, the success criteria for containment have been updated.
+You must infer the new environment from simulation feedback and design a dam that meets all requirements.
 """,
             "terrain_config": {
                 "fluid_height": 7.5,

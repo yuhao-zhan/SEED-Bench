@@ -18,20 +18,21 @@ TASK_PROMPT = {
 Design an excavator arm and scoop to move granular material over an obstacle.
 
 ## Task Environment
-- **Material**: Small granular particles in a pit.
-- **Obstacle**: A central wall at x=0. Use `has_central_wall()` to check environment state.
-- **Target Zone**: x > 2.0m.
-- **Build Zone**: Base is anchored at x=-2.0m, y=0.5m.
+## Task Environment
+- **Material**: 200 high-friction sand particles in a pit located between x=0.0m and x=5.0m.
+- **Obstacle**: A central wall at x=-1.0m. Use `has_central_wall()` to check environment state.
+- **Target Hopper**: Located at x=-5.0m, y=3.0m.
+- **Build Zone**: Base is anchored at x=-2.0m, y=0.0m.
 
 ## Task Objective
 Design a mechanism that:
-1. Scoops up granular material from the pit.
-2. Lifts and moves the material over the central wall.
-3. Deposits the material into the target zone.
-""",
-    "success_criteria": """
+1. Scoops up granular material from the pit (x > 0).
+2. Lifts and moves the material over the central wall (x = -1.0).
+3. Deposits the material into the target hopper at x=-5.0.
+...
 ## Success Criteria
-1. **Material Transfer**: Significant amount of granular material moved to the target zone (x > 2.0m).
+1. **Material Transfer**: At least 50 sand particles are deposited in the hopper (x=-5.0, y=3.0).
+
 2. **Integrity**: Mechanism remains intact throughout the operation.
 
 ## Design Constraints

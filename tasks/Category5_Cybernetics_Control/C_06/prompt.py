@@ -1,5 +1,5 @@
 """
-C-06: The Wheel Control task Prompt and Primitives definition
+C-06: The Governor task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
@@ -11,22 +11,28 @@ from ...primitives_api import (
 
 TASK_PROMPT = {
     "task_description": """
-Design a controller to maintain a wheel at a target angular velocity.
+Design a controller (a "governor") to maintain a wheel's rotation at a constant target speed despite varying external loads.
 
 ## Task Environment
-- **Wheel**: A circular body that can rotate.
-- **Motor**: Provides torque to the wheel.
-- **Goal**: Match and maintain the target angular velocity.
+- **Wheel**: A circular body that can rotate around its center.
+- **Motor**: Provides torque to the wheel to control its speed.
+- **Target Speed**: The wheel must be maintained at a specific target speed (e.g., 3.0 rad/s).
+- **External Loads**: The wheel is subject to multiple types of resisting torque:
+  1. **Constant Drag**: A baseline resistance.
+  2. **Step Load**: A sudden, sustained increase in resisting torque occurring at a specific time.
+  3. **Periodic Disturbances**: Time-varying oscillations in the load.
+  4. **Nonlinearities**: The system may exhibit cogging torque or stiction at low speeds.
 
 ## Task Objective
 Design a control loop that:
-1. Observes the current angular velocity of the wheel.
-2. Identifies the current target speed (which may change).
-3. Applies motor torque to minimize the error between current and target speeds.
+1. Observes the current angular velocity and target speed.
+2. Applies motor torque to regulate the wheel speed and reject disturbances from the varying loads.
+3. Successfully prevents the wheel from stalling or deviating significantly from the target speed for a sustained period.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Speed Matching**: Wheel angular velocity stays close to target speed for a sustained duration.
+1. **Speed Regulation**: Mean speed error remains within a tight threshold (e.g., < 0.23 rad/s).
+2. **No Stall**: The wheel must not stall (speed must remain above a minimum threshold like 0.3 rad/s) for any sustained period.
 
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.

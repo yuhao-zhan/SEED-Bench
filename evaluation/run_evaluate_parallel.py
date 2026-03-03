@@ -140,7 +140,7 @@ def run_api_parallel(work_items, args, scripts_dir):
 
     class EvalArgs: pass
     e = EvalArgs()
-    for attr in ["model_type", "model_name", "model_path", "api_key", "max_iterations", "max_steps", "method", "context"]:
+    for attr in ["model_type", "model_name", "model_path", "api_key", "max_iterations", "max_steps", "method", "context", "save_gif"]:
         setattr(e, attr, getattr(args, attr, None))
     
     # Defaults for EvalArgs
@@ -246,6 +246,8 @@ def main():
     parser.add_argument("--theta-evolve-rollout-batch-size", type=int, default=32)
     parser.add_argument("--expel-max-rounds", type=int, default=8)
     parser.add_argument("--expel-max-num-rules", type=int, default=20)
+    parser.add_argument('--save-gif', action='store_true', default=True, help='Save GIF animations of simulations')
+    parser.add_argument('--no-save-gif', action='store_false', dest='save_gif', help='Disable saving GIF animations')
     
     args = parser.parse_args()
 
@@ -276,6 +278,10 @@ def main():
     ]
     if args.model_path: base_argv += ["--model-path", args.model_path]
     if args.api_key: base_argv += ["--api-key", args.api_key]
+    if args.save_gif:
+        base_argv += ["--save-gif"]
+    else:
+        base_argv += ["--no-save-gif"]
 
     if args.model_type == "openai":
         print(f"📋 Work items (missing pairs): {len(work_items)}")

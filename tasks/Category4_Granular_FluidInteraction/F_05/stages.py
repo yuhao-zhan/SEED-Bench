@@ -10,6 +10,7 @@ Ordered by difficulty (ascending).
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
 def update_task_description_for_visible_changes(
@@ -37,14 +38,17 @@ def get_f05_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "Stronger waves",
-            "mutation_description": "Primary wave amplitude increased; boat excitation and cargo bounce more severe.",
+            "mutation_description": "Primary wave amplitude, current, and lateral impulses increased; restoring torque reduced.",
             "task_description_suffix": """
 ## Environmental Warning
-Sea conditions have changed. Wave excitation and vessel motion may be more severe than in nominal conditions.
+Sea conditions have changed. Wave excitation, vessel motion, and lateral forces are more severe than in nominal conditions.
 Use simulation feedback to adapt your design for stability and cargo retention.
 """,
             "terrain_config": {
-                "wave_amplitude": 17.0,  # default 10.0 — ~70% increase so ref solution loses cargo or capsizes
+                "wave_amplitude": 60.0,
+                "current_strength": 3.0,
+                "restoring_coeff": 1200.0,
+                "lateral_impulse_amplitude": 120.0,
             },
             "physics_config": {},
         },
@@ -54,7 +58,7 @@ Use simulation feedback to adapt your design for stability and cargo retention.
             "mutation_description": "Cargo friction reduced; cargo fixation harder, more likely to slide off.",
             "task_description_suffix": """
 ## Environmental Warning
-Cargo handling conditions have changed. Cargo may be harder to contain than in nominal conditions.
+Cargo properties have changed. The materials to be transported are more difficult to contain than in nominal conditions.
 Use feedback to ensure your containment and ballast remain effective.
 """,
             "terrain_config": {
@@ -68,13 +72,13 @@ Use feedback to ensure your containment and ballast remain effective.
             "mutation_description": "Water current increased, restoring torque reduced; boat drifts and rolls more.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple hydrodynamic and stability conditions differ from nominal. Current, roll response, and wave loading may all be affected.
+Multiple hydrodynamic and stability conditions differ from nominal. Roll response and water loading are more challenging.
 Infer the new behavior from simulation feedback and adapt your design.
 """,
             "terrain_config": {
-                "current_strength": 0.58,   # default 0.35
-                "restoring_coeff": 1150.0,   # default 1600 — weaker righting moment
-                "wave_amplitude": 13.0,      # slightly higher than default 10
+                "current_strength": 0.58,
+                "restoring_coeff": 1150.0,
+                "wave_amplitude": 13.0,
             },
             "physics_config": {},
         },
@@ -84,21 +88,21 @@ Infer the new behavior from simulation feedback and adapt your design.
             "mutation_description": "Larger waves, slipperier cargo, stronger/faster lateral gusts, stronger rogue, higher gravity.",
             "task_description_suffix": """
 ## Environmental Warning
-Several physical and environmental parameters have changed. Waves, cargo behavior, lateral forces, and effective weight may all differ from nominal.
-You must infer the new environment from simulation feedback and design so that all cargo is retained and the boat does not capsize.
+Several environmental parameters have changed simultaneously. Waves, cargo behavior, and effective vessel weight all differ from nominal.
+You must infer the new environment from simulation feedback and ensure stability and retention.
 """,
             "terrain_config": {
                 "wave_amplitude": 18.0,
-                "wave2_amplitude": 9.0,           # default 5.0
+                "wave2_amplitude": 9.0,
                 "cargo": {"friction": 0.10, "count": 10, "radius": 0.15, "density": 260.0, "seed": 42},
-                "lateral_impulse_amplitude": 105.0,   # default 68 — much stronger
-                "lateral_impulse_interval_steps": 140,  # default 200 — more frequent
+                "lateral_impulse_amplitude": 105.0,
+                "lateral_impulse_interval_steps": 140,
                 "restoring_coeff": 1100.0,
-                "rogue_amplitude": 20.0,         # default 14
-                "current_strength": 0.52,        # default 0.35
+                "rogue_amplitude": 20.0,
+                "current_strength": 0.52,
             },
             "physics_config": {
-                "gravity": (0, -13.0),           # default -10 — heavier effective load
+                "gravity": (0, -13.0),
             },
         },
     ]

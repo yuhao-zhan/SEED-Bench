@@ -8,6 +8,7 @@ Stages are ordered by increasing difficulty (Stage-1 easiest, Stage-4 hardest).
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
@@ -17,7 +18,24 @@ def update_task_description_for_visible_changes(base_description: str, target_te
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
-    return base_success_criteria
+    criteria = base_success_criteria
+    
+    # Overheat limit (visible threshold change)
+    target_limit = target_terrain_config.get("overheat_limit")
+    base_limit = base_terrain_config.get("overheat_limit", 72000.0)
+    
+    if target_limit is not None and target_limit != base_limit:
+        # Note: Original prompt might not have the numeric limit in text, 
+        # but if it did, we'd replace it. Let's add a note if it's different.
+        pattern = r"(\*\*Thermal Safety\*\*: Craft does not overheat)"
+        if re.search(pattern, criteria):
+            criteria = re.sub(
+                pattern,
+                f"\\g<1> (limit: {target_limit:.0f}, originally {base_limit:.0f} in the source environment)",
+                criteria
+            )
+            
+    return criteria
 
 
 def get_e02_curriculum_stages() -> List[Dict[str, Any]]:

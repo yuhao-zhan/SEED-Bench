@@ -1,5 +1,5 @@
 """
-F-06: The Fountain task Prompt and Primitives definition
+F-06: The Pipeline (hard) task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
@@ -12,26 +12,29 @@ from ...primitives_api import (
 
 TASK_PROMPT = {
     "task_description": """
-Design a fountain nozzle and control system to direct fluid particles into a target area.
+Design a transport system to route fluid particles to a narrow target zone while avoiding environmental hazards.
 
 ## Task Environment
-- **Fluid**: Continuous stream of small fluid particles.
-- **Target Area**: x in [15, 20] m, y in [5, 10] m.
-- **Build Zone**: x=[5, 10] m, y=[0, 5] m.
+- **Fluid**: Continuous stream of small fluid particles released from an emitter.
+- **Target Zone**: x in [18, 22] m, y in [0, 1.5] m.
+- **Hazards**: Pits may exist in the corridor; particles entering them are lost.
+- **Build Zone**: x=[6, 18] m, y=[0, 6] m.
+- **Control**: You can apply forces directly to particles using `apply_force_to_particle()`.
 
 ## Task Objective
-Design a system that:
-1. Directs fluid particles toward the target area using physical structures or forces.
-2. Maintains a steady flow of particles into the target.
-3. Stays within mass and beam count limits.
-""",
+Design a system (structure and control) that:
+1. Directs at least 55% of released fluid particles into the target zone.
+2. Navigates particles safely over any pits or obstacles.
+3. Operates within a per-step force budget and total structure mass limit.
+""",,old_string:""",
     "success_criteria": """
 ## Success Criteria
-1. **Target Accuracy**: High percentage of fluid particles entering the target area.
-2. **Sustained Flow**: Continuous delivery of particles over time.
+1. **Delivery Efficiency**: At least 55% of released particles reach the target zone.
+2. **Resource Management**: Per-step force usage must not exceed the environment's budget.
 
 ## Design Constraints
-- **Mass Budget**: Total structure mass < 100 kg.
+- **Mass Budget**: Total structure mass <= 100 kg.
+- **Force Budget**: 3800 N per step (nominal).
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO

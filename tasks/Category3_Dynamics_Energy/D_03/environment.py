@@ -609,11 +609,19 @@ class Sandbox:
             return None
         return (cabin.position.x, cabin.position.y)
 
+    def get_vehicle_position(self):
+        """Alias for evaluator compatibility."""
+        return self.get_passenger_position()
+
     def get_passenger_velocity(self):
         cabin = self._terrain_bodies.get("vehicle_cabin")
         if cabin is None:
             return None
         return (cabin.linearVelocity.x, cabin.linearVelocity.y)
+
+    def get_vehicle_velocity(self):
+        """Alias for evaluator compatibility."""
+        return self.get_passenger_velocity()
 
     def get_vehicle_cabin(self):
         return self._terrain_bodies.get("vehicle_cabin")

@@ -18,8 +18,9 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         description += "\n- **Obstacle Detected**: A static obstruction has been placed in the environment. You must design your structure to avoid or bypass it."
         
     if target_terrain_config.get("drop_load"):
+        # Match the exact string in prompt.py to avoid redundant "OR it may be DROPPED" and fix logic
         description = description.replace(
-            "It will automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3,0).",
+            "It may automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3,0), OR it may be DROPPED from above.",
             "The load will be DROPPED from above at x=3.0. You must catch and balance it without it touching the ground."
         )
         
@@ -37,7 +38,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     
     if target_terrain_config.get("drop_load"):
         criteria = criteria.replace(
-            "Successfully connect to the heavy load at (3,0).",
+            "Successfully catch or connect to the heavy load at x=3.0.",
             "Successfully catch the falling load and prevent it from touching the ground."
         )
     

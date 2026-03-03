@@ -148,6 +148,10 @@ class TaskEvaluator:
         if self.save_gif:
             os.makedirs(self.gif_dir, exist_ok=True)
 
+    def _get_gif_path(self, iteration: int) -> str:
+        """Get GIF file path for current iteration"""
+        return get_gif_path(self.gif_dir, self.context, iteration)
+
     def evaluate(self):
         """Run iterative evaluation process"""
         print(f"🚀 Starting evaluation for task: {self.task_name}")
@@ -408,7 +412,8 @@ def evaluate_single_task(task_name, args):
                     context=args.context,
                     env_overrides={"terrain_config": env_j.get("terrain_config", {}), "physics_config": env_j.get("physics_config", {})},
                     is_mutated_task=True,
-                    task_prompt_override=task_prompt_override
+                    task_prompt_override=task_prompt_override,
+                    save_gif=args.save_gif
                 )
                 evaluator.mutated_task_name = pair_name
                 
@@ -427,7 +432,8 @@ def evaluate_single_task(task_name, args):
                     max_steps=max_steps,
                     headless=True,
                     api_key=args.api_key,
-                    output_dir='evaluation_results'
+                    output_dir='evaluation_results',
+                    save_gif=args.save_gif
                 )
         else:
             evaluator = TaskEvaluator(
@@ -439,7 +445,8 @@ def evaluate_single_task(task_name, args):
                 max_steps=max_steps,
                 headless=True,
                 method=args.method,
-                context=args.context
+                context=args.context,
+                save_gif=args.save_gif
             )
             report = evaluator.evaluate()
             evaluator.print_report(report)
@@ -471,6 +478,8 @@ def main():
                        choices=['previous', 'all', 'last_3', 'best_score', 'best_score_plus_previous'])
     parser.add_argument('--source-env', type=str, default=None)
     parser.add_argument('--target-env', type=str, default=None)
+    parser.add_argument('--save-gif', action='store_true', default=True, help='Save GIF animations of simulations')
+    parser.add_argument('--no-save-gif', action='store_false', dest='save_gif', help='Disable saving GIF animations')
     
     args = parser.parse_args()
 

@@ -41,7 +41,11 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Increased Measurement Delay",
             "mutation_description": "Measurement delay increased (agent sees older velocity).",
-            "task_description_suffix": "\n## Environmental Warning\nSensor latency increased; readings may be more sluggish than before.\n",
+            "task_description_suffix": """
+## Environmental Warning
+Sensing in this region may exhibit unexpected discrepancies from nominal conditions. Observed readings may be more sluggish than before.
+Use feedback to infer and compensate for any environmental effects.
+""",
             "terrain_config": {},
             "physics_config": {
                 # Hidden: increase measurement delay so naive delay-compensation must adjust
@@ -52,7 +56,11 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "Larger Motor Deadzone",
             "mutation_description": "Motor applies a larger torque deadzone (small commands ignored).",
-            "task_description_suffix": "\n## Environmental Warning\nActuators exhibit a larger deadzone — small control commands may have no effect.\n",
+            "task_description_suffix": """
+## Environmental Warning
+Actuation behavior differs from nominal conditions. Small control commands may not have the expected effect on the system.
+Infer the changes from feedback and adapt your control strategy.
+""",
             "terrain_config": {},
             "physics_config": {
                 # Hidden: reduce low-speed torque availability so escaping stall is harder
@@ -63,7 +71,11 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "Early Heavy Step + Weaker Low-Speed Torque",
             "mutation_description": "Introduce an earlier/heavier step load and reduce low-speed torque availability.",
-            "task_description_suffix": "\n## Environmental Warning\nOccasional heavy transient loads occur earlier in the run; low-speed actuation may be weaker.\n",
+            "task_description_suffix": """
+## Environmental Warning
+Environmental loads in this region differ from nominal. Transient disturbances may be more severe or occur earlier than expected.
+Use simulation feedback to discover and adapt to these environmental dynamics.
+""",
             "terrain_config": {},
             "physics_config": {
                 # Hidden: earlier/larger step load and stronger periodic disturbance
@@ -79,7 +91,11 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Compound: High Delay, Strong Cogging & Stiction",
             "mutation_description": "Combine multiple adversarial hidden changes: very large delay, increased cogging and stiction, higher drag and reduced torque reserve.",
-            "task_description_suffix": "\n## Environmental Warning\nMultiple hidden dynamics changed simultaneously — sensing latency, nonlinear loads and stiction are stronger. Precise, robust control is required.\n",
+            "task_description_suffix": """
+## Environmental Warning
+Multiple environmental and physical parameters have changed simultaneously. Sensing, actuation, and internal dynamics differ from nominal.
+You must infer the new environment from simulation feedback and ensure precise, robust control.
+""",
             "terrain_config": {},
             "physics_config": {
                 # Combine several harder mutations (hidden to agent)

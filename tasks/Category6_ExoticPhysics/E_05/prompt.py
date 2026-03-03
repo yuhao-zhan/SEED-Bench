@@ -1,5 +1,5 @@
 """
-E-05: The Drag Racer task Prompt and Primitives definition
+E-05: The Magnet task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
@@ -11,24 +11,26 @@ from ...primitives_api import (
 
 TASK_PROMPT = {
     "task_description": """
-Design a controller for a drag racer to reach maximum velocity while staying on track in a high-drag environment.
+Design a controller to navigate a body through a complex, invisible magnetic force field to a target zone.
 
 ## Task Environment
-- **Racer**: A high-speed vehicle subject to exotic drag forces.
-- **Track**: A straight course with limited width.
-- **Goal**: Reach the finish line at x=50.0m as quickly as possible.
+- **Body**: A dynamic object starting at x=8.0m, y=5.0m.
+- **Force Fields**: Numerous invisible repulsive and attractive points are scattered throughout the environment.
+- **Gates**: Some force fields oscillate in intensity, creating "gates" that are only passable at certain times.
+- **Target Zone**: Reach the area x >= 28.0m and y in [6.0, 9.0] m.
+- **Goal**: Navigate the body to the target zone by applying thrust to overcome repulsive forces and time the passage through gates.
 
 ## Task Objective
 Design a control loop that:
-1. Applies thrust to accelerate the racer toward the finish line.
-2. Maintains lateral stability to stay within track bounds.
-3. Optimizes acceleration against the environment's drag.
+1. Applies thrust to move the body toward the target.
+2. Uses position and velocity feedback to identify and overcome repulsive "peaks" or local minima.
+3. Times the approach to pass through oscillating gates when their repulsive force is weak.
+4. Successfully reaches the target zone within the simulation time limit.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Finish Line**: Racer reaches x >= 50.0m.
-2. **Speed**: Minimizes time to completion.
-3. **Survival**: Racer stays within lateral track boundaries.
+1. **Target Reach**: Body reaches the target zone (x >= 28.0m, y in [6.0, 9.0]).
+2. **Efficiency**: Task completed within 10,000 simulation steps.
 
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.

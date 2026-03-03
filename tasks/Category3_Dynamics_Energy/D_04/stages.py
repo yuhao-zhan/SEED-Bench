@@ -41,7 +41,7 @@ def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Gravity increased to -15.5 m/s². Swing period shorter, apex lower; original tuning under-pumps.",
             "task_description_suffix": _INVISIBLE_ENV_WARNING,
             "terrain_config": {},
-            "physics_config": {"gravity": (0, -15.5)},
+            "physics_config": {"gravity": (0, -18.5)},
         },
         {
             "stage_id": "Stage-2",

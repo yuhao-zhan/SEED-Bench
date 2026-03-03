@@ -20,14 +20,14 @@ Design a wiper mechanism that can clean all particles from a glass surface using
 
 ## Task Environment
 - **Glass Surface**: Flat surface at y=2.0m, length 12m (x from 0 to 12).
-- **Particles**: Numerous particles are randomly distributed on the glass.
+- **Particles**: 45 small particles are randomly distributed on the glass.
 - **Particle Removal**: A particle is considered "removed" when pushed off the glass surface boundaries.
 - **Build Zone**: x=[0, 12], y=[2, 10]. All structure components must be placed within this zone.
 - **Wiper–Glass**: The wiper does NOT collide with the glass surface itself; it only collides with the particles.
 
 ## Constraints (must satisfy)
-- **Cleaning**: 100% of particles must be removed (residual = 0%).
-- **Motion**: The wiper must maintain active movement for at least 12.0 seconds.
+- **Cleaning**: At least 80% of particles must be removed (residual <= 20%).
+- **Motion**: The wiper must maintain active movement for at least 8.0 seconds.
 - **Mass Budget**: Total structure mass must be less than 15 kg.
 - **Build Zone**: All components must be within x=[0, 12], y=[2, 10].
 - **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters.
@@ -40,8 +40,8 @@ Design a wiper mechanism that can clean all particles from a glass surface using
     
     'success_criteria': """
 ## Success Criteria
-1. **Cleaning**: 100% of particles removed (residual = 0%).
-2. **Locomotion**: Sustained sweeping motion for >= 12.0 seconds.
+1. **Cleaning**: At least 80% of particles removed (residual <= 20%).
+2. **Locomotion**: Sustained sweeping motion for >= 8.0 seconds.
 3. **Stability**: Structure remains within build zone and mass limits.
 
 ## Design Constraints

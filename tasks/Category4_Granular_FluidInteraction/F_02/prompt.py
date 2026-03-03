@@ -1,5 +1,5 @@
 """
-F-02: The Snowplow task Prompt and Primitives definition
+F-02: The Amphibian task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
@@ -14,27 +14,26 @@ from ...primitives_api import (
 
 TASK_PROMPT = {
     "task_description": """
-Design a snowplow attachment for a vehicle to clear granular snow from its path.
+Design an amphibian vehicle to cross a body of water and reach the target bank.
 
 ## Task Environment
-- **Vehicle**: A motorized vehicle that moves forward.
-- **Snow**: Numerous small granular particles on the ground.
-- **Build Zone**: Snowplow must be attached to the front of the vehicle.
-- **Target**: Clear at least 80% of the snow from the vehicle's path.
+- **Water**: A 10m wide water gap between x=10m and x=20m.
+- **Target**: Reach the right bank at x >= 26.0m.
+- **Build Zone**: Vehicle hull is centered at x=15.0m, y=2.5m. Structure can be built in x=[13.5, 16.5], y=[2.5, 4.5].
+- **Propulsion**: You can apply periodic thrust forces to your structure's components using `apply_force()`.
 
 ## Task Objective
-Design a plow that:
-1. Effectively pushes granular snow to the sides.
-2. Maintains ground contact without excessive friction or snagging.
-3. Does not break under the load of the snow.
+Design a vehicle that:
+1. Remains buoyant while crossing the water.
+2. Uses effective propulsion (e.g., paddles) to move forward against currents and headwinds.
+3. Reaches the target bank.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Clearing**: > 80% of particles removed from the target path.
-2. **Integrity**: Structure remains attached and intact.
+1. **Goal Reach**: Vehicle front reaches x >= 26.0m.
 
 ## Design Constraints
-- **Mass Budget**: Total plow mass < 100 kg.
+- **Mass Budget**: Total structure mass <= 80 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO

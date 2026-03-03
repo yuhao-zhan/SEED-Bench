@@ -354,6 +354,10 @@ class Sandbox:
                 remaining += 1
         return remaining
     
+    def get_remaining_particle_count(self):
+        """Alias for evaluator compatibility."""
+        return self.get_particle_count()
+    
     def get_initial_particle_count(self):
         """Get initial particle count"""
         return self._initial_particle_count

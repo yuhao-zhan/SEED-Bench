@@ -8,110 +8,74 @@ import math
 
 class DaVinciSandbox:
     """DaVinci Sandbox environment wrapper for S-06: The Overhang"""
-    
-    def __init__(self, *, terrain_config=None, physics_config=None):
+
+    MAX_BLOCK_LENGTH = 4.0
+    MAX_BLOCK_HEIGHT = 0.5
+    MAX_BLOCK_COUNT = 15
+    START_ZONE_X_MAX = 0.0
+
+    def __init__(self, terrain_config=None, physics_config=None):
         terrain_config = terrain_config or {}
         physics_config = physics_config or {}
         self._terrain_config = dict(terrain_config)
         self._physics_config = dict(physics_config)
 
         gravity = tuple(physics_config.get("gravity", (0, -10)))
-        self._default_linear_damping = float(physics_config.get("linear_damping", 0.0))
-        self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
-
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
-        self._joints = []  # Disabled for this task
+        self._joints = []
         self._terrain_bodies = {}
-        
+
         self.world = self._world
         self.bodies = self._bodies
         self.joints = self._joints
-        
+
         self._create_terrain(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):
-        """Create table: Static surface x=[-10, 0]. Edge at x=0"""
-        # Get configurable friction (default 0.5)
-        table_friction = float(terrain_config.get("table_friction", 0.5))
-        self.TABLE_FRICTION = table_friction
-        
+        # Table top: ends at x=0
+        floor_length = 20.0
+        floor_height = 1.0
         table = self._world.CreateStaticBody(
-            position=(-5, 0.5),
+            position=(-floor_length / 2, -floor_height / 2),
             fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(5.0, 0.5)),
-                friction=table_friction,
+                shape=polygonShape(box=(floor_length / 2, floor_height / 2)),
+                friction=0.8,
             ),
         )
         self._terrain_bodies["table"] = table
 
-    # --- Physical constraint constants ---
-    MIN_BLOCK_SIZE = 0.1
-    MAX_BLOCK_LENGTH = 1.0  # Maximum beam length = 1.0m
-    MAX_BLOCK_HEIGHT = 0.5  # Maximum beam height = 0.5m
-    START_ZONE_X_MAX = 0.0  # All blocks must spawn at x < 0
-    MAX_BLOCK_COUNT = 20
-    TABLE_FRICTION = 0.5  # Default, can be overridden by terrain_config
-    BLOCK_FRICTION = 0.5  # Default, can be overridden by terrain_config
-
-    def step(self, time_step):
-        """Physics step"""
-        self._world.Step(time_step, 10, 10)
-    
-    def add_block(self, x, y, width, height):
-        """
-        API: Add a block (no joints allowed)
-        Constraint: width <= 1.0, height <= 0.5
-        """
-        # Validate constraints
-        if x >= self.START_ZONE_X_MAX:
-            raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+    def add_block(self, x, y, width, height, angle=0, density=1.0):
+        """API: Add a block for the overhang structure."""
+        # Verification: block right edge (x + width/2) should initially be on the table (<= 0) 
+        # unless it is supported by another block.
+        # For simplicity in this specific task, we rely on physics simulation to determine stability.
         
-        if len(self._bodies) >= self.MAX_BLOCK_COUNT:
-            raise ValueError(f"Maximum {self.MAX_BLOCK_COUNT} blocks allowed")
-        
-        width = max(self.MIN_BLOCK_SIZE, min(width, self.MAX_BLOCK_LENGTH))
-        height = max(self.MIN_BLOCK_SIZE, min(height, self.MAX_BLOCK_HEIGHT))
-        
-        # Get configurable material properties (defaults)
-        block_density = float(self._terrain_config.get("block_density", 1.0))
-        block_friction = float(self._terrain_config.get("block_friction", 0.5))
-        self.BLOCK_FRICTION = block_friction  # Update for consistency
-        
-        body = self._world.CreateDynamicBody(
-            position=(x, y),
-            fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(width/2, height/2)),
-                density=block_density,
-                friction=block_friction,
-            )
-        )
-        body.linearDamping = self._default_linear_damping
-        body.angularDamping = self._default_angular_damping
+        body = self._world.CreateDynamicBody(position=(x, y), angle=angle)
+        body.CreatePolygonFixture(box=(width/2, height/2), density=density, friction=0.6)
         self._bodies.append(body)
         return body
 
-    def add_joint(self, body_a, body_b, anchor_point, type='rigid'):
-        """
-        API: DISABLED for this task
-        """
-        raise ValueError("add_joint is DISABLED for this task. You cannot use joints or glue. Gravity and Friction only.")
+    def get_max_x_position(self):
+        """Returns the rightmost x-coordinate of any structural component."""
+        if not self._bodies: return 0.0
+        max_x = -1e9
+        for body in self._bodies:
+            for fixture in body.fixtures:
+                shape = fixture.shape
+                if isinstance(shape, polygonShape):
+                    for v in shape.vertices:
+                        wv = body.GetWorldPoint(v)
+                        max_x = max(max_x, wv.x)
+        return max(0.0, max_x)
 
     def get_structure_mass(self):
-        """API: Returns total mass"""
-        total_mass = 0.0
-        for body in self._bodies:
-            total_mass += body.mass
-        return total_mass
+        return sum(b.mass for b in self._bodies)
 
-    def get_max_x_position(self):
-        """Get maximum x position of any block"""
-        if not self._bodies:
-            return 0.0
-        return max(b.position.x for b in self._bodies)
+    def step(self, time_step):
+        self._world.Step(time_step, 10, 10)
 
     def get_terrain_bounds(self):
-        """Get terrain bounds"""
         return {
             "table": {"x": [-10.0, 0.0]},
             "edge_x": 0.0,

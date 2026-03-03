@@ -1,37 +1,41 @@
 """
-F-04: The Sieve task Prompt and Primitives definition
+F-04: The Filter (Three-way) task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
     ADD_STATIC_BEAM,
-    GET_PARTICLES_MEDIUM,
     GET_PARTICLES_SMALL,
+    GET_PARTICLES_MEDIUM,
+    GET_PARTICLES_LARGE,
     GET_STRUCTURE_MASS,
     SET_MATERIAL_PROPERTIES,
 )
 
 TASK_PROMPT = {
     "task_description": """
-Design a static sieve structure to separate different sizes of granular particles.
+Design a static filtering structure to separate fluid particles into three size categories.
 
 ## Task Environment
-- **Particles**: A mixture of small and medium particles will fall through the sieve.
+- **Particles**: A mixture of small (radius 0.1m), medium (radius 0.2m), and large (radius 0.35m) particles will fall through the structure.
 - **Build Zone**: x=[5, 15] m, y=[2, 8] m.
-- **Target**: Allow small particles to pass through while retaining medium particles.
+- **Target Zones**: 
+  1. Small particles should be directed to the bottom (y < 1.92m).
+  2. Medium particles should be directed to the middle (1.92m <= y < 2.52m).
+  3. Large particles should be retained in the upper zone (y >= 2.52m).
 
 ## Task Objective
-Design a sieve that:
-1. Effectively filters small particles from medium ones.
-2. Minimizes clogging or structural failure.
-3. Uses static components for durability.
+Design a multi-layered filter that:
+1. Effectively separates particles by size into their respective target zones.
+2. Minimizes cross-contamination between categories.
+3. Maintains structural stability under particle load using only static beams.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Sifting**: High percentage of small particles passed through, medium particles retained.
+1. **Classification Purity**: Overall purity (correctly categorized particles / total particles) >= 45%.
 2. **Integrity**: Structure remains stable and intact.
 
 ## Design Constraints
-- **Mass Budget**: Total structure mass < 200 kg.
+- **Mass Budget**: Total structure mass <= 200 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO
@@ -39,5 +43,6 @@ Design a sieve that:
     + SET_MATERIAL_PROPERTIES
     + GET_STRUCTURE_MASS
     + GET_PARTICLES_SMALL
-    + GET_PARTICLES_MEDIUM,
+    + GET_PARTICLES_MEDIUM
+    + GET_PARTICLES_LARGE,
 }

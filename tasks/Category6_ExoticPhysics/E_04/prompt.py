@@ -1,5 +1,5 @@
 """
-E-04: The Void Bridge task Prompt and Primitives definition
+E-04: Variable Mass task Prompt and Primitives definition
 """
 from ...primitives_api import (
     API_INTRO,
@@ -17,28 +17,31 @@ from ...primitives_api import (
 
 TASK_PROMPT = {
     "task_description": """
-Design a bridge to span a void in a high-gravity environment.
+Design a complex structure that remains intact under sinusoidally varying mass and environmental vibration.
 
 ## Task Environment
-- **Void**: A deep gap between two stable surfaces.
-- **Gravity**: Significantly higher than standard earth gravity.
-- **Goal**: Build a bridge that can support its own weight and any crossing load.
+- **Mass Variation**: Every beam's mass varies over time according to multiple frequency components.
+- **Base Excitation**: The ground support oscillates vertically and horizontally (elliptical vibration).
+- **Fatigue**: Joint strength (force and torque limits) decays exponentially over time.
+- **Build Zone**: x in [5.0, 15.0] m, y in [1.5, 8.0] m.
+- **Goal**: Maintain structural integrity until the end of the simulation.
 
 ## Task Objective
-Design a bridge that:
-1. Spans the void while meeting minimum component requirements.
-2. Stays within strict total mass limits.
-3. Maintains structural integrity under extreme gravity.
+Design a structure that:
+1. Spans from x=6.0m to x=14.0m.
+2. Uses at least 5 beams and 6 joints.
+3. Includes at least one pivot (revolute) joint.
+4. Withstands the varying inertial loads and base vibration without breaking any joints.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Span Completion**: Continuous structure connects both sides of the void.
-2. **Structural Stability**: Bridge does not collapse or break joints.
-3. **Requirement Adherence**: Meets minimum beam and joint counts within the mass limit.
+1. **Integrity**: All joints remain intact throughout the simulation.
+2. **Span**: Structure spans from at least x <= 6.0m to x >= 14.0m.
+3. **Complexity**: Meets the minimum beam (5) and joint (6) counts.
+4. **Variety**: At least one joint must be a pivot (`type='pivot'`).
 
 ## Design Constraints
-- **Mass Budget**: Total structure mass must be within the limit provided by `get_structure_mass_limit()`.
-- **Min Components**: Must use at least the counts provided by `get_min_beams()` and `get_min_joints()`.
+- **Mass Budget**: Total structure mass (instantaneous) must remain within the limit (default 400 kg).
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO

@@ -35,8 +35,8 @@ def get_c01_curriculum_stages() -> List[Dict[str, Any]]:
             "mutation_description": "Sensor delay (angle and omega) increased; phase feedback is lagged.",
             "task_description_suffix": """
 ## Environmental Warning
-Sensing may be subject to additional latency. Observed state may not reflect the current physical state.
-Use feedback to infer and compensate for any lag.
+Sensing in this region may exhibit unexpected discrepancies from nominal conditions. Observed state may not reflect the immediate physical state.
+Use feedback to infer and compensate for any environmental effects.
 """,
             "terrain_config": {},
             "physics_config": {
@@ -50,8 +50,8 @@ Use feedback to infer and compensate for any lag.
             "mutation_description": "Gravity magnitude increased; swing-up and balance dynamics change.",
             "task_description_suffix": """
 ## Environmental Warning
-Local gravity differs from nominal. The dynamics of the pole may feel different.
-Infer from feedback and adapt your control strategy.
+Environmental dynamics differ from nominal. The physical response of the system may be altered.
+Infer the changes from feedback and adapt your control strategy.
 """,
             "terrain_config": {},
             "physics_config": {
@@ -64,8 +64,8 @@ Infer from feedback and adapt your control strategy.
             "mutation_description": "Pole length and angular damping increased; natural frequency and energy decay change.",
             "task_description_suffix": """
 ## Environmental Warning
-The system's inertia and dissipation have changed. Swing-up and balance may require different timing and gains.
-Use feedback to discover and adapt.
+The system's structural and resistive properties have changed. Movement and stability may require different timing and force levels.
+Use simulation feedback to discover and adapt.
 """,
             "terrain_config": {
                 "pole_length": 4.5,
@@ -81,8 +81,8 @@ Use feedback to discover and adapt.
             "mutation_description": "Gravity, sensor delay, actuator rate limit, and pole mass changed together.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple environmental factors have shifted. Sensing, actuation, and dynamics may all differ from nominal.
-Infer from feedback and adapt your strategy accordingly.
+Several environmental parameters have changed simultaneously. Sensing, actuation, and motion dynamics all differ from nominal.
+You must infer the new environment from simulation feedback and adapt your control strategy accordingly.
 """,
             "terrain_config": {
                 "pole_mass": 2.8,

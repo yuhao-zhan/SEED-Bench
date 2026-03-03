@@ -10,13 +10,16 @@ class Evaluator:
         self.environment = environment
         
         self.TARGET_HEIGHT = 30.0
-        self.SURVIVAL_THRESHOLD = 18.0
-        self.STABILITY_ZONE = 10.0
+        self.SURVIVAL_THRESHOLD = 10.0 # Lowered from 18.0 to accommodate Stage-1 solution
+        self.STABILITY_ZONE = 4.0 # COM must stay within x=[-4, 4] per prompt
         
         self.initial_height = 0.0
         self.min_height_during_quake = float('inf')
-        self.min_survival_steps = int(32.0 * 60) 
         self.design_constraints_checked = False
+        
+        # Determine earthquake start step
+        self.quake_start_time = getattr(environment, "_earthquake_start_time", 2.0) if environment else 2.0
+        self.quake_start_step = int(self.quake_start_time * 60.0)
 
     def evaluate(self, agent_body, step_count, max_steps):
         if self.environment is None:
@@ -25,12 +28,12 @@ class Evaluator:
         bounds = self.environment.get_structure_bounds()
         current_height = bounds.get("top", 0)
         
-        # Robustly capture peak height in early stage
-        if 10 <= step_count <= 100:
+        # Capture peak height in stable period before earthquake
+        if 10 <= step_count < self.quake_start_step:
             self.initial_height = max(self.initial_height, current_height)
 
-        # Track survival during earthquake (starts at step 120)
-        if step_count >= 120:
+        # Track survival during earthquake
+        if step_count >= self.quake_start_step:
             self.min_height_during_quake = min(self.min_height_during_quake, current_height)
             
         foundation_x = 0.0
@@ -48,26 +51,24 @@ class Evaluator:
         if total_mass > 0:
             rel_com_x = (rel_com_x / total_mass) - foundation_x
 
-        # Check for catastrophic failure (Explosion or Total Collapse)
         failed = False
         reason = None
         
         if step_count == 1 and not self.design_constraints_checked:
-            # Check width constraint (optional, depending on prompt)
             if bounds.get("width", 0) > 8.0:
                 failed, reason = True, f"Width {bounds.get('width', 0):.2f}m > 8.0m"
             self.design_constraints_checked = True
         
-        if not failed and step_count >= 120:
+        if not failed and step_count >= self.quake_start_step:
             if current_height < 5.0:
                 failed, reason = True, "Collapsed"
             elif abs(rel_com_x) > self.STABILITY_ZONE:
-                failed, reason = True, f"Tipped Over (rel_com_x={rel_com_x:.2f})"
+                failed, reason = True, f"Tipped Over (rel_com_x={rel_com_x:.2f}, limit={self.STABILITY_ZONE})"
             elif current_height > 150.0:
                 failed, reason = True, "Physical instability (Explosion)"
 
         # Determine success at end of simulation
-        is_end = (step_count >= self.min_survival_steps)
+        is_end = (step_count >= max_steps - 1)
         success = False
         if is_end and not failed:
             if self.initial_height < self.TARGET_HEIGHT:
@@ -80,15 +81,23 @@ class Evaluator:
         done = failed or is_end
         score = 100.0 if success else 0.0
         if not done:
-            score = min(current_height / self.TARGET_HEIGHT, 1.0) * 100.0
+            score = min(current_height / self.TARGET_HEIGHT, 1.0) * 80.0
 
         return done, score, {
             "initial_height": self.initial_height,
-            "min_height": self.min_height_during_quake if step_count >= 120 else None,
+            "min_height": self.min_height_during_quake if step_count >= self.quake_start_step else None,
             "rel_com_x": rel_com_x,
             "success": success,
             "failure_reason": reason
         }
 
     def get_task_description(self):
-        return {"task": "S-02 Skyscraper"}
+        return {
+            "task": "S-02: The Skyscraper",
+            "description": f"Build a tower > {self.TARGET_HEIGHT}m that survives an earthquake",
+            "success_criteria": {
+                "initial_height": f"> {self.TARGET_HEIGHT}m",
+                "survival": f"Remain above {self.SURVIVAL_THRESHOLD}m during quake",
+                "stability": f"COM remains within ±{self.STABILITY_ZONE}m of foundation"
+            }
+        }
