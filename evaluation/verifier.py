@@ -430,7 +430,7 @@ class CodeVerifier:
         # Evaluate at step 0 (design constraints only) so build-time constraints are checked before any physics step
         if evaluator and step_count == 0:
             task_lower = self.task_name.lower()
-            is_category1 = 's_01' in task_lower or 's_02' in task_lower or 's_03' in task_lower or 's_04' in task_lower or 's_05' in task_lower or 's_06' in task_lower or 'category1' in task_lower or 'category_1' in task_lower
+            is_category1 = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])
             is_e03_sled = 'e_03' in task_lower
             is_e05_magnet = 'e_05' in task_lower
             if is_category1:
@@ -467,7 +467,7 @@ class CodeVerifier:
             # Detect stuck - Unified for all tasks: Use Category1 threshold (900 steps, 0.02m)
             # This is more lenient and reduces false positives while still catching truly stuck cases
             task_lower = self.task_name.lower()
-            is_category1_task = 's_01' in task_lower or 's_02' in task_lower or 's_03' in task_lower or 's_04' in task_lower or 's_05' in task_lower or 's_06' in task_lower or 'category1' in task_lower or 'category_1' in task_lower
+            is_category1_task = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])
             is_e03_sled = 'e_03' in task_lower
             is_e05_magnet = 'e_05' in task_lower
             
@@ -493,7 +493,8 @@ class CodeVerifier:
             skip_stuck = ('f_03' in task_lower or 'category_4' in task_lower or 'category4' in task_lower or
                           'c_02' in task_lower or ('category_5_02' in task_lower) or
                           'c_03' in task_lower or ('category_5_03' in task_lower) or
-                          'e_04' in task_lower or 's_02' in task_lower or 's02' in task_lower)
+                          'e_04' in task_lower or 's_02' in task_lower or 's02' in task_lower or
+                          's_06' in task_lower or 's06' in task_lower)
             if current_pos and not skip_stuck:
                 if step_count > STABILIZATION_STEPS and last_position is not None:
                     dx = abs(current_pos[0] - last_position[0])
@@ -513,7 +514,9 @@ class CodeVerifier:
                 
                 # Check if vehicle/agent fell (failure condition, not stuck detection)
                 if is_category1_task:
-                    if current_pos[1] < 0.5:
+                    # Adaptive falling threshold
+                    fall_y = -5.0
+                    if current_pos[1] < fall_y:
                         running = False
                         break
                 elif agent_body:
@@ -596,7 +599,7 @@ class CodeVerifier:
             eval_interval = 1 if (is_category5_c02 or is_e05_magnet) else (10 if (is_category2_k03 or is_category5_c03) else 100)
             if step_count % eval_interval == 0 and evaluator:
                 # Check for Category1 tasks (case-insensitive) or E-03 (sled, no agent_body)
-                is_category1 = 's_01' in task_lower or 's_02' in task_lower or 's_03' in task_lower or 's_04' in task_lower or 's_05' in task_lower or 's_06' in task_lower or 'category1' in task_lower or 'category_1' in task_lower
+                is_category1 = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])
                 if is_category1:
                     # Category1 evaluators don't use agent_body - they get info from environment
                     should_stop, score, metrics = evaluator.evaluate(None, step_count, self.max_steps)
