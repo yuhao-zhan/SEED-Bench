@@ -1002,10 +1002,18 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                         include_suggestions=evaluator.enable_feedback
                     )
                     
+                    # Mutated task: every round is revision/adaptation (previous code + feedback in new env)
+                    prompt = format_mutated_prompt(
+                        evaluator.task_prompt,
+                        current_code,
+                        feedback
+                    )
+
                     # Record test result
                     evaluator.iteration_history.append({
                         'iteration': iteration,
                         'phase': 'initial_test',
+                        'prompt': prompt,  # The prompt generated FROM this initial test for the NEXT iteration
                         'code': current_code,
                         'success': success,
                         'score': score,
@@ -1014,62 +1022,6 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                         'feedback': feedback,
                         'reflection': None,
                     })
-                    
-                    if success:
-                        # Previous code works! (rare)
-                        print(f"✅ Previous code works in mutated environment! Score: {score}")
-                        evaluator.best_score = score
-                        evaluator.best_code = current_code
-                        evaluator.best_metrics = metrics
-                        break
-                    
-                    # Reflexion: generate reflection after failed initial test
-                    if evaluator.method == 'reflexion' and evaluator.reflect_solver is not None:
-                        try:
-                            reflection = evaluator._generate_reflection(current_code, feedback, iteration)
-                            evaluator.reflections.append(reflection)
-                            evaluator.reflections_str = format_reflections_str(evaluator.reflections)
-                            evaluator.iteration_history[-1]['reflection'] = reflection
-                        except Exception as e:
-                            print(f"⚠️  Reflexion (mutated): failed to generate reflection: {e}")
-                    
-                    # TextGrad: initialise components after mutated iteration 1
-                    if evaluator.method == 'textgrad' and current_code and evaluator.tg_engine is not None:
-                        from methods.Context.textgrad_method import init_textgrad_components
-                        evaluator.tg_code_var, evaluator.tg_optimizer = init_textgrad_components(
-                            current_code, evaluator.tg_engine
-                        )
-                        print(f"🧮 TextGrad (mutated): Variable + Optimizer initialised")
-                    
-                    # ToT: after iter 1 we have one state; keep it for ToT rounds 2+
-                    if evaluator.method == 'tree_of_thought':
-                        tot_states = [{
-                            'code': current_code, 'feedback': feedback, 'score': score,
-                            'success': success, 'metrics': metrics, 'error': error,
-                        }]
-                    
-                    # SEAL TTT: after testing base code on mutated env, train LoRA on the result
-                    if evaluator.method == 'seal':
-                        evaluator._seal_ttt_step()
-                    
-                    # RAGEN: run RL pre-training on the mutated task before revision iterations
-                    if evaluator.method == 'ragen':
-                        evaluator._ragen_pretrain()
-                    
-                    # SOAR: run self-improving evolutionary search on the mutated task
-                    # (SOAR has its own evaluation loop, so we delegate to it)
-                    if evaluator.method == 'soar':
-                        evaluator._run_soar_evaluation()
-                        # SOAR populates iteration_history, best_score, best_code directly
-                        # Skip the rest of the manual iteration loop for this task
-                        break
-                    
-                    # Mutated task: every round is revision/adaptation (previous code + feedback in new env)
-                    prompt = format_mutated_prompt(
-                        evaluator.task_prompt,
-                        current_code,
-                        feedback
-                    )
                 # ===== TextGrad: self-contained optimisation for mutated iterations 2+ =====
                 elif evaluator.method == 'textgrad' and iteration > 1 and evaluator.tg_code_var is not None:
                     last_feedback = evaluator.iteration_history[-1].get('feedback', '')

@@ -57,6 +57,8 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             suggestions.append("- Use high-density beams for counter-weights")
             suggestions.append("- Adjust center of mass to balance the load")
             suggestions.append("- Consider adding damping (angular/linear) to reduce oscillations")
+            suggestions.append("- If an obstacle is blocking your path, adjust the beam's `y` coordinate to build around it.")
+            suggestions.append("- If wind is pushing the structure, the center of mass or aerodynamic profile needs to counteract the new torque.")
             suggestions.append("- If experiencing initial rotation, add active stabilization in agent_action()")
     
     # Torque/COM guided suggestions (works even when not 'failed' but not successful)

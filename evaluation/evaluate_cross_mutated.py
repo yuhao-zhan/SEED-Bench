@@ -101,6 +101,12 @@ def get_reference_solution(base_task_name: str, stage_id: str) -> str:
             action_func = f"agent_action_{stage_id}"
     
     lines = content.splitlines()
+    
+    extracted_imports = []
+    for line in lines:
+        if line.startswith("import ") or line.startswith("from "):
+            extracted_imports.append(line)
+            
     extracted_build = []
     in_build = False
     for i, line in enumerate(lines):
@@ -128,6 +134,9 @@ def get_reference_solution(base_task_name: str, stage_id: str) -> str:
                 extracted_action.append(line)
                 
     final_parts = []
+    if extracted_imports:
+        final_parts.append("\n".join(extracted_imports))
+        
     if extracted_build:
         final_parts.append("\n".join(extracted_build))
     

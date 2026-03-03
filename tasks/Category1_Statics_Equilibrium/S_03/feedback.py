@@ -134,7 +134,10 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     
     if error:
         error_lower = error.lower()
-        if "anchor" in error_lower and "maximum" in error_lower:
+        if "corrosive" in error_lower or "forbidden zone" in error_lower:
+            suggestions.append("- Your anchor was placed in a corroded wall zone and failed immediately.")
+            suggestions.append("- Change the y-coordinate of your wall anchors to avoid the unstable region.")
+        elif "anchor" in error_lower and "maximum" in error_lower:
             suggestions.append("- Too many wall anchors: maximum 2 anchor points allowed")
             suggestions.append("- Reduce number of anchor points or redesign structure")
         elif "error building" in error_lower:

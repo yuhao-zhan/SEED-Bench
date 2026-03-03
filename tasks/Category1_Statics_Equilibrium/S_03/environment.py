@@ -29,6 +29,18 @@ class DaVinciSandbox:
         self._max_anchor_points = int(terrain_config.get("max_anchor_points", self.MAX_ANCHOR_POINTS))
         self._max_anchor_torque = float(terrain_config.get("max_anchor_torque", self.MAX_ANCHOR_TORQUE))
         
+        # New mutated mechanics
+        self._obstacle_active = terrain_config.get("obstacle_active", False)
+        self._obstacle_rect = terrain_config.get("obstacle_rect", [6.0, -1.0, 8.0, 2.5]) # [xmin, ymin, xmax, ymax]
+        
+        self._drop_load = terrain_config.get("drop_load", False)
+        self._drop_mass = float(terrain_config.get("drop_mass", 500.0))
+        self._drop_x = float(terrain_config.get("drop_x", 7.5))
+        self._drop_y = float(terrain_config.get("drop_y", 12.0))
+        self._drop_time = float(terrain_config.get("drop_time", 8.0))
+        
+        self._forbidden_anchor_y = terrain_config.get("forbidden_anchor_y", None) # [ymin, ymax]
+        
         self.world = self._world
         self.bodies = self._bodies
         self.joints = self._joints
@@ -37,7 +49,7 @@ class DaVinciSandbox:
         self._setup_load(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):
-        """Create vertical static wall at x=0"""
+        """Create vertical static wall at x=0 and optional obstacles"""
         wall = self._world.CreateStaticBody(
             position=(0, 10),
             fixtures=Box2D.b2FixtureDef(
@@ -46,22 +58,40 @@ class DaVinciSandbox:
             ),
         )
         self._terrain_bodies["wall"] = wall
+        
+        if self._obstacle_active:
+            xmin, ymin, xmax, ymax = self._obstacle_rect
+            cx = (xmin + xmax) / 2.0
+            cy = (ymin + ymax) / 2.0
+            hw = (xmax - xmin) / 2.0
+            hh = (ymax - ymin) / 2.0
+            obstacle = self._world.CreateStaticBody(
+                position=(cx, cy),
+                fixtures=Box2D.b2FixtureDef(
+                    shape=polygonShape(box=(hw, hh)),
+                    friction=0.5,
+                ),
+            )
+            self._terrain_bodies["obstacle"] = obstacle
 
     def _setup_load(self, terrain_config: dict):
-        """Setup two loads: tip load at t=5s, mid-span load at t=10s"""
+        """Setup two loads: tip load at t=5s, mid-span load at t=10s or dropped at t=8s"""
         self._load_mass = float(terrain_config.get("load_mass", self.LOAD_MASS))
         self._load_attach_time = float(terrain_config.get("load_attach_time", 5.0))
         self._load_attached = False
         self._load_body = None
+        
         self._second_load_mass = float(terrain_config.get("second_load_mass", self.SECOND_LOAD_MASS))
         self._second_load_attach_time = float(terrain_config.get("second_load_attach_time", self.SECOND_LOAD_ATTACH_TIME))
         self._second_load_target_x = float(terrain_config.get("second_load_target_x", self.SECOND_LOAD_TARGET_X))
         self._second_load_attached = False
         self._second_load_body = None
+        self._load2_dropped = False
+        
         self._simulation_time = 0.0  # Track simulation time
 
     def step(self, time_step):
-        """Physics step with load attachments (tip at t=5s, mid-span at t=10s)"""
+        """Physics step with load attachments"""
         # Update simulation time
         self._simulation_time += time_step
         current_time = self._simulation_time
@@ -86,27 +116,43 @@ class DaVinciSandbox:
             self._load_attached = True
             self._terrain_bodies["load"] = self._load_body
 
-        # Attach second load at t=10s to mid-span node (body closest to target x in [5, 10])
-        if not self._second_load_attached and current_time >= self._second_load_attach_time and self._bodies:
-            candidates = [b for b in self._bodies if 5.0 <= b.position.x <= 10.0]
-            if candidates:
-                mid_body = min(candidates, key=lambda b: abs(b.position.x - self._second_load_target_x))
-                mx, my = mid_body.position.x, mid_body.position.y
+        # Second load logic: either dropped dynamically or welded to nearest node
+        if self._drop_load:
+            if not self._load2_dropped and current_time >= self._drop_time:
                 self._second_load_body = self._world.CreateDynamicBody(
-                    position=(mx, my + 1.0),
+                    position=(self._drop_x, self._drop_y),
                     fixtures=Box2D.b2FixtureDef(
                         shape=polygonShape(box=(0.5, 0.5)),
-                        density=self._second_load_mass / (1.0 * 1.0),
+                        density=self._drop_mass / (1.0 * 1.0),
+                        friction=0.8,
+                        restitution=0.1
                     )
                 )
-                self._world.CreateWeldJoint(
-                    bodyA=mid_body,
-                    bodyB=self._second_load_body,
-                    anchor=(mx, my),
-                    collideConnected=False
-                )
-                self._second_load_attached = True
+                self._load2_dropped = True
+                self._second_load_attached = True # Mark as "attached" for evaluator timing logic
                 self._terrain_bodies["load2"] = self._second_load_body
+        else:
+            # Attach second load at t=10s to mid-span node (body closest to target x in [5, 10])
+            if not self._second_load_attached and current_time >= self._second_load_attach_time and self._bodies:
+                candidates = [b for b in self._bodies if 5.0 <= b.position.x <= 10.0]
+                if candidates:
+                    mid_body = min(candidates, key=lambda b: abs(b.position.x - self._second_load_target_x))
+                    mx, my = mid_body.position.x, mid_body.position.y
+                    self._second_load_body = self._world.CreateDynamicBody(
+                        position=(mx, my + 1.0),
+                        fixtures=Box2D.b2FixtureDef(
+                            shape=polygonShape(box=(0.5, 0.5)),
+                            density=self._second_load_mass / (1.0 * 1.0),
+                        )
+                    )
+                    self._world.CreateWeldJoint(
+                        bodyA=mid_body,
+                        bodyB=self._second_load_body,
+                        anchor=(mx, my),
+                        collideConnected=False
+                    )
+                    self._second_load_attached = True
+                    self._terrain_bodies["load2"] = self._second_load_body
         
         self._world.Step(time_step, 10, 10)
         
@@ -166,6 +212,10 @@ class DaVinciSandbox:
         if is_wall_anchor:
             if len(self._wall_joints) >= self._max_anchor_points:
                 raise ValueError(f"Maximum {self._max_anchor_points} anchor points on wall allowed")
+            if self._forbidden_anchor_y is not None:
+                ymin, ymax = self._forbidden_anchor_y
+                if ymin <= anchor_y <= ymax:
+                    raise ValueError(f"Anchor point y={anchor_y} is in the corrosive forbidden zone {self._forbidden_anchor_y}")
         
         if type == 'rigid':
             joint = self._world.CreateWeldJoint(
@@ -218,4 +268,7 @@ class DaVinciSandbox:
             "min_tip_height": float(self._terrain_config.get("min_tip_height", self.MIN_TIP_HEIGHT)),
             "max_beam_width": self.MAX_BEAM_SIZE,
             "max_beam_height": self.MAX_BEAM_HEIGHT,
+            "obstacle_active": self._obstacle_active,
+            "obstacle_rect": self._obstacle_rect if self._obstacle_active else None,
+            "forbidden_anchor_y": self._forbidden_anchor_y,
         }

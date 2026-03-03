@@ -1,8 +1,5 @@
 """
 S-04: The Balancer task curriculum stages (mutations).
-
-All stage definitions live under tasks/Category1_Statics_Equilibrium/S_04.
-The solver agent is NOT told the exact parameter changes; it must infer from feedback.
 """
 
 from __future__ import annotations
@@ -13,66 +10,36 @@ import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
-    Update task description to reflect visible physical changes (e.g., balance time, angle limit).
+    Update task description to reflect visible physical changes.
     """
     description = base_description
     
-    # Default values
-    default_balance_time = 15.0
-    default_max_angle_deviation_deg = 10.0
-    
-    # Get values
-    target_balance_time = target_terrain_config.get("balance_time", default_balance_time)
-    base_balance_time = base_terrain_config.get("balance_time", default_balance_time)
-    
-    target_angle = target_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
-    base_angle = base_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
-    
-    # Update balance requirement in description if changed
-    if target_balance_time != base_balance_time or target_angle != base_angle:
-        # Update "3. Maintains a level orientation (horizontal angle within ±10 degrees) for 15 seconds. "
-        balance_pattern = r"(3\. Maintains a level orientation \(horizontal angle within ±)(\d+\.?\d*)( degrees\) for )(\d+\.?\d*)( seconds\.)"
-        if re.search(balance_pattern, description):
-            angle_part = f"{target_angle:.0f} degrees (FROM: ±{base_angle:.0f}°, TO: ±{target_angle:.0f}°)" if target_angle != base_angle else f"{target_angle:.0f} degrees"
-            time_part = f"{target_balance_time:.0f} seconds (FROM: {base_balance_time:.0f}s, TO: {target_balance_time:.0f}s)" if target_balance_time != base_balance_time else f"{target_balance_time:.0f} seconds"
-            description = re.sub(
-                balance_pattern,
-                f"3. Maintains a level orientation (horizontal angle within ±{angle_part}) for {time_part}",
-                description
-            )
+    if target_terrain_config.get("obstacle_active"):
+        description += "\n- **Obstacle Detected**: A static obstruction has been placed in the environment. You must design your structure to avoid or bypass it."
+        
+    if target_terrain_config.get("drop_load"):
+        description = description.replace(
+            "It will automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3,0).",
+            "The load will be DROPPED from above at x=3.0. You must catch and balance it without it touching the ground."
+        )
+        
+    if target_terrain_config.get("wind_active"):
+        description += "\n- **Wind Active**: A strong lateral wind force is continuously blowing. This will generate significant torque depending on your structure's mass distribution and shape."
             
     return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
-    Update success criteria to reflect visible physical changes (e.g., balance time, angle limit).
+    Update success criteria to reflect visible physical changes.
     """
     criteria = base_success_criteria
     
-    # Default values
-    default_balance_time = 15.0
-    default_max_angle_deviation_deg = 10.0
-    
-    # Get values
-    target_balance_time = target_terrain_config.get("balance_time", default_balance_time)
-    base_balance_time = base_terrain_config.get("balance_time", default_balance_time)
-    
-    target_angle = target_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
-    base_angle = base_terrain_config.get("max_angle_deviation_deg", default_max_angle_deviation_deg)
-    
-    # Update balance criteria if changed
-    if target_balance_time != base_balance_time or target_angle != base_angle:
-        # Update "2. Static Balance: Maintain the main beam's angle within ±10 degrees for at least 15 seconds after the load is attached."
-        balance_pattern = r"(2\. \*\*Static Balance\*\*: Maintain the main beam's angle within ±)(\d+\.?\d*)( degrees for at least )(\d+\.?\d*)( seconds)"
-        if re.search(balance_pattern, criteria):
-            angle_part = f"{target_angle:.0f} degrees (FROM: ±{base_angle:.0f}°, TO: ±{target_angle:.0f}°)" if target_angle != base_angle else f"{target_angle:.0f} degrees"
-            time_part = f"{target_balance_time:.0f} seconds (FROM: {base_balance_time:.0f}s, TO: {target_balance_time:.0f}s)" if target_balance_time != base_balance_time else f"{target_balance_time:.0f} seconds"
-            criteria = re.sub(
-                balance_pattern,
-                f"2. **Static Balance**: Maintain the main beam's angle within ±{angle_part} for at least {time_part}",
-                criteria
-            )
+    if target_terrain_config.get("drop_load"):
+        criteria = criteria.replace(
+            "Successfully connect to the heavy load at (3,0).",
+            "Successfully catch the falling load and prevent it from touching the ground."
+        )
     
     return criteria
 
@@ -80,94 +47,77 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_s04_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for S-04: The Balancer task variants.
-    
-    Each stage dict fields:
-      - stage_id: str
-      - title: str
-      - mutation_description: str (for logs, not shown to solver)
-      - task_description_suffix: str (generic warning, no exact numeric changes)
-      - terrain_config: dict (passed to Sandbox)
-      - physics_config: dict (passed to Sandbox)
     """
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Free Rotation with Increased Gravity",
-            "mutation_description": "Pivot uses free rotation (revolute) + gravity -13 m/s². Requires true balance under higher gravitational forces.",
+            "title": "Structural Obstruction",
+            "mutation_description": "Static obstacle placed on the counterweight side. Requires spatial reasoning to build around it.",
             "task_description_suffix": """
 ## Environmental Warning
-The pivot connection uses free rotation, and physical conditions have changed.
-All structures experience higher loads.
-Your balancer must achieve true static equilibrium through careful mass distribution.
-Consider adjusting counterweights to maintain balance.
+A physical obstruction is blocking the standard counterbalance path.
+Colliding with the obstacle during construction or oscillation will destabilize your design.
 """,
             "terrain_config": {
-                "force_pivot_joint": True,  # Force revolute joint
+                "force_pivot_joint": True,
+                "obstacle_active": True,
+                "obstacle_rect": [-2.5, -0.1, -1.5, 1.5], # Blocks straight path to counterweight
             },
-            "physics_config": {
-                "gravity": (0, -13.0),  # Increased from default -10.0
-            },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
-            "title": "Free Rotation with Low Damping",
-            "mutation_description": "Free pivot + very low angular damping (0.05). Oscillations persist much longer, requiring better passive design or active control.",
+            "title": "Dynamic Impact Loading",
+            "mutation_description": "The payload is dropped from above instead of gently welding. Requires impact absorption.",
             "task_description_suffix": """
 ## Environmental Warning
-The pivot uses free rotation, and the environment has changed.
-Oscillations and vibrations persist much longer than normal.
-Your balancer must achieve stable balance through careful design, as natural stabilization is minimal.
-Consider implementing active stabilization or using materials with better energy dissipation.
+Dynamic loading detected. The payload is no longer stationary.
+The impact force from the drop will induce massive rotational momentum that must be absorbed and canceled.
 """,
             "terrain_config": {
                 "force_pivot_joint": True,
+                "drop_load": True,
+                "load_mass": 200.0,
             },
-            "physics_config": {
-                "angular_damping": 0.05,  # Very low damping
-                "linear_damping": 0.05,
-            },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "Free Rotation with High Friction",
-            "mutation_description": "Free pivot + high friction (2.0) + low friction pivot surface (0.3). Friction mismatch creates stick-slip behavior.",
+            "title": "Lateral Wind Torque",
+            "mutation_description": "A continuous wind pushes all masses to the right, causing a net torque that must be statically counteracted.",
             "task_description_suffix": """
 ## Environmental Warning
-The pivot uses free rotation, and contact behavior has changed significantly.
-Structures may experience unexpected sliding or sticking behavior at contact points.
-Your balancer must account for these contact effects in its design.
-Consider how contact interactions affect the pivot contact point and overall stability.
+Severe lateral wind forces detected.
+The wind exerts a constant horizontal force on all structural components.
+Due to the pivot, this will translate into a powerful overturning torque that cannot be solved by symmetric mass balancing alone.
 """,
             "terrain_config": {
                 "force_pivot_joint": True,
-                "pivot_friction": 0.3,  # Low friction pivot (mismatch with high structure friction)
+                "wind_active": True,
+                "wind_force_multiplier": 8.0,
             },
-            "physics_config": {
-                "friction": 2.0,  # Very high friction for structures
-            },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-4",
-            "title": "Extreme Physics Environment",
-            "mutation_description": "Combined: free pivot + gravity -15 + very low damping (0.02) + high friction (2.5) + bouncy materials (restitution 0.4) + extended balance time (20s) + stricter angle limit (±8°).",
+            "title": "The Perfect Storm",
+            "mutation_description": "Obstacle + Drop Load + Wind + High Gravity.",
             "task_description_suffix": """
 ## Environmental Warning
-Multiple physics anomalies detected simultaneously.
-The pivot uses free rotation, structural loads are significantly increased, oscillations persist longer, contact behavior has changed, materials are bouncy, the balance duration requirement is extended, and the angle tolerance is stricter.
-This creates an extreme engineering challenge requiring optimal balance design that accounts for all these physics changes.
-Consider advanced techniques like precise mass distribution, stabilization mechanisms, and sophisticated control algorithms.
+Multiple critical failure modes active simultaneously.
+You must navigate obstacles, catch a falling mass, and manage continuous wind torque under extreme gravity.
 """,
             "terrain_config": {
                 "force_pivot_joint": True,
-                "balance_time": 20.0,  # Extended from default 15.0s
-                "max_angle_deviation_deg": 8.0,  # Stricter than default 10.0°
+                "obstacle_active": True,
+                "obstacle_rect": [-3.0, -0.1, -2.0, 1.5],
+                "drop_load": True,
+                "wind_active": True,
+                "wind_force_multiplier": 5.0,
+                "load_mass": 250.0,
             },
             "physics_config": {
-                "gravity": (0, -15.0),  # Increased from default -10.0
-                "angular_damping": 0.02,  # Extremely low damping
-                "linear_damping": 0.02,
-                "friction": 2.5,  # Very high friction
-                "restitution": 0.4,  # Bouncy materials
+                "gravity": (0, -15.0),
             },
         },
     ]

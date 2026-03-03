@@ -45,6 +45,15 @@ class DaVinciSandbox:
         self.bodies = self._bodies
         self.joints = self._joints
         
+        # Mutated constraints
+        self._obstacle_active = terrain_config.get("obstacle_active", False)
+        self._obstacle_rect = terrain_config.get("obstacle_rect", [-2.5, -0.1, -1.5, 1.5])
+        
+        self._drop_load = terrain_config.get("drop_load", False)
+        
+        self._wind_active = terrain_config.get("wind_active", False)
+        self._wind_force_multiplier = float(terrain_config.get("wind_force_multiplier", 5.0))
+        
         self._create_terrain(terrain_config)
         self._setup_load(terrain_config)
 
@@ -72,6 +81,18 @@ class DaVinciSandbox:
                 ),
             )
         self._terrain_bodies["pivot"] = pivot
+        
+        if self._obstacle_active:
+            xmin, ymin, xmax, ymax = self._obstacle_rect
+            cx, cy = (xmin + xmax) / 2.0, (ymin + ymax) / 2.0
+            hw, hh = (xmax - xmin) / 2.0, (ymax - ymin) / 2.0
+            self._terrain_bodies["obstacle"] = self._world.CreateStaticBody(
+                position=(cx, cy),
+                fixtures=Box2D.b2FixtureDef(
+                    shape=polygonShape(box=(hw, hh)),
+                    friction=0.5,
+                ),
+            )
 
     def _setup_load(self, terrain_config: dict):
         """Setup load at (3, 0) that auto-attaches - mass configurable"""
@@ -81,6 +102,21 @@ class DaVinciSandbox:
         self._load_attached = False
         self._initial_disturbance_applied = False
         self._initial_disturbance = terrain_config.get("initial_disturbance", None)  # dict with "angular_velocity" or None
+
+        if self._drop_load:
+            # Spawn dynamic load immediately above the structure
+            self._load_position = (3.0, 4.0)
+            self._load_body = self._world.CreateDynamicBody(
+                position=self._load_position,
+                fixtures=Box2D.b2FixtureDef(
+                    shape=polygonShape(box=(0.5, 0.5)),
+                    density=self._load_mass / (1.0 * 1.0),
+                    friction=0.8,
+                    restitution=0.1
+                )
+            )
+            self._load_attached = True # Marked as attached since it exists in the world
+            self._terrain_bodies["load"] = self._load_body
 
     def step(self, time_step):
         """Physics step with load attachment and initial disturbance"""
@@ -94,9 +130,13 @@ class DaVinciSandbox:
                 vy = float(self._initial_disturbance["linear_velocity"][1])
                 main_beam.linearVelocity = (vx, vy)
             self._initial_disturbance_applied = True
+            
+        if self._wind_active:
+            for body in self._bodies:
+                body.ApplyForceToCenter((body.mass * self._wind_force_multiplier, 0), wake=True)
         
         # Auto-attach load if structure present at (3,0)
-        if not self._load_attached and self._bodies:
+        if not self._load_attached and not self._drop_load and self._bodies:
             # Check if any body is near (3, 0)
             for body in self._bodies:
                 dist = math.sqrt((body.position.x - 3.0)**2 + (body.position.y - 0.0)**2)

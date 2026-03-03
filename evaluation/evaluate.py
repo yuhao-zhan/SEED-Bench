@@ -217,6 +217,7 @@ class TaskEvaluator:
             # 4. Record iteration
             self.iteration_history.append({
                 'iteration': iteration,
+                'prompt': prompt,
                 'code': current_code,
                 'success': success,
                 'score': score,
