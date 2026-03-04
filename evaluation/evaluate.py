@@ -135,22 +135,37 @@ class TaskEvaluator:
 
     def _setup_gif_directory(self):
         """Setup directory for saving GIF animations"""
+        # Parse task name to get category and task subdirectories
+        try:
+            task_path, _ = parse_task_name(self.task_name)
+            # task_path is like 'Category1_Statics_Equilibrium/S_01'
+            cat_dir, task_subdir = task_path.split('/')
+        except Exception:
+            # Fallback for non-category tasks
+            cat_dir = "other"
+            task_subdir = self.task_name
+
         model_id = get_model_identifier(self.solver.model_type, self.solver.model_name)
-        task_label = self.mutated_task_name if self.is_mutated_task and self.mutated_task_name else "raw"
         
+        # Consistent with user request: gif/{category}/{task}/...
+        # We still keep model and method to avoid overwriting between different models/methods
         self.gif_dir = os.path.join(
             get_gif_base_dir(),
-            self.task_name,
+            cat_dir,
+            task_subdir,
             model_id,
-            self.method,
-            task_label
+            self.method
         )
+        
         if self.save_gif:
             os.makedirs(self.gif_dir, exist_ok=True)
 
     def _get_gif_path(self, iteration: int) -> str:
         """Get GIF file path for current iteration"""
-        return get_gif_path(self.gif_dir, self.context, iteration)
+        task_label = self.mutated_task_name if self.is_mutated_task and self.mutated_task_name else "raw"
+        # task_label is often "source_to_target" for cross-mutation
+        filename = f"{self.context}_{task_label}_iter_{iteration}.gif"
+        return os.path.join(self.gif_dir, filename)
 
     def evaluate(self):
         """Run iterative evaluation process"""
@@ -210,7 +225,17 @@ class TaskEvaluator:
                 save_gif_path=gif_path if self.save_gif else None
             )
             
-            # 3. Format feedback
+            # 3. Handle GIF cleanup
+            if self.save_gif and gif_path and os.path.exists(gif_path):
+                # Keep if success, first iteration, or new best score
+                is_best = score > self.best_score
+                if not success and not is_best and iteration > 1:
+                    try:
+                        os.remove(gif_path)
+                    except:
+                        pass
+
+            # 4. Format feedback
             failed = metrics.get('failed', False)
             failure_reason = metrics.get('failure_reason', 'Unknown failure')
             feedback = format_feedback(
@@ -274,13 +299,25 @@ class TaskEvaluator:
 
     def save_report(self, report, output_dir='evaluation_results'):
         """Save evaluation report to JSON file"""
+        # Parse task name to get category and task subdirectories
+        try:
+            task_path, _ = parse_task_name(self.task_name)
+            # task_path is like 'Category1_Statics_Equilibrium/S_01'
+            cat_dir, task_subdir = task_path.split('/')
+        except Exception:
+            # Fallback for non-category tasks
+            cat_dir = "other"
+            task_subdir = self.task_name
+
         model_id = get_model_identifier(self.solver.model_type, self.solver.model_name)
-        task_dir = os.path.join(output_dir, self.task_name, model_id, self.method)
+        
+        # Consistent with user request: evaluation_results/{category}/{task}/...
+        # We still keep model and method to avoid overwriting between different models/methods
+        task_dir = os.path.join(output_dir, cat_dir, task_subdir, model_id, self.method)
         os.makedirs(task_dir, exist_ok=True)
         
-        date_str = datetime.now().strftime("%Y%m%d")
         task_label = self.mutated_task_name if self.is_mutated_task and self.mutated_task_name else "raw"
-        filename = f"{self.context}_{task_label}_{date_str}.json"
+        filename = f"{self.context}_{task_label}.json"
         
         save_path = os.path.join(task_dir, filename)
         with open(save_path, 'w', encoding='utf-8') as f:

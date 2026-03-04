@@ -78,45 +78,78 @@ def load_results(results_dir, task_filter='all'):
     results = defaultdict(lambda: defaultdict(dict))
     all_file_ids = set()
 
-    for task_name in os.listdir(results_dir):
-        task_path = os.path.join(results_dir, task_name)
-        if not os.path.isdir(task_path) or task_name == 'basic':
+    # The new structure is results_dir/{category}/{task}/{model}/{method}/*.json
+    # The old structure was results_dir/{task_name}/{model}/{method}/*.json
+    
+    # We'll use os.walk to handle both structures or any nesting
+    for root, dirs, files in os.walk(results_dir):
+        # We are looking for files in a 'method' directory which is inside a 'model' directory
+        # path structure: .../{model}/{method}/{file}.json
+        path_parts = root.split(os.sep)
+        if len(path_parts) < 2:
             continue
             
-        if task_filter != 'all':
-            if task_filter.startswith('category_') and not task_name.startswith(task_filter):
+        method = path_parts[-1]
+        model = path_parts[-2]
+        
+        # Basic validation that we are in a results leaf directory
+        if method in _IGNORED_METHODS or _should_ignore_model(model):
+            continue
+
+        # Check if the task matches the filter
+        # root is like '.../evaluation_results/Category1_Statics_Equilibrium/S_01/Qwen3-8B/baseline'
+        # or '.../evaluation_results/category_1_01/Qwen3-8B/baseline'
+        task_match = False
+        if task_filter == 'all':
+            task_match = True
+        else:
+            # Check if any part of the path matches task_filter
+            # (e.g. 'category_1' or 'S_01' or 'category_1_01')
+            for part in path_parts:
+                if task_filter.startswith('category_') and part.startswith(task_filter):
+                    task_match = True
+                    break
+                if part == task_filter:
+                    task_match = True
+                    break
+        
+        if not task_match:
+            continue
+
+        for fn in files:
+            if not fn.endswith('.json'):
                 continue
-            if not task_filter.startswith('category_') and task_name != task_filter:
+            
+            # User requirement: ONLY consider json files with filename like all_{source_stage}_to_{target_stage}*.json
+            # And EXCLUDE those like all_1st_pass_20260301_pseudo.json
+            if not fn.startswith('all_'):
+                continue
+            
+            # Match pattern: all_{source}_to_{target}*.json
+            # regex: all_.+_to_.+.*\.json
+            if not re.match(r'^all_.+_to_.+.*\.json$', fn):
+                continue
+            
+            # Exclude pseudo files
+            if '_pseudo' in fn:
                 continue
 
-        for model in os.listdir(task_path):
-            if _should_ignore_model(model):
-                continue
-            model_path = os.path.join(task_path, model)
-            if not os.path.isdir(model_path):
-                continue
+            file_path = os.path.join(root, fn)
+            # Create a unique file_id that includes task and filename
+            # For new structure, root might be .../Category1/S_01/Model/Method
+            # Let's try to extract task name from path
+            try:
+                # Assuming standard structure, task_name is 3 levels up from file
+                task_name = path_parts[-3] 
+                file_id = f"{task_name}/{fn}"
                 
-            for method in os.listdir(model_path):
-                if method in _IGNORED_METHODS:
-                    continue
-                method_path = os.path.join(model_path, method)
-                if not os.path.isdir(method_path):
-                    continue
-                    
-                for fn in os.listdir(method_path):
-                    if not fn.endswith('.json'):
-                        continue
-                    if not (fn.startswith('all_') or fn.startswith('previous_')):
-                        continue
-                    
-                    file_id = f"{task_name}/{fn}"
-                    try:
-                        with open(os.path.join(method_path, fn)) as f:
-                            data = json.load(f)
-                        results[model][method][file_id] = data
-                        all_file_ids.add(file_id)
-                    except Exception as e:
-                        print(f"Warning: Failed to load {fn}: {e}", file=sys.stderr)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                results[model][method][file_id] = data
+                all_file_ids.add(file_id)
+            except Exception as e:
+                # Skip files that don't fit the structure or fail to load
+                pass
 
     return results, sorted(list(all_file_ids))
 
@@ -427,6 +460,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', type=str, default='all')
     parser.add_argument('--format', choices=('latex', 'markdown'), default='markdown')
+    parser.add_argument('--no-per-task', action='store_true', help='Disable per-task statistics output')
     args = parser.parse_args()
 
     results, all_file_ids = load_results(RESULTS_DIR, args.task)
@@ -440,6 +474,7 @@ def main():
     metric_names = ['Pass@1', 'Score-Avg', 'Iteration-Avg', 'Efficiency-Avg', 'CodeUsage-Avg']
     metric_names += [f'Discovery@{k}' for k in DISCOVERY_K_VALUES]
 
+    # --- 1. Aggregated Statistics (Current logic) ---
     tables = {mn: {} for mn in metric_names}
     for model in models:
         for method in methods:
@@ -458,15 +493,52 @@ def main():
                 if not math.isnan(tables[eff_key][k]):
                     tables[eff_key][k] /= max_eff
 
-    print(f"\n## Evaluation Statistics (Task Pairs)\n")
+    print(f"\n# Evaluation Results for {args.task}\n")
     print(f"Filter: {args.task} | Unique transitions: {len(all_file_ids)}")
-    
+
+    print(f"\n## Aggregated Statistics (All Tasks Combined)\n")
     for mn in metric_names:
         if args.format == 'latex':
             print_latex_table(mn, models, methods, tables[mn])
         else:
             print_markdown_table(mn, models, methods, tables[mn])
 
+    # --- 2. Per-Task Statistics (New logic) ---
+    if not args.no_per_task:
+        # Group file_ids by task
+        task_groups = defaultdict(list)
+        for fid in all_file_ids:
+            task_name = fid.split('/')[0]
+            task_groups[task_name].append(fid)
+        
+        # Sort task names
+        sorted_tasks = sorted(task_groups.keys())
+        
+        if len(sorted_tasks) > 1: # Only output per-task if there is more than 1 task or if specifically requested
+            print(f"\n## Per-Task Statistics\n")
+            for task_name in sorted_tasks:
+                task_fids = task_groups[task_name]
+                print(f"\n### Task: {task_name} ({len(task_fids)} transitions)\n")
+                
+                # Compute metrics for this specific task
+                task_tables = {mn: {} for mn in metric_names}
+                for model in models:
+                    for method in methods:
+                        if method not in results[model]: continue
+                        task_metrics = compute_metrics(results[model][method], task_fids)
+                        for mn in metric_names:
+                            task_tables[mn][(model, method)] = task_metrics.get(mn, float('nan'))
+                
+                # Output tables for each metric
+                for mn in metric_names:
+                    # Skip efficiency normalization here or keep it consistent? 
+                    # For simplicity, we skip per-task efficiency normalization or keep it absolute
+                    if args.format == 'latex':
+                        print_latex_table(mn, models, methods, task_tables[mn])
+                    else:
+                        print_markdown_table(mn, models, methods, task_tables[mn])
+
+    # --- 3. Plots ---
     plot_dir = os.path.join(RESULTS_DIR, 'plots', args.task)
     plot_results(tables, models, methods, plot_dir)
     print(f"\nPlots saved to: {plot_dir}")

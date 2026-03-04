@@ -35,11 +35,22 @@ from evaluation.utils import get_model_identifier, load_log_file, is_cuda_oom
 
 def find_latest_log_file(task_name: str, model_type: str, model_name: str, method: str,
                          output_dir: str = "evaluation_results") -> Optional[str]:
+    from evaluation.prompt import parse_task_name
+    try:
+        task_path, _ = parse_task_name(task_name)
+        cat_dir, task_subdir = task_path.split('/')
+    except Exception:
+        cat_dir = "other"
+        task_subdir = task_name
+
     model_identifier = get_model_identifier(model_type, model_name)
-    log_dir = os.path.join(output_dir, task_name, model_identifier, method)
+    log_dir = os.path.join(output_dir, cat_dir, task_subdir, model_identifier, method)
     
     if not os.path.exists(log_dir):
-        return None
+        # Fallback to old directory structure
+        log_dir = os.path.join(output_dir, task_name, model_identifier, method)
+        if not os.path.exists(log_dir):
+            return None
     
     # Find all JSON files in the directory
     pattern = os.path.join(log_dir, "*.json")
@@ -984,15 +995,13 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                 if iteration == 1:
                     # First iteration: run previous code in new environment
                     print("🔄 Running previous successful code in mutated environment...")
-                    # For first iteration in mutated task, use special GIF naming: {raw}_{in}_{Stage-X}
-                    if mutated_task_name.startswith("Stage-"):
-                        gif_filename = f"raw_in_{mutated_task_name}.gif"
-                    else:
-                        gif_filename = f"raw_in_{mutated_task_name}.gif"
-                    gif_path = os.path.join(evaluator.gif_dir, gif_filename) if evaluator.save_gif else None
+                    # For first iteration in mutated task, use special GIF naming: {prefix}_iter_1.gif
+                    gif_path = evaluator._get_gif_path(1) if evaluator.save_gif else None
                     success, score, metrics, error = evaluator.verifier.verify_code(
                         current_code, headless=evaluator.headless, save_gif_path=gif_path
                     )
+                    
+                    # No cleanup for iteration 1 (reference) as it's useful to see initial state
                     
                     # Generate feedback
                     failed = metrics.get('failed', False)
@@ -1387,6 +1396,15 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                     current_code, headless=evaluator.headless, save_gif_path=gif_path
                 )
                 
+                # If not best and not success, delete the GIF to save space
+                if gif_path and os.path.exists(gif_path):
+                    is_best = score > evaluator.best_score
+                    if not is_best and not success:
+                        try:
+                            os.remove(gif_path)
+                        except:
+                            pass
+
                 # Generate feedback
                 failed = metrics.get('failed', False)
                 failure_reason = metrics.get('failure_reason', None)

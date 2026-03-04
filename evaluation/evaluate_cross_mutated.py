@@ -267,8 +267,11 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
                 )
                 evaluator.mutated_task_name = pair_name
                 evaluator._setup_gif_directory()
-                
+
                 report = run_single_pair(evaluator, ref_code, base_task_name, pair_name)
+                if not report.get('skipped'):
+                    evaluator.save_report(report, output_dir=output_dir)
+
                 results.append({
                     "pair": pair_name,
                     "source_env": env_i["stage_id"],
@@ -279,20 +282,6 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
                 print(f"❌ Error evaluating pair {pair_name}: {e}")
                 traceback.print_exc()
             
-    try:
-        model_id = get_model_identifier(model_type, model_name)
-        save_dir = os.path.join(output_dir, base_task_name, model_id, method)
-        os.makedirs(save_dir, exist_ok=True)
-        
-        timestamp = datetime.now().strftime("%Y%m%d")
-        filename = f"cross_mutation_{timestamp}.json"
-        save_path = os.path.join(save_dir, filename)
-        with open(save_path, 'w') as f:
-            json.dump(results, f, indent=2)
-        print(f"✅ Cross-mutation results saved to {save_path}")
-    except Exception as e:
-        print(f"⚠️  Failed to save combined results: {e}")
-        
     return results
 
 def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
@@ -309,7 +298,7 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
 
     # --- Iteration 0: run reference solution in target env (before any revision) ---
     print("Iteration 0 (reference in target env)")
-    gif_path_0 = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_0.gif") if evaluator.save_gif else None
+    gif_path_0 = evaluator._get_gif_path(0) if evaluator.save_gif else None
     try:
         success_0, score_0, metrics_0, error_0 = evaluator.verifier.verify_code(
             initial_ref_code, headless=evaluator.headless, save_gif_path=gif_path_0
@@ -351,7 +340,7 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
 
     for iteration in range(1, evaluator.max_iterations + 1):
         print(f"Iteration {iteration}/{evaluator.max_iterations} (revision)")
-        gif_path = os.path.join(evaluator.gif_dir, f"ref_from_{source_stage_id}_iter_{iteration}.gif") if evaluator.save_gif else None
+        gif_path = evaluator._get_gif_path(iteration) if evaluator.save_gif else None
 
         # Build prompt for this revision (prompt that will produce the code we run in this iteration)
         if iteration == 1:
@@ -390,9 +379,27 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
             current_code = initial_ref_code
 
         try:
+            # Only save GIF if it's potentially the best or last iteration
+            save_this_gif = evaluator.save_gif
+            gif_path = evaluator._get_gif_path(iteration) if save_this_gif else None
+            
             success, score, metrics, error = evaluator.verifier.verify_code(
                 current_code, headless=evaluator.headless, save_gif_path=gif_path
             )
+            
+            # If not best and not success, delete the GIF to save space
+            if gif_path and os.path.exists(gif_path):
+                is_best = score > evaluator.best_score
+                if not is_best and not success:
+                    try:
+                        os.remove(gif_path)
+                    except:
+                        pass
+                elif is_best:
+                    # Optional: remove previous best GIFs if they weren't successful
+                    # For now, keeping it simple: just keep the new best
+                    pass
+                    
         except Exception as e:
             print(f"❌ Verification error at iteration {iteration}: {e}")
             success, score, metrics, error = False, 0.0, {}, str(e)

@@ -91,7 +91,7 @@ class Simulator:
         
         return self.can_display
     
-    def collect_frame(self, step_count, frame_interval=10):
+    def collect_frame(self, step_count, frame_interval=20):
         """
         Collect frames for GIF generation
         Args:
@@ -137,7 +137,7 @@ class Simulator:
             os.makedirs(os.path.dirname(gif_path), exist_ok=True)
             print(f"Generating GIF animation: {gif_path}...")
             # Limit frames to avoid huge files and PIL uint16 duration overflow
-            max_frames = 500
+            max_frames = 200
             if len(self.frames) <= max_frames:
                 images = self.frames
             else:

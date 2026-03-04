@@ -52,19 +52,45 @@ def get_evaluation_results_dir() -> str:
 def run_is_complete(task_name: str, model_type: str, model_name: str, method: str,
                     context: str, mutated_task_name: Optional[str] = None) -> bool:
     """Check if the single run has the result JSON."""
+    from evaluation.prompt import parse_task_name
+    try:
+        task_path, _ = parse_task_name(task_name)
+        cat_dir, task_subdir = task_path.split('/')
+    except Exception:
+        cat_dir = "other"
+        task_subdir = task_name
+
     model_identifier = get_model_identifier(model_type, model_name)
     json_base_dir = get_evaluation_results_dir()
-    json_base_path = os.path.join(json_base_dir, task_name, model_identifier, method)
+    json_base_path = os.path.join(json_base_dir, cat_dir, task_subdir, model_identifier, method)
 
     if os.path.exists(json_base_path):
+        task_label = mutated_task_name if mutated_task_name else "raw"
+        json_filename = f"{context}_{task_label}.json"
+        json_path = os.path.join(json_base_path, json_filename)
+        
+        # Check for new format first
+        if os.path.exists(json_path):
+            return True
+            
+        # Fallback to old pattern for backward compatibility if needed (optional)
         if mutated_task_name:
             # Check for specific pair result: {context}_{mutated_task_name}_{date}.json
             json_pattern = os.path.join(json_base_path, f"{context}_{mutated_task_name}_*")
         else:
             # {context}_{date}.json
             json_pattern = os.path.join(json_base_path, f"{context}_20*")
-        json_exists = bool(glob.glob(json_pattern))
-        return json_exists
+        
+        # Also check old task_name structure (not cat_dir/task_subdir)
+        old_json_base_path = os.path.join(json_base_dir, task_name, model_identifier, method)
+        if os.path.exists(old_json_base_path):
+            if mutated_task_name:
+                old_json_pattern = os.path.join(old_json_base_path, f"{context}_{mutated_task_name}_*")
+            else:
+                old_json_pattern = os.path.join(old_json_base_path, f"{context}_20*")
+            if bool(glob.glob(json_pattern)) or bool(glob.glob(old_json_pattern)):
+                return True
+
     return False
 
 
