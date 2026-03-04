@@ -28,16 +28,26 @@ def get_c02_curriculum_stages() -> List[Dict[str, Any]]:
     Each stage: stage_id, title, mutation_description, task_description_suffix,
     terrain_config, physics_config.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - gravity_mutation: Sudden shifts in gravitational acceleration during the mission.
+ - total_fuel_impulse: Significant reductions in the total fuel or energy available for the descent.
+ - min_fuel_remaining_at_landing: Stricter safety margins for remaining fuel upon touchdown.
+ - thrust_delay_steps: Latency in engine response to control commands.
+ - wind_amplitude: Continuous horizontal atmospheric forces acting on the lander.
+ - gust_amplitude: Intermittent high-intensity wind disturbances.
+ - gust_prob: Changes in the statistical likelihood of environmental turbulence.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "Gravity spike",
             "mutation_description": "Gravity suddenly increases from 10 to 16 m/s² at step 180.",
-            "task_description_suffix": """
-## Environmental Warning
-Localized gravitational anomalies may occur during flight.
-Use simulation feedback to detect and adapt to any changes in the descent rate.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 "gravity_mutation": {
@@ -50,11 +60,7 @@ Use simulation feedback to detect and adapt to any changes in the descent rate.
             "stage_id": "Stage-2",
             "title": "Fuel scarcity",
             "mutation_description": "Total fuel reduced, min fuel remaining at landing increased.",
-            "task_description_suffix": """
-## Environmental Warning
-Fuel availability or consumption behavior may differ from nominal conditions.
-Use feedback to ensure your trajectory remains within the required efficiency limits.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 "total_fuel_impulse": 3800.0,
@@ -65,11 +71,7 @@ Use feedback to ensure your trajectory remains within the required efficiency li
             "stage_id": "Stage-3",
             "title": "Gravity spike and fuel scarcity",
             "mutation_description": "Gravity mutation at step 200 plus reduced fuel budget.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple environmental factors have shifted. Gravity and fuel constraints differ from nominal.
-Infer the new environment from simulation feedback and adapt your strategy.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 "gravity_mutation": {"at_step": 200, "gravity_after": (0, -15.5)},
@@ -81,11 +83,7 @@ Infer the new environment from simulation feedback and adapt your strategy.
             "stage_id": "Stage-4",
             "title": "Hostile environment",
             "mutation_description": "Gravity mutation, limited fuel, longer thrust delay, stronger wind.",
-            "task_description_suffix": """
-## Environmental Warning
-Several physical parameters have changed simultaneously. Gravity, fuel, actuation delay, and external disturbances all differ from nominal.
-You must infer the new environment from simulation feedback and adapt your strategy accordingly.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 "gravity_mutation": {"at_step": 150, "gravity_after": (0, -17.0)},

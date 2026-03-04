@@ -28,12 +28,28 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
 
     Order: Stage-0 baseline (reference), Stage-1..Stage-4 increasing difficulty.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - measure_delay_steps: Unexpected latency in the rotational speed measurements.
+ - torque_limit_at_zero: Changes in the maximum torque available at low rotational speeds.
+ - step_load_at_step: Sudden changes in the timing of external load application.
+ - step_load_extra: Variations in the magnitude of unexpected load spikes.
+ - disturb_period / disturb_torque: Changes in the frequency and strength of periodic external disturbances.
+ - torque_deadzone: Modifications to the range of control inputs that result in zero torque.
+ - k_drag: Alterations in the rotational resistance (drag) of the system.
+ - cogging_amplitude: Changes in the internal magnetic or mechanical resistance to smooth rotation.
+ - stiction_speed_band / stiction_factor: Modifications to the static friction behavior of the motor.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-0",
             "title": "C-06 Reference",
             "mutation_description": "Reference environment (baseline).",
-            "task_description_suffix": "",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {},
         },
@@ -41,11 +57,7 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Increased Measurement Delay",
             "mutation_description": "Measurement delay increased (agent sees older velocity).",
-            "task_description_suffix": """
-## Environmental Warning
-Sensing in this region may exhibit unexpected discrepancies from nominal conditions. Observed readings may be more sluggish than before.
-Use feedback to infer and compensate for any environmental effects.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 # Hidden: increase measurement delay so naive delay-compensation must adjust
@@ -56,11 +68,7 @@ Use feedback to infer and compensate for any environmental effects.
             "stage_id": "Stage-2",
             "title": "Larger Motor Deadzone",
             "mutation_description": "Motor applies a larger torque deadzone (small commands ignored).",
-            "task_description_suffix": """
-## Environmental Warning
-Actuation behavior differs from nominal conditions. Small control commands may not have the expected effect on the system.
-Infer the changes from feedback and adapt your control strategy.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 # Hidden: reduce low-speed torque availability so escaping stall is harder
@@ -71,11 +79,7 @@ Infer the changes from feedback and adapt your control strategy.
             "stage_id": "Stage-3",
             "title": "Early Heavy Step + Weaker Low-Speed Torque",
             "mutation_description": "Introduce an earlier/heavier step load and reduce low-speed torque availability.",
-            "task_description_suffix": """
-## Environmental Warning
-Environmental loads in this region differ from nominal. Transient disturbances may be more severe or occur earlier than expected.
-Use simulation feedback to discover and adapt to these environmental dynamics.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 # Hidden: earlier/larger step load and stronger periodic disturbance
@@ -91,11 +95,7 @@ Use simulation feedback to discover and adapt to these environmental dynamics.
             "stage_id": "Stage-4",
             "title": "Compound: High Delay, Strong Cogging & Stiction",
             "mutation_description": "Combine multiple adversarial hidden changes: very large delay, increased cogging and stiction, higher drag and reduced torque reserve.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple environmental and physical parameters have changed simultaneously. Sensing, actuation, and internal dynamics differ from nominal.
-You must infer the new environment from simulation feedback and ensure precise, robust control.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
                 # Combine several harder mutations (hidden to agent)

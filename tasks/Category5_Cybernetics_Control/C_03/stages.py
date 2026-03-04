@@ -27,15 +27,26 @@ def get_c03_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for C-03: The Seeker task variants.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - target_speed: Variations in the base speed of the target object, affecting interception timing.
+ - rendezvous_distance: Stricter proximity requirements for a successful rendezvous.
+ - rendezvous_rel_speed: Lower tolerance for relative velocity during the final approach.
+ - impulse_budget: Reductions in the total propellant or energy available for maneuvers.
+ - linear_damping: Increased environmental resistance to the vehicle's translational motion.
+ - angular_damping: Increased resistance to changes in the vehicle's orientation.
+ - ground_friction: Alterations in surface traction, affecting acceleration and braking efficiency.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "Faster target",
             "mutation_description": "Target base speed increased; velocity matching and slot timing harder.",
-            "task_description_suffix": """
-## Environmental note
-External object motion may be more dynamic than in the nominal setting. Use simulation feedback to adapt your approach and timing.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "target_speed": 2.2,
             },
@@ -45,10 +56,7 @@ External object motion may be more dynamic than in the nominal setting. Use simu
             "stage_id": "Stage-2",
             "title": "Strict Rendezvous and Budget",
             "mutation_description": "Stricter rendezvous conditions and tight impulse budget.",
-            "task_description_suffix": """
-## Environmental note
-Resource availability and rendezvous requirements differ from nominal. Precise, efficient control is required.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "rendezvous_distance": 2.5,
                 "rendezvous_rel_speed": 0.8,
@@ -60,10 +68,7 @@ Resource availability and rendezvous requirements differ from nominal. Precise, 
             "stage_id": "Stage-3",
             "title": "Strict Rendezvous and Damping",
             "mutation_description": "Stricter distance and speed requirements for rendezvous with higher damping.",
-            "task_description_suffix": """
-## Environmental note
-Rendezvous requirements and vehicle dynamics are more demanding in this region. Precise positioning and velocity matching are critical.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "rendezvous_distance": 3.0,
                 "rendezvous_rel_speed": 1.0,
@@ -77,10 +82,7 @@ Rendezvous requirements and vehicle dynamics are more demanding in this region. 
             "stage_id": "Stage-4",
             "title": "Hostile Seeker Environment",
             "mutation_description": "Extreme target speed, negligible friction, very tight budget.",
-            "task_description_suffix": """
-## Environmental note
-Physical environment is highly hostile. External dynamics, traction, and resource constraints differ severely from nominal.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "target_speed": 2.8,
                 "ground_friction": 0.01,
