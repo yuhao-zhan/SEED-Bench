@@ -1,95 +1,11 @@
 """
-S-03: The Cantilever task Agent module
-Build a horizontal cantilever anchored to wall that supports two loads:
-tip load 600kg at t=5s and mid-span load 400kg at t=10s (node near x=7.5m).
-Max 2 wall anchors, torque limit 2600 Nm, reach >= 14m. Tip must not sag below y=-2.5m.
+S-03: The Cantilever task Agent module.
+Reference solutions for high-difficulty mutations.
 """
 import math
 
 def build_agent(sandbox):
-    """
-    Build a stiffer cantilever (tip must stay above y=-2.5m): fewer, thicker segments + strong diagonals.
-    """
-    target_reach = 14.0
-    density_mult = 1.0
-    structure_y = 1.0
-    anchor1_y = 1.0
-    anchor2_y = 0.45
-
-    WALL_X = 0.0
-    BEAM_HEIGHT = 0.4
-    DIAG_HEIGHT = 0.2
-
-    num_segments = math.ceil(target_reach / 6.0) + 1
-    segment_ends = [float(i * 6.0) for i in range(num_segments + 1)]
-    
-    chord_beams = []
-    for i in range(len(segment_ends) - 1):
-        x0, x1 = segment_ends[i], segment_ends[i + 1]
-        cx = (x0 + x1) / 2
-        length = x1 - x0
-        beam = sandbox.add_beam(
-            x=WALL_X + cx,
-            y=structure_y,
-            width=length,
-            height=BEAM_HEIGHT,
-            angle=0,
-            density=5.0 * density_mult
-        )
-        chord_beams.append(beam)
-        if i > 0:
-            sandbox.add_joint(
-                chord_beams[i - 1],
-                beam,
-                (WALL_X + x0, structure_y),
-                type='rigid'
-            )
-
-    wall = sandbox._terrain_bodies.get("wall")
-    if not wall:
-        raise ValueError("Wall not found")
-
-    sandbox.add_joint(wall, chord_beams[0], (WALL_X, anchor1_y), type='rigid')
-
-    support_beam = sandbox.add_beam(
-        x=WALL_X + 0.6,
-        y=(structure_y + anchor2_y) / 2,
-        width=math.sqrt(1.2**2 + (structure_y - anchor2_y)**2),
-        height=0.22,
-        angle=-math.atan2(structure_y - anchor2_y, 1.2),
-        density=5.0 * density_mult
-    )
-    sandbox.add_joint(wall, support_beam, (WALL_X, anchor2_y), type='rigid')
-    sandbox.add_joint(
-        support_beam,
-        chord_beams[0],
-        (WALL_X + 1.2, structure_y),
-        type='rigid'
-    )
-
-    for i in range(1, len(chord_beams)):
-        from_x = WALL_X + 0.8
-        from_y = structure_y
-        to_x = WALL_X + segment_ends[i]
-        to_y = structure_y
-        dx = to_x - from_x
-        dy = to_y - from_y
-        length = math.sqrt(dx*dx + dy*dy)
-        angle = math.atan2(dy, dx)
-        mid_x = (from_x + to_x) / 2
-        mid_y = (from_y + to_y) / 2
-        diag = sandbox.add_beam(
-            x=mid_x,
-            y=mid_y,
-            width=length,
-            height=DIAG_HEIGHT,
-            angle=angle,
-            density=4.0 * density_mult
-        )
-        sandbox.add_joint(chord_beams[0], diag, (from_x, from_y), type='rigid')
-        sandbox.add_joint(chord_beams[i], diag, (to_x, to_y), type='rigid')
-
-    return chord_beams[0]
+    return build_agent_stage_1(sandbox)
 
 def agent_action(sandbox, agent_body, step_count):
     pass
@@ -97,128 +13,176 @@ def agent_action(sandbox, agent_body, step_count):
 # --- Mutated Task Solutions ---
 
 def build_agent_stage_1(sandbox):
-    """Stage 1: Structural Obstruction. Build the structure higher (y=4.5) to bypass the obstacle at y=[0, 3.5]."""
-    target_reach = 30.5
-    density_mult = 1.5
-    structure_y = 4.5
-    anchor1_y = 4.5
-    anchor2_y = 3.8
-
+    """Stage 1: The Slalom Tunnel. Reach 25m at y=7.0. Stiff truss."""
+    target_reach = 28.5 # Increased for sag overhead
+    structure_y = 7.0
     WALL_X = 0.0
-    BEAM_HEIGHT = 0.4
-    DIAG_HEIGHT = 0.2
-
-    num_segments = math.ceil(target_reach / 6.0)
-    segment_ends = [float(i * 6.0) for i in range(num_segments + 1)]
-    
-    chord_beams = []
-    for i in range(len(segment_ends) - 1):
-        x0, x1 = segment_ends[i], segment_ends[i + 1]
-        cx = (x0 + x1) / 2
-        length = x1 - x0
-        beam = sandbox.add_beam(x=WALL_X + cx, y=structure_y, width=length, height=BEAM_HEIGHT, angle=0, density=5.0 * density_mult)
-        chord_beams.append(beam)
-        if i > 0: sandbox.add_joint(chord_beams[i - 1], beam, (WALL_X + x0, structure_y), type='rigid')
-
-    wall = sandbox._terrain_bodies.get("wall")
-    sandbox.add_joint(wall, chord_beams[0], (WALL_X, anchor1_y), type='rigid')
-    support_beam = sandbox.add_beam(x=WALL_X + 0.6, y=(structure_y + anchor2_y) / 2, width=math.sqrt(1.2**2 + (structure_y - anchor2_y)**2), height=0.22, angle=-math.atan2(structure_y - anchor2_y, 1.2), density=5.0 * density_mult)
-    sandbox.add_joint(wall, support_beam, (WALL_X, anchor2_y), type='rigid')
-    sandbox.add_joint(support_beam, chord_beams[0], (WALL_X + 1.2, structure_y), type='rigid')
-
-    for i in range(1, len(chord_beams)):
-        from_x, from_y = WALL_X + 0.8, structure_y
-        to_x, to_y = WALL_X + segment_ends[i], structure_y
-        mid_x, mid_y = (from_x + to_x) / 2, (from_y + to_y) / 2
-        length = math.sqrt((to_x - from_x)**2 + (to_y - from_y)**2)
-        angle = math.atan2(to_y - from_y, to_x - from_x)
-        diag = sandbox.add_beam(x=mid_x, y=mid_y, width=length, height=DIAG_HEIGHT, angle=angle, density=4.0 * density_mult)
-        sandbox.add_joint(chord_beams[0], diag, (from_x, from_y), type='rigid')
-        sandbox.add_joint(chord_beams[i], diag, (to_x, to_y), type='rigid')
-    return chord_beams[0]
+    num_segments = 10
+    seg_len = target_reach / num_segments
+    top_chord = []
+    bot_chord = []
+    angle = 0.1 # More camber
+    for i in range(num_segments):
+        x = WALL_X + (i + 0.5) * seg_len
+        ty = structure_y + 0.5 + i * seg_len * math.sin(angle)
+        by = structure_y - 0.5 + i * seg_len * math.sin(angle)
+        tb = sandbox.add_beam(x=x, y=ty, width=seg_len + 0.2, height=0.8, angle=angle, density=15.0)
+        bb = sandbox.add_beam(x=x, y=by, width=seg_len + 0.2, height=0.8, angle=angle, density=15.0)
+        top_chord.append(tb)
+        bot_chord.append(bb)
+        if i > 0:
+            sandbox.add_joint(top_chord[i-1], tb, (WALL_X + i * seg_len, ty))
+            sandbox.add_joint(bot_chord[i-1], bb, (WALL_X + i * seg_len, by))
+    wall = sandbox._terrain_bodies["wall"]
+    sandbox.add_joint(wall, top_chord[0], (WALL_X, structure_y + 1.5))
+    sandbox.add_joint(wall, bot_chord[0], (WALL_X, structure_y - 1.5))
+    for i in range(num_segments):
+        x = WALL_X + i * seg_len
+        ty = structure_y + 0.5 + i * seg_len * math.sin(angle)
+        by = structure_y - 0.5 + i * seg_len * math.sin(angle)
+        next_ty = structure_y + 0.5 + (i+1) * seg_len * math.sin(angle)
+        next_by = structure_y - 0.5 + (i+1) * seg_len * math.sin(angle)
+        v = sandbox.add_beam(x=x + seg_len, y=(next_ty + next_by)/2, width=0.4, height=next_ty - next_by, density=12.0)
+        sandbox.add_joint(top_chord[i], v, (x + seg_len, next_ty))
+        sandbox.add_joint(bot_chord[i], v, (x + seg_len, next_by))
+        d = sandbox.add_beam(x=x + seg_len/2, y=(ty + next_by)/2, width=math.sqrt(seg_len**2 + (ty-next_by)**2), height=0.4, angle=-math.atan2(ty-next_by, seg_len), density=10.0)
+        sandbox.add_joint(top_chord[i], d, (x, ty))
+        sandbox.add_joint(bot_chord[i], d, (x + seg_len, next_by))
+    return top_chord[0]
 
 def agent_action_stage_1(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_2(sandbox):
-    """Stage 2: Dynamic Impact Loading."""
-    return build_agent_stage_1(sandbox) # Using same structure for consistency
+    """Stage 2: Impact Resilience. Even beefier double truss."""
+    target_reach = 28.5
+    structure_y = 5.0
+    WALL_X = 0.0
+    num_segments = 10
+    seg_len = target_reach / num_segments
+    top_chord = []
+    bot_chord = []
+    angle = 0.15 # More camber
+    for i in range(num_segments):
+        x = WALL_X + (i + 0.5) * seg_len
+        ty = structure_y + 1.0 + i * seg_len * math.sin(angle)
+        by = structure_y - 1.0 + i * seg_len * math.sin(angle)
+        tb = sandbox.add_beam(x=x, y=ty, width=seg_len + 0.3, height=1.2, angle=angle, density=20.0)
+        bb = sandbox.add_beam(x=x, y=by, width=seg_len + 0.3, height=1.2, angle=angle, density=20.0)
+        top_chord.append(tb)
+        bot_chord.append(bb)
+        if i > 0:
+            sandbox.add_joint(top_chord[i-1], tb, (WALL_X + i * seg_len, ty))
+            sandbox.add_joint(bot_chord[i-1], bb, (WALL_X + i * seg_len, by))
+    wall = sandbox._terrain_bodies["wall"]
+    sandbox.add_joint(wall, top_chord[0], (WALL_X, structure_y + 2.5))
+    sandbox.add_joint(wall, bot_chord[0], (WALL_X, structure_y - 2.5))
+    for i in range(num_segments):
+        x = WALL_X + i * seg_len
+        ty = structure_y + 1.0 + i * seg_len * math.sin(angle)
+        by = structure_y - 1.0 + i * seg_len * math.sin(angle)
+        next_ty = structure_y + 1.0 + (i+1) * seg_len * math.sin(angle)
+        next_by = structure_y - 1.0 + (i+1) * seg_len * math.sin(angle)
+        v = sandbox.add_beam(x=x + seg_len, y=(next_ty + next_by)/2, width=0.5, height=next_ty - next_by, density=15.0)
+        sandbox.add_joint(top_chord[i], v, (x + seg_len, next_ty))
+        sandbox.add_joint(bot_chord[i], v, (x + seg_len, next_by))
+        d1 = sandbox.add_beam(x=x + seg_len/2, y=(ty + next_by)/2, width=math.sqrt(seg_len**2 + (ty-next_by)**2), height=0.5, angle=-math.atan2(ty-next_by, seg_len), density=12.0)
+        sandbox.add_joint(top_chord[i], d1, (x, ty))
+        sandbox.add_joint(bot_chord[i], d1, (x + seg_len, next_by))
+        d2 = sandbox.add_beam(x=x + seg_len/2, y=(by + next_ty)/2, width=math.sqrt(seg_len**2 + (next_ty-by)**2), height=0.5, angle=math.atan2(next_ty-by, seg_len), density=12.0)
+        sandbox.add_joint(bot_chord[i], d2, (x, by))
+        sandbox.add_joint(top_chord[i], d2, (x + seg_len, next_ty))
+    return top_chord[0]
 
 def agent_action_stage_2(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_3(sandbox):
-    """Stage 3: Restricted Anchor Zones."""
-    target_reach = 30.5
-    density_mult = 1.5
-    structure_y = 2.5
-    anchor1_y = 2.5
-    anchor2_y = 0.0
+    """Stage 3: The Weak Foundation. Massive truss."""
+    target_reach = 31.0
     WALL_X = 0.0
-    BEAM_HEIGHT = 0.4
-    DIAG_HEIGHT = 0.2
-    num_segments = math.ceil(target_reach / 6.0)
-    segment_ends = [float(i * 6.0) for i in range(num_segments + 1)]
-    chord_beams = []
-    for i in range(len(segment_ends) - 1):
-        x0, x1 = segment_ends[i], segment_ends[i + 1]
-        cx, length = (x0 + x1) / 2, x1 - x0
-        beam = sandbox.add_beam(x=WALL_X + cx, y=structure_y, width=length, height=BEAM_HEIGHT, angle=0, density=5.0 * density_mult)
-        chord_beams.append(beam)
-        if i > 0: sandbox.add_joint(chord_beams[i - 1], beam, (WALL_X + x0, structure_y), type='rigid')
-    wall = sandbox._terrain_bodies.get("wall")
-    sandbox.add_joint(wall, chord_beams[0], (WALL_X, anchor1_y), type='rigid')
-    support_beam = sandbox.add_beam(x=WALL_X + 0.6, y=(structure_y + anchor2_y) / 2, width=math.sqrt(1.2**2 + (structure_y - anchor2_y)**2), height=0.22, angle=-math.atan2(structure_y - anchor2_y, 1.2), density=5.0 * density_mult)
-    sandbox.add_joint(wall, support_beam, (WALL_X, anchor2_y), type='rigid')
-    sandbox.add_joint(support_beam, chord_beams[0], (WALL_X + 1.2, structure_y), type='rigid')
-    for i in range(1, len(chord_beams)):
-        from_x, from_y = WALL_X + 0.8, structure_y
-        to_x, to_y = WALL_X + segment_ends[i], structure_y
-        mid_x, mid_y = (from_x + to_x) / 2, (from_y + to_y) / 2
-        length = math.sqrt((to_x - from_x)**2 + (to_y - from_y)**2)
-        angle = math.atan2(to_y - from_y, to_x - from_x)
-        diag = sandbox.add_beam(x=mid_x, y=mid_y, width=length, height=DIAG_HEIGHT, angle=angle, density=4.0 * density_mult)
-        sandbox.add_joint(chord_beams[0], diag, (from_x, from_y), type='rigid')
-        sandbox.add_joint(chord_beams[i], diag, (to_x, to_y), type='rigid')
-    return chord_beams[0]
+    y_top_wall = 4.5
+    y_bot_wall = 0.5
+    num_segments = 12
+    seg_len = target_reach / num_segments
+    top_chord = []
+    bot_chord = []
+    angle = 0.18 # High camber
+    for i in range(num_segments):
+        x = WALL_X + (i + 0.5) * seg_len
+        ty = y_top_wall + i * seg_len * math.sin(angle)
+        by = y_bot_wall + i * seg_len * math.sin(angle)
+        tb = sandbox.add_beam(x=x, y=ty, width=seg_len + 0.4, height=1.5, angle=angle, density=25.0)
+        bb = sandbox.add_beam(x=x, y=by, width=seg_len + 0.4, height=1.5, angle=angle, density=25.0)
+        top_chord.append(tb)
+        bot_chord.append(bb)
+        if i > 0:
+            sandbox.add_joint(top_chord[i-1], tb, (WALL_X + i * seg_len, ty))
+            sandbox.add_joint(bot_chord[i-1], bb, (WALL_X + i * seg_len, by))
+    wall = sandbox._terrain_bodies["wall"]
+    sandbox.add_joint(wall, top_chord[0], (WALL_X, y_top_wall))
+    sandbox.add_joint(wall, bot_chord[0], (WALL_X, y_bot_wall))
+    for i in range(num_segments):
+        x = WALL_X + i * seg_len
+        ty = y_top_wall + i * seg_len * math.sin(angle)
+        by = y_bot_wall + i * seg_len * math.sin(angle)
+        next_ty = y_top_wall + (i+1) * seg_len * math.sin(angle)
+        next_by = y_bot_wall + (i+1) * seg_len * math.sin(angle)
+        d1 = sandbox.add_beam(x=x+seg_len/2, y=(by+next_ty)/2, width=math.sqrt(seg_len**2+(next_ty-by)**2), height=0.6, angle=math.atan2(next_ty-by, seg_len), density=15.0)
+        sandbox.add_joint(bot_chord[i], d1, (x, by))
+        sandbox.add_joint(top_chord[i], d1, (x+seg_len, next_ty))
+        d2 = sandbox.add_beam(x=x+seg_len/2, y=(ty+next_by)/2, width=math.sqrt(seg_len**2+(ty-next_by)**2), height=0.6, angle=-math.atan2(ty-next_by, seg_len), density=15.0)
+        sandbox.add_joint(top_chord[i], d2, (x, ty))
+        sandbox.add_joint(bot_chord[i], d2, (x+seg_len, next_by))
+        v = sandbox.add_beam(x=x+seg_len, y=(next_ty+next_by)/2, width=0.5, height=next_ty-next_by, density=15.0)
+        sandbox.add_joint(top_chord[i], v, (x+seg_len, next_ty))
+        sandbox.add_joint(bot_chord[i], v, (x+seg_len, next_by))
+    return top_chord[0]
 
 def agent_action_stage_3(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_4(sandbox):
-    """Stage 4: The Perfect Storm."""
-    target_reach = 32.5
-    density_mult = 2.0
-    structure_y = 4.5
-    anchor1_y = 4.5
-    anchor2_y = 0.0
+    """Stage 4: The Perfect Storm. Ultra-beefy."""
+    target_reach = 38.5
     WALL_X = 0.0
-    BEAM_HEIGHT = 0.4
-    DIAG_HEIGHT = 0.2
-    num_segments = math.ceil(target_reach / 6.0)
-    segment_ends = [float(i * 6.0) for i in range(num_segments + 1)]
-    chord_beams = []
-    for i in range(len(segment_ends) - 1):
-        x0, x1 = segment_ends[i], segment_ends[i + 1]
-        cx, length = (x0 + x1) / 2, x1 - x0
-        beam = sandbox.add_beam(x=WALL_X + cx, y=structure_y, width=length, height=BEAM_HEIGHT, angle=0, density=5.0 * density_mult)
-        chord_beams.append(beam)
-        if i > 0: sandbox.add_joint(chord_beams[i - 1], beam, (WALL_X + x0, structure_y), type='rigid')
-    wall = sandbox._terrain_bodies.get("wall")
-    sandbox.add_joint(wall, chord_beams[0], (WALL_X, anchor1_y), type='rigid')
-    support_beam = sandbox.add_beam(x=WALL_X + 0.6, y=(structure_y + anchor2_y) / 2, width=math.sqrt(1.2**2 + (structure_y - anchor2_y)**2), height=0.22, angle=-math.atan2(structure_y - anchor2_y, 1.2), density=5.0 * density_mult)
-    sandbox.add_joint(wall, support_beam, (WALL_X, anchor2_y), type='rigid')
-    sandbox.add_joint(support_beam, chord_beams[0], (WALL_X + 1.2, structure_y), type='rigid')
-    for i in range(1, len(chord_beams)):
-        from_x, from_y = WALL_X + 0.8, structure_y
-        to_x, to_y = WALL_X + segment_ends[i], structure_y
-        mid_x, mid_y = (from_x + to_x) / 2, (from_y + to_y) / 2
-        length = math.sqrt((to_x - from_x)**2 + (to_y - from_y)**2)
-        angle = math.atan2(to_y - from_y, to_x - from_x)
-        diag = sandbox.add_beam(x=mid_x, y=mid_y, width=length, height=DIAG_HEIGHT, angle=angle, density=4.0 * density_mult)
-        sandbox.add_joint(chord_beams[0], diag, (from_x, from_y), type='rigid')
-        sandbox.add_joint(chord_beams[i], diag, (to_x, to_y), type='rigid')
-    return chord_beams[0]
+    y_top_wall = 4.8
+    y_bot_wall = 0.2
+    num_segments = 15
+    seg_len = target_reach / num_segments
+    top_chord = []
+    bot_chord = []
+    angle = 0.22 # Extreme camber
+    for i in range(num_segments):
+        x = WALL_X + (i+0.5)*seg_len
+        ty = y_top_wall + i*seg_len*math.sin(angle)
+        by = y_bot_wall + i*seg_len*math.sin(angle)
+        tb = sandbox.add_beam(x=x, y=ty, width=seg_len+0.5, height=2.0, angle=angle, density=30.0)
+        bb = sandbox.add_beam(x=x, y=by, width=seg_len+0.5, height=2.0, angle=angle, density=30.0)
+        top_chord.append(tb)
+        bot_chord.append(bb)
+        if i > 0:
+            sandbox.add_joint(top_chord[i-1], tb, (WALL_X + i * seg_len, ty))
+            sandbox.add_joint(bot_chord[i-1], bb, (WALL_X + i * seg_len, by))
+    wall = sandbox._terrain_bodies["wall"]
+    sandbox.add_joint(wall, top_chord[0], (WALL_X, y_top_wall))
+    sandbox.add_joint(wall, bot_chord[0], (WALL_X, y_bot_wall))
+    for i in range(num_segments):
+        x = WALL_X + i * seg_len
+        ty = y_top_wall + i * seg_len * math.sin(angle)
+        by = y_bot_wall + i * seg_len * math.sin(angle)
+        next_ty = y_top_wall + (i+1) * seg_len * math.sin(angle)
+        next_by = y_bot_wall + (i+1) * seg_len * math.sin(angle)
+        d1 = sandbox.add_beam(x=x+seg_len/2, y=(by+next_ty)/2, width=math.sqrt(seg_len**2+(next_ty-by)**2), height=0.8, angle=math.atan2(next_ty-by, seg_len), density=20.0)
+        sandbox.add_joint(bot_chord[i], d1, (x, by))
+        sandbox.add_joint(top_chord[i], d1, (x+seg_len, next_ty))
+        d2 = sandbox.add_beam(x=x+seg_len/2, y=(ty+next_by)/2, width=math.sqrt(seg_len**2+(ty-next_by)**2), height=0.8, angle=-math.atan2(ty-next_by, seg_len), density=20.0)
+        sandbox.add_joint(top_chord[i], d2, (x, ty))
+        sandbox.add_joint(bot_chord[i], d2, (x+seg_len, next_by))
+        v = sandbox.add_beam(x=x+seg_len, y=(next_ty+next_by)/2, width=0.6, height=next_ty-next_by, density=20.0)
+        sandbox.add_joint(top_chord[i], v, (x+seg_len, next_ty))
+        sandbox.add_joint(bot_chord[i], v, (x+seg_len, next_by))
+    return top_chord[0]
 
 def agent_action_stage_4(sandbox, agent_body, step_count):
     pass

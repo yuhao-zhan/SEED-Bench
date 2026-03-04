@@ -42,8 +42,13 @@ def test_stage_with_agent_code(stage_config, agent_code):
     print(f"  Physics config: {env_overrides['physics_config']}")
     print()
     
+    # Alias the stage-specific build and action functions
+    stage_suffix = stage_id.lower().replace('-', '_') # e.g., stage_1
+    modified_code = agent_code
+    modified_code += f"\nbuild_agent = build_agent_{stage_suffix}"
+    modified_code += f"\nagent_action = agent_action_{stage_suffix}"
+    
     # Create verifier with environment overrides
-    # Use path format for task name
     task_name = "Category1_Statics_Equilibrium/S_01"
     verifier = CodeVerifier(
         task_name=task_name,
@@ -51,12 +56,16 @@ def test_stage_with_agent_code(stage_config, agent_code):
         env_overrides=env_overrides
     )
     
+    # Save GIF path
+    gif_name = f"{stage_suffix}_solution_success.gif"
+    gif_path = os.path.join(os.path.dirname(__file__), gif_name)
+    
     # Test the agent code
-    print("Running simulation with agent code...")
+    print(f"Running simulation with agent code for {stage_id}...")
     success, score, metrics, error = verifier.verify_code(
-        code=agent_code,
+        code=modified_code,
         headless=True,
-        save_gif_path=None
+        save_gif_path=gif_path
     )
     
     print(f"\nResults:")
@@ -64,6 +73,14 @@ def test_stage_with_agent_code(stage_config, agent_code):
     print(f"  Score: {score:.2f}/100")
     if error:
         print(f"  Error: {error}")
+    
+    if success:
+        print(f"✅ Saved success GIF to: {gif_name}")
+    else:
+        # If failed, we might want to keep the GIF for debugging but the prompt asks for success gifs
+        if os.path.exists(gif_path):
+            os.remove(gif_path)
+            print(f"❌ Deleted failure GIF")
     
     # Print key metrics
     if metrics:
@@ -79,13 +96,12 @@ def test_stage_with_agent_code(stage_config, agent_code):
 def main():
     """Main test function"""
     print("="*80)
-    print("Testing Current Agent Code on Mutated Tasks")
+    print("Testing Overhauled Agent Code on New High-Difficulty Mutated Tasks")
     print("="*80)
     
     # Read agent code
     print("\nReading agent code from agent.py...")
     agent_code = read_agent_code()
-    print(f"Agent code length: {len(agent_code)} characters")
     
     # Get all stages
     stages = get_s01_curriculum_stages()
@@ -125,7 +141,8 @@ def main():
                 print(f"   Reason: {result['metrics']['failure_reason']}")
     
     print(f"\nTotal: {len(passed_stages)}/{len(results)} stages passed")
-    print(f"Pass rate: {len(passed_stages)/len(results)*100:.1f}%")
+    if len(results) > 0:
+        print(f"Pass rate: {len(passed_stages)/len(results)*100:.1f}%")
     
     return len(passed_stages), len(results)
 

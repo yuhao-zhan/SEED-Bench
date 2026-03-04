@@ -22,8 +22,17 @@ class S02Sandbox:
         self._earthquake_amplitude = self._terrain_config.get("earthquake_amplitude", 0.5)
         self._earthquake_frequency = self._terrain_config.get("earthquake_frequency", 2.0)
         self._earthquake_start_time = self._terrain_config.get("earthquake_start_time", 2.0)
+        self._earthquake_amplitude_evolution = self._terrain_config.get("earthquake_amplitude_evolution", 0.0)
+        
         self._wind_force = self._terrain_config.get("wind_force", 100.0)
-        self._wind_height_threshold = 20.0
+        self._wind_height_threshold = self._terrain_config.get("wind_height_threshold", 20.0)
+        self._wind_shear_factor = self._terrain_config.get("wind_shear_factor", 0.0)
+        self._wind_oscillation_frequency = self._terrain_config.get("wind_oscillation_frequency", 0.0)
+        
+        self._max_joint_force = self._physics_config.get("max_joint_force", float('inf'))
+        self._max_joint_torque = self._physics_config.get("max_joint_torque", float('inf'))
+        
+        self.TARGET_HEIGHT = 30.0
         
         self._setup_terrain()
 
@@ -82,11 +91,40 @@ class S02Sandbox:
         if self._simulation_time >= self._earthquake_start_time:
             f = self._terrain_bodies["foundation"]
             p = self._earthquake_frequency * (self._simulation_time - self._earthquake_start_time)
-            tx = self._earthquake_amplitude * math.sin(p)
+            
+            # Evolving amplitude
+            current_amplitude = self._earthquake_amplitude * (1.0 + self._earthquake_amplitude_evolution * (self._simulation_time - self._earthquake_start_time))
+            
+            tx = current_amplitude * math.sin(p)
             f.position = (tx, 0.5)
-            f.linearVelocity = (self._earthquake_amplitude * self._earthquake_frequency * math.cos(p), 0)
+            f.linearVelocity = (current_amplitude * self._earthquake_frequency * math.cos(p), 0)
         
+        # Wind logic
+        wind_mod = 1.0
+        if self._wind_oscillation_frequency > 0:
+            wind_mod = 0.5 + 0.5 * math.sin(self._wind_oscillation_frequency * self._simulation_time)
+            
         for b in self._bodies:
             if b.position.y > self._wind_height_threshold:
-                b.ApplyForce((self._wind_force, 0), b.worldCenter, True)
+                h_factor = 1.0 + self._wind_shear_factor * (b.position.y - self._wind_height_threshold)
+                force = self._wind_force * h_factor * wind_mod
+                b.ApplyForce((force, 0), b.worldCenter, True)
+                
         self._world.Step(time_step, 10, 10)
+        
+        # Joint breaking check
+        if self._max_joint_force < float('inf') or self._max_joint_torque < float('inf'):
+            to_destroy = []
+            for j in self._joints:
+                try:
+                    force = j.GetReactionForce(1.0/time_step).length
+                    torque = abs(j.GetReactionTorque(1.0/time_step))
+                    if force > self._max_joint_force or torque > self._max_joint_torque:
+                        to_destroy.append(j)
+                except:
+                    continue # Joint might have been destroyed already
+            
+            for j in to_destroy:
+                if j in self._joints:
+                    self._world.DestroyJoint(j)
+                    self._joints.remove(j)

@@ -45,6 +45,9 @@ class DaVinciSandbox:
 
         self._meteor_count = int(terrain_config.get("meteor_count", 12))
         self._meteor_spawn_interval = int(terrain_config.get("meteor_spawn_interval", 30))
+        self._wind_force = float(terrain_config.get("wind_force", 0.0))
+        self._meteor_restitution = float(terrain_config.get("meteor_restitution", 0.2))
+        self._floor_friction = float(terrain_config.get("floor_friction", 0.5))
         self._step_count = 0
 
         self._create_terrain(terrain_config)
@@ -57,7 +60,7 @@ class DaVinciSandbox:
             position=(floor_length / 2, -floor_height / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(floor_length / 2, floor_height / 2)),
-                friction=0.5,
+                friction=self._floor_friction,
             ),
         )
         self._terrain_bodies["floor"] = floor
@@ -86,7 +89,7 @@ class DaVinciSandbox:
                 shape=circleShape(radius=radius),
                 density=5.0,
                 friction=0.5,
-                restitution=0.2,
+                restitution=self._meteor_restitution,
             ),
         )
         meteor.linearVelocity = (vx, vy)
@@ -119,12 +122,25 @@ class DaVinciSandbox:
                 self._spawn_meteor()
         
         self._step_count += 1
+
+        # Apply wind force to all dynamic bodies (except static ones like the floor)
+        if self._wind_force != 0:
+            core = self._terrain_bodies.get("core")
+            for body in self._world.bodies:
+                if body.type == Box2D.b2_dynamicBody and body != core:
+                    # Apply horizontal force proportional to mass (simulates acceleration-based wind)
+                    body.ApplyForceToCenter((self._wind_force * body.mass, 0), True)
+
         self._world.Step(time_step, 10, 10)
         
         # Damage tracking: monitor impacts on core
         core = self._terrain_bodies["core"]
+        floor = self._terrain_bodies["floor"]
         for contact_edge in core.contacts:
             if contact_edge.contact.touching:
+                # Skip contacts with the floor
+                if contact_edge.other == floor:
+                    continue
                 # Approximate force from manifold normal impulse
                 manifold = contact_edge.contact.manifold
                 if manifold.pointCount > 0:

@@ -28,6 +28,18 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     return base_success_criteria
 
 
+_D04_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Gravity: Variations in the gravitational field will alter the swing's natural period and the effort required to reach the apex.
+ - Seat Damping: Increased resistance at the swing's pivot or seat can cause more energy to be lost during each oscillation.
+ - Wind Period: The timing and frequency of atmospheric wind gusts may have changed, requiring adjustments to the pumping rhythm.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Return ordered stage configs for D-04 mutated tasks.
@@ -38,8 +50,8 @@ def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-1",
             "title": "Stronger Gravity",
-            "mutation_description": "Gravity increased to -15.5 m/s². Swing period shorter, apex lower; original tuning under-pumps.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "mutation_description": "Gravity increased to -18.5 m/s². Swing period shorter, apex lower; original tuning under-pumps.",
+            "task_description_suffix": _D04_SUFFIX,
             "terrain_config": {},
             "physics_config": {"gravity": (0, -18.5)},
         },
@@ -47,7 +59,7 @@ def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "High Damping",
             "mutation_description": "Seat linear/angular damping increased. More energy loss per cycle.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "task_description_suffix": _D04_SUFFIX,
             "terrain_config": {
                 "seat_linear_damping": 0.28,
                 "seat_angular_damping": 0.28,
@@ -58,7 +70,7 @@ def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "Heavy World and Damping",
             "mutation_description": "Gravity -13 m/s² + increased seat damping. Dual invisible params.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "task_description_suffix": _D04_SUFFIX,
             "terrain_config": {
                 "seat_linear_damping": 0.22,
                 "seat_angular_damping": 0.22,
@@ -69,7 +81,7 @@ def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Extreme Conditions",
             "mutation_description": "Gravity -15 m/s² + high seat damping + different wind period. Original wind-aware timing fails.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "task_description_suffix": _D04_SUFFIX,
             "terrain_config": {
                 "seat_linear_damping": 0.32,
                 "seat_angular_damping": 0.32,

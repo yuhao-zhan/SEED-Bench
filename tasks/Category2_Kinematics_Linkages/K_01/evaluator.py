@@ -23,11 +23,12 @@ class Evaluator:
         
         self.initial_x = 10.0
         self.max_x_reached = 10.0
+        self.min_torso_y = 2.0  # Starting torso height approx 2.0m
         self.design_constraints_checked = False
 
     def evaluate(self, agent_body, step_count, max_steps):
         if not self.environment:
-            return False, 0.0, {"error": "Environment not available"}
+            return (False, 0.0, {"error": "Environment not available"})
         
         # Robust torso tracking
         torso = agent_body
@@ -35,18 +36,20 @@ class Evaluator:
             torso = self.environment._bodies[0]
             
         if torso is None:
-            return False, 0.0, {"error": "Walker torso not found"}
+            return (False, 0.0, {"error": "Walker torso not found"})
             
         current_x = torso.position.x
         current_y = torso.position.y
         self.max_x_reached = max(self.max_x_reached, current_x)
+        self.min_torso_y = min(self.min_torso_y, current_y)
         
         failed = False
         failure_reason = None
         
         # Failure: Torso fell too low
         if current_y < self.min_torso_height:
-            failed, failure_reason = True, f"Walker collapsed: torso height {current_y:.2f}m < {self.min_torso_height}m"
+            failed = True
+            failure_reason = f"Walker collapsed: torso touched ground (height {current_y:.2f}m < {self.min_torso_height}m)"
             
         # Success if reached target distance and survived minimum time
         distance_traveled = current_x - self.initial_x
@@ -66,12 +69,19 @@ class Evaluator:
                 score += (min(step_count, self.min_simulation_steps) / self.min_simulation_steps) * 30.0
                 
         metrics = {
-            'x': current_x,
-            'y': current_y,
-            'distance': distance_traveled,
-            'success': success,
+            'walker_x': current_x,
+            'walker_y': current_y,
+            'distance_traveled': distance_traveled,
+            'max_x_reached': self.max_x_reached,
+            'min_torso_y': self.min_torso_y,
+            'progress': progress * 100.0 if 'progress' in locals() else 0.0,
+            'success': success and not failed,
             'failed': failed,
-            'failure_reason': failure_reason
+            'failure_reason': failure_reason,
+            'step_count': step_count,
+            'min_simulation_steps_required': self.min_simulation_steps,
+            'structure_mass': self.environment.get_structure_mass(),
+            'max_structure_mass': getattr(self.environment, 'MAX_STRUCTURE_MASS', 100.0),
         }
         
         return done, score, metrics

@@ -42,17 +42,24 @@ def get_f04_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for F-04 mutated tasks.
     Each stage: terrain_config + physics_config. Original solution (two-layer sieve, fixed gaps/nudge) should fail in all mutated stages.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Separation Standards: The minimum required purity for classified material has been updated, demanding more precise filtration.
+ - Ambient Viscosity: Variations in atmospheric damping affect how quickly particles respond to external forces and settle into bins.
+ - Mixture Composition: The relative proportions of small, medium, and large particles in the feed material may have shifted.
+ - Particle Surface Physics: Changes in friction and restitution coefficients alter how grains slide, bounce, and interact with the filter structure.
+ - Gravity: The acceleration due to the local gravitational field, influencing the weight and flow rate of the granular material.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "Viscous atmosphere",
             "mutation_description": "Linear and angular damping increased; particles respond more slowly to nudge.",
-            "task_description_suffix": """
-## Environmental Warning
-The local atmosphere in the separation region has changed. Particle motion and settling behavior may differ from nominal conditions.
-In addition, the required classification purity has been updated.
-Use simulation feedback to infer the new dynamics and adapt your design.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {"min_purity": 0.42},
             "physics_config": {
                 "linear_damping": 0.88,
@@ -63,11 +70,7 @@ Use simulation feedback to infer the new dynamics and adapt your design.
             "stage_id": "Stage-2",
             "title": "Skewed mix ratio",
             "mutation_description": "Mix ratio changed: more large and medium, fewer small. Load and contamination risk increase.",
-            "task_description_suffix": """
-## Environmental Warning
-The composition of the particle mixture has changed. The relative proportions of particle types differ from nominal.
-Use feedback to ensure your filter still achieves the required purity under the new load.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "mix": {
                     "count_small": 10,
@@ -84,12 +87,7 @@ Use feedback to ensure your filter still achieves the required purity under the 
             "stage_id": "Stage-3",
             "title": "Viscous and skewed",
             "mutation_description": "Higher damping + skewed mix + raised purity target.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple physical conditions have changed: fluid resistance and mixture composition differ from nominal.
-The required classification purity has also been updated.
-Infer the new environment from simulation feedback and adapt your design.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "mix": {
                     "count_small": 10,
@@ -110,12 +108,7 @@ Infer the new environment from simulation feedback and adapt your design.
             "stage_id": "Stage-4",
             "title": "Heavy, viscous, and skewed",
             "mutation_description": "Stronger gravity + high damping + skewed mix + higher purity + stickier particles.",
-            "task_description_suffix": """
-## Environmental Warning
-Several environmental parameters have changed. Effective weight, fluid resistance, and mixture composition all differ from nominal.
-The required classification purity has also been updated.
-Infer the new environment from feedback and adapt accordingly.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "mix": {
                     "count_small": 8,

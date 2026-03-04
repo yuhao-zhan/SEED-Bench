@@ -29,16 +29,26 @@ def get_f02_curriculum_stages() -> List[Dict[str, Any]]:
     Each stage: terrain_config + physics_config (invisible params).
     Original solution (9-paddle raft, lift over pillars) should fail in all mutated stages.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Thrust Cooldown: The minimum time required between propulsion strokes, affecting the frequency and consistency of forward thrust.
+ - Opposing Current: The magnitude of the water's flow against the direction of travel, resisting forward progress.
+ - Liquid Density: The mass per unit volume of the surrounding fluid, determining the buoyancy and flotation depth of the vehicle.
+ - Fluid Drag: The resistance encountered by bodies moving through the water, impacting velocity and energy efficiency.
+ - Wind Intensity: The strength of atmospheric forces acting on the structure above the waterline.
+ - Ambient Damping: The rate at which the vehicle's linear and angular momentum are dissipated by the environment.
+ - Gravity: The acceleration due to the local gravitational field, influencing the effective weight and displacement of the vessel.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "Slower Paddle Rhythm",
             "mutation_description": "Thrust cooldown increased; each body can thrust only every 6 steps. 9 bodies give ~1.5 thrust/step avg.",
-            "task_description_suffix": """
-## Environmental Warning
-Propulsion dynamics in this region differ from nominal. Your vehicle's stroke or thrust capabilities may be affected.
-Use simulation feedback to adapt your design or control strategy.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "thrust_cooldown_steps": 6,  # Default 3 -> 9 bodies give ~1.5 thrust/step
             },
@@ -48,11 +58,7 @@ Use simulation feedback to adapt your design or control strategy.
             "stage_id": "Stage-2",
             "title": "Strong Opposing Current",
             "mutation_description": "Opposing current force per kg increased ~2.5x. Vehicle cannot make headway with nominal thrust.",
-            "task_description_suffix": """
-## Environmental Warning
-Water conditions have become more challenging for crossing. Opposing forces may be stronger than nominal.
-Thrust strategies tuned for nominal conditions may no longer suffice.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "current_per_kg": 14.0,  # Default 5.5 -> ~2.5x opposing force
             },
@@ -62,11 +68,7 @@ Thrust strategies tuned for nominal conditions may no longer suffice.
             "stage_id": "Stage-3",
             "title": "Dense and Viscous",
             "mutation_description": "Low liquid density (weak buoyancy) + high water drag. Both buoyancy and propulsion severely affected.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple hydrodynamic properties have changed. Buoyancy and fluid resistance differ from nominal.
-Infer the new dynamics from simulation feedback and adapt your design.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "liquid_density": 350.0,
                 "water_drag_coef": 400.0,
@@ -79,11 +81,7 @@ Infer the new dynamics from simulation feedback and adapt your design.
             "stage_id": "Stage-4",
             "title": "Hostile Crossing",
             "mutation_description": "Weak buoyancy + high drag + strong current + strong headwind + thrust cooldown increased. Full hostile environment.",
-            "task_description_suffix": """
-## Environmental Warning
-Several environmental parameters have changed simultaneously. Buoyancy, resistance, and propulsion effectiveness all differ from nominal.
-The crossing is significantly harder. Infer changes from feedback and adapt accordingly.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "liquid_density": 400.0,
                 "water_drag_coef": 280.0,

@@ -108,16 +108,23 @@ class Evaluator:
         com_x = 0.0
         com_y = 0.0
         min_body_y = None
-        net_gravity_torque_about_pivot = 0.0  # sum(m*g*x) about (0,0) in 2D
-        g = abs(getattr(self.environment.world, "gravity", (0, -10))[1]) if self.environment else 10.0
+        
+        # Calculate net static torque precisely
+        net_torque_about_pivot = 0.0
+        gx, gy = getattr(self.environment.world, "gravity", (0.0, -10.0)) if self.environment else (0.0, -10.0)
+        wind_f = float(getattr(self.environment, "_wind_force_multiplier", 0.0)) if getattr(self.environment, "_wind_active", False) else 0.0
 
         for body in getattr(self.environment, "_bodies", []):
             m = float(getattr(body, "mass", 0.0))
             structure_mass += m
-            com_x += m * float(body.position.x)
-            com_y += m * float(body.position.y)
-            min_body_y = float(body.position.y) if min_body_y is None else min(min_body_y, float(body.position.y))
-            net_gravity_torque_about_pivot += m * g * float(body.position.x)
+            rx, ry = float(body.position.x), float(body.position.y)
+            com_x += m * rx
+            com_y += m * ry
+            min_body_y = ry if min_body_y is None else min(min_body_y, ry)
+            
+            Fx = m * wind_f + m * gx
+            Fy = m * gy
+            net_torque_about_pivot += (rx * Fy - ry * Fx)
 
         if structure_mass > 1e-9:
             com_x /= structure_mass
@@ -130,7 +137,14 @@ class Evaluator:
         load_pos = None
         if load_body is not None:
             load_mass = float(getattr(load_body, "mass", 0.0))
-            load_pos = (float(load_body.position.x), float(load_body.position.y))
+            rx, ry = float(load_body.position.x), float(load_body.position.y)
+            load_pos = (rx, ry)
+            
+            # Include load in the torque if it's attached or interacting
+            if getattr(self.environment, "_load_attached", False) or getattr(self.environment, "_drop_load", False):
+                Fx = load_mass * wind_f + load_mass * gx
+                Fy = load_mass * gy
+                net_torque_about_pivot += (rx * Fy - ry * Fx)
 
         metrics = {
             'load_caught': self.load_caught,
@@ -147,7 +161,7 @@ class Evaluator:
             'structure_com_x': com_x,
             'structure_com_y': com_y,
             'min_body_y': min_body_y,
-            'net_gravity_torque_about_pivot': net_gravity_torque_about_pivot,
+            'net_torque_about_pivot': net_torque_about_pivot,
             'load_mass': load_mass,
             'load_pos': load_pos,
         }

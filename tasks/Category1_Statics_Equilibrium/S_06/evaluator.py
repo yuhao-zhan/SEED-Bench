@@ -137,8 +137,22 @@ class Evaluator:
             'failed': failed,
             'failure_reason': failure_reason,
             'step_count': step_count,
+            'min_y_position': self.min_y_position,
             'max_y_position': self.max_y_position,
+            'structure_mass': self.structure_mass,
+            'total_kinetic_energy': self.total_kinetic_energy,
+            'max_velocity': self.max_velocity,
+            'block_count': len(self.environment._bodies),
         }
+        
+        # Calculate Center of Mass
+        if self.environment._bodies:
+            total_mass = sum(b.mass for b in self.environment._bodies)
+            if total_mass > 0:
+                com_x = sum(b.position.x * b.mass for b in self.environment._bodies) / total_mass
+                com_y = sum(b.position.y * b.mass for b in self.environment._bodies) / total_mass
+                metrics['center_of_mass_x'] = com_x
+                metrics['center_of_mass_y'] = com_y
         
         return success or failed, score, metrics
     

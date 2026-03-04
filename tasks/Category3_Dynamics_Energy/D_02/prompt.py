@@ -14,7 +14,7 @@ Design a jumping mechanism to clear a pit and land on a distant platform by pass
 ## Task Environment
 - **Platforms**: A left platform (start) and a right platform (target) separated by a wide pit.
 - **Barriers**: Multiple vertical barriers with narrow horizontal slots (gaps) are positioned between the platforms.
-- **Build Zone**: x in [5.0, 15.0] m, y in [1.5, 8.0] m.
+- **Build Zone**: x in [1.5, 6.5] m, y in [2.5, 5.5] m. All beam centers must be within this zone.
 - **Goal**: Reach the right platform (x >= 26.0m) by jumping from the left platform.
 
 ## Task Objective
@@ -29,6 +29,7 @@ Design a controller that:
 2. **Gap Clearance**: Trajectory successfully passes through all barrier slots without collision.
 
 ## Design Constraints
+- **Mass Budget**: Total structure mass < 180 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO

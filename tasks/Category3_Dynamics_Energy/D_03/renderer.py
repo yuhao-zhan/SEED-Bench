@@ -18,8 +18,8 @@ class D03Renderer(Renderer):
         self.set_camera_offset(camera_offset_x)
         self.clear((24, 28, 36))
 
-        # Target zone (x >= 15)
-        tx = getattr(sandbox, "_target_x_min", 15.0)
+        # Target zone (x >= 11.75)
+        tx = getattr(sandbox, "_target_x_min", 11.75)
         self.draw_line(tx, 0.4, tx, 4.0, (80, 220, 120), 3)
         self.draw_line(tx + 2, 0.4, tx + 2, 4.0, (80, 220, 120), 1)
 

@@ -102,7 +102,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             suggestions.append("- Use lighter materials (lower density) or optimize beam sizes")
             suggestions.append("- Consider using fewer or smaller components")
         elif "build zone" in error_lower:
-            suggestions.append("- Ensure all beams are placed within the build zone")
+            suggestions.append("- Ensure all beams are placed within the build zone x=[0, 50], y=[2, 10]")
             suggestions.append("- Check that walker components are above ground (y >= 2.0m)")
         elif "error building" in error_lower:
             suggestions.append("- Review the error message above to identify the specific constraint violation")

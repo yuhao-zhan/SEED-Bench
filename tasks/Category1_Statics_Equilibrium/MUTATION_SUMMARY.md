@@ -6,7 +6,7 @@
 |--------|----------------------|---------|---------|---------|---------|
 | **S_01** | 设计静态桥梁连接两个悬崖，让测试车辆通过 | **Wider Gap**: 间隙宽度 15m→18m | **Heavy Gravity**: 重力 -10→-15 m/s² | **Wider Gap + Lightweight**: 间隙18m + 最大质量 2000→1500kg | **Extreme Challenge**: 间隙20m + 重力-15 + 最大质量1200kg |
 | **S_02** | 在狭窄基础上建造高层建筑，抵抗地震和风 | **Increased Amplitude**: 地震振幅 0.5→6.0m | **Increased Wind**: 风力 100→600N | **High-Frequency Earthquake**: 地震振幅 0.5→3.0m + 频率 2.0→8.0 Hz | **Perfect Storm**: 频率18.0 Hz + 振幅2.5m + 风力700N |
-| **S_03** | 建造水平悬臂结构，仅锚定在左墙，双荷载（端部600kg+跨中400kg），到达14m，最多2锚点、扭矩≤2800Nm | **Heavier Loads**: 端部900kg + 跨中550kg | **Longer Reach**: 目标距离 14→16m | **Weaker Anchors**: 锚点扭矩 2800→1800 Nm + 距离14.5m | **Extreme Combined**: 端部750kg + 跨中500kg + 距离16m + 重力-14 + 锚点2200Nm |
+| **S_03** | 建造水平悬臂结构，仅锚定在左墙，双荷载（端部600kg+跨中400kg），到达14m，最多2锚点、扭矩≤2800Nm | **The Slalom Tunnel**: 多重障碍物形成狭窄蜿蜒通道，目标距离 25m | **Impact Resilience**: 动态掉落负载 (1000kg) + 重力 -15 m/s² | **The Weak Foundation**: 墙体锚固强度梯度分布 + 恒定横向风 + 重力 -18 m/s² | **The Perfect Storm**: 谐振垂直风 + 碎片化墙体支撑 + 动态掉落负载 + 极限跨度 35m + 重力 -20 m/s² |
 | **S_04** | 在支点(0,0)上建造结构，平衡200kg不对称负载 | **Free Rotation + High Gravity**: 自由旋转 + 重力 -10→-13 m/s² | **Free Rotation + Low Damping**: 自由旋转 + 角阻尼 0.05 | **Free Rotation + High Friction**: 自由旋转 + 高摩擦2.0 + 低支点摩擦0.3 | **Extreme Physics**: 自由旋转 + 重力-15 + 极低阻尼0.02 + 高摩擦2.5 + 弹性0.4 + 平衡时间20s + 角度±8° |
 | **S_05** | 保护脆弱核心免受来自左右两侧的坠落陨石撞击（15颗80kg，交替从左/右落下），核心70N，最大质量350kg | **Heavier Meteors**: 陨石质量 80→150kg | **Reduced Mass Budget**: 最大质量 350→120kg | **Gravity + Meteors**: 重力-60 + 陨石120kg | **Extreme Challenge**: 重力-16 + 地震(2.0 Hz, 4.0 m/s²) + 风力13 N/kg + 陨石110kg + 质量限制280kg + 核心55N |
 | **S-06** | 在桌子上堆叠方块创建最大悬挑，仅使用重力和摩擦 | **Increased Gravity**: 重力 -10→-14 m/s² | **Reduced Friction**: 方块/桌面摩擦 0.5→0.08 | **Gravity + Friction**: 重力-13 + 方块/桌面摩擦0.18 | **Extreme Challenge**: 密度1.0→0.35 + 摩擦0.08 + 重力-17 + 无阻尼 |
@@ -29,10 +29,10 @@
 
 ### S_03: The Cantilever
 - **初始**: 端部负载600kg(t=5s)、跨中负载400kg(t=10s, 节点近x=7.5m), 目标距离14m, 最多2锚点、锚点扭矩限制2800Nm
-- **Stage-1**: `load_mass: 900.0, second_load_mass: 550.0` (双荷载加重)
-- **Stage-2**: `target_reach: 16.0` (目标距离加长)
-- **Stage-3**: `max_anchor_torque: 1800.0, target_reach: 14.5` (锚点变弱+距离略增)
-- **Stage-4**: `load_mass: 750.0, second_load_mass: 500.0, target_reach: 16.0, max_anchor_torque: 2200.0, gravity: (0, -14.0)` (组合)
+- **Stage-1**: `obstacle_rects: [[5,0,7,6], [10,8,12,20], [15,0,17,4]], target_reach: 25.0` (Slalom Tunnel)
+- **Stage-2**: `load_type: "dropped", drop_height: 10.0, gravity: -15.0, target_reach: 25.0` (Impact Resilience)
+- **Stage-3**: `anchor_strength_map: [...], wind_force: (500, 0), gravity: -18.0, target_reach: 28.0` (Weak Foundation)
+- **Stage-4**: `wind_oscillatory: True, forbidden_anchor_y: [1, 4], anchor_strength_map: [...], drop_height: 12.0, target_reach: 35.0, gravity: -20.0` (The Perfect Storm)
 
 ### S_04: The Balancer
 - **初始**: 刚性支点, 重力-10, 平衡时间15s, 角度±10°

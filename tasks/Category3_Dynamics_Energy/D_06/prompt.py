@@ -18,8 +18,8 @@ Design a structure to catch and stabilize seven heavy balls launched sequentiall
 ## Task Environment
 - **The Projectiles**: Seven balls are launched from the right (x=22.0m) toward the left. They arrive at different times and heights.
 - **The Deflector**: A moving bar at x=8.36m will deflect the balls. You should use it to your advantage.
-- **Forbidden Zones**: Beam centers must not be placed in five specific vertical zones (e.g., x=[8.5, 9.5], x=[7.35, 7.75]).
-- **Sweeper Bands**: Two horizontal bands (y=[2.95, 3.55] and y=[4.15, 4.75]) are forbidden for any beam centers.
+- **Forbidden Zones**: Beam centers must not be placed in five specific vertical zones (x in [8.5, 9.5], [7.35, 7.75], [7.78, 8.55], [10.0, 10.5], [7.18, 7.34]).
+- **Sweeper Bands**: Four horizontal bands (y in [2.95, 3.55], [4.15, 4.75], [1.0, 1.5], [2.0, 2.5]) are forbidden for any beam centers.
 - **Build Zone**: x=[7.0, 11.0] m, y=[0.5, 5.5] m. The structure must be anchored to the ground.
 
 ## Task Objective

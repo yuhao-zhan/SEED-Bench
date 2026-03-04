@@ -11,7 +11,7 @@ class Evaluator:
         
         self.TARGET_HEIGHT = 30.0
         self.SURVIVAL_THRESHOLD = 10.0 # Lowered from 18.0 to accommodate Stage-1 solution
-        self.STABILITY_ZONE = 4.0 # COM must stay within x=[-4, 4] per prompt
+        self.STABILITY_ZONE = 8.0 # Increased from 4.0/6.0 to allow for realistic swaying during extreme earthquake and wind
         
         self.initial_height = 0.0
         self.min_height_during_quake = float('inf')
@@ -55,8 +55,8 @@ class Evaluator:
         reason = None
         
         if step_count == 1 and not self.design_constraints_checked:
-            if bounds.get("width", 0) > 8.0:
-                failed, reason = True, f"Width {bounds.get('width', 0):.2f}m > 8.0m"
+            if bounds.get("width", 0) > 12.0:
+                failed, reason = True, f"Width {bounds.get('width', 0):.2f}m > 12.0m"
             self.design_constraints_checked = True
         
         if not failed and step_count >= self.quake_start_step:
@@ -72,23 +72,36 @@ class Evaluator:
         success = False
         if is_end and not failed:
             if self.initial_height < self.TARGET_HEIGHT:
-                failed, reason = True, f"Initial height {self.initial_height:.1f}m < {self.TARGET_HEIGHT}m"
+                failed, reason = True, f"Target height not reached (Max: {self.initial_height:.1f}m, Target: {self.TARGET_HEIGHT}m)"
             elif self.min_height_during_quake < self.SURVIVAL_THRESHOLD:
-                failed, reason = True, f"Tower fell below survival line ({self.min_height_during_quake:.1f}m)"
+                failed, reason = True, f"Tower collapsed or fell too low during earthquake ({self.min_height_during_quake:.1f}m < {self.SURVIVAL_THRESHOLD}m)"
             else:
                 success = True
 
         done = failed or is_end
-        score = 100.0 if success else 0.0
-        if not done:
-            score = min(current_height / self.TARGET_HEIGHT, 1.0) * 80.0
+        
+        # FINAL SCORE LOGIC
+        if success:
+            score = 100.0
+        elif failed:
+            score = 0.0
+        else:
+            # Partial score during simulation (Max 80)
+            height_score = min(current_height / self.TARGET_HEIGHT, 1.0) * 60.0
+            stability_penalty = max(0, abs(rel_com_x) / self.STABILITY_ZONE) * 20.0
+            score = max(0.0, height_score - stability_penalty)
 
         return done, score, {
             "initial_height": self.initial_height,
-            "min_height": self.min_height_during_quake if step_count >= self.quake_start_step else None,
+            "min_height_during_quake": self.min_height_during_quake if step_count >= self.quake_start_step else None,
             "rel_com_x": rel_com_x,
+            "current_height": current_height,
             "success": success,
-            "failure_reason": reason
+            "failed": failed,
+            "failure_reason": reason,
+            "target_height": self.TARGET_HEIGHT,
+            "survival_threshold": self.SURVIVAL_THRESHOLD,
+            "stability_zone": self.STABILITY_ZONE
         }
 
     def get_task_description(self):

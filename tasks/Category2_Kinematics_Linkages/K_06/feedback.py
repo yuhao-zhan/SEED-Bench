@@ -108,7 +108,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     if error:
         error_lower = error.lower()
         if "structure mass" in error_lower and "exceeds" in error_lower:
-            max_mass = metrics.get('max_structure_mass', 25.0)
+            max_mass = metrics.get('max_structure_mass', 15.0)
             suggestions.append(f"- Reduce structure mass to be within {max_mass:.0f}kg limit")
             suggestions.append("- Use lighter materials (lower density) or optimize beam sizes")
             suggestions.append("- Consider using fewer or smaller components")
@@ -123,7 +123,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
         if failure_reason and "design constraint violated" in failure_reason.lower():
             failure_lower = failure_reason.lower()
             if "structure mass" in failure_lower:
-                max_mass = metrics.get('max_structure_mass', 25.0)
+                max_mass = metrics.get('max_structure_mass', 15.0)
                 suggestions.append(f"- Reduce structure mass to be within {max_mass:.0f}kg limit")
                 suggestions.append("- Optimize beam sizes and densities to minimize total mass")
             if "build zone" in failure_lower:

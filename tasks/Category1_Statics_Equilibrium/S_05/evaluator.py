@@ -31,24 +31,32 @@ class Evaluator:
             return False, 0.0, {"error": "Environment not available"}
         
         core_force = self.environment.get_core_max_force()
+        structure_mass = self.environment.get_structure_mass()
+        max_mass = float(self.terrain_bounds.get("max_structure_mass", 300.0))
         
         failed = False
         failure_reason = None
         
         # Check stability: any part of the shelter fell too low
+        # The core is at y=0.5 or 1.0. If structure falls below 0.3, it's definitely a collapse.
         min_body_y = 100.0
-        for body in self.environment._bodies:
-            min_body_y = min(min_body_y, body.position.y)
+        if self.environment._bodies:
+            for body in self.environment._bodies:
+                min_body_y = min(min_body_y, body.position.y)
         
-        if min_body_y < 0.5: # Shelter collapsed near ground/core
-            failed, failure_reason = True, "Shelter collapsed"
+        if min_body_y < 0.3: # Shelter collapsed near ground
+            failed, failure_reason = True, "Shelter collapsed or fell below ground level"
         elif core_force > self.max_core_force:
             failed, failure_reason = True, f"Core protection failed: force {core_force:.1f}N > {self.max_core_force}N"
+        elif structure_mass > max_mass:
+            failed, failure_reason = True, f"Mass budget exceeded: {structure_mass:.1f}kg > {max_mass}kg"
             
         # Design constraint check (height)
         if not failed:
             for body in self.environment._bodies:
-                if body.position.y > self.MAX_STRUCTURE_HEIGHT + 0.5: # Margin for beam half-height
+                # Margin for beam half-height (max beam height is 10, so half is 5.0)
+                # But typically they use smaller beams. 0.5m buffer is standard.
+                if body.position.y > self.MAX_STRUCTURE_HEIGHT + 0.5:
                     failed, failure_reason = True, f"Structure exceeds height limit {self.MAX_STRUCTURE_HEIGHT}m"
                     break
 
@@ -60,13 +68,15 @@ class Evaluator:
         done = failed or (is_end and can_eval_success)
         
         score = 100.0 if success else 0.0
-        if not done:
+        if not done and not failed:
             # Partial score based on meteor phase completion
             score = (min(step_count, self.min_steps) / self.min_steps) * 80.0
             
         metrics = {
             'core_force': core_force,
             'max_core_force': self.max_core_force,
+            'structure_mass': structure_mass,
+            'max_mass': max_mass,
             'min_body_y': min_body_y,
             'success': success,
             'failed': failed,

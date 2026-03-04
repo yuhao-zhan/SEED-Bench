@@ -10,29 +10,49 @@ from Box2D.b2 import dynamicBody, staticBody
 
 
 class S03Renderer(Renderer):
-    """S-03: The Cantilever task specific renderer. Camera centered on structure so the beam is in the middle of the frame."""
-
-    # World position to put at screen center (structure horizontal center x=9, chord height y=1)
-    CAMERA_CENTER_WORLD_X = 9.0
-    CAMERA_CENTER_WORLD_Y = 1.0
+    """S-03: The Cantilever task specific renderer."""
 
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
-        """Render entire scene. Fix camera so structure (x=9, y=1) is at screen center."""
+        """Render entire scene. Adjust camera to see the full structure."""
         ppm = self.simulator.ppm
         sw = self.simulator.screen_width
         sh = self.simulator.screen_height
-        cam_x = self.CAMERA_CENTER_WORLD_X * ppm - sw / 2
-        cam_y = sh / 2 - self.CAMERA_CENTER_WORLD_Y * ppm
+        
+        # Determine structure bounds to center camera
+        min_x, max_x = 0, 12
+        min_y, max_y = 0, 10
+        
+        bodies = list(sandbox.world.bodies)
+        if bodies:
+            xs = [b.position.x for b in bodies]
+            ys = [b.position.y for b in bodies]
+            min_x, max_x = min(xs), max(xs)
+            min_y, max_y = min(ys), max(ys)
+            
+        center_x = (min_x + max_x) / 2
+        center_y = (min_y + max_y) / 2
+        
+        # Increase ppm if the structure is very large? 
+        # Actually Renderer usually handles ppm. Let's just adjust camera.
+        
+        cam_x = center_x * ppm - sw / 2
+        cam_y = sh / 2 - center_y * ppm
         self.set_camera_offset(cam_x, cam_y)
-        self.clear((30, 30, 30))
+        self.clear((20, 20, 20))
         
         # Draw wall and structure
         for body in sandbox.world.bodies:
-            if body.type == staticBody:
-                self.draw_body(body, static_color=(150, 100, 50), outline_color=(200, 150, 100), outline_width=2)
-            elif body.type == dynamicBody:
-                self.draw_body(body, dynamic_color=(100, 200, 100), outline_color=(50, 150, 50), outline_width=2)
+            color = (100, 100, 100) # static
+            if body.type == dynamicBody:
+                if body in getattr(sandbox, '_load_bodies', []):
+                    color = (255, 50, 50) # loads
+                else:
+                    color = (100, 200, 100) # structure
+            else:
+                color = (150, 100, 50) # wall
+                
+            self.draw_body(body, dynamic_color=color, static_color=color, outline_color=(200, 200, 200), outline_width=1)
         
         # Draw target reach line
-        if hasattr(sandbox, 'TARGET_REACH'):
-            self.draw_line(sandbox.TARGET_REACH, 0, sandbox.TARGET_REACH, 20, (255, 255, 0), 2)
+        target_reach = sandbox._terrain_config.get("target_reach", 12.0)
+        self.draw_line(target_reach, -20, target_reach, 30, (255, 255, 0), 2)

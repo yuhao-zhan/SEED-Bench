@@ -45,17 +45,26 @@ def get_f06_curriculum_stages() -> List[Dict[str, Any]]:
     Each stage: terrain_config + physics_config. Original solution (push to ground target,
     55% delivery) should fail in all mutated stages.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Fluid Viscosity: The internal resistance of the transport medium, affecting how much force is required to move particles through the pipeline.
+ - Loss Zone Activation: The presence and effective reach of hazardous regions (pits) where material can be permanently lost.
+ - Operational Resource Limit: The total force or energy budget available for particle manipulation during the mission.
+ - Target Elevation: The vertical coordinates of the delivery zone, requiring adjustments to particle routing and trajectory.
+ - Gravity: The acceleration due to the local gravitational field, influencing the downward pull on all transported material.
+ - Atmospheric Resistance: Headwinds or other directional forces acting against the flow of material.
+ - Local Field Fluctuations: Deeper gravity wells or localized force gradients that can trap or deflect particles.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "High-Viscosity Fluid",
             "mutation_description": "Fluid viscosity increased significantly; particles respond slowly to forces.",
-            "task_description_suffix": """
-## Environmental Warning
-Environmental hazards in the corridor have changed. A new region of particle loss (pit) is active.
-In addition, the fluid in this region behaves differently than nominal conditions.
-Use simulation feedback to adapt your strategy.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "fluid": {"viscosity": 4.0},
                 "pit1_y_max": 1.5,
@@ -68,12 +77,7 @@ Use simulation feedback to adapt your strategy.
             "stage_id": "Stage-2",
             "title": "Raised Delivery Target",
             "mutation_description": "Target zone moved to higher elevation; ground-level push strategy fails.",
-            "task_description_suffix": """
-## Environmental Warning
-The **target zone has been moved to a different elevation**.
-The delivery zone coordinates have been updated in the task description.
-You must adapt your routing strategy to reach this new target.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "target_y_min": 2.0,
                 "target_y_max": 3.5,
@@ -84,11 +88,7 @@ You must adapt your routing strategy to reach this new target.
             "stage_id": "Stage-3",
             "title": "Viscous Fluid and Stronger Gravity",
             "mutation_description": "Higher fluid viscosity + stronger gravity; arcs fall short, delivery drops.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple physical conditions in the transport corridor have changed. Fluid resistance and particle dynamics differ from nominal.
-Infer the new dynamics from simulation feedback and adapt your strategy.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "fluid": {"viscosity": 1.8},
             },
@@ -101,12 +101,7 @@ Infer the new dynamics from simulation feedback and adapt your strategy.
             "stage_id": "Stage-4",
             "title": "Hostile Pipeline",
             "mutation_description": "Raised target + high viscosity + stronger headwind + deeper gravity well + reduced force budget.",
-            "task_description_suffix": """
-## Environmental Warning
-The **target zone is at a new elevation**.
-In addition, several environmental conditions have changed: fluid resistance, external forces, and resource constraints differ from nominal.
-Use simulation feedback to adapt and meet the delivery requirements.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "target_y_min": 2.5,
                 "target_y_max": 4.0,

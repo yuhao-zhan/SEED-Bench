@@ -32,11 +32,21 @@ class Evaluator:
 
         if not self.design_constraints_checked and step_count == 0:
             self.initial_joint_count = len(self.environment._joints)
+            violations = self._check_design_constraints()
+            if violations:
+                self.design_constraints_checked = True
+                return True, 0.0, {"failed": True, "failure_reason": "Design constraint violated: " + "; ".join(violations)}
             self.design_constraints_checked = True
 
         # Collision with gate check
         if getattr(self.environment, "get_gate_collision", lambda: False)():
             return True, 0.0, {"failed": True, "failure_reason": "Gate collision"}
+
+        if getattr(self.environment, "_speed_trap_failed", False):
+            return True, 0.0, {"failed": True, "failure_reason": "Speed trap failed (too slow at x=9)"}
+
+        if getattr(self.environment, "_checkpoint_11_failed", False):
+            return True, 0.0, {"failed": True, "failure_reason": "Checkpoint failed (speed at x=11 out of band)"}
 
         cabin_pos = self.environment.get_vehicle_position()
         cabin_vel = self.environment.get_vehicle_velocity()
@@ -54,16 +64,17 @@ class Evaluator:
             self.structure_broken = True
             failed, failure_reason = True, "Structure broken"
 
-        # Determine success at end
+        # Determine success
         is_end = (step_count >= max_steps - 1)
         success = False
-        if is_end and not failed:
-            if current_x < self._target_x_min:
+        if not failed:
+            if current_x >= self._target_x_min:
+                if self._target_speed_min <= speed <= self._target_speed_max:
+                    success = True
+                elif is_end:
+                    failed, failure_reason = True, f"Final speed out of band ({speed:.2f} m/s)"
+            elif is_end:
                 failed, failure_reason = True, f"Did not reach target zone (x={current_x:.2f} < {self._target_x_min})"
-            elif not (self._target_speed_min <= speed <= self._target_speed_max):
-                failed, failure_reason = True, f"Final speed out of band ({speed:.2f} m/s)"
-            else:
-                success = True
 
         done = failed or success or is_end
         score = 100.0 if success else 0.0
@@ -75,7 +86,33 @@ class Evaluator:
         }
 
     def _check_design_constraints(self):
-        return []
+        violations = []
+        if self.environment is None:
+            return ["Environment not available"]
+        
+        # Beam count check
+        min_beams = self.terrain_bounds.get("min_beam_count", 4)
+        max_beams = self.terrain_bounds.get("max_beam_count", 5)
+        num_beams = len(self.environment._bodies)
+        if num_beams < min_beams or num_beams > max_beams:
+            violations.append(f"Beam count {num_beams} is outside allowed range [{min_beams}, {max_beams}]")
+            
+        # Build zone check
+        bz = self.terrain_bounds.get("build_zone", {})
+        bx_min, bx_max = bz.get("x", [4.8, 9.0])
+        by_min, by_max = bz.get("y", [2.0, 3.2])
+        for body in self.environment._bodies:
+            x, y = body.position.x, body.position.y
+            if not (bx_min <= x <= bx_max and by_min <= y <= by_max):
+                violations.append(f"Beam at ({x:.2f}, {y:.2f}) is outside build zone")
+                
+        # Mass check
+        max_mass = self.terrain_bounds.get("max_structure_mass", 14.0)
+        mass = self.environment.get_structure_mass()
+        if mass > max_mass:
+            violations.append(f"Structure mass {mass:.2f} kg exceeds limit {max_mass} kg")
+            
+        return violations
 
     def get_task_description(self):
         return {

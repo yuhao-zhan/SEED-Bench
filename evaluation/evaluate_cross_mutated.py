@@ -101,68 +101,94 @@ def get_reference_solution(base_task_name: str, stage_id: str) -> str:
             action_func = f"agent_action_{stage_id}"
     
     lines = content.splitlines()
-    
-    extracted_imports = []
-    for line in lines:
-        if line.startswith("import ") or line.startswith("from "):
-            extracted_imports.append(line)
-            
-    extracted_build = []
-    in_build = False
-    for i, line in enumerate(lines):
-        if line.startswith(f"def {build_func}("):
-            in_build = True
-            extracted_build.append("def build_agent" + line[len(f"def {build_func}"):])
-            continue
-        if in_build:
-            if line.startswith("def ") or (line.strip() == "" and next_line_is_def(lines, i)):
-                in_build = False
-            else:
-                extracted_build.append(line)
-                
-    extracted_action = []
-    in_action = False
-    for i, line in enumerate(lines):
-        if line.startswith(f"def {action_func}("):
-            in_action = True
-            extracted_action.append("def agent_action" + line[len(f"def {action_func}"):])
-            continue
-        if in_action:
-            if line.startswith("def ") or (line.strip() == "" and next_line_is_def(lines, i)):
-                in_action = False
-            else:
-                extracted_action.append(line)
-                
-    final_parts = []
-    if extracted_imports:
-        final_parts.append("\n".join(extracted_imports))
-        
-    if extracted_build:
-        final_parts.append("\n".join(extracted_build))
-    else:
-        raise ValueError(f"Function {build_func} not found in {agent_path}")
-    
-    if any("_base_agent_action" in l for l in extracted_action):
-        extracted_base = []
-        in_base = False
-        for i, line in enumerate(lines):
-            if line.startswith("def _base_agent_action("):
-                in_base = True
-                extracted_base.append(line)
-                continue
-            if in_base:
-                if line.startswith("def ") or (line.strip() == "" and next_line_is_def(lines, i)):
-                    in_base = False
-                else:
-                    extracted_base.append(line)
-        if extracted_base:
-            final_parts.append("\n".join(extracted_base))
 
-    if extracted_action:
-        final_parts.append("\n".join(extracted_action))
+    # Identify all stage entry point functions to exclude those that aren't our target
+    stage_funcs = set()
+    for line in lines:
+        if line.startswith("def "):
+            # Extract function name before '('
+            name = line.split("(")[0][4:].strip()
+            if name.startswith("build_agent") or name.startswith("agent_action"):
+                stage_funcs.add(name)
+
+    targets = {build_func, action_func}
+    to_exclude = stage_funcs - targets
+
+    # Split content into top-level blocks
+    # A block starts at a non-indented line and continues until the next non-indented line
+    blocks = []
+    if not lines:
+        return ""
+
+    current_block = [lines[0]]
+    for line in lines[1:]:
+        # A new block starts if the line is not indented and not empty
+        if line.strip() != "" and not line.startswith(" ") and not line.startswith("\t"):
+            blocks.append("\n".join(current_block))
+            current_block = [line]
+        else:
+            current_block.append(line)
+    blocks.append("\n".join(current_block))
+
+    final_imports = []
+    final_helpers = []
+    final_build = ""
+    final_action = ""
+
+    for block in blocks:
+        stripped = block.strip()
+        if not stripped:
+            continue
+
+        first_line = block.splitlines()[0]
+
+        if first_line.startswith("import ") or first_line.startswith("from "):
+            final_imports.append(block)
+        elif first_line.startswith("def "):
+            func_name = first_line.split("(")[0][4:].strip()
+            if func_name == build_func:
+                # Rename to standard build_agent
+                new_block = block.replace(f"def {func_name}(", "def build_agent(", 1)
+                final_build = new_block
+            elif func_name == action_func:
+                # Rename to standard agent_action
+                new_block = block.replace(f"def {func_name}(", "def agent_action(", 1)
+                final_action = new_block
+            elif func_name in to_exclude:
+                # Skip other stage functions
+                continue
+            else:
+                # It's a helper function
+                final_helpers.append(block)
+        elif first_line.startswith("class "):
+            # Include helper classes
+            final_helpers.append(block)
+        else:
+            # Include top-level variables, docstrings, etc.
+            # But skip the if __name__ == "__main__": block if present
+            if "__main__" in first_line:
+                continue
+            final_helpers.append(block)
+
+    final_parts = []
+    if final_imports:
+        final_parts.append("\n".join(final_imports))
+
+    if final_helpers:
+        final_parts.append("\n\n".join(final_helpers))
+
+    if final_build:
+        final_parts.append(final_build)
+    else:
+        # If we couldn't find the target build_func, it's a critical error for a reference solution
+        raise ValueError(f"Target build function {build_func} not found in {agent_path}")
+
+    if final_action:
+        final_parts.append(final_action)
+    # Note: we don't necessarily raise if final_action is missing, 
+    # as some simple tasks might only have build_agent.
 
     return "\n\n".join(final_parts)
-
 def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_name: str,
                                  method: str, context: str = 'previous', max_iterations: int = 10,
                                  max_steps: int = 10000, headless: bool = True, api_key: Optional[str] = None,

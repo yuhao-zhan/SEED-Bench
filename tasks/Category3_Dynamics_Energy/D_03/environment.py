@@ -182,8 +182,8 @@ class Sandbox:
         self._gate_omega = omega
 
     def _create_second_gate(self, terrain_config: dict):
-        """Second rotating gate at x=13 — cart must pass BOTH gates when open."""
-        gate_x = float(terrain_config.get("gate2_pivot_x", 11.75))
+        """Second rotating gate at x=11.5 — cart must pass BOTH gates when open."""
+        gate_x = float(terrain_config.get("gate2_pivot_x", 11.5))
         gate_y = float(terrain_config.get("gate2_pivot_y", 2.5))
         rod_len = float(terrain_config.get("gate2_rod_length", 0.75))
         rod_w = 0.12
@@ -217,8 +217,8 @@ class Sandbox:
         self._gate2_open_half_width = float(terrain_config.get("gate2_open_half_width", 1.50))
 
     def _create_third_gate(self, terrain_config: dict):
-        """Third rotating gate at x=11.5 — cart must pass ALL THREE gates when open."""
-        gate_x = float(terrain_config.get("gate3_pivot_x", 11.5))
+        """Third rotating gate at x=11.75 — cart must pass ALL THREE gates when open."""
+        gate_x = float(terrain_config.get("gate3_pivot_x", 11.75))
         gate_y = float(terrain_config.get("gate3_pivot_y", 2.5))
         rod_len = float(terrain_config.get("gate3_rod_length", 0.7))
         rod_w = 0.12
@@ -253,7 +253,7 @@ class Sandbox:
 
     def _create_fourth_gate(self, terrain_config: dict):
         """Fourth rotating gate at x=12.5 — cart must pass ALL FOUR gates when open."""
-        gate_x = float(terrain_config.get("gate4_pivot_x", 11.75))
+        gate_x = float(terrain_config.get("gate4_pivot_x", 12.5))
         gate_y = float(terrain_config.get("gate4_pivot_y", 2.5))
         rod_len = float(terrain_config.get("gate4_rod_length", 0.65))
         rod_w = 0.12
@@ -319,6 +319,10 @@ class Sandbox:
                         break
 
         self._world.contactListener = Listener(self)
+
+    def get_gate_collision(self):
+        """Expose collision flag for evaluator."""
+        return getattr(self, "_gate_collision_occurred", False)
 
     def _install_contact_filter(self):
         """When a gate is open, its rod does not collide with cart/beams so the cart can pass through."""
@@ -538,7 +542,7 @@ class Sandbox:
         angle = self.get_gate2_angle()
         if angle is None:
             return False
-        half = getattr(self, "_gate2_open_half_width", 0.32)
+        half = getattr(self, "_gate2_open_half_width", 1.50)
         return (math.pi / 2 - half) <= angle <= (math.pi / 2 + half)
 
     def get_gate3_angle(self):
@@ -551,7 +555,7 @@ class Sandbox:
         angle = self.get_gate3_angle()
         if angle is None:
             return False
-        half = getattr(self, "_gate3_open_half_width", 0.65)
+        half = getattr(self, "_gate3_open_half_width", 0.60)
         return (math.pi / 2 - half) <= angle <= (math.pi / 2 + half)
 
     def get_gate4_angle(self):
@@ -564,7 +568,7 @@ class Sandbox:
         angle = self.get_gate4_angle()
         if angle is None:
             return False
-        half = getattr(self, "_gate4_open_half_width", 0.6)
+        half = getattr(self, "_gate4_open_half_width", 0.56)
         return (math.pi / 2 - half) <= angle <= (math.pi / 2 + half)
 
     def get_terrain_bounds(self):
@@ -580,8 +584,8 @@ class Sandbox:
             ),
             "cart_initial_speed": self._terrain_config.get("cart_initial_speed", 10.0),
             "gate_pivot_x": getattr(self, "_gate_pivot_x", 10.0),
-            "gate2_pivot_x": getattr(self, "_gate2_pivot_x", 13.0),
-            "gate3_pivot_x": getattr(self, "_gate3_pivot_x", 11.5),
+            "gate2_pivot_x": getattr(self, "_gate2_pivot_x", 11.5),
+            "gate3_pivot_x": getattr(self, "_gate3_pivot_x", 11.75),
             "gate4_pivot_x": getattr(self, "_gate4_pivot_x", 12.5),
             "gate_angular_velocity": getattr(self, "_gate_omega", 1.85),
             "speed_trap_x": getattr(self, "_speed_trap_x", 9.0),
@@ -590,7 +594,7 @@ class Sandbox:
             "checkpoint_11_x": getattr(self, "_checkpoint_11_x", 11.0),
             "checkpoint_11_speed_min": getattr(self, "_checkpoint_11_speed_min", 1.3),
             "checkpoint_11_speed_max": getattr(self, "_checkpoint_11_speed_max", 2.5),
-            "min_beam_count": getattr(self, "MIN_BEAM_COUNT", 3),
+            "min_beam_count": getattr(self, "MIN_BEAM_COUNT", 4),
             "impulse_zone": [getattr(self, "_impulse_zone_x_min", 8.0), getattr(self, "_impulse_zone_x_max", 9.0)],
             "impulse2_zone": [getattr(self, "_impulse2_zone_x_min", 10.5), getattr(self, "_impulse2_zone_x_max", 11.0)],
             "gate_open_half_width": self._gate_open_half_width,

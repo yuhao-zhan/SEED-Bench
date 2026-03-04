@@ -93,9 +93,9 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     if error:
         error_lower = error.lower()
         if "spawn" in error_lower or "start zone" in error_lower:
-            suggestions.append("- All blocks must spawn at x < 0 (on the table)")
+            suggestions.append("- All blocks must spawn at x < 0 (on the table), but construction zone may be further restricted.")
         elif "width" in error_lower or "height" in error_lower or "dimension" in error_lower:
-            suggestions.append("- Block dimensions must be: width <= 1.0m, height <= 0.5m")
+            suggestions.append("- Block dimensions must be: width <= 4.0m, height <= 0.4m")
         elif "too many blocks" in error_lower:
             suggestions.append("- Reduce number of blocks to be within 20 limit")
         elif "joint" in error_lower:
@@ -106,29 +106,26 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             failure_lower = failure_reason.lower()
             if "too many blocks" in failure_lower:
                 suggestions.append("- Reduce number of blocks to be within 20 limit")
-            elif "start zone" in failure_lower:
-                suggestions.append("- All blocks must spawn at x < 0 (on the table)")
+            elif "spawn zone" in failure_lower or "start zone" in failure_lower:
+                suggestions.append("- Your blocks are outside the permitted build access zone. Check the environmental feedback.")
             elif "width" in failure_lower or "height" in failure_lower:
-                suggestions.append("- Block dimensions must be: width <= 1.0m, height <= 0.5m")
+                suggestions.append("- Block dimensions must be: width <= 4.0m, height <= 0.4m")
+        elif failure_reason and "hit the ceiling" in failure_reason.lower():
+            suggestions.append("- Vertical clearance is restricted. Keep your structure lower to the ground.")
         elif failure_reason and "fell" in failure_reason.lower():
             suggestions.append("- Structure is unstable and falling")
             com_x = metrics.get('center_of_mass_x', 0)
             if com_x >= 0:
                 suggestions.append(f"- Center of mass is at x={com_x:.2f}m (over edge) - move it back onto table")
             suggestions.append("- Use counter-balancing: place heavier blocks further back on table")
-            suggestions.append("- Ensure structure has sufficient base support")
-            if metrics.get('max_velocity', 0) > 0.1:
-                suggestions.append("- Structure is moving too fast - improve stability")
-        elif failure_reason and "joint" in failure_reason.lower():
-            suggestions.append("- Joints are disabled for this task")
-            suggestions.append("- You can only use gravity and friction")
+            suggestions.append("- Ensure structure has sufficient base support to resist wind or tilt")
     
     elif not success:
         max_x = metrics.get('max_x_position', 0)
-        target = metrics.get('target_overhang', 2.0)
+        target = metrics.get('target_overhang', 0.1)
         
         if max_x < target:
-            suggestions.append(f"- Overhang is insufficient: {max_x:.2f}m < {target:.2f}m target (reduced from 2.0m)")
+            suggestions.append(f"- Overhang is insufficient: {max_x:.2f}m < {target:.2f}m target")
             suggestions.append("- Use counter-balancing technique: extend blocks outward while placing counter-weights on table")
             suggestions.append("- Stack blocks in layers, gradually extending outward")
             com_x = metrics.get('center_of_mass_x', 0)
@@ -145,10 +142,6 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             
             if metrics.get('max_velocity', 0) > 0.01:
                 suggestions.append("- Structure is still moving - improve balance")
-                suggestions.append("- Check center of mass position - should be on table (x < 0)")
-            
-            if metrics.get('total_kinetic_energy', 0) > 0.001:
-                suggestions.append("- Structure has kinetic energy - it's moving")
-                suggestions.append("- Ensure blocks are properly stacked and balanced")
+                suggestions.append("- Consider lateral forces like wind or tilt that might require heavier anchors")
     
     return suggestions

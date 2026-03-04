@@ -30,6 +30,8 @@ class Simulator:
     Common simulator class
     Responsible for physics stepping, rendering, GIF generation, etc.
     """
+    _global_skip_gif = False
+
     def __init__(self, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, ppm=PPM):
         self.screen_width = screen_width
         self.screen_height = screen_height
@@ -47,8 +49,12 @@ class Simulator:
             headless: If True, don't display window
             save_gif: If True, save as GIF
         """
+        if Simulator._global_skip_gif:
+            save_gif = False
+            
         self.save_gif = save_gif
         pygame.init()
+        # ... rest of method unchanged
         
         if not headless or save_gif:
             try:
@@ -115,6 +121,9 @@ class Simulator:
             gif_path: GIF file path
             duration: Delay per frame (milliseconds), must be 1-65535 for GIF format
         """
+        if Simulator._global_skip_gif:
+            return False
+            
         duration = max(1, min(int(duration), 65535))
         if not self.save_gif:
             print(f"⚠️  GIF saving disabled (save_gif=False)")
@@ -154,6 +163,9 @@ class Simulator:
             print(f"   Total {len(images)} frames\n")
             return True
         except Exception as e:
+            if isinstance(e, OSError) and e.errno == 122:
+                print(f"⚠️  Disk quota exceeded! Disabling GIF saving for all subsequent runs.")
+                Simulator._global_skip_gif = True
             print(f"❌ Error saving GIF: {e}")
             import traceback
             traceback.print_exc()

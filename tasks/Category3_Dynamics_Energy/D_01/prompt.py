@@ -30,7 +30,7 @@ Design a launcher that:
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Hit**: Projectile center must lie inside the red target zone.
+1. **Hit**: Projectile center must lie inside the red target zone (x in [40, 45] m, y in [2, 5] m).
 2. **No early failure**: Projectile must not be destroyed or leave the simulation bounds.
 
 ## Design Constraints

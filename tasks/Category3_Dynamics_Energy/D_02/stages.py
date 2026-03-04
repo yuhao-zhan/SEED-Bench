@@ -24,6 +24,18 @@ def update_success_criteria_for_visible_changes(
     return base_success_criteria
 
 
+_D02_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Gravity: Variations in the gravitational field will directly alter the parabolic trajectory and time-of-flight of the jumper.
+ - Air Resistance: Increased atmospheric drag can reduce momentum over time, affecting the jump range.
+ - Surface Behavior: The elasticity or restitution of the launch surface may have changed, affecting the initial takeoff impulse.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def get_d02_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Return ordered stage configs for D-02 mutated tasks (difficulty ascending).
@@ -36,11 +48,7 @@ def get_d02_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Heavier World",
             "mutation_description": "Gravity increased; trajectory drops faster, same impulse may hit bars or fall short.",
-            "task_description_suffix": """
-## Environmental Warning
-Local gravity has changed. Trajectories will differ from nominal conditions.
-You must find a launch that still passes through all three gaps and lands on the right platform.
-""",
+            "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {"gravity": (0, -21.0)},
         },
@@ -48,11 +56,7 @@ You must find a launch that still passes through all three gaps and lands on the
             "stage_id": "Stage-2",
             "title": "Resistive Air",
             "mutation_description": "Linear and angular damping increased; jumper loses speed over time.",
-            "task_description_suffix": """
-## Environmental Warning
-The atmosphere is more resistive. Momentum is reduced over time.
-A launch that would otherwise reach the platform may fall short; adjust accordingly.
-""",
+            "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "linear_damping": 1.8,
@@ -63,11 +67,7 @@ A launch that would otherwise reach the platform may fall short; adjust accordin
             "stage_id": "Stage-3",
             "title": "Heavy and Resistive",
             "mutation_description": "Stronger gravity and moderate damping; trajectory and range both affected.",
-            "task_description_suffix": """
-## Environmental Warning
-Both gravity and atmospheric resistance have changed. Trajectories and range will differ from nominal.
-Find a launch that passes through all three gaps and lands on the right platform.
-""",
+            "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "gravity": (0, -20.0),
@@ -79,11 +79,7 @@ Find a launch that passes through all three gaps and lands on the right platform
             "stage_id": "Stage-4",
             "title": "Extreme Environment",
             "mutation_description": "High gravity, high damping, and bouncy take-off surface; full re-tuning required.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple physical conditions have changed: gravity, atmospheric resistance, and take-off surface behavior.
-You must infer the new dynamics from simulation feedback and adapt your launch to pass all three gaps and land on the right platform.
-""",
+            "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {
                 "left_platform_restitution": 0.5,
             },

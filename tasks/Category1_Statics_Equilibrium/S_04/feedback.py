@@ -22,8 +22,8 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         metric_parts.append(f"**Structure mass**: {metrics['structure_mass']:.2f}kg")
     if 'structure_com_x' in metrics and 'structure_com_y' in metrics:
         metric_parts.append(f"**Structure COM**: x={metrics['structure_com_x']:.3f}m, y={metrics['structure_com_y']:.3f}m (relative to pivot)")
-    if 'net_gravity_torque_about_pivot' in metrics:
-        metric_parts.append(f"**Net gravity torque about pivot**: {metrics['net_gravity_torque_about_pivot']:.1f} N·m (target ≈ 0)")
+    if 'net_torque_about_pivot' in metrics:
+        metric_parts.append(f"**Net static torque about pivot**: {metrics['net_torque_about_pivot']:.1f} N·m (target ≈ 0)")
     if 'min_body_y' in metrics and metrics['min_body_y'] is not None:
         metric_parts.append(f"**Minimum body y**: {metrics['min_body_y']:.3f}m (failure if < -0.1m)")
     if metrics.get('load_mass') is not None and metrics.get('load_pos') is not None:
@@ -63,7 +63,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     
     # Torque/COM guided suggestions (works even when not 'failed' but not successful)
     if metrics:
-        torque = metrics.get('net_gravity_torque_about_pivot')
+        torque = metrics.get('net_torque_about_pivot')
         com_x = metrics.get('structure_com_x')
         max_angle = metrics.get('max_angle_seen_deg')
         balance_duration = metrics.get('balance_duration', 0.0)
@@ -72,9 +72,9 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
         if isinstance(torque, (int, float)):
             if abs(torque) > 500:
                 if torque > 0:
-                    suggestions.append("- Net torque is positive (load-side heavy): move/add counterweight to negative x (left of pivot) or reduce mass on +x side")
+                    suggestions.append("- Net torque is positive (clockwise heavy): move/add counterweight to negative x (left of pivot) or reduce mass on right")
                 else:
-                    suggestions.append("- Net torque is negative (counterweight-side heavy): reduce left mass or shift counterweight closer to pivot")
+                    suggestions.append("- Net torque is negative (counter-clockwise heavy): reduce left mass or shift counterweight closer to pivot")
         
         if isinstance(com_x, (int, float)):
             if abs(com_x) > 0.1:

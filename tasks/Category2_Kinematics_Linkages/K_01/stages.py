@@ -14,14 +14,6 @@ from typing import Any, Dict, List
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes.
-
-    Args:
-        base_description: Original task description
-        target_terrain_config: Target terrain configuration
-        base_terrain_config: Base terrain configuration to compare against
-
-    Returns:
-        Updated task description with visible changes explicitly marked
     """
     # K-01 mutations use only invisible params
     return base_description
@@ -37,85 +29,61 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_k01_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for K-01: The Walker task variants.
-
-    Each stage dict fields:
-      - stage_id: str
-      - title: str
-      - mutation_description: str (for logs, not shown to solver)
-      - task_description_suffix: str (generic warning, no exact numeric changes)
-      - terrain_config: dict (passed to Sandbox)
-      - physics_config: dict (passed to Sandbox)
-
-    Order: Stage-1 and Stage-2 each change one param; Stage-3 and Stage-4 change multiple.
-    Difficulty increases from Stage-1 to Stage-4.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Ground Friction: The traction and slipperiness of the walking surface.
+ - Joint Limits: The permitted range of motion for the walker's pivot joints.
+ - Gravity: The magnitude and direction of the gravitational force.
+ - Body Friction: The friction coefficient of the walker's physical components.
+ - Damping: The rate at which mechanical energy and momentum are dissipated.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "Low Ground Friction",
             "mutation_description": "Ground friction 0.01. Extremely slippery surface.",
-            "task_description_suffix": """
-## Environmental Warning
-Surface contact properties in this region have changed.
-The ground may provide different traction than in standard conditions.
-Your walker must adapt to achieve stable forward locomotion.
-""",
-            "terrain_config": {
-                "ground_friction": 0.01,
-            },
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {"ground_friction": 0.01},
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
             "title": "Restricted Joint Limits",
-            "mutation_description": "Pivot joints have default angle limits ±π/2 (90°). Leg rotation restricted.",
-            "task_description_suffix": """
-## Environmental Warning
-Joint behavior in this region has changed.
-Pivot joints may have restricted range of motion.
-Your walker design must account for these constraints.
-""",
+            "mutation_description": "Pivot joints have default angle limits \u00b1\u03c0/2 (90\u00b0). Leg rotation restricted.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
-                "default_joint_lower_limit": -math.pi / 2,   # -90°
-                "default_joint_upper_limit": math.pi / 2,    # +90°
+                "default_joint_lower_limit": -math.pi / 2,
+                "default_joint_upper_limit": math.pi / 2,
             },
         },
         {
             "stage_id": "Stage-3",
             "title": "Reduced Friction + Restricted Joints",
-            "mutation_description": "Ground friction 0.12 + joint limits ±π/2 (90°). Dual params.",
-            "task_description_suffix": """
-## Environmental Warning
-Both surface contact and joint behavior have changed in this region.
-Your walker must adapt to achieve stable forward locomotion under these conditions.
-""",
-            "terrain_config": {
-                "ground_friction": 0.12,
-            },
+            "mutation_description": "Ground friction 0.12 + joint limits \u00b1\u03c0/2 (90\u00b0). Dual params.",
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {"ground_friction": 0.12},
             "physics_config": {
-                "default_joint_lower_limit": -math.pi / 2,   # -90°
-                "default_joint_upper_limit": math.pi / 2,    # +90°
+                "default_joint_lower_limit": -math.pi / 2,
+                "default_joint_upper_limit": math.pi / 2,
             },
         },
         {
             "stage_id": "Stage-4",
             "title": "Extreme Challenge",
-            "mutation_description": "Gravity -30, ground friction 0.01, max_body_friction 0.06, joint limits ±π/2 (90°), damping 3.0.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple environmental anomalies detected simultaneously.
-Gravity, surface contact, joint behavior, and momentum dissipation have all changed.
-This is an extreme engineering challenge requiring optimal walker design.
-""",
-            "terrain_config": {
-                "ground_friction": 0.01,
-            },
+            "mutation_description": "Gravity -30, ground friction 0.01, max_body_friction 0.06, joint limits \u00b1\u03c0/2 (90\u00b0), damping 3.0.",
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {"ground_friction": 0.01},
             "physics_config": {
                 "gravity": (0, -30.0),
                 "max_body_friction": 0.06,
-                "default_joint_lower_limit": -math.pi / 2,   # -90°
-                "default_joint_upper_limit": math.pi / 2,    # +90°
+                "default_joint_lower_limit": -math.pi / 2,
+                "default_joint_upper_limit": math.pi / 2,
                 "linear_damping": 3.0,
                 "angular_damping": 3.0,
             },

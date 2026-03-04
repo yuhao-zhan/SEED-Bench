@@ -43,6 +43,7 @@ class DaVinciSandbox:
         
         # Table Angle
         self._table_angle = terrain_config.get("table_angle", 0.0)
+        self._wind_force = physics_config.get("wind_force", 0.0)
 
         self._create_terrain(terrain_config)
 
@@ -123,6 +124,10 @@ class DaVinciSandbox:
             self._timer += time_step
             vx = self._osc_amplitude * self._osc_frequency * math.cos(self._osc_frequency * self._timer)
             self._terrain_bodies["table"].linearVelocity = (vx, 0)
+        
+        if self._wind_force != 0:
+            for body in self._bodies:
+                body.ApplyForceToCenter((self._wind_force, 0), True)
             
         self._world.Step(time_step, 10, 10)
 

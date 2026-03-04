@@ -12,6 +12,7 @@ except RuntimeError:
 
 import argparse
 import json
+import glob
 import traceback
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -320,9 +321,21 @@ class TaskEvaluator:
         filename = f"{self.context}_{task_label}.json"
         
         save_path = os.path.join(task_dir, filename)
-        with open(save_path, 'w', encoding='utf-8') as f:
-            json.dump(report, f, indent=2)
-        print(f"📄 Evaluation report saved: {save_path}")
+        try:
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(report, f, indent=2)
+            print(f"📄 Evaluation report saved: {save_path}")
+        except OSError as e:
+            if e.errno == 122: # Disk quota exceeded
+                print(f"⚠️  Disk quota exceeded while saving report: {save_path}")
+                # Try to disable GIF saving globally for future runs
+                try:
+                    from common.simulator import Simulator
+                    Simulator._global_skip_gif = True
+                except:
+                    pass
+            # Re-raise the error as requested: "没地方保存json就直接报错"
+            raise e
         return save_path
 
 

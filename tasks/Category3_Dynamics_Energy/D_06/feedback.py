@@ -11,7 +11,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "ball_x" in metrics:
         parts.append(f"**Ball position**: x={metrics['ball_x']:.2f} m, y={metrics['ball_y']:.2f} m")
     if "ball_speed" in metrics:
-        parts.append(f"**Ball speed**: {metrics['ball_speed']:.2f} m/s (caught if < 0.4 m/s)")
+        parts.append(f"**Ball speed**: {metrics['ball_speed']:.2f} m/s (caught if < 0.35 m/s)")
     if "ball_caught" in metrics:
         parts.append(f"**Ball caught**: {'Yes' if metrics['ball_caught'] else 'No'}")
     if "structure_smashed" in metrics:
@@ -37,7 +37,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             parts.append(f"- Ball velocity: vx={metrics['ball_vx']:.3f} m/s, vy={metrics['ball_vy']:.3f} m/s")
         if "ball_speed_vs_threshold" in metrics:
             diff = metrics["ball_speed_vs_threshold"]
-            parts.append(f"- Ball speed vs catch threshold (0.4 m/s): {diff:+.3f} m/s (negative = caught)")
+            parts.append(f"- Ball speed vs catch threshold (0.35 m/s): {diff:+.3f} m/s (negative = caught)")
 
     if metrics.get("uncaptured_positions"):
         parts.append("\n**Uncaptured balls (add coverage in these regions)**")
@@ -62,7 +62,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
         if "structure mass" in error.lower() and "exceeds" in error.lower():
             suggestions.append("- Reduce catcher mass to stay within 10 kg")
         if "build zone" in error.lower() or "outside" in error.lower():
-            suggestions.append("- Place all beam centers inside build zone x=[7, 11], y=[0.5, 5.5]; max 7 beams")
+            suggestions.append("- Place all beam centers inside build zone x=[7, 11], y=[0.5, 5.5]; max 9 beams")
     elif failed:
         if failure_reason and "design constraint" in (failure_reason or "").lower():
             if "anchored" in (failure_reason or "").lower() or "unanchored" in (failure_reason or "").lower():
@@ -70,7 +70,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             if "mass" in (failure_reason or "").lower():
                 suggestions.append("- Reduce total mass below 10 kg")
             if "build zone" in (failure_reason or "").lower() or "beam count" in (failure_reason or "").lower():
-                suggestions.append("- Keep all parts inside build zone; max 9 beams; avoid forbidden zones and sweeper bands")
+                suggestions.append("- Keep all parts inside build zone; max 9 beams; avoid forbidden zones and all four sweeper bands")
         elif failure_reason and "structure smashed" in (failure_reason or "").lower():
             suggestions.append("- Reduce peak and sustained force on joints: add buffering (low restitution, many joints)")
             suggestions.append("- Spread impact over many joints; sustained high load can also cause failure — use softer materials (density ~0.04)")

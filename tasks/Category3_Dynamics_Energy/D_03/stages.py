@@ -25,6 +25,19 @@ def update_success_criteria_for_visible_changes(
     return base_success_criteria
 
 
+_D03_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - External Track Forces: The magnitude of impulses applied along the track may vary, affecting the cart's acceleration and peak velocity.
+ - Ambient Resistance: Increased linear or angular damping across the environment can cause the cart to shed speed more quickly.
+ - Deceleration Zone Damping: The resistance within specific slowing zones may have been adjusted, altering how effectively the cart is braked.
+ - Gravity: Changes in the gravitational field can affect the effective weight and friction of the cart as it moves.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def get_d03_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Return ordered stage configs for D-03 mutated tasks.
@@ -36,11 +49,7 @@ def get_d03_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Stronger first impulse",
             "mutation_description": "Impulse magnitude in zone [8,9] increased; need more mass to survive speed trap v(9)≥2.8.",
-            "task_description_suffix": """
-## Environmental note
-External forces along the track may differ from nominal conditions.
-Use simulation feedback to tune mass and layout so the speed trap and velocity profile are still satisfied.
-""",
+            "task_description_suffix": _D03_SUFFIX,
             "terrain_config": {
                 "impulse_magnitude": 2.5,  # default 1.5 — stronger backward kick, original solution may fail v(9)≥2.8
             },
@@ -50,11 +59,7 @@ Use simulation feedback to tune mass and layout so the speed trap and velocity p
             "stage_id": "Stage-2",
             "title": "Higher ambient damping",
             "mutation_description": "Linear and angular damping increased; cart sheds more speed everywhere, v(11) band and gate timing harder.",
-            "task_description_suffix": """
-## Environmental note
-Ambient resistance (e.g. drag) may be higher than nominal.
-Use feedback to adjust design so v(9), v(11), and gate phase timing remain valid.
-""",
+            "task_description_suffix": _D03_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "linear_damping": 0.55,
@@ -65,10 +70,7 @@ Use feedback to adjust design so v(9), v(11), and gate phase timing remain valid
             "stage_id": "Stage-3",
             "title": "Stronger impulses and decel zone",
             "mutation_description": "First impulse, second impulse, and decel zone damping all increased; v(9) and v(11) both harder to meet.",
-            "task_description_suffix": """
-## Environmental note
-Forces and damping along the track differ from nominal. Rely on feedback to satisfy the speed trap, velocity profile, and gate timing.
-""",
+            "task_description_suffix": _D03_SUFFIX,
             "terrain_config": {
                 "impulse_magnitude": 2.5,
                 "impulse2_magnitude": 0.95,
@@ -80,10 +82,7 @@ Forces and damping along the track differ from nominal. Rely on feedback to sati
             "stage_id": "Stage-4",
             "title": "Heavy world and strong impulses",
             "mutation_description": "Gravity increased, both impulses and decel damping stronger, plus ambient damping; full profile and phase must be re-tuned.",
-            "task_description_suffix": """
-## Environmental note
-Physical conditions (e.g. effective weight and resistance) differ from nominal. Use simulation feedback to meet all checkpoints and gate timing.
-""",
+            "task_description_suffix": _D03_SUFFIX,
             "terrain_config": {
                 "impulse_magnitude": 2.6,
                 "impulse2_magnitude": 0.95,

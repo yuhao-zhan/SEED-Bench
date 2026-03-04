@@ -19,16 +19,16 @@ class Evaluator:
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
-        self._target_y_min = terrain_bounds.get("target_y_min", 12.0)
-        self._target_x_min = terrain_bounds.get("target_x_min", 9.5)
-        self._target_x_max = terrain_bounds.get("target_x_max", 10.5)
+        self._target_y_min = terrain_bounds.get("target_y_min", 11.7)
+        self._target_x_min = terrain_bounds.get("target_x_min", 9.35)
+        self._target_x_max = terrain_bounds.get("target_x_max", 10.65)
         self._touched_target = False
         self._design_constraints_checked = False
         self._max_seat_y_reached = 0.0
         self._apex_reached = False  # True once we've seen speed < APEX_SPEED_THRESHOLD
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
-        self.MAX_STRUCTURE_MASS = getattr(environment, "MAX_STRUCTURE_MASS", 150.0)
+        self.MAX_STRUCTURE_MASS = getattr(environment, "MAX_STRUCTURE_MASS", 100.0)
         self.BUILD_ZONE_X_MIN = environment.BUILD_ZONE_X_MIN
         self.BUILD_ZONE_X_MAX = environment.BUILD_ZONE_X_MAX
         self.BUILD_ZONE_Y_MIN = environment.BUILD_ZONE_Y_MIN

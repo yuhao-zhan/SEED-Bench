@@ -48,7 +48,7 @@ def test_stage_solution(stage_config, reference_code):
     task_name = "Category1_Statics_Equilibrium/S_06"
     verifier = CodeVerifier(
         task_name=task_name,
-        max_steps=2000,
+        max_steps=10000,
         env_overrides=env_overrides
     )
     

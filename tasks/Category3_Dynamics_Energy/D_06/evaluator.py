@@ -1,10 +1,10 @@
 """
 D-06: The Catch task evaluation module (INSANE).
 
-SUCCESS: ALL FIVE balls caught (speed < 0.4 m/s) AND in TARGET x=[7,11], y=[0.5,5.5].
-No beam in DOUBLE SWEEPER BANDS y=[2.95,3.55] or y=[4.15,4.75]. No beam in forbidden zones.
-PIT FAILURE: any ball at y<0.65 with speed>1.0 before caught = fail.
-At most 14 beams, 18 kg. No joint broke (1100 N).
+SUCCESS: ALL SEVEN balls caught (speed < 0.35 m/s) AND in TARGET x=[7,11], y=[0.5,5.5].
+No beam in FOUR SWEEPER BANDS. No beam in forbidden zones.
+PIT FAILURE: any ball at y<0.72 with speed>1.0 before caught = fail.
+At most 9 beams, 10 kg. No joint broke (880 N).
 """
 import sys
 import os
@@ -31,7 +31,7 @@ class Evaluator:
         self._design_constraints_checked = False
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
-        self.MAX_STRUCTURE_MASS = getattr(environment, "MAX_STRUCTURE_MASS", 40.0)
+        self.MAX_STRUCTURE_MASS = getattr(environment, "MAX_STRUCTURE_MASS", 10.0)
         self.BUILD_ZONE_X_MIN = environment.BUILD_ZONE_X_MIN
         self.BUILD_ZONE_X_MAX = environment.BUILD_ZONE_X_MAX
         self.BUILD_ZONE_Y_MIN = environment.BUILD_ZONE_Y_MIN

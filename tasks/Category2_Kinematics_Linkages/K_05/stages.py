@@ -3,7 +3,6 @@ K-05: The Lifter task curriculum stages (mutations).
 
 All stage definitions live under tasks/Category2_Kinematics_Linkages/K_05.
 The solver agent is NOT told exact invisible parameter changes; it must infer from feedback.
-Visible changes (e.g. target lift height) are reflected in task_description_suffix.
 """
 
 from __future__ import annotations
@@ -53,57 +52,40 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_k05_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for K-05: The Lifter task variants.
-    Difficulty: Stage-1 < Stage-2 < Stage-3 < Stage-4.
-    Stage-1/2: single parameter change (invisible). Stage-3/4: multiple (with visible target height when changed).
-
-    Each stage dict fields:
-      - stage_id: str
-      - title: str
-      - mutation_description: str (for logs, not shown to solver)
-      - task_description_suffix: str (generic warning for invisible; explicit for visible e.g. target height)
-      - terrain_config: dict (passed to Sandbox)
-      - physics_config: dict (passed to Sandbox)
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Gravity: The magnitude and direction of the gravitational force.
+ - Object Mass: The total weight and inertia of the target object.
+ - Target Height: The required vertical elevation for task completion.
+ - Ground Friction: The traction and slipperiness of the base surface.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "Increased Gravity",
-            "mutation_description": "Gravity increased from -10 to -28 m/s². Structure and motors experience much higher loads.",
-            "task_description_suffix": """
-## Environmental Warning
-Physical conditions in this region have changed.
-Structures and actuators experience significantly increased loads.
-Your lifter must be designed to withstand higher structural stresses and deliver sufficient torque.
-""",
+            "mutation_description": "Gravity increased from -10 to -28 m/s\u00b2.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {},
-            "physics_config": {
-                "gravity": (0, -28.0),
-            },
+            "physics_config": {"gravity": (0, -28.0)},
         },
         {
             "stage_id": "Stage-2",
             "title": "Heavier Object",
-            "mutation_description": "Object mass increased from 20kg to 50kg. Much higher load on structure and motors.",
-            "task_description_suffix": """
-## Environmental Warning
-The load to be lifted has changed.
-Your lifter must be able to support and lift the object reliably to the target height.
-""",
-            "terrain_config": {
-                "object": {"mass": 50.0, "friction": 0.6},
-            },
+            "mutation_description": "Object mass increased from 20kg to 50kg.",
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {"object": {"mass": 50.0, "friction": 0.6}},
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
             "title": "Higher Target + Heavier Object",
-            "mutation_description": "Target height 10.5m (was 9m), object mass 42kg. Visible: target height; invisible: mass.",
-            "task_description_suffix": """
-## Environmental Warning (visible change)
-**The target lift height has been changed.** The object must be lifted to **at least 9.5 meters above ground (y >= 10.5m)**.
-The red line in the environment indicates the new required height.
-Load conditions may also differ; your lifter must adapt to reach and sustain the new target.
-""",
+            "mutation_description": "Target height 10.5m, object mass 42kg.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "target_object_y": 10.5,
                 "object": {"mass": 42.0, "friction": 0.6},
@@ -113,21 +95,13 @@ Load conditions may also differ; your lifter must adapt to reach and sustain the
         {
             "stage_id": "Stage-4",
             "title": "Multi-Parameter Challenge",
-            "mutation_description": "Gravity -16, object 46kg, target 10m, reduced ground friction 0.4. Combined stress.",
-            "task_description_suffix": """
-## Environmental Warning (visible change)
-**The target lift height has been changed.** The object must be lifted to **at least 9 meters above ground (y >= 10m)**.
-The red line indicates the new required height.
-Multiple physical conditions have changed; structures experience higher loads and contact behavior may differ.
-Your lifter must be designed to reach the new height and sustain the object under these conditions.
-""",
+            "mutation_description": "Gravity -16, object 46kg, target 10m, friction 0.4.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "target_object_y": 10.0,
                 "ground_friction": 0.4,
                 "object": {"mass": 46.0, "friction": 0.6},
             },
-            "physics_config": {
-                "gravity": (0, -16.0),
-            },
+            "physics_config": {"gravity": (0, -16.0)},
         },
     ]

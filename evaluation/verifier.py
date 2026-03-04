@@ -466,10 +466,10 @@ class CodeVerifier:
             
             # Detect stuck - Unified for all tasks: Use Category1 threshold (900 steps, 0.02m)
             # This is more lenient and reduces false positives while still catching truly stuck cases
-            task_lower = self.task_name.lower()
-            is_category1_task = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])
-            is_e03_sled = 'e_03' in task_lower
-            is_e05_magnet = 'e_05' in task_lower
+            task_lower = self.task_name.lower().replace("_", "")
+            is_category1_task = any(x in task_lower for x in ['s01', 's02', 's03', 's04', 's05', 's06', 'category1'])
+            is_e03_sled = 'e03' in task_lower
+            is_e05_magnet = 'e05' in task_lower
             
             # Try to get position from vehicle (Category1), sled (E-03), body (E-05), or agent_body (other tasks)
             current_pos = None
@@ -683,13 +683,19 @@ class CodeVerifier:
             
             # Save GIF
             if save_gif_path and self.simulator:
-                self.simulator.save_gif_animation(save_gif_path)
+                try:
+                    self.simulator.save_gif_animation(save_gif_path)
+                except Exception as e:
+                    print(f"⚠️  Warning: Failed to save GIF (possibly disk full): {e}")
             
             return final_metrics.get('success', False), final_score, final_metrics
         
         # Save GIF (even without evaluator)
         if save_gif_path and self.simulator:
-            self.simulator.save_gif_animation(save_gif_path)
+            try:
+                self.simulator.save_gif_animation(save_gif_path)
+            except Exception as e:
+                print(f"⚠️  Warning: Failed to save GIF (possibly disk full): {e}")
         
         return False, 0.0, {}
     
@@ -760,13 +766,19 @@ class CodeVerifier:
             
             # Save GIF
             if save_gif_path and self.simulator:
-                self.simulator.save_gif_animation(save_gif_path)
+                try:
+                    self.simulator.save_gif_animation(save_gif_path)
+                except Exception as e:
+                    print(f"⚠️  Warning: Failed to save GIF (possibly disk full): {e}")
             
             return final_metrics.get('success', False), final_score, final_metrics
         
         # Save GIF (even without evaluator)
         if save_gif_path and self.simulator:
-            self.simulator.save_gif_animation(save_gif_path)
+            try:
+                self.simulator.save_gif_animation(save_gif_path)
+            except Exception as e:
+                print(f"⚠️  Warning: Failed to save GIF (possibly disk full): {e}")
         
         return False, 0.0, {}
     

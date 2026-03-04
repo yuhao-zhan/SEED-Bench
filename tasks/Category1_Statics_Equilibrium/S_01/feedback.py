@@ -20,8 +20,15 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         metric_parts.append(f"**Vehicle position**: x={metrics['vehicle_x']:.2f}m, y={vehicle_y:.2f}m")
         if 'target_x' in metrics:
             metric_parts.append(f"**Target position**: x={metrics['target_x']:.2f}m")
-        if 'progress' in metrics:
-            metric_parts.append(f"**Progress**: {metrics['progress']:.1f}%")
+        
+        progress = metrics.get('progress')
+        if progress is None and 'target_x' in metrics:
+            start_x = 5.0
+            max_dist = metrics['target_x'] - start_x
+            progress = min(max(0, metrics['vehicle_x'] - start_x) / max_dist, 1.0) * 100.0 if max_dist > 0 else 0.0
+        
+        if progress is not None:
+            metric_parts.append(f"**Progress**: {progress:.1f}%")
     elif 'target_x' in metrics:
         # At least show target if vehicle position not available
         metric_parts.append(f"**Target position**: x={metrics['target_x']:.2f}m")
@@ -40,7 +47,10 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if 'structure_broken' in metrics:
         metric_parts.append(f"**Structure integrity**: {'BROKEN' if metrics['structure_broken'] else 'INTACT'}")
         if 'joint_count' in metrics:
-            metric_parts.append(f"**Joint count**: {metrics['joint_count']}")
+            joint_str = f"**Joint count**: {metrics['joint_count']}"
+            if 'initial_joint_count' in metrics:
+                joint_str += f" / {metrics['initial_joint_count']}"
+            metric_parts.append(joint_str)
     
     # Simulation steps
     if 'step_count' in metrics:

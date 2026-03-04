@@ -94,13 +94,13 @@ def get_improvement_suggestions(
     suggestions = []
     if error:
         if "structure mass" in error.lower() and "exceeds" in error.lower():
-            suggestions.append("- Reduce mechanism mass to stay within 150 kg")
+            suggestions.append("- Reduce mechanism mass to stay within 100 kg")
         if "build zone" in error.lower() or "outside" in error.lower():
             suggestions.append("- Place all beam centers inside build zone x=[6, 14], y=[4, 10]")
     elif failed:
         if failure_reason and "design constraint" in (failure_reason or "").lower():
             if "mass" in (failure_reason or "").lower():
-                suggestions.append("- Reduce total mass below 150 kg")
+                suggestions.append("- Reduce total mass below 100 kg")
             if "build zone" in (failure_reason or "").lower():
                 suggestions.append("- Keep all parts inside build zone x=[6, 14], y=[4, 10]")
         elif failure_reason and ("did not succeed" in (failure_reason or "").lower() or "apex" in (failure_reason or "").lower() or "vertical" in (failure_reason or "").lower()):

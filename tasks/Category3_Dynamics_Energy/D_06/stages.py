@@ -23,6 +23,20 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     return base_success_criteria
 
 
+_D06_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Structural Stress Limits: The maximum force and fatigue thresholds of joints may have been lowered, making the catcher more prone to breaking under impact.
+ - Projectile Dynamics: The velocity and launch timing of arriving balls may have changed, altering their arrival frequency and impact energy.
+ - Projectile Mass: The density and weight of the balls may have increased, requiring a more robust structure to absorb the momentum.
+ - Gravity: Variations in the gravitational field will alter the balls' trajectories and the effective weight of the catcher structure.
+ - Lateral Forces: Changes in wind amplitude or other lateral forces can add unexpected horizontal loads to the structure.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def get_d06_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for D-06 mutated tasks.
@@ -34,11 +48,7 @@ def get_d06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Weakened Joints",
             "mutation_description": "Max joint force and fatigue threshold significantly lowered. Structure breaks under impact.",
-            "task_description_suffix": """
-## Environmental Warning
-Structural stress limits have changed. Joints may fail under impact forces that were acceptable before.
-Infer the new load limits from simulation feedback and adapt your design.
-""",
+            "task_description_suffix": _D06_SUFFIX,
             "terrain_config": {
                 "max_joint_force": 180.0,      # Default 880 -> structure breaks under heavy ball impact
                 "joint_fatigue_threshold": 140.0,  # Default 760
@@ -49,11 +59,7 @@ Infer the new load limits from simulation feedback and adapt your design.
             "stage_id": "Stage-2",
             "title": "Faster Balls",
             "mutation_description": "All ball velocities +60% and launch times tightened. Sequential absorption much harder.",
-            "task_description_suffix": """
-## Environmental Warning
-Projectile dynamics have changed. Balls arrive faster and closer together than nominal.
-Sequential absorption may require different catcher placement or absorption strategy.
-""",
+            "task_description_suffix": _D06_SUFFIX,
             "terrain_config": {
                 "ball_velocity_x": -38.0,   # Default -24
                 "ball2_velocity_x": -42.0,  # Default -26
@@ -75,11 +81,7 @@ Sequential absorption may require different catcher placement or absorption stra
             "stage_id": "Stage-3",
             "title": "Heavy Impact",
             "mutation_description": "Heavier balls + lower joint limits + higher ball velocities. Multiple physics changes.",
-            "task_description_suffix": """
-## Environmental Warning
-Several physical properties have changed: projectile mass, impact limits, and arrival timing.
-Infer the new dynamics from simulation feedback and adapt your design.
-""",
+            "task_description_suffix": _D06_SUFFIX,
             "terrain_config": {
                 "ball_density": 145.0,         # Default 95 -> heavier balls
                 "max_joint_force": 520.0,      # Default 880
@@ -98,11 +100,7 @@ Infer the new dynamics from simulation feedback and adapt your design.
             "stage_id": "Stage-4",
             "title": "Hostile Environment",
             "mutation_description": "Stronger gravity + heavier balls + lower joint limits + higher wind + faster balls. Full hostile.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple environmental conditions have changed: gravity, projectile mass, structural limits, and lateral forces.
-Infer all changes from simulation feedback and adapt your design accordingly.
-""",
+            "task_description_suffix": _D06_SUFFIX,
             "terrain_config": {
                 "ball_density": 150.0,         # Default 95
                 "max_joint_force": 480.0,      # Default 880

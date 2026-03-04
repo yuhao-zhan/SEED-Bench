@@ -34,16 +34,26 @@ def get_f05_curriculum_stages() -> List[Dict[str, Any]]:
     terrain_config, physics_config. All changes are invisible (waves, cargo friction,
     current, lateral impulses, etc.); prompt only gets generic environmental warning.
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Wave Dynamics: The amplitude and frequency of primary and secondary wave patterns, affecting vessel roll and heave.
+ - Fluid Current: The strength of the water's flow, impacting the vessel's drift and required station-keeping.
+ - Stability Coefficients: The restoring torque and angular stiffness of the vessel, determining its ability to self-right after tilting.
+ - Lateral Disturbances: The magnitude and timing of impulsive side-forces or wind gusts acting on the structure.
+ - Rogue Activity: The presence and intensity of unpredictable, high-amplitude wave events.
+ - Cargo Traction: The surface friction of the transported objects, affecting how easily they slide across the deck.
+ - Gravity: The acceleration due to the local gravitational field, influencing displacement, weight distribution, and stability.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
         {
             "stage_id": "Stage-1",
             "title": "Stronger waves",
             "mutation_description": "Primary wave amplitude, current, and lateral impulses increased; restoring torque reduced.",
-            "task_description_suffix": """
-## Environmental Warning
-Sea conditions have changed. Wave excitation, vessel motion, and lateral forces are more severe than in nominal conditions.
-Use simulation feedback to adapt your design for stability and cargo retention.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "wave_amplitude": 60.0,
                 "current_strength": 3.0,
@@ -56,11 +66,7 @@ Use simulation feedback to adapt your design for stability and cargo retention.
             "stage_id": "Stage-2",
             "title": "Slipperier cargo",
             "mutation_description": "Cargo friction reduced; cargo fixation harder, more likely to slide off.",
-            "task_description_suffix": """
-## Environmental Warning
-Cargo properties have changed. The materials to be transported are more difficult to contain than in nominal conditions.
-Use feedback to ensure your containment and ballast remain effective.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "cargo": {"friction": 0.12, "count": 10, "radius": 0.15, "density": 260.0, "seed": 42},
             },
@@ -70,11 +76,7 @@ Use feedback to ensure your containment and ballast remain effective.
             "stage_id": "Stage-3",
             "title": "Stronger current and weaker restoring",
             "mutation_description": "Water current increased, restoring torque reduced; boat drifts and rolls more.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple hydrodynamic and stability conditions differ from nominal. Roll response and water loading are more challenging.
-Infer the new behavior from simulation feedback and adapt your design.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "current_strength": 0.58,
                 "restoring_coeff": 1150.0,
@@ -86,11 +88,7 @@ Infer the new behavior from simulation feedback and adapt your design.
             "stage_id": "Stage-4",
             "title": "Extreme sea and cargo",
             "mutation_description": "Larger waves, slipperier cargo, stronger/faster lateral gusts, stronger rogue, higher gravity.",
-            "task_description_suffix": """
-## Environmental Warning
-Several environmental parameters have changed simultaneously. Waves, cargo behavior, and effective vessel weight all differ from nominal.
-You must infer the new environment from simulation feedback and ensure stability and retention.
-""",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "wave_amplitude": 18.0,
                 "wave2_amplitude": 9.0,

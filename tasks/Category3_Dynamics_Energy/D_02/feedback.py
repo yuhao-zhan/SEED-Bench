@@ -84,41 +84,38 @@ def get_improvement_suggestions(
     if error:
         err_lower = error.lower()
         if "structure mass" in err_lower and "exceeds" in err_lower:
-            suggestions.append("- Reduce launcher mass to stay within 300 kg")
-        if "build zone" in err_lower or "outside" in err_lower:
-            suggestions.append("- Place all beam centers inside build zone x=[1, 7], y=[2.5, 6]")
+            suggestions.append("- Reduce launcher mass to stay within 180 kg")
+        if "build_zone" in err_lower or "outside" in err_lower:
+            suggestions.append("- Place all beam centers inside build zone x=[1.5, 6.5], y=[2.5, 5.5]")
 
     elif failed:
         if failure_reason and "design constraint" in failure_reason.lower():
             if "mass" in failure_reason.lower():
-                suggestions.append("- Reduce total launcher mass below 300 kg")
+                suggestions.append("- Reduce total launcher mass below 180 kg")
             if "build zone" in failure_reason.lower():
-                suggestions.append("- Keep all parts inside build zone x=[1, 7], y=[2.5, 6]")
-        elif failure_reason and "touched red barrier" in failure_reason.lower():
-            suggestions.append("- Touching any red bar = fail; the jumper must not overlap any of the three red bars")
-            suggestions.append("- There are three red bars (x~17 top 11.5 m, x~19 top 11.5 m, x~21 top 11 m); arc must clear all without contact")
-            suggestions.append("- Increase vy and/or tune vx so the trajectory passes above all three bars with clearance")
-        elif failure_reason and "first obstacle" in failure_reason.lower():
-            suggestions.append("- First barrier: x 16.5–17.5 m, top y=11.5 m; trajectory must go OVER it without touching")
-            suggestions.append("- Increase vy so the arc clears y=11.5 m when passing x~17 m")
-        elif failure_reason and "second obstacle" in failure_reason.lower():
-            suggestions.append("- Second barrier: x 20.5–21.5 m, top y=11 m; trajectory must go OVER all barriers without touching")
-            suggestions.append("- Arc must be high enough to clear all three red bars and still land x>=26")
-        elif failure_reason and "hit obstacle" in failure_reason.lower():
-            suggestions.append("- The pit has three red bars; touching any = fail. Arc must clear all without contact")
-            suggestions.append("- Increase vy and tune vx so the arc clears all three and lands on the right platform")
+                suggestions.append("- Keep all beam centers inside build zone x=[1.5, 6.5], y=[2.5, 5.5]")
+        elif failure_reason and "hit lower red bar" in failure_reason.lower():
+            suggestions.append("- Trajectory too low: Increase launch angle (vy/vx ratio) to pass through the gap between red bars")
+        elif failure_reason and "hit upper red bar" in failure_reason.lower():
+            suggestions.append("- Trajectory too high: Decrease launch angle or power to pass through the slot without hitting the upper red bar")
+        elif failure_reason and "hit obstacle" in failure_reason.lower() or "slot" in failure_reason.lower():
+            suggestions.append("- The pit has three barrier slots that must be cleared sequentially:")
+            suggestions.append("- Slot 1 (x~17.0 m): Gap y=[13.2, 14.7] m")
+            suggestions.append("- Slot 2 (x~19.0 m): Gap y=[12.4, 14.2] m")
+            suggestions.append("- Slot 3 (x~21.0 m): Gap y=[11.3, 13.3] m")
+            suggestions.append("- Use simulation feedback to tune your launch velocity to pass through the center of these gaps")
         elif failure_reason and "fall into pit" in failure_reason.lower():
-            suggestions.append("- Increase launch impulse or angle so the jumper clears the pit and barrier")
-            suggestions.append("- Optimize take-off: enough vx to reach x>=26, enough vy to clear the barrier (y>10.5 at x~17)")
+            suggestions.append("- Increase launch impulse (velocity magnitude) or angle so the jumper clears the pit (reaches x >= 26.0 m)")
+            suggestions.append("- Ensure the initial velocity vx is high enough to reach the target platform distance")
         elif failure_reason and "did not reach" in failure_reason.lower():
-            suggestions.append("- Jumper did not reach x=20 m; increase launch energy or improve angle")
-            suggestions.append("- Ensure the mechanism imparts sufficient impulse to the jumper")
+            suggestions.append("- Jumper did not reach x=26.0 m; increase launch energy or optimize launch angle")
+            suggestions.append("- If the jumper is hitting obstacles, try adjusting the launch direction")
 
     elif not success:
         px = metrics.get("jumper_x", 0)
-        if px < metrics.get("right_platform_start_x", 20):
-            suggestions.append("- Increase launch impulse so the jumper reaches the right platform")
+        if px < metrics.get("right_platform_start_x", 26.0):
+            suggestions.append("- Increase launch impulse so the jumper reaches the right platform (x >= 26.0 m)")
         else:
-            suggestions.append("- Jumper may have overshot or bounced; tune restitution or landing")
+            suggestions.append("- Jumper reached the target x range but did not land safely (y >= 1.0 m); tune landing behavior")
 
     return suggestions

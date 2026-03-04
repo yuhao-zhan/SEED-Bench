@@ -30,6 +30,15 @@ class Sandbox:
         self._default_linear_damping = float(physics_config.get("linear_damping", 0.0))
         self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
 
+        # Joint strength thresholds
+        self._anchor_max_force = float(physics_config.get("anchor_max_force", 100.0))
+        self._anchor_max_torque = float(physics_config.get("anchor_max_torque", 500.0))
+        self._joint_max_force = float(physics_config.get("joint_max_force", 80.0))
+        self._joint_max_torque = float(physics_config.get("joint_max_torque", 300.0))
+        
+        # Wind force
+        self._wind_force = tuple(physics_config.get("wind_force", (0.0, 0.0)))
+
         # 1. Initialize physics world (private attributes, solver LLM should not directly access)
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []  # Private list, prevent direct manipulation
@@ -257,7 +266,15 @@ class Sandbox:
             fixture.restitution = float(restitution)
 
     def step(self, time_step):
-        """Physics step with constant joint strength thresholds"""
+        """Physics step with constant joint strength thresholds and wind force"""
+        # Apply wind force to all dynamic bodies
+        if any(self._wind_force):
+            for body in self._bodies:
+                body.ApplyForceToCenter(self._wind_force, True)
+            for body_name in ["vehicle_chassis", "vehicle_wheel1", "vehicle_wheel2"]:
+                if body_name in self._terrain_bodies:
+                    self._terrain_bodies[body_name].ApplyForceToCenter(self._wind_force, True)
+
         if self._tracked_body is not None and not self._airborne_rotation_exceeded:
             current_angle = self._tracked_body.angle
             current_y = self._tracked_body.position.y
@@ -301,11 +318,11 @@ class Sandbox:
                     is_anchor = (body_a.type == staticBody or body_b.type == staticBody or
                                  body_a in self._terrain_bodies.values() or body_b in self._terrain_bodies.values())
                     
-                    # Use fixed thresholds; higher gravity naturally increases forces/torques
+                    # Use configurable thresholds
                     if is_anchor:
-                        max_force, max_torque = 15.0, 50.0
+                        max_force, max_torque = self._anchor_max_force, self._anchor_max_torque
                     else:
-                        max_force, max_torque = 10.0, 30.0
+                        max_force, max_torque = self._joint_max_force, self._joint_max_torque
                     
                     if self._joint_peak_forces[joint] > max_force or self._joint_peak_torques[joint] > max_torque:
                         joints_to_remove.append(joint)

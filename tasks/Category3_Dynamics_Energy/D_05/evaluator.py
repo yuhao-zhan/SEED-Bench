@@ -14,7 +14,7 @@ class Evaluator:
         self._design_constraints_checked = False
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
-        self.MAX_STRUCTURE_MASS = getattr(environment, "MAX_STRUCTURE_MASS", 250.0)
+        self.MAX_STRUCTURE_MASS = getattr(environment, "MAX_STRUCTURE_MASS", 70.0)
         self.BUILD_ZONE_X_MIN = environment.BUILD_ZONE_X_MIN
         self.BUILD_ZONE_X_MAX = environment.BUILD_ZONE_X_MAX
         self.BUILD_ZONE_Y_MIN = environment.BUILD_ZONE_Y_MIN
@@ -122,12 +122,12 @@ class Evaluator:
         # Add shell/terrain info for feedback
         tb = self.terrain_bounds if hasattr(self, "terrain_bounds") else {}
         if tb:
-            metrics["shell_x"] = tb.get("shell_x", 18.0)
-            metrics["shell_y"] = tb.get("shell_y", 1.0)
-            metrics["shell_break_force"] = tb.get("shell_break_force", 1800.0)
+            metrics["shell_x"] = tb.get("shell_x", 16.0)
+            metrics["shell_y"] = tb.get("shell_y", 2.6)
+            metrics["shell_break_force"] = tb.get("shell_break_force", 5000.0)
             if "pendulum_pivot" in tb:
                 metrics["pendulum_pivot"] = tb["pendulum_pivot"]
-                metrics["pendulum_rod_length"] = tb.get("pendulum_rod_length", 5.5)
+                metrics["pendulum_rod_length"] = tb.get("pendulum_rod_length", 3.5)
             if "shield_has_window" in tb:
                 metrics["shield_has_window"] = tb["shield_has_window"]
             if tb.get("central_wall"):

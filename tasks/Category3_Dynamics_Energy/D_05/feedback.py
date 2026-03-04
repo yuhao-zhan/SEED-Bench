@@ -88,7 +88,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     if error:
         error_lower = error.lower()
         if "structure mass" in error_lower and "exceeds" in error_lower:
-            max_mass = metrics.get("max_structure_mass", 250.0)
+            max_mass = metrics.get("max_structure_mass", 70.0)
             suggestions.append(f"- Reduce hammer mass to stay within {max_mass:.0f} kg limit")
             suggestions.append("- Use lower density for arm; concentrate mass in hammer head only")
         if "build zone" in error_lower or "outside" in error_lower:
@@ -97,29 +97,23 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     elif failed:
         if failure_reason and "design constraint" in (failure_reason or "").lower():
             if "mass" in (failure_reason or "").lower():
-                suggestions.append("- Reduce total mass below 250 kg")
+                suggestions.append("- Reduce total mass below 70 kg")
             if "build zone" in (failure_reason or "").lower():
                 suggestions.append("- Keep all parts inside build zone x=[2, 12], y=[2, 8]")
-        elif failure_reason and "wall" in (failure_reason or "").lower():
-            suggestions.append("- The hammer must NOT touch the central wall before hitting the shell. The direct path is blocked; you must swing in a HIGH ARC so the head goes OVER the wall (above y≈7.5 at x=14) and then reaches the shell at (18, 8).")
-            suggestions.append("- Use a HIGH pivot (e.g. pivot at y=8) and an arm that starts pointing down; then swing so the head travels over the wall and hits the shell.")
-        elif failure_reason and "gate" in (failure_reason or "").lower():
-            suggestions.append("- The hammer must NOT touch the horizontal gate before hitting the shell. The gate opens only for a limited time; try different trigger steps so your hammer passes through when the gate is open.")
-            suggestions.append("- The shield and gate have different open/close times; you must find a step when both are open and the pendulum has cleared.")
+        elif failure_reason and "bar" in (failure_reason or "").lower():
+            suggestions.append("- Hammer hit the oscillating bar. The bar at x=15 moves up and down; you must time your release or swing speed so the head passes through the gap when the bar is at its highest or lowest point.")
+        elif failure_reason and "slot" in (failure_reason or "").lower():
+            suggestions.append("- Hammer hit the slot wall at x=15. Design a trajectory that passes through the narrow gap (y ≈ 1.85 to 3.35) to reach the shell.")
         elif failure_reason and "pendulum" in (failure_reason or "").lower():
-            suggestions.append("- The hammer must NOT touch the swinging pendulum before hitting the shell. Try different trigger steps so the pendulum has swung out of the path when your hammer head passes.")
-            suggestions.append("- The shield, gate, and pendulum all constrain timing; you must find a step when the shield is down, the gate is open, and the pendulum has cleared.")
+            suggestions.append("- The hammer must NOT touch the swinging pendulum at x=7. Try different trigger steps so the pendulum rod has swung out of the path when your hammer head passes.")
         elif failure_reason and "shell not broken" in (failure_reason or "").lower():
-            suggestions.append("- The shield is down only for a short window, then reappears. Try different trigger steps in agent_action: too early → hit shield; too late → shield is back.")
-            suggestions.append("- The shell is HIGH at (18, 8). A direct low swing will hit the central wall. Use a HIGH pivot and swing so the head goes OVER the wall and hits (18, 8).")
-            suggestions.append("- Do not touch the wall, gate, or pendulum; time your swing so the head passes when the gate is open and the pendulum has cleared.")
-            suggestions.append("- Use a high pivot (e.g. (12, 8)), arm down so head starts low; swing so the head travels in a high arc over the wall to (18, 8).")
-            break_force = metrics.get("shell_break_force", 3600)
+            suggestions.append("- The shell at (16.0, 2.6) was not broken. Ensure your hammer has enough kinetic energy (high speed + heavy head) to deliver a force > 5000 N.")
+            suggestions.append("- Check if you hit the slot wall or oscillating bar first, which drains energy. Thread the needle through the gap at x=15.")
+            break_force = metrics.get("shell_break_force", 5000)
             suggestions.append(f"- Shell breaks when impact force exceeds {break_force:.0f} N; use sufficient swing speed.")
 
     elif not success:
         if not metrics.get("shell_broken", False):
-            suggestions.append("- Shell was not broken. The strike must occur during the brief window when the shield is down; try different trigger steps to find that window.")
-            suggestions.append("- If the hammer hit the shield, your trigger was outside the window (too early or too late).")
+            suggestions.append("- Shell was not broken. Ensure you pass through the slot at x=15 and hit the shell at (16, 2.6) with enough speed.")
 
     return suggestions

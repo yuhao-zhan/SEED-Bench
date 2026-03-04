@@ -33,12 +33,12 @@ Design a stable skyscraper structure that can:
 ## Success Criteria
 1. **Height**: Topmost point > 30m at start.
 2. **Survival**: Structure remains standing (top point remains high) after the earthquake and wind duration.
-3. **Stability**: Global center of mass stays within x=[-4, 4].
+3. **Stability**: Global center of mass stays within x=[-8, 8] relative to foundation.
 
 ## Design Constraints
 - **Foundation Contact**: All ground contact must be within x=[-2, 2].
 - **Height Requirement**: Must exceed 30m.
-- **Width Limit**: Total structure width cannot exceed 8m.
+- **Width Limit**: Total structure width cannot exceed 12m.
 - **APIs**: Use only the primitives documented below.
 """,
     

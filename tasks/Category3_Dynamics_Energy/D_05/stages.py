@@ -26,6 +26,19 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     return base_success_criteria
 
 
+_D05_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Shell Hardness: The force threshold required to break the target shell may have increased, requiring a more powerful impact.
+ - Slot Bar Oscillation: The frequency or phase of the moving barrier may have changed, requiring precise timing adjustments for the hammer's release.
+ - Angular Damping: Increased rotational resistance can reduce the hammer's kinetic energy as it swings toward the target.
+ - Gravity: Changes in the gravitational field will affect the hammer's acceleration and the force it delivers upon impact.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def get_d05_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Return ordered stage configs for D-05 mutated tasks.
@@ -37,7 +50,7 @@ def get_d05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Harder Shell",
             "mutation_description": "Shell break threshold increased (16000 N). Original impact does not break.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "task_description_suffix": _D05_SUFFIX,
             "terrain_config": {"shell_break_force": 16000.0},
             "physics_config": {},
         },
@@ -45,7 +58,7 @@ def get_d05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "Shifted Slot Bar Phase",
             "mutation_description": "Slot oscillating bar omega 0.014; safe window at step ~336. Original 380/398/408 timing hits bar.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "task_description_suffix": _D05_SUFFIX,
             "terrain_config": {"slot_bar_omega": 0.014},
             "physics_config": {},
         },
@@ -53,7 +66,7 @@ def get_d05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "Harder Shell and Damping",
             "mutation_description": "Shell break 13000 N + angular damping 0.6. Less kinetic energy at impact; original swing insufficient.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "task_description_suffix": _D05_SUFFIX,
             "terrain_config": {"shell_break_force": 13000.0},
             "physics_config": {"angular_damping": 0.6},
         },
@@ -61,7 +74,7 @@ def get_d05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Gravity, Shell, Bar Phase and Damping",
             "mutation_description": "Gravity -14, shell 11000 N, slot_bar_omega 0.013, angular_damping 0.35. Multi-parameter; original timing and impact fail.",
-            "task_description_suffix": _INVISIBLE_ENV_WARNING,
+            "task_description_suffix": _D05_SUFFIX,
             "terrain_config": {"shell_break_force": 11000.0, "slot_bar_omega": 0.013},
             "physics_config": {"gravity": (0, -14.0), "angular_damping": 0.35},
         },

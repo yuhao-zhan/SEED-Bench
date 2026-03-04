@@ -61,7 +61,7 @@ def get_improvement_suggestions(
         if "mass" in err_lower and "exceeds" in err_lower:
             suggestions.append("- Keep total structure mass (beams) below 14 kg")
         if "beam" in err_lower and "count" in err_lower:
-            suggestions.append("- Use at most 5 beams")
+            suggestions.append("- Use exactly 4 or 5 beams")
         if "build zone" in err_lower or "outside" in err_lower:
             suggestions.append("- Place all beam centers inside build zone x=[4.8, 9.0], y=[2, 3.2]")
 
@@ -70,11 +70,11 @@ def get_improvement_suggestions(
             if "mass" in failure_reason.lower():
                 suggestions.append("- Reduce total beam mass below 14 kg")
             if "beam" in failure_reason.lower():
-                suggestions.append("- Use at most 5 beams; keep beams in build zone")
-        elif failure_reason and "collided" in failure_reason.lower() and "gate" in failure_reason.lower():
-            suggestions.append("- Time the cart so it crosses x=10 only when the gate is open (rod nearly vertical)")
-            suggestions.append("- Use beam mass and position to shift arrival time; sinusoidal wind changes trajectory")
-            suggestions.append("- Avoid beams that stick out forward and hit the gate rod")
+                suggestions.append("- Use exactly 4 or 5 beams; keep beams in build zone")
+        elif failure_reason and "collision" in failure_reason.lower() and "gate" in failure_reason.lower():
+            suggestions.append("- Time the cart so it crosses all four gates (x=10.0, 11.5, 11.75, 12.5) only when they are open")
+            suggestions.append("- Use 4 or 5 beams to adjust mass and position to shift arrival time; wind and impulses also affect timing")
+            suggestions.append("- Avoid beams that stick out too far and hit the gate rods")
         elif failure_reason and "target" in failure_reason.lower():
             suggestions.append("- Ensure the cart reaches x≥11.75 and final speed is in [0.45, 2.6] m/s")
         elif failure_reason and "speed" in failure_reason.lower():

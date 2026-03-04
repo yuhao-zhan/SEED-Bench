@@ -5,45 +5,6 @@ S-04: The Balancer task Agent module
 from __future__ import annotations
 import math
 
-def _freeze_bodies(sandbox):
-    if not hasattr(sandbox, 'bodies') or not sandbox.bodies: return
-    
-    # Store initial positions on the first call if not already done
-    if not hasattr(sandbox, '_initial_positions'):
-        sandbox._initial_positions = {}
-        for body in sandbox.bodies:
-            sandbox._initial_positions[body] = (body.position.x, body.position.y)
-
-    for body in sandbox.bodies:
-        body.angle = 0.0
-        body.angularVelocity = 0.0
-        body.linearVelocity = (0.0, 0.0)
-        # Force position back to construction position
-        if body in sandbox._initial_positions:
-            body.position = sandbox._initial_positions[body]
-    
-    # Load management
-    load = sandbox._terrain_bodies.get("load")
-    if not load:
-        # Fallback search
-        for b in sandbox.world.bodies:
-            if b.type == 2:
-                is_beam = False
-                for our_b in sandbox.bodies:
-                    if b == our_b:
-                        is_beam = True
-                        break
-                if not is_beam:
-                    load = b
-                    break
-    
-    if load:
-        # Catch logic: if load is within range of the platform/basket at x=3
-        if 1.0 < load.position.x < 5.0 and -0.5 < load.position.y < 4.5:
-            load.angularVelocity = 0.0
-            load.linearVelocity = (0.0, 0.0)
-            load.position = (3.0, 1.5)
-
 def build_agent(sandbox):
     """
     Build a balanced structure for the pivot.
@@ -72,126 +33,172 @@ def build_agent(sandbox):
 def agent_action(sandbox, agent_body, step_count):
     pass
 
+
 # --- Mutated Task Solutions ---
 
 def build_agent_stage_1(sandbox):
     """
-    Avoid obstacle at x=-2.5 by placing counterweight closer to pivot at x=-0.8.
-    Includes probe to trigger load spawn.
+    Stage 1: Structural Fragility.
+    Requires extremely precise static balance to not exceed max_joint_torque=50.0.
+    We use a precise Non-Overlapping Catcher to prevent Box2D collision snaps.
     """
-    MAIN_Y = 3.5
-    v_stem = sandbox.add_beam(x=0.0, y=MAIN_Y/2, width=0.2, height=MAIN_Y, density=50.0)
+    MAIN_Y = 1.5
+    main_beam = sandbox.add_beam(x=0.0, y=MAIN_Y, width=8.0, height=0.4, density=100.0)
     pivot = sandbox._terrain_bodies.get("pivot")
-    sandbox.add_joint(v_stem, pivot, (0.0, 0.0), type="rigid")
-
-    main_beam = sandbox.add_beam(x=0.0, y=MAIN_Y, width=6.0, height=0.2, density=10.0)
-    sandbox.add_joint(v_stem, main_beam, (0.0, MAIN_Y), type="rigid")
-
-    # Basket at x=3.0
-    B_Y = 1.0
-    b_base = sandbox.add_beam(x=3.0, y=B_Y, width=2.0, height=0.2, density=10.0)
-    b_left = sandbox.add_beam(x=2.0, y=B_Y+0.5, width=0.2, height=1.0, density=10.0)
-    b_right = sandbox.add_beam(x=4.0, y=B_Y+0.5, width=0.2, height=1.0, density=10.0)
-    v_conn = sandbox.add_beam(x=3.0, y=(MAIN_Y+B_Y)/2, width=0.2, height=abs(MAIN_Y-B_Y), density=10.0)
-    sandbox.add_joint(main_beam, v_conn, (3.0, MAIN_Y), type="rigid")
-    sandbox.add_joint(v_conn, b_base, (3.0, B_Y), type="rigid")
-    sandbox.add_joint(b_base, b_left, (2.0, B_Y), type="rigid")
-    sandbox.add_joint(b_base, b_right, (4.0, B_Y), type="rigid")
+    sandbox.add_joint(main_beam, pivot, (0.0, 0.0), type="pivot")
     
-    # Trigger probe at (3,0)
-    probe = sandbox.add_beam(x=3.0, y=0.1, width=0.1, height=0.1, density=0.1)
-    sandbox.add_joint(b_base, probe, (3.0, 0.1), type="rigid")
+    v_conn = sandbox.add_beam(x=3.7, y=0.9, width=0.2, height=1.2, density=10.0)
+    sandbox.add_joint(main_beam, v_conn, (3.7, MAIN_Y), type="rigid")
+    
+    probe = sandbox.add_beam(x=3.35, y=0.3, width=0.7, height=0.2, density=10.0)
+    sandbox.add_joint(v_conn, probe, (3.7, 0.3), type="rigid")
+    
+    bodies_info = [
+        (0.0, 8.0 * 0.4 * 100.0),
+        (3.7, 0.2 * 1.2 * 10.0),
+        (3.35, 0.7 * 0.2 * 10.0),
+        (3.0, 200.0) 
+    ]
+    
+    total_tau = sum(-10.0 * m * x for x, m in bodies_info)
+    cw_x = -3.5
+    cw_factor = -10.0 * cw_x
+    req_m = -total_tau / cw_factor
+    
+    cw = sandbox.add_beam(x=cw_x, y=MAIN_Y, width=1.0, height=1.0, density=req_m)
+    sandbox.add_joint(main_beam, cw, (cw_x, MAIN_Y), type="rigid")
+    
+    return main_beam
 
-    # Counterweight shifted closer to pivot to avoid obstacle at x=-2.5
-    counterweight = sandbox.add_beam(x=-0.8, y=MAIN_Y, width=1.5, height=1.5, density=500.0)
-    sandbox.add_joint(main_beam, counterweight, (-0.8, MAIN_Y), type="rigid")
+def agent_action_stage_1(sandbox, agent_body, step_count): pass
 
-    return v_stem
-
-def agent_action_stage_1(sandbox, agent_body, step_count):
-    _freeze_bodies(sandbox)
 
 def build_agent_stage_2(sandbox):
-    MAIN_Y = 3.5
-    v_stem = sandbox.add_beam(x=0.0, y=MAIN_Y/2, width=0.4, height=MAIN_Y, density=100.0)
+    """
+    Stage 2: Aerodynamic Overturning (Wind 50 right).
+    Torque = m * (-10x - 50y). Counterweight must balance it.
+    """
+    MAIN_Y = 1.5
+    main_beam = sandbox.add_beam(x=0.0, y=MAIN_Y, width=8.0, height=0.4, density=100.0)
     pivot = sandbox._terrain_bodies.get("pivot")
-    sandbox.add_joint(v_stem, pivot, (0.0, 0.0), type="rigid")
-    main_beam = sandbox.add_beam(x=0.0, y=MAIN_Y, width=8.0, height=0.4, density=50.0)
-    sandbox.add_joint(v_stem, main_beam, (0.0, MAIN_Y), type="rigid")
-    B_Y = 1.0
-    b_base = sandbox.add_beam(x=3.0, y=B_Y, width=3.0, height=0.5, density=50.0)
-    b_left = sandbox.add_beam(x=1.6, y=B_Y+1.0, width=0.4, height=2.0, density=50.0)
-    b_right = sandbox.add_beam(x=4.4, y=B_Y+1.0, width=0.4, height=2.0, density=50.0)
-    v_conn = sandbox.add_beam(x=3.0, y=(MAIN_Y + B_Y)/2, width=0.4, height=abs(MAIN_Y - B_Y), density=50.0)
-    sandbox.add_joint(main_beam, v_conn, (3.0, MAIN_Y), type="rigid")
-    sandbox.add_joint(v_conn, b_base, (3.0, B_Y), type="rigid")
-    sandbox.add_joint(b_base, b_left, (1.6, B_Y), type="rigid")
-    sandbox.add_joint(b_base, b_right, (4.4, B_Y), type="rigid")
-    counterweight = sandbox.add_beam(x=-3.5, y=MAIN_Y, width=3.0, height=3.0, density=600.0)
-    sandbox.add_joint(main_beam, counterweight, (-3.5, MAIN_Y), type="rigid")
-    return v_stem
+    sandbox.add_joint(main_beam, pivot, (0.0, 0.0), type="pivot")
+    
+    v_conn = sandbox.add_beam(x=3.7, y=0.9, width=0.2, height=1.2, density=10.0)
+    sandbox.add_joint(main_beam, v_conn, (3.7, MAIN_Y), type="rigid")
+    
+    probe = sandbox.add_beam(x=3.35, y=0.3, width=0.7, height=0.2, density=10.0)
+    sandbox.add_joint(v_conn, probe, (3.7, 0.3), type="rigid")
+    
+    bodies_info = [
+        (0.0, MAIN_Y, 8.0 * 0.4 * 100.0),
+        (3.7, 0.9, 0.2 * 1.2 * 10.0),
+        (3.35, 0.3, 0.7 * 0.2 * 10.0),
+        (3.0, 0.5, 200.0) 
+    ]
+    
+    total_tau = sum(m * (-10*x - 50*y) for x, y, m in bodies_info)
+    
+    # CW far left and low
+    cw_x, cw_y = -3.5, 0.5
+    cw_factor = (-10*cw_x - 50*cw_y) # 35 - 25 = 10
+    
+    req_m = -total_tau / cw_factor
+    
+    cw = sandbox.add_beam(x=cw_x, y=cw_y, width=1.0, height=1.0, density=req_m)
+    sandbox.add_joint(main_beam, cw, (cw_x, cw_y), type="rigid")
+    
+    return main_beam
 
-def agent_action_stage_2(sandbox, agent_body, step_count):
-    _freeze_bodies(sandbox)
+def agent_action_stage_2(sandbox, agent_body, step_count): pass
+
 
 def build_agent_stage_3(sandbox):
-    """Handle extreme wind with high density and asymmetric design."""
-    MAIN_Y = 4.0
-    v_stem = sandbox.add_beam(x=0.0, y=MAIN_Y/2, width=0.6, height=MAIN_Y, density=500.0)
+    """
+    Stage 3: The Labyrinth.
+    Wall from 0.5 to 2.5, height 2.0. Must arch over it.
+    """
+    stem = sandbox.add_beam(x=0.0, y=1.25, width=0.4, height=2.5, density=100.0)
     pivot = sandbox._terrain_bodies.get("pivot")
-    sandbox.add_joint(v_stem, pivot, (0.0, 0.0), type="rigid")
-    main_beam = sandbox.add_beam(x=0.0, y=MAIN_Y, width=8.0, height=0.6, density=200.0)
-    sandbox.add_joint(v_stem, main_beam, (0.0, MAIN_Y), type="rigid")
+    sandbox.add_joint(stem, pivot, (0.0, 0.0), type="pivot")
     
-    # Catch platform
-    B_Y = 1.0
-    platform = sandbox.add_beam(x=3.0, y=B_Y, width=2.0, height=0.2, density=20.0)
-    v_conn = sandbox.add_beam(x=3.0, y=(MAIN_Y+B_Y)/2, width=0.2, height=abs(MAIN_Y-B_Y), density=20.0)
-    sandbox.add_joint(main_beam, v_conn, (3.0, MAIN_Y), type="rigid")
-    sandbox.add_joint(v_conn, platform, (3.0, B_Y), type="rigid")
+    over_beam = sandbox.add_beam(x=0.0, y=2.5, width=8.0, height=0.4, density=100.0)
+    sandbox.add_joint(stem, over_beam, (0.0, 2.5), type="rigid")
     
-    # Trigger probe
-    probe = sandbox.add_beam(x=3.0, y=0.1, width=0.1, height=0.1, density=0.1)
-    sandbox.add_joint(platform, probe, (3.0, 0.1), type="rigid")
+    v_conn = sandbox.add_beam(x=3.7, y=1.4, width=0.2, height=2.2, density=10.0)
+    sandbox.add_joint(over_beam, v_conn, (3.7, 2.5), type="rigid")
     
-    # Extreme counterweight to left
-    counterweight = sandbox.add_beam(x=-2.5, y=MAIN_Y, width=3.0, height=3.0, density=1000.0)
-    sandbox.add_joint(main_beam, counterweight, (-2.5, MAIN_Y), type="rigid")
-    return v_stem
+    probe = sandbox.add_beam(x=3.35, y=0.3, width=0.7, height=0.2, density=10.0)
+    sandbox.add_joint(v_conn, probe, (3.7, 0.3), type="rigid")
+    
+    bodies_info = [
+        (0.0, 0.4*2.5*100.0),
+        (0.0, 8.0*0.4*100.0),
+        (3.7, 0.2*2.2*10.0),
+        (3.35, 0.7*0.2*10.0),
+        (3.0, 200.0)
+    ]
+    
+    total_tau = sum(-10.0 * m * x for x, m in bodies_info)
+    cw_x = -3.5
+    cw_factor = -10.0 * cw_x
+    req_m = -total_tau / cw_factor
+    
+    cw = sandbox.add_beam(x=cw_x, y=2.5, width=1.0, height=1.0, density=req_m)
+    sandbox.add_joint(over_beam, cw, (cw_x, 2.5), type="rigid")
+    
+    return stem
 
-def agent_action_stage_3(sandbox, agent_body, step_count):
-    _freeze_bodies(sandbox)
+def agent_action_stage_3(sandbox, agent_body, step_count): pass
+
 
 def build_agent_stage_4(sandbox):
     """
-    Stage-4: Obstacle + Drop + Wind + High Gravity.
-    We build a robust basket and a heavy counterweight.
+    Stage 4: Planetary Kinetic Storm.
+    Moving obstacle (-1 to 1, y=1 to 2). Drop load (300kg from 4.0). Wind 20, Grav -20.
+    The dropped load forms a parabolic arc due to wind, landing at x=5.8.
     """
-    MAIN_Y = 4.5
-    v_stem = sandbox.add_beam(x=0.0, y=MAIN_Y/2, width=0.6, height=MAIN_Y, density=200.0)
+    # Base beam at y=0.3 to easily pass under the sweeping obstacle.
+    beam = sandbox.add_beam(x=3.0, y=0.3, width=7.0, height=0.4, density=100.0)
     pivot = sandbox._terrain_bodies.get("pivot")
-    sandbox.add_joint(v_stem, pivot, (0.0, 0.0), type="rigid")
+    sandbox.add_joint(beam, pivot, (0.0, 0.0), type="pivot")
     
-    main_beam = sandbox.add_beam(x=0.0, y=MAIN_Y, width=8.0, height=0.6, density=100.0)
-    sandbox.add_joint(v_stem, main_beam, (0.0, MAIN_Y), type="rigid")
+    # Catch basket at x=5.8, base at y=0.5
+    plat = sandbox.add_beam(x=5.8, y=0.5, width=2.0, height=0.4, density=100.0)
+    sandbox.add_joint(beam, plat, (5.8, 0.3), type="rigid")
     
-    # Counterweight (shifted slightly to avoid obstacle)
-    counterweight = sandbox.add_beam(x=-0.8, y=MAIN_Y, width=1.5, height=1.5, density=1000.0)
-    sandbox.add_joint(main_beam, counterweight, (-0.8, MAIN_Y), type="rigid")
+    # Left wall at 5.0, Right wall at 6.6.
+    wall_l = sandbox.add_beam(x=5.0, y=1.2, width=0.4, height=1.8, density=100.0)
+    sandbox.add_joint(plat, wall_l, (5.0, 0.5), type="rigid")
     
-    # Basket
-    B_Y = 2.0
-    b_base = sandbox.add_beam(x=3.0, y=B_Y, width=3.0, height=0.5, density=100.0)
-    b_left = sandbox.add_beam(x=1.6, y=B_Y+1.0, width=0.4, height=2.0, density=100.0)
-    b_right = sandbox.add_beam(x=4.4, y=B_Y+1.0, width=0.4, height=2.0, density=100.0)
+    wall_r = sandbox.add_beam(x=6.6, y=1.2, width=0.4, height=1.8, density=100.0)
+    sandbox.add_joint(plat, wall_r, (6.6, 0.5), type="rigid")
     
-    v_conn = sandbox.add_beam(x=3.0, y=(MAIN_Y + B_Y)/2, width=0.4, height=abs(MAIN_Y - B_Y), density=100.0)
-    sandbox.add_joint(main_beam, v_conn, (3.0, MAIN_Y), type="rigid")
-    sandbox.add_joint(v_conn, b_base, (3.0, B_Y), type="rigid")
-    sandbox.add_joint(b_base, b_left, (1.6, B_Y), type="rigid")
-    sandbox.add_joint(b_base, b_right, (4.4, B_Y), type="rigid")
+    # CW arm extending left
+    cw_arm = sandbox.add_beam(x=-4.0, y=0.3, width=7.0, height=0.4, density=100.0)
+    sandbox.add_joint(beam, cw_arm, (-0.5, 0.3), type="rigid")
     
-    return v_stem
+    bodies_info = [
+        (3.0, 0.3, 7.0*0.4*100.0),
+        (5.8, 0.5, 2.0*0.4*100.0),
+        (5.0, 1.2, 0.4*1.8*100.0),
+        (6.6, 1.2, 0.4*1.8*100.0),
+        (-4.0, 0.3, 7.0*0.4*100.0),
+        (5.8, 1.2, 300.0) # Dropped load rests around y=1.2
+    ]
+    
+    total_tau = sum(m * (-20*x - 20*y) for x, y, m in bodies_info)
+    
+    cw_x, cw_y = -7.0, 0.3
+    cw_factor = -20*cw_x - 20*cw_y # 140 - 6 = 134
+    
+    req_m = -total_tau / cw_factor
+    cw = sandbox.add_beam(x=cw_x, y=cw_y, width=1.0, height=1.0, density=req_m)
+    sandbox.add_joint(cw_arm, cw, (cw_x, cw_y), type="rigid")
+    
+    # Extra anchor mass near pivot for dropping stability
+    anchor = sandbox.add_beam(x=0.0, y=0.3, width=1.0, height=0.4, density=10000.0)
+    sandbox.add_joint(beam, anchor, (0.0, 0.3), type="rigid")
+    
+    return beam
 
-def agent_action_stage_4(sandbox, agent_body, step_count):
-    _freeze_bodies(sandbox)
+def agent_action_stage_4(sandbox, agent_body, step_count): pass

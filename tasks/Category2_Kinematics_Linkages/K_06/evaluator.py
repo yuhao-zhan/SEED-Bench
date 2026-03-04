@@ -24,23 +24,34 @@ class Evaluator:
 
     def evaluate(self, agent_body, step_count, max_steps):
         if not self.environment:
-            return False, 0.0, {"error": "Environment not available"}
+            return (False, 0.0, {"error": "Environment not available"})
         
         initial_count = self.environment.get_initial_particle_count()
         remaining_count = self.environment.get_remaining_particle_count()
         
         if initial_count == 0:
-            return False, 0.0, {"error": "No particles found"}
+            return (False, 0.0, {"error": "No particles found"})
             
         removal_ratio = (initial_count - remaining_count) / initial_count
         
+        # Robust wiper tracking
+        wiper = agent_body
+        if wiper is None and self.environment._bodies:
+            wiper = self.environment._bodies[0]
+            
+        wiper_x, wiper_y = 0.0, 0.0
+        if wiper:
+            wiper_x = wiper.position.x
+            wiper_y = wiper.position.y
+
         failed = False
         failure_reason = None
         
         # Failure: Not enough particles removed by the end
         is_end = (step_count >= max_steps - 1)
         if is_end and removal_ratio < self.min_removal_ratio:
-            failed, failure_reason = True, f"Wiper failed: only {removal_ratio*100:.1f}% removed (need {self.min_removal_ratio*100:.0f}%)"
+            failed = True
+            failure_reason = f"Wiper failed: too many particles remaining ({remaining_count}/{initial_count}). Only {removal_ratio*100:.1f}% removed (need {self.min_removal_ratio*100:.0f}%)"
             
         # Success if reached target removal and survived minimum time
         success = removal_ratio >= self.min_removal_ratio and step_count >= self.min_simulation_steps
@@ -58,12 +69,22 @@ class Evaluator:
                 score += (min(step_count, self.min_simulation_steps) / self.min_simulation_steps) * 30.0
                 
         metrics = {
-            'initial_count': initial_count,
-            'remaining_count': remaining_count,
-            'removal_ratio': removal_ratio,
-            'success': success,
+            'wiper_x': wiper_x,
+            'wiper_y': wiper_y,
+            'initial_particle_count': initial_count,
+            'current_particle_count': remaining_count,
+            'particles_removed': initial_count - remaining_count,
+            'cleaning_percentage': removal_ratio * 100.0,
+            'residual_percentage': (1.0 - removal_ratio) * 100.0,
+            'max_residual_percent': (1.0 - self.min_removal_ratio) * 100.0,
+            'progress': progress * 100.0 if 'progress' in locals() else 0.0,
+            'success': success and not failed,
             'failed': failed,
-            'failure_reason': failure_reason
+            'failure_reason': failure_reason,
+            'step_count': step_count,
+            'min_simulation_steps_required': self.min_simulation_steps,
+            'structure_mass': self.environment.get_structure_mass(),
+            'max_structure_mass': getattr(self.environment, 'MAX_STRUCTURE_MASS', 15.0),
         }
         
         return done, score, metrics

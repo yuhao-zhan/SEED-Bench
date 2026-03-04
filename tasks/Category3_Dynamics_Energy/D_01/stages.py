@@ -62,9 +62,21 @@ def update_success_criteria_for_visible_changes(
         out = re.sub(r"x in \[40, 45\]", f"x in [{tx_min:.0f}, {tx_max:.0f}] (originally x in [{base_tx_min:.0f}, {base_tx_max:.0f}] in the source environment)", out)
         out = re.sub(r"\[40, 45\]", f"[{tx_min:.0f}, {tx_max:.0f}] (originally [{base_tx_min:.0f}, {base_tx_max:.0f}] in the source environment)", out)
     if ty_min is not None and ty_max is not None and (ty_min != base_ty_min or ty_max != base_ty_max):
-        out = re.sub(r"y in \*\*\[2, 5\]\*\*", f"y in **[{ty_min:.0f}, {ty_max:.0f}]** (originally y in **[{base_ty_min:.0f}, {base_ty_max:.0f}]** in the source environment)", out)
+        out = re.sub(r"y in \[2, 5\]", f"y in [{ty_min:.0f}, {ty_max:.0f}] (originally y in [{base_ty_min:.0f}, {base_ty_max:.0f}] in the source environment)", out)
         out = re.sub(r"\[2, 5\]", f"[{ty_min:.0f}, {ty_max:.0f}] (originally [{base_ty_min:.0f}, {base_ty_max:.0f}] in the source environment)", out)
     return out
+
+
+_D01_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Air Resistance: Increased atmospheric drag can cause projectiles to lose energy and velocity more rapidly during flight.
+ - Target Zone Position: The coordinates of the destination region may have been shifted, requiring adjustments to the required launch force or angle.
+ - Gravity: Variations in the gravitational field will directly alter the parabolic trajectory and time-of-flight of any launched object.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
 
 
 def get_d01_curriculum_stages() -> List[Dict[str, Any]]:
@@ -78,11 +90,7 @@ def get_d01_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "The Dense Atmosphere",
             "mutation_description": "Air resistance (linear/angular damping) increased. Projectile loses energy in flight.",
-            "task_description_suffix": """
-## Environmental Warning
-Atmospheric conditions have changed. Air resistance is higher than in standard conditions.
-Projectiles may lose energy more quickly in flight. Your launcher must compensate to reach the target.
-""",
+            "task_description_suffix": _D01_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "linear_damping": 2.5,
@@ -93,10 +101,7 @@ Projectiles may lose energy more quickly in flight. Your launcher must compensat
             "stage_id": "Stage-2",
             "title": "The Distant Target",
             "mutation_description": "Target zone moved further: x=[50, 55] m (visible change).",
-            "task_description_suffix": """
-## Environmental Warning
-The target zone has been relocated to a greater distance. The success criteria reflect the new zone position.
-""",
+            "task_description_suffix": _D01_SUFFIX,
             "terrain_config": {
                 "target_x_min": 50.0,
                 "target_x_max": 55.0,
@@ -109,11 +114,7 @@ The target zone has been relocated to a greater distance. The success criteria r
             "stage_id": "Stage-3",
             "title": "Heavy World and Drag",
             "mutation_description": "Gravity increased to -15 m/s² and air resistance (damping) added. Dual invisible params.",
-            "task_description_suffix": """
-## Environmental Warning
-Gravity and atmospheric conditions in this region have changed. Projectiles follow different trajectories than in standard conditions.
-Your launcher must adapt to reach the target zone.
-""",
+            "task_description_suffix": _D01_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "gravity": (0, -15.0),
@@ -125,11 +126,7 @@ Your launcher must adapt to reach the target zone.
             "stage_id": "Stage-4",
             "title": "Extreme Range and Conditions",
             "mutation_description": "Target at [52, 57] m (visible) + gravity -18 m/s² + linear/angular damping 1.2.",
-            "task_description_suffix": """
-## Environmental Warning
-The target zone is at greater distance and both gravity and atmospheric conditions have changed.
-This is an extreme challenge; your launcher must be tuned for range and trajectory under these conditions.
-""",
+            "task_description_suffix": _D01_SUFFIX,
             "terrain_config": {
                 "target_x_min": 52.0,
                 "target_x_max": 57.0,

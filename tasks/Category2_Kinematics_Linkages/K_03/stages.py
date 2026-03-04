@@ -38,65 +38,48 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_k03_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for K-03: The Gripper task variants.
-    Order: baseline (easiest) -> Stage-1, Stage-2 (one param each) -> Stage-3, Stage-4 (multiple params), difficulty increasing.
-    
-    Each stage dict fields:
-      - stage_id: str
-      - title: str
-      - mutation_description: str (for logs, not shown to solver)
-      - task_description_suffix: str (generic warning for invisible changes; no exact numeric values)
-      - terrain_config: dict (passed to Sandbox)
-      - physics_config: dict (passed to Sandbox)
     """
+    task_description_suffix = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Object Friction: The surface traction and slipperiness of the target object.
+ - Gravity: The magnitude and direction of the gravitational force.
+ - Damping: The rate at which the object's momentum and motion are dissipated.
+ - Object Geometry: The physical shape and cross-section of the target object.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
     return [
-        # --- Baseline (initial task: same as no env_overrides) ---
         {
             "stage_id": "baseline",
             "title": "K-03 baseline",
-            "mutation_description": "Default: box object, mass 1.0 (env default), friction 0.6, gravity -10. Same as initial task.",
+            "mutation_description": "Default values. Same as initial task.",
             "task_description_suffix": "",
-            "terrain_config": {},  # Empty = use environment.py defaults (box, friction 0.6, etc.)
+            "terrain_config": {},
             "physics_config": {},
         },
-        # --- Stage-1: one invisible param — very low object surface friction (extremely slippery) ---
         {
             "stage_id": "Stage-1",
             "title": "Slippery Object",
-            "mutation_description": "Object surface friction reduced from 0.6 to 0.09. Object is extremely slippery; original grip slips during lift.",
-            "task_description_suffix": """
-## Environmental Warning
-Physical contact properties in this region have changed.
-The object surface may be smoother than in standard conditions; grip and friction at contact may differ.
-Your gripper must achieve and maintain a secure grasp under these conditions.
-""",
+            "mutation_description": "Object surface friction reduced from 0.6 to 0.09.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {"objects": {"shape": "box", "mass": 1.0, "friction": 0.09, "x": 5.0, "y": 2.0}},
             "physics_config": {},
         },
-        # --- Stage-2: one invisible param — strongly increased gravity ---
         {
             "stage_id": "Stage-2",
             "title": "Heavy World",
-            "mutation_description": "Gravity increased from -10 to -17 m/s². Effective load on gripper and object is much higher; original lift fails.",
-            "task_description_suffix": """
-## Environmental Warning
-Gravitational conditions in this region have changed.
-Structures and objects experience significantly higher effective weight.
-Your gripper must be able to grasp and lift the object under these loads.
-""",
+            "mutation_description": "Gravity increased from -10 to -17 m/s\u00b2.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {"objects": {"shape": "box", "mass": 1.0, "friction": 0.6, "x": 5.0, "y": 2.0}},
             "physics_config": {"gravity": (0, -17.0)},
         },
-        # --- Stage-3: multiple invisible params — very slippery + heavy + strong damping ---
         {
             "stage_id": "Stage-3",
             "title": "Slippery Object + Heavy World + Damping",
-            "mutation_description": "Object friction 0.12, gravity -14, linear/angular damping 0.75. Very slippery, heavy load, strong motion damping.",
-            "task_description_suffix": """
-## Environmental Warning
-Multiple physical conditions have changed: contact properties, gravitational load, and motion resistance.
-The object may be harder to grip; effective weight is increased; and motion may be more damped.
-Your gripper must adapt to all these conditions to grasp and lift successfully.
-""",
+            "mutation_description": "Object friction 0.12, gravity -14, linear/angular damping 0.75.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {"objects": {"shape": "box", "mass": 1.0, "friction": 0.12, "x": 5.0, "y": 2.0}},
             "physics_config": {
                 "gravity": (0, -14.0),
@@ -104,17 +87,11 @@ Your gripper must adapt to all these conditions to grasp and lift successfully.
                 "angular_damping": 0.75,
             },
         },
-        # --- Stage-4: multiple params including visible (object shape) + invisible ---
         {
             "stage_id": "Stage-4",
             "title": "Circular Object + Slippery + Heavy + Damping",
-            "mutation_description": "Object shape=circle, friction 0.11, gravity -15, damping 0.6. Different geometry and harsher physics; original strategy fails.",
-            "task_description_suffix": """
-## Environmental Warning
-Physical conditions and object geometry have changed (see task description for object shape).
-Contact properties, gravitational load, and motion resistance may also differ from standard conditions.
-Your gripper must adapt to the object shape and all physical conditions to grasp and lift successfully.
-""",
+            "mutation_description": "Object shape=circle, friction 0.11, gravity -15, damping 0.6.",
+            "task_description_suffix": task_description_suffix,
             "terrain_config": {"objects": {"shape": "circle", "mass": 1.0, "friction": 0.11, "x": 5.0, "y": 2.0}},
             "physics_config": {
                 "gravity": (0, -15.0),

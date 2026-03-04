@@ -107,7 +107,18 @@ class K06Renderer(Renderer):
         # 3) 雨刮杆 - 正面视角下用真实角度画整根杆，大幅度左右“刷”非常明显
         global _render_call_count
         _render_call_count += 1
+        
+        # Robustly find a motor-driven joint to determine wiper angle
         joint = getattr(sandbox, '_wiper_motor_joint', None)
+        if joint is None and hasattr(sandbox, '_joints'):
+            from Box2D.b2 import revoluteJoint
+            # Prefer joints in _wiper_joints if they exist
+            search_list = getattr(sandbox, '_wiper_joints', sandbox._joints)
+            for j in search_list:
+                if isinstance(j, revoluteJoint) and getattr(j, 'motorEnabled', False):
+                    joint = j
+                    break
+        
         if joint is not None:
             try:
                 angle = joint.angle

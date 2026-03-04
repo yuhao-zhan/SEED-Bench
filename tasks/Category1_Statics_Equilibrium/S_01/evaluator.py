@@ -142,10 +142,16 @@ class Evaluator:
         
         metrics = {
             'vehicle_x': current_x, 'vehicle_y': current_y, 'target_x': self.target_x,
+            'velocity_x': velocity_x, 'velocity_y': velocity_y,
+            'angular_velocity': angular_velocity, 'angle': angle, 'normalized_angle': normalized_angle,
+            'max_vertical_accel': self.max_vertical_accel_seen,
             'success': success and not failed, 'failed': failed, 'failure_reason': failure_reason,
             'step_count': step_count, 'structure_mass': self.environment.get_structure_mass(),
             'max_structure_mass': self.MAX_STRUCTURE_MASS, 'structure_broken': self.structure_broken,
-            'angle': angle, 'is_airborne': current_y > (10.0 + self.AIRBORNE_THRESHOLD)
+            'joint_count': len(self.environment._joints), 'initial_joint_count': self.initial_joint_count,
+            'is_airborne': current_y > (10.0 + self.AIRBORNE_THRESHOLD),
+            'airborne_rotation_accumulated': airborne_rotation_accumulated,
+            'high_angular_velocity_count': self.high_angular_velocity_count
         }
         return success or failed, score, metrics
     

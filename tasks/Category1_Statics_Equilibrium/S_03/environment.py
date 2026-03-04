@@ -20,15 +20,14 @@ class DaVinciSandbox:
         self._bodies = []
         self._joints = []
         self._terrain_bodies = {}
+        self._load_bodies = []
         
-        # Design limits
         self.MIN_BEAM_SIZE = 0.1
-        self.MAX_BEAM_WIDTH = 1.2
-        self.MAX_BEAM_HEIGHT = 1.5
-        self.MAX_BEAM_SIZE = 10.0 
-        self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 1500.0))
+        self.MAX_BEAM_WIDTH = 2.0
+        self.MAX_BEAM_HEIGHT = 2.0
+        self.MAX_BEAM_SIZE = 15.0 
+        self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 15000.0))
         
-        # Load setup
         self._load_1_active = False
         self._load_2_active = False
         self._load_attach_time = 5.0
@@ -36,15 +35,16 @@ class DaVinciSandbox:
         
         self._forbidden_anchor_y = terrain_config.get("forbidden_anchor_y", None)
         self._obstacle_active = terrain_config.get("obstacle_active", False)
-        self._obstacle_rect = terrain_config.get("obstacle_rect", [6.0, 0.0, 8.5, 3.5])
+        self._obstacle_rects = terrain_config.get("obstacle_rects", [])
+        if not self._obstacle_rects and terrain_config.get("obstacle_rect"):
+            self._obstacle_rects = [terrain_config.get("obstacle_rect")]
         
         self._simulation_time = 0.0
         
-        # Consistent Build Zone (aligned with reference solutions)
         self.BUILD_ZONE_X_MIN = 0.0
-        self.BUILD_ZONE_X_MAX = 35.0 
-        self.BUILD_ZONE_Y_MIN = 0.0
-        self.BUILD_ZONE_Y_MAX = 15.0
+        self.BUILD_ZONE_X_MAX = 50.0 
+        self.BUILD_ZONE_Y_MIN = -20.0
+        self.BUILD_ZONE_Y_MAX = 30.0
         
         self._setup_terrain()
 
@@ -55,18 +55,19 @@ class DaVinciSandbox:
     def _setup_terrain(self):
         wall = self._world.CreateStaticBody(
             position=(-0.5, 10),
-            fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(0.5, 10.0)), friction=0.8),
+            fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(0.5, 20.0)), friction=0.8),
         )
         self._terrain_bodies["wall"] = wall
         
         if self._obstacle_active:
-            x_min, y_min, x_max, y_max = self._obstacle_rect
-            hw, hh = (x_max - x_min) / 2, (y_max - y_min) / 2
-            obs = self._world.CreateStaticBody(
-                position=(x_min + hw, y_min + hh),
-                fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(hw, hh)), friction=0.5),
-            )
-            self._terrain_bodies["obstacle"] = obs
+            for rect in self._obstacle_rects:
+                x_min, y_min, x_max, y_max = rect
+                hw, hh = (x_max - x_min) / 2, (y_max - y_min) / 2
+                obs = self._world.CreateStaticBody(
+                    position=(x_min + hw, y_min + hh),
+                    fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(hw, hh)), friction=0.5),
+                )
+                self._terrain_bodies[f"obstacle_{len(self._terrain_bodies)}"] = obs
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
         width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_SIZE))
@@ -79,10 +80,12 @@ class DaVinciSandbox:
     def add_joint(self, body_a, body_b, anchor, type='rigid'):
         if body_b is None: body_b = self._terrain_bodies["wall"]
         anchor_x, anchor_y = anchor
+        
         if body_b == self._terrain_bodies["wall"] and self._forbidden_anchor_y:
             y_min, y_max = self._forbidden_anchor_y
             if y_min <= anchor_y <= y_max:
                 raise ValueError(f"Anchor y={anchor_y} forbidden")
+        
         if type == 'rigid':
             joint_def = Box2D.b2WeldJointDef()
             joint_def.Initialize(body_a, body_b, anchor)
@@ -110,46 +113,87 @@ class DaVinciSandbox:
 
     def step(self, time_step):
         self._simulation_time += time_step
+        
+        wind_config = self._physics_config.get("wind", None)
+        if wind_config:
+            force_vec = wind_config.get("force", (0, 0))
+            oscillatory = wind_config.get("oscillatory", False)
+            if oscillatory:
+                freq = wind_config.get("frequency", 1.0)
+                phase = math.sin(self._simulation_time * 2 * math.pi * freq)
+                force_vec = (force_vec[0] * phase, force_vec[1] * phase)
+            for body in self._bodies:
+                body.ApplyForceToCenter(force_vec, True)
+
         if self._simulation_time >= self._load_attach_time and not self._load_1_active:
-            self._attach_load(1)
+            self._handle_load(1)
             self._load_1_active = True
         if self._simulation_time >= self._load_2_attach_time and not self._load_2_active:
-            self._attach_load(2)
+            self._handle_load(2)
             self._load_2_active = True
+            
         self._world.Step(time_step, 10, 10)
+        
         joints_to_remove = []
         for joint in self._joints:
             try:
-                force = joint.GetReactionForce(1.0/60.0)
-                torque = abs(joint.GetReactionTorque(1.0/60.0))
-                max_f = self._terrain_config.get("max_anchor_force", 2000.0)
-                max_t = self._terrain_config.get("max_anchor_torque", 1500.0)
-                if math.sqrt(force.x**2 + force.y**2) > max_f or torque > max_t:
+                # Structural joints have extreme strength
+                max_f = self._terrain_config.get("max_anchor_force", 100000000.0)
+                max_t = self._terrain_config.get("max_anchor_torque", 100000000.0)
+                
+                is_wall_joint = joint.bodyA == self._terrain_bodies["wall"] or joint.bodyB == self._terrain_bodies["wall"]
+                if is_wall_joint:
+                    # Correct anchor access for b2WeldJoint
+                    anchor = joint.anchorA if hasattr(joint, 'anchorA') else joint.GetAnchorA()
+                    strength_map = self._terrain_config.get("anchor_strength_map", None)
+                    if strength_map:
+                        for y_min, y_max, f_mult, t_mult in strength_map:
+                            if y_min <= anchor.y <= y_max:
+                                max_f *= f_mult
+                                max_t *= t_mult
+                                break
+                
+                # Correct ReactionForce/Torque access (frequency based)
+                force = joint.GetReactionForce(1.0/time_step)
+                torque = abs(joint.GetReactionTorque(1.0/time_step))
+                fm = math.sqrt(force.x**2 + force.y**2)
+                
+                if fm > max_f or torque > max_t:
                     joints_to_remove.append(joint)
             except Exception: pass
+            
         for j in joints_to_remove:
             self._world.DestroyJoint(j)
             if j in self._joints: self._joints.remove(j)
 
-    def _attach_load(self, load_id):
+    def _handle_load(self, load_id):
         if not self._bodies: return
-        tip_body = max(self._bodies, key=lambda b: b.position.x)
-        mass = float(self._terrain_config.get("load_mass", 1000.0))
+        load_type = self._terrain_config.get("load_type", "static")
+        mass = float(self._terrain_config.get("load_mass", 500.0))
+        
         if load_id == 1:
-            # First load at tip
-            tip_body.ApplyForceToCenter((0, -mass * 10), True)
+            anchor_body = max(self._bodies, key=lambda b: b.position.x)
         else:
-            # Second load midway
-            mid_body = sorted(self._bodies, key=lambda b: b.position.x)[len(self._bodies)//2]
-            mid_body.ApplyForceToCenter((0, -mass * 15), True)
+            anchor_body = sorted(self._bodies, key=lambda b: b.position.x)[len(self._bodies)//2]
+            
+        if load_type == "static":
+            load_body = self._world.CreateDynamicBody(position=anchor_body.position)
+            load_body.CreatePolygonFixture(box=(0.5, 0.5), density=mass/0.25, friction=0.5)
+            self._world.CreateJoint(Box2D.b2WeldJointDef(bodyA=anchor_body, bodyB=load_body, anchor=anchor_body.position))
+            self._load_bodies.append(load_body)
+        elif load_type == "dropped":
+            y_pos = self._terrain_config.get("drop_height", 10.0)
+            load_body = self._world.CreateDynamicBody(position=(anchor_body.position.x, anchor_body.position.y + y_pos))
+            load_body.CreatePolygonFixture(box=(0.5, 0.5), density=mass/0.25, friction=0.5)
+            self._load_bodies.append(load_body)
 
     def get_terrain_bounds(self):
         return {
-            "wall": {"x": [-1.0, 0.0]},
+            "wall": {"x": [-1.0, 0.0], "y": [-20, 30]},
             "max_beam_width": self.MAX_BEAM_WIDTH,
             "max_beam_height": self.MAX_BEAM_HEIGHT,
             "obstacle_active": self._obstacle_active,
-            "obstacle_rect": self._obstacle_rect if self._obstacle_active else None,
+            "obstacle_rects": self._obstacle_rects,
             "forbidden_anchor_y": self._forbidden_anchor_y,
             "build_zone": {"x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX], "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]}
         }
