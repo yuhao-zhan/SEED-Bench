@@ -23,22 +23,21 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_c05_curriculum_stages() -> List[Dict[str, Any]]:
     """Returns ordered stage configs for C-05: The Logic Lock task variants."""
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - recent_a_for_b: Changes in the timing window allowed between sequential actions A and B.
- - barrier_delay_steps: Unexpected delays in environmental responses to trigger activations.
- - cooldown_steps: Increased waiting periods required between consecutive interactions.
- - recent_b_for_c: Tighter temporal constraints on the final sequence completion.
- - c_required_max_y: Stricter spatial positioning requirements for target activation.
- - repulsion_mag: Alterations in the strength of repulsive force fields.
- - repulsion_range: Changes in the effective radius of environmental repulsion.
- - wind_amp / wind_period: Oscillating environmental forces affecting precise control.
- - speed_cap_inside: Stricter limits on the maximum allowed speed within specific zones.
- - trigger_stay_steps: Increased duration required to remain within a zone to activate it.
- - c_high_history: Changes in the requirement for sustained state history to achieve success.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Temporal sequencing windows**: Changes in the allowed time between sequential interaction phases (e.g., visiting A then B).
+ - **Environmental response timing**: Unexpected delays in system feedback or barrier activation.
+ - **Interaction recovery periods**: Increased cooldown periods required between consecutive actions.
+ - **Spatial positioning requirements**: Stricter accuracy needed in target location or relative altitude.
+ - **Repulsive field strength**: Alterations in the intensity of environmental repulsion forces.
+ - **Repulsive field radius**: Changes in the effective reach of environmental repulsion.
+ - **Oscillating disturbances**: Periodic external forces (e.g., wind) affecting precise control and stability.
+ - **Regional speed limits**: Stricter constraints on maximum velocity within specific zones.
+ - **Activation duration**: Increased time required to remain within a zone to trigger environmental changes.
+ - **State persistence requirements**: Changes in how long a specific state must be maintained for success.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the sequence fails to trigger) to infer the hidden constraints and adapt your strategy.
 """
     # Stage order: base (reference) then 4 mutated variants increasing difficulty
     return [

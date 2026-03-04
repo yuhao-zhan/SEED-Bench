@@ -29,20 +29,20 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
     Order: Stage-0 baseline (reference), Stage-1..Stage-4 increasing difficulty.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - measure_delay_steps: Unexpected latency in the rotational speed measurements.
- - torque_limit_at_zero: Changes in the maximum torque available at low rotational speeds.
- - step_load_at_step: Sudden changes in the timing of external load application.
- - step_load_extra: Variations in the magnitude of unexpected load spikes.
- - disturb_period / disturb_torque: Changes in the frequency and strength of periodic external disturbances.
- - torque_deadzone: Modifications to the range of control inputs that result in zero torque.
- - k_drag: Alterations in the rotational resistance (drag) of the system.
- - cogging_amplitude: Changes in the internal magnetic or mechanical resistance to smooth rotation.
- - stiction_speed_band / stiction_factor: Modifications to the static friction behavior of the motor.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Sensing latency (Velocity)**: Unexpected latency in the rotational speed measurements.
+ - **Low-speed torque availability**: Changes in the maximum torque available at low rotational speeds.
+ - **Load disturbance timing**: Sudden changes in when external loads are applied during operation.
+ - **Load disturbance magnitude**: Variations in the intensity of unexpected external load spikes.
+ - **Periodic disturbances**: Changes in the frequency and strength of cyclic external forces.
+ - **Actuator deadzones**: Modifications to the range of control inputs that yield zero response.
+ - **Rotational resistance**: Alterations in the internal or external rotational drag of the system.
+ - **Mechanical resistance profile**: Changes in the internal resistance to smooth rotational motion (cogging).
+ - **Static friction behavior**: Modifications to the breakaway force and low-speed friction (stiction).
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the system stalls or oscillates) to infer the hidden constraints and adapt your control design.
 """
     return [
         {

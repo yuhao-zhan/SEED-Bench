@@ -30,21 +30,21 @@ def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
     Original solution uses UNLOCK_BACKWARD_STEPS=25; env default BACKWARD_STEPS_REQUIRED=20.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - whisker_delay_steps: Unexpected latency in proximity sensor (whisker) feedback.
- - backward_steps_required: Changes in the behavioral duration required to unlock progression.
- - backward_speed_max: Stricter speed limits for the backward movement phase.
- - slip_friction: Variations in surface traction, affecting movement precision.
- - momentum_drain_damping: Increased environmental resistance, causing faster loss of kinetic energy.
- - whisker_blind_front_x_lo/hi: Discovery of dead zones in sensor coverage in specific regions.
- - gravity: Alterations in the gravitational field affecting buoyancy and motion.
- - linear_damping: Increased resistance to movement through the environment.
- - current_force_back: Constant external forces opposing forward progress.
- - wind_base_down / wind_oscillation_amp: Static and oscillating environmental disturbances.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Proximity sensing latency**: Unexpected latency in obstacle detection (whisker) sensor feedback.
+ - **Behavioral duration requirements**: Changes in the time or steps needed to satisfy progression conditions.
+ - **Operational speed limits**: Stricter limits on velocity during specific movement phases.
+ - **Surface traction**: Variations in friction affecting movement precision and stability.
+ - **Energy dissipation**: Increased environmental resistance causing faster loss of kinetic energy.
+ - **Sensor blind zones**: Discovery of regions where sensor coverage is unavailable or unreliable.
+ - **Gravitational acceleration**: Alterations in the vertical force field affecting motion and buoyancy.
+ - **Translational resistance**: Increased resistance to movement through the medium (linear damping).
+ - **Environmental flow**: Constant external forces (e.g., currents) opposing progress in specific directions.
+ - **Atmospheric disturbances**: Static and oscillating external forces (e.g., wind) affecting stability.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where the agent gets stuck or drifts) to infer the hidden constraints and adapt your design.
 """
     return [
         {

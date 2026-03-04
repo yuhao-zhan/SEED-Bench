@@ -28,18 +28,18 @@ def get_c03_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for C-03: The Seeker task variants.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - target_speed: Variations in the base speed of the target object, affecting interception timing.
- - rendezvous_distance: Stricter proximity requirements for a successful rendezvous.
- - rendezvous_rel_speed: Lower tolerance for relative velocity during the final approach.
- - impulse_budget: Reductions in the total propellant or energy available for maneuvers.
- - linear_damping: Increased environmental resistance to the vehicle's translational motion.
- - angular_damping: Increased resistance to changes in the vehicle's orientation.
- - ground_friction: Alterations in surface traction, affecting acceleration and braking efficiency.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **External object dynamics**: Variations in the movement speed of the target object, affecting interception timing.
+ - **Proximity requirements**: Stricter distance constraints for a successful rendezvous or docking.
+ - **Relative velocity limits**: Lower tolerance for relative speed during the final approach phase.
+ - **Resource availability**: Reductions in the total energy or propellant available for maneuvers.
+ - **Translational resistance**: Increased environmental resistance (linear damping) to the vehicle's motion.
+ - **Rotational resistance**: Increased resistance to changes in the vehicle's orientation (angular damping).
+ - **Surface traction**: Alterations in friction, significantly affecting acceleration and braking efficiency.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the vehicle overshoots or stalls) to infer the hidden constraints and adapt your design.
 """
     return [
         {

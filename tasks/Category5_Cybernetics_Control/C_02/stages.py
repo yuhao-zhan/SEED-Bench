@@ -29,18 +29,18 @@ def get_c02_curriculum_stages() -> List[Dict[str, Any]]:
     terrain_config, physics_config.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - gravity_mutation: Sudden shifts in gravitational acceleration during the mission.
- - total_fuel_impulse: Significant reductions in the total fuel or energy available for the descent.
- - min_fuel_remaining_at_landing: Stricter safety margins for remaining fuel upon touchdown.
- - thrust_delay_steps: Latency in engine response to control commands.
- - wind_amplitude: Continuous horizontal atmospheric forces acting on the lander.
- - gust_amplitude: Intermittent high-intensity wind disturbances.
- - gust_prob: Changes in the statistical likelihood of environmental turbulence.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Dynamic gravitational shifts**: Sudden shifts in gravitational acceleration that may occur during the mission.
+ - **Resource availability**: Significant reductions in the total fuel or energy available for the descent.
+ - **Operational safety margins**: Stricter requirements for remaining resources at task completion.
+ - **Actuation latency**: Delay in engine or actuator response to control commands.
+ - **Atmospheric disturbances**: Continuous horizontal forces acting on the vehicle during flight.
+ - **Transient turbulence**: Intermittent high-intensity environmental disturbances (gusts).
+ - **Disturbance frequency**: Changes in the likelihood of encountering environmental turbulence.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the vehicle deviates or crashes) to infer the hidden constraints and adapt your design.
 """
     return [
         {

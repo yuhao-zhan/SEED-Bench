@@ -29,18 +29,18 @@ def get_c01_curriculum_stages() -> List[Dict[str, Any]]:
     All mutations are invisible (no exact numeric changes in task_description_suffix).
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - sensor_delay_angle_steps: Unexpected latency in orientation sensor data.
- - sensor_delay_omega_steps: Unexpected latency in angular velocity feedback.
- - gravity: Alterations in the gravitational field affecting system weight and balance.
- - pole_length: Modifications to the pendulum's structural dimensions.
- - pole_mass: Changes in the mass distribution and rotational inertia of the pole.
- - angular_damping: Increased resistance to rotational motion within the joints.
- - actuator_rate_limit: Limits on the speed at which control forces can be adjusted.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Sensing latency (Orientation)**: Unexpected latency in orientation sensor readings may affect balance timing.
+ - **Sensing latency (Angular Velocity)**: Unexpected latency in angular velocity feedback can lead to delayed control responses.
+ - **Gravitational acceleration**: Alterations in the gravitational field significantly affecting system weight and balance dynamics.
+ - **Structural dimensions**: Modifications to the physical length of system components, altering the natural frequency.
+ - **Mass distribution**: Changes in the mass and rotational inertia of the pole, shifting the center of gravity.
+ - **Joint resistance**: Increased resistance to rotational motion within the joints (damping).
+ - **Actuation speed limits**: Constraints on how quickly control forces can be adjusted by the actuator.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {
