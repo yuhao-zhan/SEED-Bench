@@ -12,7 +12,7 @@ from common.simulator import TIME_STEP
 class Evaluator:
     """
     Evaluation system for F-01: The Dam (extreme variant).
-    Success: leakage rate <= 0.2%. Failure: leakage rate > 0.2%.
+    Success: leakage rate <= 0.1%. Failure: leakage rate > 0.1%.
     Design: max beam height 1.5 m; joints can break under load; seepage zone [13.5, 14] counts as half-leak.
     """
 

@@ -17,6 +17,7 @@ Design a stabilization and containment structure for a boat in rough water.
 ## Task Environment
 - **Boat**: A platform floating in water (x around 15m, y around 2.5m).
 - **Cargo**: 10 granular particles loaded onto the boat.
+- **Obstacles**: Static rocks are present in the water which can strike the boat or cargo.
 - **Dynamic Forces**: The boat is subject to multi-mode waves, sudden gusts, lateral wind, and water currents.
 - **Build Zone**: Structure must be attached to the boat body within x=[12.0, 18.0], y=[2.0, 4.5].
 

@@ -46,35 +46,35 @@ class Sandbox:
         self.BUILD_ZONE_X_MAX = 18.0
         self.BUILD_ZONE_Y_MIN = 0.0
         self.BUILD_ZONE_Y_MAX = 6.0
-        # Pit 1: disabled (y_max=0) so reference can pass
+        # Pit 1: enabled for hard variant
         self.PIT_X_MIN = 13.5
         self.PIT_X_MAX = 15.5
         self.PIT_Y_MIN = 0.0
-        self.PIT_Y_MAX = float(terrain_config.get("pit1_y_max", 0.0))
-        # Pit 2: disabled (y_max=0) so reference can pass
+        self.PIT_Y_MAX = float(terrain_config.get("pit1_y_max", 2.0))
+        # Pit 2: enabled for hard variant
         self.PIT2_X_MIN = 16.0
         self.PIT2_X_MAX = 17.5
         self.PIT2_Y_MIN = 0.0
-        self.PIT2_Y_MAX = float(terrain_config.get("pit2_y_max", 0.0))
-        # Pit 3: disabled for reference to pass (set y_max=0 so no particle in pit)
+        self.PIT2_Y_MAX = float(terrain_config.get("pit2_y_max", 1.6))
+        # Pit 3: enabled for hard variant
         self.PIT3_X_MIN = float(terrain_config.get("pit3_x_min", 11.0))
         self.PIT3_X_MAX = float(terrain_config.get("pit3_x_max", 12.5))
         self.PIT3_Y_MIN = 0.0
-        self.PIT3_Y_MAX = float(terrain_config.get("pit3_y_max", 0.0))  # 0 = disabled
+        self.PIT3_Y_MAX = float(terrain_config.get("pit3_y_max", 1.6))
         # Headwind: configurable for mutated tasks
         self.HEADWIND_Y_THRESHOLD = 3.0
-        self.HEADWIND_FX_BASE = float(terrain_config.get("headwind_fx_base", -60.0))
+        self.HEADWIND_FX_BASE = float(terrain_config.get("headwind_fx_base", -120.0))
         # Gravity well: configurable for mutated tasks
         self.GRAVWELL_X_MIN = 10.0
         self.GRAVWELL_X_MAX = 14.0
         self.GRAVWELL_Y_MIN = 1.5
         self.GRAVWELL_Y_MAX = 3.5
-        self.GRAVWELL_FY = float(terrain_config.get("gravwell_fy", -15.0))
+        self.GRAVWELL_FY = float(terrain_config.get("gravwell_fy", -120.0))
         # Force budget
         self.FORCE_BUDGET_PER_STEP = float(physics_config.get("force_budget", 12000.0))
         self._force_budget_used = 0.0
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 380.0))
-        self.MIN_DELIVERY_RATIO = float(terrain_config.get("min_delivery_ratio", 0.55))
+        self.MIN_DELIVERY_RATIO = float(terrain_config.get("min_delivery_ratio", 0.90))
 
         self._create_terrain(terrain_config)
         self._create_fluid_particles(terrain_config)
@@ -220,7 +220,8 @@ class Sandbox:
                     p.transform = ((x, self._PARTICLE_RADIUS), p.angle)
                     vx = p.linearVelocity.x
                     p.linearVelocity = (vx, 0.0)
-        headwind_fx = self.HEADWIND_FX_BASE
+        # Headwind: y > threshold -> force -X (time-varying: oscillations between -60 and -180 N)
+        headwind_fx = self.HEADWIND_FX_BASE + 60.0 * math.sin(self._step_counter / 50.0)
         for p in self._fluid_particles:
             if p is None or not p.active:
                 continue
@@ -240,7 +241,7 @@ class Sandbox:
                     self.PIT2_Y_MIN <= y <= self.PIT2_Y_MAX):
                 p.active = False
                 continue
-            # Headwind: y > threshold -> force -X (time-varying)
+            # Headwind application
             if y > self.HEADWIND_Y_THRESHOLD:
                 p.ApplyForceToCenter((headwind_fx, 0), wake=True)
             # Gravity well

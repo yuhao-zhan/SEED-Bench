@@ -23,6 +23,8 @@ Design a free-standing dam to block water particles in an extreme environment.
 - **Build Zone**: Three disjoint narrow vertical strips: x=[12.4, 12.6], [12.9, 13.1], and [13.4, 13.6]. Max height y=7.5m.
 - **Constraint**: Mandatory underflow gap; no beams allowed below y=0.5m.
 - **Constraint**: ZERO floor anchors; the dam must be free-standing.
+- **Constraint**: Maximum beam height is 1.5 m.
+- **Constraint**: Middle build strip [12.9, 13.1] must contain at least 1 but at most 1 beam (forces bridge topology).
 
 ## Task Objective
 Design a structure that:
@@ -38,7 +40,7 @@ Design a structure that:
 ## Design Constraints
 - **Mass Budget**: Total structure mass <= 380 kg.
 - **Beam Limit**: Maximum 18 beams.
-- **Joint Limit**: Maximum 11 beam-to-beam joints.
+- **Joint Limit**: Maximum 15 beam-to-beam joints.
 - **APIs**: Use only the primitives documented below.
 """,
     "primitives_api": API_INTRO

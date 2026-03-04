@@ -56,13 +56,16 @@ class F01Renderer(Renderer):
             dx = sandbox.DOWNSTREAM_X_START
             self.draw_line(dx, 0, dx, 12, (255, 80, 80), 3)
 
-        # Draw build zone outline (yellow)
-        if hasattr(sandbox, "BUILD_ZONE_X_MIN"):
-            x_min = sandbox.BUILD_ZONE_X_MIN
-            x_max = sandbox.BUILD_ZONE_X_MAX
-            y_min = sandbox.BUILD_ZONE_Y_MIN
-            y_max = sandbox.BUILD_ZONE_Y_MAX
-            self.draw_line(x_min, y_min, x_max, y_min, (255, 255, 0), 1)
-            self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
-            self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
-            self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)
+        # Draw build zone outlines (yellow)
+        for zone_name in ["left", "middle", "right"]:
+            attr_min = f"BUILD_ZONE_{zone_name.upper()}_X_MIN"
+            attr_max = f"BUILD_ZONE_{zone_name.upper()}_X_MAX"
+            if hasattr(sandbox, attr_min):
+                x_min = getattr(sandbox, attr_min)
+                x_max = getattr(sandbox, attr_max)
+                y_min = sandbox.BUILD_ZONE_Y_MIN
+                y_max = sandbox.BUILD_ZONE_Y_MAX
+                self.draw_line(x_min, y_min, x_max, y_min, (255, 255, 0), 1)
+                self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
+                self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
+                self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)

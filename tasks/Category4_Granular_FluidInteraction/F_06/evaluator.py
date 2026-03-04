@@ -37,10 +37,21 @@ class Evaluator:
             return True, 0.0, {"error": "Environment not available"}
 
         if not self.design_constraints_checked and step_count == 0:
-            self.initial_joint_count = len(self.environment._joints)
+            violations = self._check_design_constraints()
+            if violations:
+                self.design_constraints_checked = True
+                return True, 0.0, {
+                    "success": False,
+                    "failed": True,
+                    "failure_reason": "Design constraint violated: " + "; ".join(violations),
+                    "step_count": step_count,
+                    "constraint_violations": violations,
+                }
             self.design_constraints_checked = True
+            self.initial_joint_count = len(self.environment._joints)
 
-        if len(self.environment._joints) < self.initial_joint_count:
+        current_joint_count = len(self.environment._joints)
+        if current_joint_count < self.initial_joint_count:
             self.structure_broken = True
 
         done = step_count >= max_steps
@@ -52,15 +63,21 @@ class Evaluator:
         failure_reason = None
 
         if delivery_ratio < self.MIN_DELIVERY_RATIO:
-            failed, failure_reason = True, f"Delivery efficiency {delivery_ratio*100:.1f}% below {self.MIN_DELIVERY_RATIO*100:.0f}% target"
-        elif self.structure_broken:
-            failed, failure_reason = True, "Structure integrity lost"
+            failed = True
+            failure_reason = f"Delivery efficiency {delivery_ratio*100:.1f}% below {self.MIN_DELIVERY_RATIO*100:.0f}% target"
+        
+        if self.structure_broken:
+            failed = True
+            failure_reason = (failure_reason or "") + ("; " if failure_reason else "") + "Structure integrity lost"
 
         success = (not failed)
         score = 100.0 if success else 0.0
         
         return True, score, {
-            "delivery_ratio": delivery_ratio, "success": success, "failed": failed, "failure_reason": failure_reason
+            "delivery_ratio": delivery_ratio, "success": success, "failed": failed, "failure_reason": failure_reason,
+            "structure_mass": self.environment.get_structure_mass(),
+            "max_structure_mass": self.MAX_STRUCTURE_MASS,
+            "structure_broken": self.structure_broken,
         }
 
     def _check_design_constraints(self):

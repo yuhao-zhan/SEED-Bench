@@ -10,9 +10,9 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "initial_particle_count" in metrics:
         metric_parts.append(f"**Initial fluid particles**: {metrics['initial_particle_count']}")
     if "particles_in_target" in metrics:
-        metric_parts.append(f"**Particles in target** (narrow zone x=[19.5,20.5], y=[4.8,5.2]): {metrics['particles_in_target']}")
+        metric_parts.append(f"**Particles in target** (zone x=[18,22], y=[0,1.5]): {metrics['particles_in_target']}")
     if "delivery_ratio_percent" in metrics:
-        target_pct = metrics.get("min_delivery_ratio_percent", 85.0)
+        target_pct = metrics.get("min_delivery_ratio_percent", 90.0)
         metric_parts.append(f"**Delivery efficiency**: {metrics['delivery_ratio_percent']:.1f}% (target: {target_pct:.0f}%)")
     if "particles_lost" in metrics:
         metric_parts.append(f"**Particles lost** (pit or out of world): {metrics['particles_lost']}")
@@ -23,7 +23,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "structure_mass" in metrics:
         metric_parts.append(f"**Structure mass**: {metrics['structure_mass']:.2f} kg")
         if "max_structure_mass" in metrics:
-            metric_parts.append(f"**Mass limit**: {metrics['max_structure_mass']:.0f} kg (hard: 420)")
+            metric_parts.append(f"**Mass limit**: {metrics['max_structure_mass']:.0f} kg")
     if "structure_broken" in metrics:
         metric_parts.append(f"**Structure integrity**: {'BROKEN' if metrics['structure_broken'] else 'INTACT'}")
     if "joint_count" in metrics:
@@ -63,23 +63,23 @@ def get_improvement_suggestions(
     if error:
         error_lower = error.lower()
         if "structure mass" in error_lower and "exceeds" in error_lower:
-            suggestions.append(f"- Reduce structure mass to be within {metrics.get('max_structure_mass', 420):.0f} kg")
+            suggestions.append(f"- Reduce structure mass to be within {metrics.get('max_structure_mass', 380):.0f} kg")
         elif "build zone" in error_lower:
             suggestions.append("- Place all beams within build zone x=[6, 18], y=[0, 6]")
     elif failed:
         if failure_reason and "design constraint" in failure_reason.lower():
             if "structure mass" in failure_reason.lower():
-                suggestions.append(f"- Keep total mass below {metrics.get('max_structure_mass', 420):.0f} kg")
+                suggestions.append(f"- Keep total mass below {metrics.get('max_structure_mass', 380):.0f} kg")
             if "build zone" in failure_reason.lower():
                 suggestions.append("- Ensure all beams are inside the build zone between source and target")
         elif failure_reason and "delivery" in failure_reason.lower() and "efficiency" in failure_reason.lower():
             suggestions.append("- **Avoid all three pits**: PIT3 x=[11,12.5] y<1.6; PIT1 x=[13.5,15.5] y<2.0; PIT2 x=[16,17.5] y<1.6. Route above each.")
-            suggestions.append("- **Headwind (time-varying)**: For y>3 add +X force; magnitude oscillates (~60–180 N), so constant force may fail.")
-            suggestions.append("- **Gravity well**: In x=[9,15], y=[1.2,3.8] push harder (extra upward force) to overcome ~120 N downward.")
-            suggestions.append("- Aim for 90% delivery (54 of 60); force budget 3800 N/step; prioritize which particles to push.")
+            suggestions.append("- **Headwind**: For y>3 add +X force to overcome headwind.")
+            suggestions.append("- **Gravity well**: In x=[10,14], y=[1.5,3.5] add extra upward force to overcome downward pull.")
+            suggestions.append("- Aim for 90% delivery; force budget 12000 N/step; prioritize which particles to push.")
         elif failure_reason and "structure integrity" in failure_reason.lower():
             suggestions.append("- Strengthen joints; moving particles exert forces on the structure")
     elif not success:
         if metrics.get("delivery_ratio_percent", 0) < 90:
-            suggestions.append("- Aim to deliver at least 54 of 60 particles (90%) to the narrow target x=[19.5,20.5], y=[4.8,5.2]; avoid all three pits.")
+            suggestions.append("- Aim to deliver at least 90% of particles to the target x=[18,22], y=[0,1.5]; avoid all three pits.")
     return suggestions

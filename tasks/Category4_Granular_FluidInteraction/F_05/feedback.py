@@ -39,7 +39,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if "boat_x" in metrics and metrics["boat_x"] is not None and "boat_y" in metrics and metrics["boat_y"] is not None:
             metric_parts.append(f"- Boat position: x={metrics['boat_x']:.3f} m, y={metrics['boat_y']:.3f} m")
         if "boat_angle_deg" in metrics and metrics["boat_angle_deg"] is not None:
-            metric_parts.append(f"- Boat angle: {metrics['boat_angle_deg']:.3f}° (limit {metrics.get('boat_max_angle_deg', 60):.0f}°)")
+            metric_parts.append(f"- Boat angle: {metrics['boat_angle_deg']:.3f}° (limit {metrics.get('boat_max_angle_deg', 18):.0f}°)")
         if "cargo_in_water" in metrics and "initial_cargo_count" in metrics:
             thresh = metrics.get("cargo_water_y", 1.98)
             metric_parts.append(f"- Cargo in water: {metrics['cargo_in_water']}/{metrics['initial_cargo_count']} (y<{thresh}m = lost)")
@@ -68,13 +68,13 @@ def get_improvement_suggestions(
     if error:
         error_lower = error.lower()
         if "structure mass" in error_lower and "exceeds" in error_lower:
-            suggestions.append(f"- Reduce structure mass to be within {metrics.get('max_structure_mass', 200):.0f} kg")
+            suggestions.append(f"- Reduce structure mass to be within {metrics.get('max_structure_mass', 60):.0f} kg")
         elif "build zone" in error_lower:
             suggestions.append("- Place all beams within build zone x=[12, 18], y=[2, 4.5]")
     elif failed:
         if failure_reason and "design constraint" in failure_reason.lower():
             if "structure mass" in failure_reason.lower():
-                suggestions.append(f"- Keep total mass below {metrics.get('max_structure_mass', 200):.0f} kg")
+                suggestions.append(f"- Keep total mass below {metrics.get('max_structure_mass', 60):.0f} kg")
             if "build zone" in failure_reason.lower():
                 suggestions.append("- Ensure all beams are inside the build zone on/around the boat")
         elif failure_reason and "cargo" in failure_reason.lower() and "water" in failure_reason.lower():
@@ -89,7 +89,7 @@ def get_improvement_suggestions(
         if metrics.get("cargo_in_water", 0) > 0:
             thresh = metrics.get("cargo_water_y", 1.98)
             suggestions.append(f"- Secure all cargo above y={thresh}m (rails, ties, or barriers)")
-        max_deg = metrics.get("boat_max_angle_deg", 60)
+        max_deg = metrics.get("boat_max_angle_deg", 18)
         if metrics.get("boat_angle_deg") is not None and metrics.get("boat_angle_deg", 0) > max_deg:
             suggestions.append(f"- Reduce boat roll (angle) by improving stability and cargo fixation (limit {max_deg:.0f}°)")
     return suggestions

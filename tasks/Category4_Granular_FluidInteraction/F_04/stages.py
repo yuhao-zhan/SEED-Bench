@@ -27,8 +27,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_purity = base_terrain_config.get("min_purity", 0.35)
     
     if target_purity != base_purity:
-        pattern = r"(1\. \*\*Classification Purity\*\*: Overall purity \(correctly categorized particles / total particles\) >= )(\d+\.?\d*%)"
-        # The prompt has >= 35%. Let's use string replace for simplicity if pattern match is tricky
+        # The prompt has >= 35%.
         criteria = criteria.replace(
             f">= {base_purity*100:.0f}%",
             f">= {target_purity*100:.0f}% (originally >= {base_purity*100:.0f}% in the source environment)"

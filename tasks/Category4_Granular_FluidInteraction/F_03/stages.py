@@ -32,16 +32,11 @@ def update_success_criteria_for_visible_changes(
     base_count = base_terrain_config.get("min_particles_in_hopper", 50)
     
     if target_count != base_count:
-        pattern = r"(1\. \*\*Material Transfer\*\*: Significant amount of granular material moved to the target zone \(x > 2.0m\)\.)"
-        # Since the original prompt is vague ("Significant amount"), we can append the specific number if it's explicitly set.
-        # But wait, environment.py uses min_particles_in_hopper.
-        # Let's see if prompt.py success_criteria has a specific number.
-        # Prompt.py success_criteria for F_03: "1. **Material Transfer**: Significant amount of granular material moved to the target zone (x > 2.0m)."
-        # It doesn't mention 50. But evaluator probably does.
-        # If the stage says "at least 70", we should reflect that.
-        criteria = criteria.replace(
-            "Significant amount",
-            f"At least {target_count} particles (originally {base_count} particles in the source environment)"
+        pattern = r"(1\. \*\*Material Transfer\*\*: At least )(\d+)( sand particles are deposited in the hopper)"
+        criteria = re.sub(
+            pattern,
+            f"\\g<1>{target_count}\\g<3> (originally {base_count} particles in the source environment)",
+            criteria
         )
         
     return criteria

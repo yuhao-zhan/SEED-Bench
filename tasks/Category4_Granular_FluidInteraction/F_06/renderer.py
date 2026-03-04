@@ -91,3 +91,23 @@ class F06Renderer(Renderer):
             self.draw_line(qx2, qy1, qx2, qy2, (160, 40, 40), 2)
             self.draw_line(qx2, qy2, qx1, qy2, (160, 40, 40), 2)
             self.draw_line(qx1, qy2, qx1, qy1, (160, 40, 40), 2)
+        # Pit 3 (loss)
+        if hasattr(sandbox, "PIT3_X_MIN"):
+            rx1, rx2 = sandbox.PIT3_X_MIN, sandbox.PIT3_X_MAX
+            ry1, ry2 = sandbox.PIT3_Y_MIN, sandbox.PIT3_Y_MAX
+            self.draw_line(rx1, ry1, rx2, ry1, (200, 60, 60), 2)
+            self.draw_line(rx2, ry1, rx2, ry2, (200, 60, 60), 2)
+            self.draw_line(rx2, ry2, rx1, ry2, (200, 60, 60), 2)
+            self.draw_line(rx1, ry2, rx1, ry1, (200, 60, 60), 2)
+        # Headwind threshold (blue dotted line)
+        if hasattr(sandbox, "HEADWIND_Y_THRESHOLD"):
+            y_thresh = sandbox.HEADWIND_Y_THRESHOLD
+            self.draw_line(0, y_thresh, 26, y_thresh, (100, 100, 255), 1)
+        # Gravity well (purple rectangle)
+        if hasattr(sandbox, "GRAVWELL_X_MIN"):
+            gx1, gx2 = sandbox.GRAVWELL_X_MIN, sandbox.GRAVWELL_X_MAX
+            gy1, gy2 = sandbox.GRAVWELL_Y_MIN, sandbox.GRAVWELL_Y_MAX
+            self.draw_line(gx1, gy1, gx2, gy1, (180, 100, 255), 1)
+            self.draw_line(gx2, gy1, gx2, gy2, (180, 100, 255), 1)
+            self.draw_line(gx2, gy2, gx1, gy2, (180, 100, 255), 1)
+            self.draw_line(gx1, gy2, gx1, gy1, (180, 100, 255), 1)

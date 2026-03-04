@@ -101,29 +101,29 @@ def get_improvement_suggestions(
     elif failed:
         if failure_reason and "design constraint" in failure_reason.lower():
             if "structure mass" in failure_reason.lower():
-                max_mass = metrics.get("max_structure_mass", 3000.0)
+                max_mass = metrics.get("max_structure_mass", 380.0)
                 suggestions.append(f"- Keep total structure mass below {max_mass:.0f} kg")
             if "build zone" in failure_reason.lower():
-                suggestions.append("- Ensure all beams are inside the build zone (left strip x=[12.3,12.7] or right strip x=[13.3,13.7])")
+                suggestions.append("- Ensure all beams are inside the narrow build strips (left x=[12.4,12.6], middle x=[12.9,13.1], or right x=[13.4,13.6])")
             if "right strip" in failure_reason.lower():
-                suggestions.append("- At most 2 beams may have centers in the right strip; put the rest in the left strip (asymmetric constraint)")
-            if "cross-joint" in failure_reason.lower():
-                suggestions.append("- Do not connect a left-strip beam to a right-strip beam; left and right columns must be independent")
+                suggestions.append("- At most 2 beams may have centers in the right strip; put the rest in the left and middle strips")
+            if "middle strip" in failure_reason.lower():
+                suggestions.append("- Exactly one beam center must be in the middle strip x=[12.9, 13.1] (forces bridge connectivity)")
             if "terrain" in failure_reason.lower() or "anchor" in failure_reason.lower():
-                suggestions.append("- ZERO floor anchors allowed; the dam must be free-standing, held by water pressure (left) and the downstream wall (right)")
+                suggestions.append("- ZERO floor anchors allowed; the dam must be free-standing, held by water pressure and its own weight")
             if "joint" in failure_reason.lower():
-                suggestions.append("- At most 15 beam-to-beam joints allowed; use 14 in the left column and 1 in the right (2 beams) to stay at the limit")
+                suggestions.append("- At most 15 beam-to-beam joints allowed; use them to form a single connected structure")
         elif failure_reason and "leakage" in failure_reason.lower():
-            suggestions.append("- Mandatory underflow gap: beams cannot extend below y=0.5; minimize gaps; max beam width 0.6 m; overlap left/right by geometry")
-            suggestions.append("- Reduce gaps between beams; left and right columns must be independent (no cross-joints) but overlap in x to seal")
+            suggestions.append("- Mandatory underflow gap: beams cannot extend below y=0.5; minimize gaps; max beam width 0.6 m")
+            suggestions.append("- Minimize gaps between beams; ensure the structure spans from left to right strip to block the particles")
         elif failure_reason and "structure integrity" in failure_reason.lower():
-            suggestions.append("- Strengthen joints and connections; lateral pressure from water can break weak joints")
-            suggestions.append("- Dam must be free-standing (no floor anchors); position it so water pressure and the downstream wall hold it in place")
+            suggestions.append("- Strengthen joints and connections; lateral pressure from water and surges can break joints")
+            suggestions.append("- Dam must be free-standing (no floor anchors); use the middle strip beam to bridge and stabilize the columns")
 
     elif not success:
-        limit_pct = metrics.get("leakage_limit_percent", 0.5)
+        limit_pct = metrics.get("leakage_limit_percent", 0.1)
         if metrics.get("leakage_rate_percent", 0) > limit_pct:
-            suggestions.append("- Mandatory underflow (no beam below y=0.5); beam width <= 0.6 m; at most 15 joints; minimize leakage; leakage must not exceed {:.1f}%".format(limit_pct))
-            suggestions.append("- Right strip at most 2 beams; at most 15 beam-to-beam joints; no cross-joints; ZERO floor anchors; resist nine surges, backward slosh, and three upward surge events")
+            suggestions.append("- Mandatory underflow (no beam below y=0.5); beam width <= 0.6 m; at most 15 joints; leakage must not exceed {:.1f}%".format(limit_pct))
+            suggestions.append("- Ensure the dam spans the entire gate; resist nine surges, backward slosh, and three upward surge events")
 
     return suggestions

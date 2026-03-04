@@ -72,7 +72,7 @@ class Sandbox:
         self.MIN_BEAM_BOTTOM_Y = float(terrain_config.get("min_beam_bottom_y", 0.5))
         self.MAX_BEAM_WIDTH = float(terrain_config.get("max_beam_width", 0.6))  # narrower beams
         self.MAX_BEAM_HEIGHT = float(terrain_config.get("max_beam_height", 1.5))  # no tall beams — break under surge
-        self.MAX_JOINT_COUNT = int(terrain_config.get("max_joint_count", 11))  # at most 11 beam-to-beam welds — forces sparse topology; one cross-joint needed for connectivity
+        self.MAX_JOINT_COUNT = int(terrain_config.get("max_joint_count", 15))  # at most 15 beam-to-beam welds — forces sparse topology; one cross-joint needed for connectivity
         self.JOINT_BREAK_FORCE = float(terrain_config.get("joint_break_force", 50000.0))  # breakable welds — very high so short-beam reference survives
         self.MIN_BEAMS_PER_BAND = int(terrain_config.get("min_beams_per_band", 3))  # at least 3 beam centers in each vertical band [0.5,2.5], [2.5,5], [5,7.5]
         self.MAX_LEAKAGE_RATE = float(terrain_config.get("max_leakage_rate", 0.001))  # success threshold; mutated tasks may use stricter (e.g. 0.0005)
@@ -183,13 +183,13 @@ class Sandbox:
     MIN_BEAM_SIZE = 0.2
     MAX_BEAM_SIZE = 4.0
     MAX_BEAM_WIDTH = 0.8  # instance overwritten from terrain_config (e.g. 0.6 in extreme)
-    MAX_BEAM_HEIGHT = 4.0  # instance overwritten (e.g. 1.5 in extreme)
+    MAX_BEAM_HEIGHT = 1.5  # instance overwritten (e.g. 1.5 in extreme)
 
     def add_beam(self, x, y, width, height, angle=0, density=500.0):
         if len(self._bodies) >= self.MAX_BEAM_COUNT:
             raise ValueError(f"Beam count would exceed maximum {self.MAX_BEAM_COUNT}")
         max_w = getattr(self, 'MAX_BEAM_WIDTH', 0.8)
-        max_h = getattr(self, 'MAX_BEAM_HEIGHT', 4.0)
+        max_h = getattr(self, 'MAX_BEAM_HEIGHT', 1.5)
         width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_SIZE, max_w))
         height = max(self.MIN_BEAM_SIZE, min(height, self.MAX_BEAM_SIZE, max_h))
         body = self._world.CreateDynamicBody(
@@ -221,7 +221,7 @@ class Sandbox:
         # Enforce max beam-to-beam joint count (no limit on terrain joints when 0)
         if body_b != self._terrain_bodies.get("floor"):
             beam_joints = len(self._joints) - len(self._terrain_joints)
-            max_joints = getattr(self, 'MAX_JOINT_COUNT', 99)
+            max_joints = getattr(self, 'MAX_JOINT_COUNT', 15)
             if beam_joints >= max_joints:
                 raise ValueError(f"Beam-to-beam joint count would exceed maximum {max_joints}")
 
@@ -310,7 +310,7 @@ class Sandbox:
                     hist.append(mag)
                     if len(hist) > self._joint_force_history_len:
                         hist.pop(0)
-                    threshold = getattr(self, 'JOINT_BREAK_FORCE', 5500.0)
+                    threshold = getattr(self, 'JOINT_BREAK_FORCE', 50000.0)
                     if len(hist) >= self._joint_force_history_len and all(h >= threshold for h in hist):
                         to_remove.append(joint)
                 except Exception:

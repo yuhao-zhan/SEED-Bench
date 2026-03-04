@@ -24,13 +24,13 @@ class Evaluator:
         if not environment:
             raise ValueError("Evaluator requires environment instance")
         env_class = type(environment)
-        self.MAX_STRUCTURE_MASS = getattr(environment, 'MAX_STRUCTURE_MASS', getattr(env_class, 'MAX_STRUCTURE_MASS', 500.0))
-        self.MAX_BEAMS = getattr(environment, 'MAX_BEAMS', getattr(env_class, 'MAX_BEAMS', 999))
-        self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', getattr(env_class, 'BUILD_ZONE_X_MIN', 2.0))
-        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 12.0))
-        self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', getattr(env_class, 'BUILD_ZONE_Y_MIN', 1.0))
-        self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 4.0))
-        self.MIN_PURITY = getattr(environment, 'MIN_PURITY', getattr(env_class, 'MIN_PURITY', 0.40))
+        self.MAX_STRUCTURE_MASS = getattr(environment, 'MAX_STRUCTURE_MASS', getattr(env_class, 'MAX_STRUCTURE_MASS', 75.0))
+        self.MAX_BEAMS = getattr(environment, 'MAX_BEAMS', getattr(env_class, 'MAX_BEAMS', 6))
+        self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', getattr(env_class, 'BUILD_ZONE_X_MIN', 5.22))
+        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 6.88))
+        self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', getattr(env_class, 'BUILD_ZONE_Y_MIN', 1.72))
+        self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 2.38))
+        self.MIN_PURITY = getattr(environment, 'MIN_PURITY', getattr(env_class, 'MIN_PURITY', 0.35))
 
     def evaluate(self, agent_body, step_count, max_steps):
         """

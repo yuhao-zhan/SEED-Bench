@@ -89,8 +89,8 @@ class Sandbox:
         )
         self._terrain_bodies["floor"] = floor
 
-        # Central wall: optional (set central_wall=True to enable); when enabled, arm must lift to clear
-        if terrain_config.get("central_wall", False):
+        # Central wall: enabled by default to match prompt; arm must lift to clear
+        if terrain_config.get("central_wall", True):
             wall_x = -1.0
             wall_bottom = 0.5
             wall_top = 2.0
