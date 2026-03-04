@@ -71,8 +71,8 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
-                # Hidden: reduce low-speed torque availability so escaping stall is harder
-                "torque_limit_at_zero": 1.0,
+                # Hidden: increase torque deadzone (nominal is 2.0)
+                "torque_deadzone": 4.5,
             },
         },
         {

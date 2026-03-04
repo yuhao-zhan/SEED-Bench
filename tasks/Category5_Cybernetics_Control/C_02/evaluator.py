@@ -11,7 +11,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
 
 MAX_SAFE_VERTICAL_SPEED = 2.0
-MIN_FUEL_REMAINING_AT_LANDING = 350.0
+MIN_FUEL_REMAINING_AT_LANDING = 450.0
 
 
 class Evaluator:
@@ -31,7 +31,7 @@ class Evaluator:
         self._landing_angle = None
         self._landing_x = None
         self._landing_step = None
-        self._max_landing_angle = float(terrain_bounds.get("max_landing_angle", 0.25))
+        self._max_landing_angle = float(terrain_bounds.get("max_landing_angle", 0.175))
         self._min_fuel_remaining = float(
             terrain_bounds.get("min_fuel_remaining_at_landing", MIN_FUEL_REMAINING_AT_LANDING)
         )

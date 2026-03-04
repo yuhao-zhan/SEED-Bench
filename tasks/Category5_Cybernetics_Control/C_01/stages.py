@@ -50,8 +50,8 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
-                "sensor_delay_angle_steps": 35,
-                "sensor_delay_omega_steps": 42,
+                "sensor_delay_angle_steps": 8,
+                "sensor_delay_omega_steps": 12,
             },
         },
         {
@@ -87,8 +87,8 @@ While the following variables **MIGHT** have changed from the initial environmen
             },
             "physics_config": {
                 "gravity": (0, -24),
-                "sensor_delay_angle_steps": 25,
-                "sensor_delay_omega_steps": 30,
+                "sensor_delay_angle_steps": 6,
+                "sensor_delay_omega_steps": 10,
                 "actuator_rate_limit": 25.0,
                 "angular_damping": 0.65,
             },

@@ -17,11 +17,11 @@ from Box2D.b2 import (
 
 # Stricter limits (discoverable via feedback only)
 MAX_SAFE_VERTICAL_SPEED = 2.0
-MAX_LANDING_ANGLE = 0.15
+MAX_LANDING_ANGLE = 0.175  # ~10 degrees
 # Total fuel impulse (N·s); thrust consumes fuel; exhaust = no thrust (higher for obstacle detour)
 TOTAL_FUEL_IMPULSE = 5500.0
 # Success also requires landing with at least this much fuel remaining (fuel-efficient trajectory)
-MIN_FUEL_REMAINING_AT_LANDING = 350.0
+MIN_FUEL_REMAINING_AT_LANDING = 450.0
 # Random gusts: prob per step, amplitude (N)
 GUST_PROB = 0.05
 GUST_AMPLITUDE = 55.0
@@ -81,8 +81,8 @@ class Sandbox:
         self._lander_half_height = float(terrain_config.get("lander_half_height", 0.3))
         self._lander_mass = float(terrain_config.get("lander_mass", 50.0))
         # Start offset from zone: agent must translate horizontally to reach landing zone
-        self._spawn_x = float(terrain_config.get("spawn_x", 8.0))
-        self._spawn_y = float(terrain_config.get("spawn_y", 6.0))
+        self._spawn_x = float(terrain_config.get("spawn_x", 6.0))
+        self._spawn_y = float(terrain_config.get("spawn_y", 12.0))
         self._thrust_delay_steps = int(physics_config.get("thrust_delay_steps", THRUST_DELAY_STEPS))
         # Queue of (main_thrust, steering_torque); applied command is the oldest (issued delay_steps ago)
         qlen = max(1, self._thrust_delay_steps) + 1

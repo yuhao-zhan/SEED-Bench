@@ -16,8 +16,8 @@ except ImportError:
     from environment import BALANCE_ANGLE_RAD, TRACK_CENTER_X, SAFE_HALF_RANGE
 
 # Upright region: balance achieved on first entry; must stay until end (allows some overshoot margin)
-# Upright region: pole must stay within ±BALANCE_ANGLE (generous margin for swing-up overshoot)
-BALANCE_ANGLE_RAD_EVAL = math.radians(110.0)  # Relaxed for swing-up overshoot past vertical
+# Upright region: pole must stay within ±BALANCE_ANGLE
+BALANCE_ANGLE_RAD_EVAL = math.radians(45.0)
 BALANCE_HOLD_STEPS_REQUIRED = 1  # first crossing counts
 
 
@@ -66,9 +66,9 @@ class Evaluator:
                 f"Pole left upright region after achieving balance: |angle|={math.degrees(abs(pole_angle_true)):.1f}°"
             )
 
-        # Cart safe zone: always enforced; small tolerance for numerical/overshoot
+        # Cart safe zone: always enforced
         dist_from_center = abs(cart_x - self.track_center_x)
-        if dist_from_center > self.safe_half_range + 0.6:
+        if dist_from_center > self.safe_half_range:
             failed = True
             failure_reason = (
                 f"Cart left safe zone: position x={cart_x:.2f}m, "

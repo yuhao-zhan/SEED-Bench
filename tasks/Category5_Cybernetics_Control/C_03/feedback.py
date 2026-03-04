@@ -19,9 +19,15 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             f"**Target position**: x={metrics['target_x']:.2f} m, y={metrics['target_y']:.2f} m"
         )
     if "distance_to_target" in metrics:
+        dist = metrics["distance_to_target"]
+        dist_limit = metrics.get("rendezvous_distance", 6.0)
         metric_parts.append(
-            f"**Distance to target**: {metrics['distance_to_target']:.2f} m"
+            f"**Distance to target**: {dist:.2f} m (threshold {dist_limit:.1f} m)"
         )
+    if "relative_speed" in metrics:
+        rel_speed = metrics["relative_speed"]
+        rel_speed_limit = metrics.get("rendezvous_rel_speed", 1.8)
+        metric_parts.append(f"**Relative speed** (|seeker_vel − target_vel|): {rel_speed:.3f} m/s (threshold {rel_speed_limit:.2f} m/s)")
     if "activation_achieved" in metrics:
         metric_parts.append(
             f"**Activation condition** (pre-condition for rendezvous to count): {metrics['activation_achieved']}"
@@ -34,17 +40,19 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         metric_parts.append(f"**Heading aligned with target velocity** (required at rendezvous): {metrics['heading_aligned']}")
     if metrics.get("heading_error_deg") is not None:
         metric_parts.append(f"**Heading error vs target velocity**: {metrics['heading_error_deg']:.1f}°")
-    if "relative_speed" in metrics:
-        metric_parts.append(f"**Relative speed** (|seeker_vel − target_vel|): {metrics['relative_speed']:.3f} m/s")
     if "remaining_impulse_budget" in metrics:
         metric_parts.append(f"**Remaining thrust budget**: {metrics['remaining_impulse_budget']:.1f} N·s")
     if metrics.get("corridor_violation"):
         metric_parts.append("**Corridor**: left allowed bounds")
-    track = metrics.get("track_distance", 7.5)
+    track = metrics.get("track_distance", 8.5)
     if "distance_margin" in metrics:
         margin = metrics["distance_margin"]
         status = "within track limit" if margin >= 0 else "EXCEEDED"
         metric_parts.append(f"**Track margin** (limit {track:.1f} m): {margin:.2f} m ({status})")
+    elif "distance_to_target" in metrics and metrics.get("rendezvous_count", 0) >= 1:
+        dist = metrics["distance_to_target"]
+        status = "within track limit" if dist <= track else "EXCEEDED"
+        metric_parts.append(f"**Track status** (limit {track:.1f} m): {dist:.2f} m ({status})")
 
     if "seeker_vx" in metrics or "seeker_speed" in metrics:
         metric_parts.append("\n**Physical State Information**:")

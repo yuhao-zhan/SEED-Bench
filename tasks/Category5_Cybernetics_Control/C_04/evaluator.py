@@ -22,8 +22,8 @@ class Evaluator:
         self.terrain_bounds = terrain_bounds
         self.environment = environment
         self._exit_x_min = float(terrain_bounds.get("exit_x_min", 18.0))
-        self._exit_y_min = float(terrain_bounds.get("exit_y_min", 1.0))
-        self._exit_y_max = float(terrain_bounds.get("exit_y_max", 2.0))
+        self._exit_y_min = float(terrain_bounds.get("exit_y_min", 1.25))
+        self._exit_y_max = float(terrain_bounds.get("exit_y_max", 1.45))
         self._consecutive_in_exit = 0
 
     def evaluate(self, agent_body, step_count, max_steps):

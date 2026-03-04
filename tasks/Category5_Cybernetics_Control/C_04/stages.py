@@ -64,8 +64,8 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
-                "backward_steps_required": 35,
-                "backward_speed_max": 2.0,
+                "backward_steps_required": 40,
+                "backward_speed_max": 0.6,
             },
         },
         {

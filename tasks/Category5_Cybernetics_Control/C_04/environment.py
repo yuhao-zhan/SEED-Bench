@@ -34,8 +34,11 @@ WIND_OSCILLATION_OMEGA = 0.08
 
 # Behavioral unlock (not in prompt): apply backward force (fx < threshold) while speed below max, for N consecutive steps
 BACKWARD_FX_THRESHOLD = -30.0
-BACKWARD_SPEED_MAX = 4.0  # must stay below this while applying backward force (counterintuitive: go backward slowly)
-BACKWARD_STEPS_REQUIRED = 20
+BACKWARD_SPEED_MAX = 1.0  # must stay below this while applying backward force (counterintuitive: go backward slowly)
+BACKWARD_STEPS_REQUIRED = 25
+# Spatial activation zone for unlock (required by prompt)
+ACTIVATION_X_MIN = 6.0
+ACTIVATION_X_MAX = 8.0
 
 # Slip zone default friction (configurable for maze "complexity")
 SLIP_FRICTION = 0.03
@@ -262,7 +265,9 @@ class Sandbox:
             x, y = agent.position.x, agent.position.y
             vx, vy = agent.linearVelocity.x, agent.linearVelocity.y
             speed = math.sqrt(vx * vx + vy * vy)
-            if self._force_x < self._backward_fx_threshold and speed < self._backward_speed_max:
+            # Check for behavioral unlock: must be in activation zone, applying backward force at low speed
+            in_activation_zone = ACTIVATION_X_MIN <= x <= ACTIVATION_X_MAX
+            if (in_activation_zone and self._force_x < self._backward_fx_threshold and speed < self._backward_speed_max):
                 self._backward_steps += 1
                 if self._backward_steps >= self._backward_steps_required:
                     self._behavioral_unlock = True

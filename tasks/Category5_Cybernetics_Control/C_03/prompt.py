@@ -30,13 +30,13 @@ Design a controller for a seeker craft to achieve multiple heading-aligned rende
 ## Task Objective
 Design a multi-phase control strategy:
 1. **Activation**: Position and hold the seeker in the activation zone until activated.
-2. **Slotted Rendezvous**: Achieve two separate rendezvous in narrow time slots (slots are between steps 3720-4780 and 6220-7280).
+2. **Slotted Rendezvous**: Achieve two separate rendezvous in narrow time slots (periodic slots occur within the windows [3700, 4800] and [6200, 7300]). Rendezvous only counts within the central region (x in [10.0, 20.0] m).
    - Rendezvous requires: getting close (< 6.0m), matching velocity (rel speed < 1.8 m/s), AND aligning seeker heading with the target's movement direction.
 3. **Tracking**: Maintain a close distance to the target after the second rendezvous.
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Rendezvous Completion**: Successfully achieve rendezvous in both phase 1 and phase 2 time slots with correct heading alignment.
+1. **Rendezvous Completion**: Successfully achieve rendezvous in both phase 1 and phase 2 time slots (within the central region) with correct heading alignment.
 2. **Tracking**: Maintain distance <= 8.5 m from target after the second rendezvous until the end.
 3. **Safety**: No collisions with obstacles; stay within the moving corridor.
 4. **Efficiency**: Complete the task within the impulse budget.
