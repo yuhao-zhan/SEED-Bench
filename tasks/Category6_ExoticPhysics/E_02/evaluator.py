@@ -22,6 +22,8 @@ class Evaluator:
         self.target_x_max = float(tz.get("x_max", 32.0))
         self.target_y_min = float(tz.get("y_min", 2.0))
         self.target_y_max = float(tz.get("y_max", 5.0))
+        self.craft_start_x = float(terrain_bounds.get("craft_start", {}).get("x", 8.0))
+        self.craft_start_y = float(terrain_bounds.get("craft_start", {}).get("y", 2.0))
         self.reached_target = False
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
@@ -71,7 +73,7 @@ class Evaluator:
             score = 0.0
         else:
             # Partial: progress toward target (x distance)
-            start_x = type(self.environment).CRAFT_START_X
+            start_x = self.craft_start_x
             max_dist = self.target_x_min - start_x
             dist_traveled = x - start_x
             progress = min(max(dist_traveled / max_dist, 0.0), 1.0) if max_dist > 0 else 0.0
@@ -80,13 +82,15 @@ class Evaluator:
         vel = self.environment.get_craft_velocity() or (0.0, 0.0)
         vx, vy = vel[0], vel[1]
         speed = (vx * vx + vy * vy) ** 0.5
-        start_x = type(self.environment).CRAFT_START_X
+        start_x = self.craft_start_x
         dist_traveled_x = x - start_x
         max_dist_x = self.target_x_min - start_x
         progress_x = (dist_traveled_x / max_dist_x * 100.0) if max_dist_x > 0 else 0.0
-        # Distance from craft to target zone center (30, 3.5)
-        dx_center = 30.0 - x
-        dy_center = 3.5 - y
+        # Distance from craft to target zone center
+        target_center_x = (self.target_x_min + self.target_x_max) / 2
+        target_center_y = (self.target_y_min + self.target_y_max) / 2
+        dx_center = target_center_x - x
+        dy_center = target_center_y - y
         distance_to_target = (dx_center * dx_center + dy_center * dy_center) ** 0.5
         heat_remaining = max(0.0, self.OVERHEAT_LIMIT - heat)
         metrics = {
@@ -120,7 +124,7 @@ class Evaluator:
             "description": "Move craft to target zone in high-drag environment without overheating",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": "Craft center enters target zone (x in [28, 32], y in [2, 5])",
+                "primary": f"Craft center enters target zone (x in [{self.target_x_min:.1f}, {self.target_x_max:.1f}], y in [{self.target_y_min:.1f}, {self.target_y_max:.1f}])",
                 "secondary": f"Heat stays below {self.OVERHEAT_LIMIT:.0f} N·s",
             },
             "evaluation": {

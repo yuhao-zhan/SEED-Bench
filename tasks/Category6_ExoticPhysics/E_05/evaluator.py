@@ -22,6 +22,8 @@ class Evaluator:
         self.target_x_max = float(tz.get("x_max", 32.0))
         self.target_y_min = float(tz.get("y_min", 6.0))
         self.target_y_max = float(tz.get("y_max", 9.0))
+        self.body_start_x = float(terrain_bounds.get("body_start", {}).get("x", 8.0))
+        self.body_start_y = float(terrain_bounds.get("body_start", {}).get("y", 5.0))
         self.reached_target = False
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
@@ -62,7 +64,7 @@ class Evaluator:
         elif failed:
             score = 0.0
         else:
-            start_x = type(self.environment).BODY_START_X
+            start_x = self.body_start_x
             max_dist = self.target_x_min - start_x
             dist_traveled = x - start_x
             progress = min(max(dist_traveled / max_dist, 0.0), 1.0) if max_dist > 0 else 0.0
@@ -73,8 +75,8 @@ class Evaluator:
         speed = (vx * vx + vy * vy) ** 0.5
 
         # Distance metrics for feedback
-        start_x = getattr(type(self.environment), "BODY_START_X", 8.0)
-        start_y = getattr(type(self.environment), "BODY_START_Y", 5.0)
+        start_x = self.body_start_x
+        start_y = self.body_start_y
         # Distance to nearest point in target zone (0 if inside)
         closest_x = max(self.target_x_min, min(x, self.target_x_max))
         closest_y = max(self.target_y_min, min(y, self.target_y_max))
@@ -117,7 +119,7 @@ class Evaluator:
             "description": "Navigate body to target zone despite invisible repulsive/attractive force fields (avoid local minimum)",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": "Body center enters target zone (x in [28, 32], y in [6, 9])",
+                "primary": f"Body center enters target zone (x in [{self.target_x_min:.1f}, {self.target_x_max:.1f}], y in [{self.target_y_min:.1f}, {self.target_y_max:.1f}])",
             },
             "evaluation": {
                 "score_range": "0-100",

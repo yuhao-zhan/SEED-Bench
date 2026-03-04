@@ -20,8 +20,10 @@ class Evaluator:
         tz = terrain_bounds.get("target_zone", {})
         self.target_x_min = float(tz.get("x_min", 28.0))
         self.target_x_max = float(tz.get("x_max", 32.0))
-        self.target_y_min = float(tz.get("y_min", 2.0))
-        self.target_y_max = float(tz.get("y_max", 5.0))
+        self.target_y_min = float(tz.get("y_min", 2.2))
+        self.target_y_max = float(tz.get("y_max", 2.8))
+        self.sled_start_x = float(terrain_bounds.get("sled_start", {}).get("x", 8.0))
+        self.sled_start_y = float(terrain_bounds.get("sled_start", {}).get("y", 2.0))
         self.reached_target = False
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
@@ -43,17 +45,9 @@ class Evaluator:
                 "step_count": step_count,
             }
         x, y = pos
-        checkpoint_a = getattr(
-            self.environment, "get_checkpoint_a_reached", lambda: False
-        )()
-        checkpoint_b = getattr(
-            self.environment, "get_checkpoint_b_reached", lambda: False
-        )()
-        if not checkpoint_a:
-            checkpoint_a = getattr(self.environment, "_checkpoint_a_reached", False)
-        if not checkpoint_b:
-            checkpoint_b = getattr(self.environment, "_checkpoint_b_reached", False)
-        checkpoint_reached = checkpoint_a and checkpoint_b
+        checkpoint_a = self.environment.get_checkpoint_a_reached()
+        checkpoint_b = self.environment.get_checkpoint_b_reached()
+        checkpoint_reached = self.environment.get_checkpoint_reached()
 
         if (self.target_x_min <= x <= self.target_x_max and
                 self.target_y_min <= y <= self.target_y_max):
@@ -78,7 +72,7 @@ class Evaluator:
         elif failed:
             score = 0.0
         else:
-            start_x = type(self.environment).SLED_START_X
+            start_x = self.sled_start_x
             max_dist = self.target_x_min - start_x
             dist_traveled = x - start_x
             progress = min(max(dist_traveled / max_dist, 0.0), 1.0) if max_dist > 0 else 0.0
@@ -96,7 +90,7 @@ class Evaluator:
         dist_x = dx_lo if x < self.target_x_min else (dx_hi if x > self.target_x_max else 0)
         dist_y = dy_lo if y < self.target_y_min else (dy_hi if y > self.target_y_max else 0)
         distance_to_target = (dist_x * dist_x + dist_y * dist_y) ** 0.5
-        start_x = type(self.environment).SLED_START_X
+        start_x = self.sled_start_x
         max_dist_x = self.target_x_min - start_x
         progress_pct = min(100.0, max(0.0, (x - start_x) / max_dist_x * 100.0)) if max_dist_x > 0 else 0.0
         metrics = {
@@ -119,6 +113,7 @@ class Evaluator:
             "velocity_magnitude": velocity_magnitude,
             "distance_to_target": distance_to_target,
             "progress_pct": progress_pct,
+            "sled_start_x": self.sled_start_x,
         }
         return failed or (step_count >= max_steps - 1), score, metrics
 

@@ -1,5 +1,5 @@
 """
-Task-specific feedback generation for E-06: The Brownian.
+Task-specific feedback generation for E-06: Cantilever Endurance.
 Returns detailed physical metrics for fatigue / joint stress analysis.
 """
 from typing import Dict, Any, List
@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Format task-specific metrics for E-06: The Brownian.
+    Format task-specific metrics for E-06: Cantilever Endurance.
     Provides process and result physical metrics for feedback.
     """
     metric_parts = []
@@ -115,11 +115,12 @@ def get_improvement_suggestions(
     if error:
         err_lower = error.lower()
         if "structure mass" in err_lower and "exceeds" in err_lower:
+            max_mass = metrics.get('max_structure_mass', 120.0)
             suggestions.append(
-                f"Reduce structure mass to within {metrics.get('max_structure_mass', 400):.0f} kg"
+                f"Reduce structure mass to within {max_mass:.0f} kg"
             )
         elif "build zone" in err_lower or "outside build zone" in err_lower:
-            suggestions.append("Place all beams inside the build zone (x in [5, 15], y in [1.5, 8])")
+            suggestions.append("Place all beams inside the build zone (infer limits from feedback)")
         elif "maximum" in err_lower and "beams allowed" in err_lower:
             suggestions.append("Reduce the number of beams; there is a limit on total beams.")
         elif "maximum" in err_lower and "joints allowed" in err_lower:
@@ -145,11 +146,12 @@ def get_improvement_suggestions(
     elif failed:
         if failure_reason and "design constraint" in failure_reason.lower():
             if "mass" in failure_reason.lower():
+                max_mass = metrics.get('max_structure_mass', 120.0)
                 suggestions.append(
-                    f"Keep total structure mass <= {metrics.get('max_structure_mass', 400):.0f} kg"
+                    f"Keep total structure mass <= {max_mass:.0f} kg"
                 )
             if "build zone" in failure_reason.lower():
-                suggestions.append("Ensure every beam center is inside x=[5, 15], y=[1.5, 8]")
+                suggestions.append("Ensure every beam center is inside the build zone (infer limits from feedback)")
             if "span" in failure_reason.lower() or "extend" in failure_reason.lower() or "height" in failure_reason.lower():
                 suggestions.append("Structure must span x from left to right and reach required height.")
                 suggestions.append("Check feedback for specific span or height requirements.")
@@ -167,12 +169,14 @@ def get_improvement_suggestions(
             suggestions.append("Ground anchors may be more fragile than beam-beam joints; use structural redundancy.")
             max_f = metrics.get("max_joint_force", 0)
             max_t = metrics.get("max_joint_torque", 0)
-            if max_f > metrics.get("joint_break_force", 30):
+            f_lim = metrics.get("joint_break_force", 78.0)
+            t_lim = metrics.get("joint_break_torque", 115.0)
+            if max_f > f_lim:
                 suggestions.append(
-                    f"Force exceeded limit ({max_f:.1f} N > {metrics.get('joint_break_force', 30):.0f} N). "
+                    f"Force exceeded limit ({max_f:.1f} N > {f_lim:.0f} N). "
                     "Add more joints to share the load."
                 )
-            if max_t > metrics.get("joint_break_torque", 120):
+            if max_t > t_lim:
                 suggestions.append(
                     f"Torque exceeded limit. Reduce moment arms; use shorter beams or lower structure."
                 )

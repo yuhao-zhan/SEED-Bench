@@ -27,3 +27,14 @@ class E06Renderer(Renderer):
             self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
             self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
             self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)
+
+        # Draw forbidden zone (transparent red vertical band)
+        bounds = sandbox.get_terrain_bounds()
+        fz = bounds.get("forbidden_zone")
+        if fz:
+            fz_lo, fz_hi = fz
+            # Draw dashed or solid indicator for forbidden zone
+            self.draw_line(fz_lo, y_min, fz_lo, y_max, (255, 100, 100), 1)
+            self.draw_line(fz_hi, y_min, fz_hi, y_max, (255, 100, 100), 1)
+            # Connecting indicator at top
+            self.draw_line(fz_lo, y_max, fz_hi, y_max, (255, 100, 100), 1)

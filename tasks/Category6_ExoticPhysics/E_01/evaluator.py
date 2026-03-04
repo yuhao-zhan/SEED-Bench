@@ -150,7 +150,7 @@ class Evaluator:
         success = (not failed) and (step_count >= max_steps - 1)
 
         if out_of_bounds:
-            failure_reason = "Flying out of bounds: at least one body left the arena (x in [0, 40], y in [0, 20])"
+            failure_reason = f"Flying out of bounds: at least one body left the arena (x in [{self.arena_x_min:.1f}, {self.arena_x_max:.1f}], y in [{self.arena_y_min:.1f}, {self.arena_y_max:.1f}])"
         elif forbidden_zone_violation:
             failure_reason = "Structure enters a forbidden zone; no beam center may lie there (infer from feedback)"
         elif obstacle_overlap:
@@ -239,7 +239,7 @@ class Evaluator:
             "description": "Design a structure that stays within the arena under time-varying or inverted gravity",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": "No body leaves the arena (x in [0, 40], y in [0, 20])",
+                "primary": f"No body leaves the arena (x in [{self.arena_x_min:.1f}, {self.arena_x_max:.1f}], y in [{self.arena_y_min:.1f}, {self.arena_y_max:.1f}])",
                 "secondary": "Structure joints remain intact",
             },
             "evaluation": {

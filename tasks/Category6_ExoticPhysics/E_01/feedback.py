@@ -41,9 +41,13 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
 
     # Arena bounds
     if "arena_x_min" in metrics:
+        ax_min = metrics.get("arena_x_min", 0.0)
+        ax_max = metrics.get("arena_x_max", 40.0)
+        ay_min = metrics.get("arena_y_min", 0.0)
+        ay_max = metrics.get("arena_y_max", 20.0)
         metric_parts.append(
-            f"**Arena bounds**: x=[{metrics.get('arena_x_min', 0):.0f}, {metrics.get('arena_x_max', 40):.0f}], "
-            f"y=[{metrics.get('arena_y_min', 0):.0f}, {metrics.get('arena_y_max', 20):.0f}]"
+            f"**Arena bounds**: x=[{ax_min:.1f}, {ax_max:.1f}], "
+            f"y=[{ay_min:.1f}, {ay_max:.1f}]"
         )
 
     # Physical state: body extent (process indicator)
@@ -109,7 +113,8 @@ def get_improvement_suggestions(
             suggestions.append(f"Reduce the number of beams to within the limit (infer from feedback beam_count / max_beam_count)")
             suggestions.append("Use fewer beams per pillar or a simpler bridge topology.")
         elif "structure mass" in err_lower and "exceeds" in err_lower:
-            suggestions.append(f"Reduce structure mass to within {metrics.get('max_structure_mass', 500):.0f} kg")
+            max_mass = metrics.get('max_structure_mass', 200.0)
+            suggestions.append(f"Reduce structure mass to within {max_mass:.0f} kg")
             suggestions.append("Use lower density or smaller beams")
         elif "build zone" in err_lower or "outside build zone" in err_lower:
             suggestions.append("Place all beams inside the build zone (x in [10, 30], y in [5, 15])")
@@ -122,7 +127,8 @@ def get_improvement_suggestions(
                 suggestions.append(f"Use at most {metrics.get('max_beam_count', 12)} beams; infer limit from feedback beam_count / max_beam_count")
                 suggestions.append("Use fewer beams per pillar or a simpler bridge topology.")
             if "mass" in failure_reason.lower():
-                suggestions.append(f"Keep total structure mass ≤ {metrics.get('max_structure_mass', 500):.0f} kg")
+                max_mass = metrics.get('max_structure_mass', 200.0)
+                suggestions.append(f"Keep total structure mass ≤ {max_mass:.0f} kg")
             if "build zone" in failure_reason.lower():
                 suggestions.append("Ensure every beam center is inside the build zone (infer limits from feedback)")
         elif failure_reason and "forbidden zone" in failure_reason.lower():

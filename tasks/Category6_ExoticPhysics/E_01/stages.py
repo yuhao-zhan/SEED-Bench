@@ -35,25 +35,26 @@ def gravity_extreme(t: float) -> tuple:
     return (g_x, g_y)
 
 
+TASK_DESCRIPTION_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Arena and Build Zone Boundaries: The vertical limits of the navigable and buildable space.
+ - Gravity: The magnitude, direction, or periodicity of the gravitational field.
+ - Damping: Air resistance or internal friction affecting the decay of motion.
+ - Material Density: The mass-to-volume ratio of the structural components.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description when arena bounds change (visible)."""
-    target_y_max = target_terrain_config.get("arena_y_max")
-    base_y_max = base_terrain_config.get("arena_y_max", 20.0)
-    
-    if target_y_max is not None and target_y_max != base_y_max:
-        suffix = f"\n\n## Arena Change (visible)\nThe arena ceiling has changed: valid y range is now [0, {target_y_max}] (originally [0, {base_y_max}] in the source environment). The structure must fit within this reduced height."
-        return base_description + suffix
     return base_description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
-    target_y_max = target_terrain_config.get("arena_y_max")
-    base_y_max = base_terrain_config.get("arena_y_max", 20.0)
-    
-    if target_y_max is not None and target_y_max != base_y_max:
-        suffix = f"\n- **Arena bounds**: x in [0, 40], y in [0, {target_y_max}] (originally [0, {base_y_max}] in the source environment)."
-        return base_success_criteria + suffix
     return base_success_criteria
 
 
@@ -67,7 +68,7 @@ def get_e01_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Slightly Reduced Arena",
             "mutation_description": "Arena y_max 16.8 (vs 20); build_zone y_max 16.5. Reference top center at y=17 exceeds bounds.",
-            "task_description_suffix": "\n\n## Arena Change (visible)\nThe arena ceiling has been slightly lowered: valid y range is now [0, 16.8]. Build zone y_max is 16.5.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {
                 "arena_y_max": 16.8,
                 "build_zone_y_max": 16.5,
@@ -78,7 +79,7 @@ def get_e01_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "Reduced Arena + Fast Gravity",
             "mutation_description": "Arena y_max 16.5; gravity period 2.5s, amplitude 16 (2 params).",
-            "task_description_suffix": "\n\n## Arena Change (visible)\nThe arena ceiling has been lowered: valid y range is now [0, 16.5]. Build zone y_max is 16.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {
                 "arena_y_max": 16.5,
                 "build_zone_y_max": 16.0,
@@ -89,7 +90,7 @@ def get_e01_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "Reduced Arena + Negative Damping",
             "mutation_description": "Arena y_max 16.0; linear_damping -0.12, angular_damping -0.04 (3 params).",
-            "task_description_suffix": "\n\n## Arena Change (visible)\nThe arena ceiling has been lowered: valid y range is now [0, 16]. Build zone y_max is 15.5.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {
                 "arena_y_max": 16.0,
                 "build_zone_y_max": 15.5,
@@ -104,7 +105,7 @@ def get_e01_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Maximum Reduction + Extreme Physics",
             "mutation_description": "Arena y_max 15.5, build_zone 15; gravity extreme (period 1.2s, gx+gy); damping -0.1; beam_density 0.5 (4+ params).",
-            "task_description_suffix": "\n\n## Arena Change (visible)\nThe arena ceiling has been significantly lowered: valid y range is now [0, 15.5]. Build zone y_max is 15.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {
                 "arena_y_max": 15.5,
                 "build_zone_y_max": 15.0,

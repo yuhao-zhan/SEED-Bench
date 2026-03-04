@@ -22,16 +22,18 @@ class Evaluator:
         self.design_constraints_checked = False
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
-        env_cls = type(environment)
-        self.MAX_STRUCTURE_MASS = env_cls.MAX_STRUCTURE_MASS
-        self.BUILD_ZONE_X_MIN = env_cls.BUILD_ZONE_X_MIN
-        self.BUILD_ZONE_X_MAX = env_cls.BUILD_ZONE_X_MAX
-        self.BUILD_ZONE_Y_MIN = env_cls.BUILD_ZONE_Y_MIN
-        self.BUILD_ZONE_Y_MAX = env_cls.BUILD_ZONE_Y_MAX
-        self.MIN_BEAMS = getattr(env_cls, "MIN_BEAMS", 1)
-        self.MIN_JOINTS = getattr(env_cls, "MIN_JOINTS", 1)
-        self.SPAN_LEFT_X = getattr(env_cls, "SPAN_LEFT_X", None)
-        self.SPAN_RIGHT_X = getattr(env_cls, "SPAN_RIGHT_X", None)
+        
+        # Pull dynamic constraints from terrain_bounds
+        self.MAX_STRUCTURE_MASS = float(terrain_bounds.get("max_structure_mass", environment.MAX_STRUCTURE_MASS))
+        bz = terrain_bounds.get("build_zone", {})
+        self.BUILD_ZONE_X_MIN = float(bz.get("x", [environment.BUILD_ZONE_X_MIN, environment.BUILD_ZONE_X_MAX])[0])
+        self.BUILD_ZONE_X_MAX = float(bz.get("x", [environment.BUILD_ZONE_X_MIN, environment.BUILD_ZONE_X_MAX])[1])
+        self.BUILD_ZONE_Y_MIN = float(bz.get("y", [environment.BUILD_ZONE_Y_MIN, environment.BUILD_ZONE_Y_MAX])[0])
+        self.BUILD_ZONE_Y_MAX = float(bz.get("y", [environment.BUILD_ZONE_Y_MIN, environment.BUILD_ZONE_Y_MAX])[1])
+        self.MIN_BEAMS = int(terrain_bounds.get("min_beams", getattr(environment, "MIN_BEAMS", 1)))
+        self.MIN_JOINTS = int(terrain_bounds.get("min_joints", getattr(environment, "MIN_JOINTS", 1)))
+        self.SPAN_LEFT_X = float(terrain_bounds.get("span_left_x", getattr(environment, "SPAN_LEFT_X", 6.0)))
+        self.SPAN_RIGHT_X = float(terrain_bounds.get("span_right_x", getattr(environment, "SPAN_RIGHT_X", 14.0)))
 
     def evaluate(self, agent_body, step_count, max_steps):
         """
@@ -143,6 +145,8 @@ class Evaluator:
             "terrain": self.terrain_bounds,
             "success_criteria": {
                 "primary": "All joints remain intact (no disintegration due to vibration)",
+                "span": f"Structure spans from at least x <= {self.SPAN_LEFT_X:.1f} to x >= {self.SPAN_RIGHT_X:.1f}",
+                "complexity": f"At least {self.MIN_BEAMS} beams and {self.MIN_JOINTS} joints",
             },
             "evaluation": {
                 "score_range": "0-100",

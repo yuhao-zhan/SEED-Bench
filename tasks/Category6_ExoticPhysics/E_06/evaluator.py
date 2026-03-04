@@ -30,11 +30,18 @@ class Evaluator:
         self._tip_ok_steps = 0
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
-        self.MAX_STRUCTURE_MASS = type(environment).MAX_STRUCTURE_MASS
-        self.BUILD_ZONE_X_MIN = type(environment).BUILD_ZONE_X_MIN
-        self.BUILD_ZONE_X_MAX = type(environment).BUILD_ZONE_X_MAX
-        self.BUILD_ZONE_Y_MIN = type(environment).BUILD_ZONE_Y_MIN
-        self.BUILD_ZONE_Y_MAX = type(environment).BUILD_ZONE_Y_MAX
+        
+        # Pull dynamic constraints from terrain_bounds
+        self.MAX_STRUCTURE_MASS = float(terrain_bounds.get("max_structure_mass", environment.MAX_STRUCTURE_MASS))
+        bz = terrain_bounds.get("build_zone", {})
+        self.BUILD_ZONE_X_MIN = float(bz.get("x", [environment.BUILD_ZONE_X_MIN, environment.BUILD_ZONE_X_MAX])[0])
+        self.BUILD_ZONE_X_MAX = float(bz.get("x", [environment.BUILD_ZONE_X_MIN, environment.BUILD_ZONE_X_MAX])[1])
+        self.BUILD_ZONE_Y_MIN = float(bz.get("y", [environment.BUILD_ZONE_Y_MIN, environment.BUILD_ZONE_Y_MAX])[0])
+        self.BUILD_ZONE_Y_MAX = float(bz.get("y", [environment.BUILD_ZONE_Y_MIN, environment.BUILD_ZONE_Y_MAX])[1])
+        
+        self.forbidden_zone = terrain_bounds.get("forbidden_zone", [9.7, 10.3])
+        self.allowed_anchor_zone = terrain_bounds.get("allowed_anchor_zone", [5.0, 6.5])
+        self.max_ground_anchors = terrain_bounds.get("max_ground_anchors", 1)
 
     def _get_tip_y(self):
         """Tip = centroid y of bodies in the rightmost region (x >= max_x - TIP_REGION_WIDTH)."""
@@ -105,9 +112,9 @@ class Evaluator:
         max_joint_damage = 0.0
         if hasattr(self.environment, "_joint_damage") and self.environment._joint_damage:
             max_joint_damage = max(self.environment._joint_damage.values()) if self.environment._joint_damage else 0.0
-        joint_break_force = getattr(type(self.environment), "JOINT_BREAK_FORCE", 80.0)
-        joint_break_torque = getattr(type(self.environment), "JOINT_BREAK_TORQUE", 120.0)
-        damage_limit = getattr(type(self.environment), "DAMAGE_LIMIT", 100.0)
+        joint_break_force = getattr(self.environment, "JOINT_BREAK_FORCE", 78.0)
+        joint_break_torque = getattr(self.environment, "JOINT_BREAK_TORQUE", 115.0)
+        damage_limit = getattr(self.environment, "DAMAGE_LIMIT", 100.0)
 
         metrics = {
             "step_count": step_count,
@@ -171,9 +178,14 @@ class Evaluator:
 
     def get_task_description(self):
         return {
-            "task": "E-06: Cantilever Survival (hard)",
-            "description": "Design a cantilever that survives under tight mass, single anchor, geometry restrictions, and spatial load/damage variation",
+            "task": "E-06: Cantilever Endurance",
+            "description": "Design a cantilever that survives under tight mass, limited anchors, and spatial load variation",
             "terrain": self.terrain_bounds,
-            "success_criteria": {"primary": "Structure intact (no joint/beam failure)"},
+            "success_criteria": {
+                "primary": "Structure intact (no joint/beam failure)",
+                "span": f"Structure reaches x <= {self.SPAN_X_LEFT:.1f} and x >= {self.SPAN_X_RIGHT:.1f}",
+                "height": f"At least one beam at y >= {self.MIN_HEIGHT_Y:.1f}",
+                "mass": f"Total mass <= {self.MAX_STRUCTURE_MASS:.1f} kg",
+            },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},
         }

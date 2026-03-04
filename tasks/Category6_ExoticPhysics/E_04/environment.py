@@ -81,6 +81,17 @@ class Sandbox:
         self.JOINT_BREAK_TORQUE = physics_config.get("joint_break_torque", self.JOINT_BREAK_TORQUE)
         self.FATIGUE_TAU_SECONDS = physics_config.get("fatigue_tau_seconds", self.FATIGUE_TAU_SECONDS)
 
+        # Instance-specific constraints (overridable via terrain_config)
+        self._build_zone_x_min = float(terrain_config.get("build_zone_x_min", self.BUILD_ZONE_X_MIN))
+        self._build_zone_x_max = float(terrain_config.get("build_zone_x_max", self.BUILD_ZONE_X_MAX))
+        self._build_zone_y_min = float(terrain_config.get("build_zone_y_min", self.BUILD_ZONE_Y_MIN))
+        self._build_zone_y_max = float(terrain_config.get("build_zone_y_max", self.BUILD_ZONE_Y_MAX))
+        self._max_structure_mass = float(terrain_config.get("max_structure_mass", self.MAX_STRUCTURE_MASS))
+        self._span_left_x = float(terrain_config.get("span_left_x", self.SPAN_LEFT_X))
+        self._span_right_x = float(terrain_config.get("span_right_x", self.SPAN_RIGHT_X))
+        self._min_beams = int(terrain_config.get("min_beams", self.MIN_BEAMS))
+        self._min_joints = int(terrain_config.get("min_joints", self.MIN_JOINTS))
+
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
         self._joints = []
@@ -195,7 +206,7 @@ class Sandbox:
             ),
         )
         body._base_density = density
-        body._mass_phase = (x - self.BUILD_ZONE_X_MIN) * self.MASS_PHASE_GRADIENT
+        body._mass_phase = (x - self._build_zone_x_min) * self.MASS_PHASE_GRADIENT
         body.linearDamping = self._linear_damping
         body.angularDamping = self._angular_damping
         self._bodies.append(body)
@@ -266,30 +277,35 @@ class Sandbox:
 
     def get_build_zone(self):
         """Return (x_min, x_max, y_min, y_max) for build zone."""
-        return (self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX, self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX)
+        return (self._build_zone_x_min, self._build_zone_x_max, self._build_zone_y_min, self._build_zone_y_max)
 
     def get_span_bounds(self):
         """Return (left_x, right_x). Structure must span: at least one beam center x <= left_x, one >= right_x."""
-        return (self.SPAN_LEFT_X, self.SPAN_RIGHT_X)
+        return (self._span_left_x, self._span_right_x)
 
     def get_structure_mass_limit(self):
         """Maximum allowed structure mass (kg)."""
-        return self.MAX_STRUCTURE_MASS
+        return self._max_structure_mass
 
     def get_min_beams(self):
         """Minimum number of beams required."""
-        return self.MIN_BEAMS
+        return self._min_beams
 
     def get_min_joints(self):
         """Minimum number of joints required."""
-        return self.MIN_JOINTS
+        return self._min_joints
 
     def get_terrain_bounds(self):
         """For evaluator/renderer."""
         return {
             "ground_y": self._ground_y,
             "build_zone": {
-                "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
-                "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX],
+                "x": [self._build_zone_x_min, self._build_zone_x_max],
+                "y": [self._build_zone_y_min, self._build_zone_y_max],
             },
+            "max_structure_mass": self._max_structure_mass,
+            "span_left_x": self._span_left_x,
+            "span_right_x": self._span_right_x,
+            "min_beams": self._min_beams,
+            "min_joints": self._min_joints,
         }

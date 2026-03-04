@@ -61,8 +61,8 @@ class Sandbox:
     BODY_START_Y = 5.0
     TARGET_X_MIN = 28.0
     TARGET_X_MAX = 32.0
-    TARGET_Y_MIN = 8.2   # Target IN the corridor — must stay high
-    TARGET_Y_MAX = 9.5
+    TARGET_Y_MIN = 6.0   # Unified with evaluator/prompt
+    TARGET_Y_MAX = 9.0
 
     # Minimum distance for force computation (avoid singularity)
     MAGNET_R_MIN = 0.5
@@ -82,6 +82,8 @@ class Sandbox:
         self._magnets = list(terrain_config.get("magnets", default_magnets()))
         self._step_count = 0
         self._max_thrust_magnitude = float(terrain_config.get("max_thrust", 165.0))
+        self._body_start_x = float(terrain_config.get("body_start_x", self.BODY_START_X))
+        self._body_start_y = float(terrain_config.get("body_start_y", self.BODY_START_Y))
 
         self.world = self._world
         self.bodies = []
@@ -106,8 +108,7 @@ class Sandbox:
 
     def _create_body(self, terrain_config: dict):
         """Body that will be pushed by magnets and thrust."""
-        sx = float(terrain_config.get("body_start_x", self.BODY_START_X))
-        sy = float(terrain_config.get("body_start_y", self.BODY_START_Y))
+        sx, sy = self._body_start_x, self._body_start_y
         w, h = 0.8, 0.4
         body = self._world.CreateDynamicBody(
             position=(sx, sy),
@@ -178,7 +179,7 @@ class Sandbox:
         """For evaluator/renderer: start, target zone. Magnets are not exposed (invisible)."""
         return {
             "ground_y": self._ground_y,
-            "body_start": {"x": self.BODY_START_X, "y": self.BODY_START_Y},
+            "body_start": {"x": self._body_start_x, "y": self._body_start_y},
             "target_zone": {
                 "x_min": self.TARGET_X_MIN,
                 "x_max": self.TARGET_X_MAX,

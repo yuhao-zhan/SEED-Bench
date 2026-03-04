@@ -65,7 +65,8 @@ class Sandbox:
         self.world = self._world
         self.bodies = []
         self.joints = []
-        self._create_terrain(terrain_config)
+        self._craft_start_x = float(terrain_config.get("craft_start_x", self.CRAFT_START_X))
+        self._craft_start_y = float(terrain_config.get("craft_start_y", self.CRAFT_START_Y))
         self._create_craft(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):
@@ -115,8 +116,7 @@ class Sandbox:
                 )
 
     def _create_craft(self, terrain_config: dict):
-        sx = float(terrain_config.get("craft_start_x", self.CRAFT_START_X))
-        sy = float(terrain_config.get("craft_start_y", self.CRAFT_START_Y))
+        sx, sy = self._craft_start_x, self._craft_start_y
         w, h = 1.0, 0.5
         craft = self._world.CreateDynamicBody(
             position=(sx, sy),
@@ -203,7 +203,7 @@ class Sandbox:
     def get_terrain_bounds(self):
         return {
             "ground_y": self._ground_y,
-            "craft_start": {"x": self.CRAFT_START_X, "y": self.CRAFT_START_Y},
+            "craft_start": {"x": self._craft_start_x, "y": self._craft_start_y},
             "target_zone": {
                 "x_min": self.TARGET_X_MIN,
                 "x_max": self.TARGET_X_MAX,

@@ -27,7 +27,7 @@ Design a control loop that:
     "success_criteria": """
 ## Success Criteria
 1. **Checkpoint Completion**: Sled passes through all required checkpoints.
-2. **Target Reach**: Sled center enters the final target zone (x in [28, 32], y in [2, 5]).
+2. **Target Reach**: Sled center enters the final target zone (x in [28, 32], y in [2.2, 2.8]).
 3. **Efficiency**: Reaches the final target within the time limit.
 
 ## Design Constraints

@@ -11,6 +11,22 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
+TASK_DESCRIPTION_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Noise Strength: The intensity of random thermal and environmental disturbances.
+ - Joint and Damage Thresholds: The force, torque, and damage limits of structural components.
+ - Coherent Pulses: The frequency and magnitude of periodic energy impacts.
+ - Motion Damping: Resistance affecting the dissipation of kinetic energy.
+ - Shock Propagation: The severity of damage cascading through the structure.
+ - Fatigue Dynamics: Thresholds for angular velocity-induced structural wear.
+ - Environmental Storms: Multipliers for storm intensity and burst probability.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description for visible changes."""
     return base_description
@@ -34,6 +50,7 @@ def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Higher thermal noise",
             "mutation_description": "Noise strength ~2.2x; joint/damage limits lowered so ref fails.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "noise_strength": 100.0,
@@ -48,6 +65,7 @@ def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "Higher impact frequency",
             "mutation_description": "Coherent pulse much more frequent; joint/damage limits lowered so ref fails.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "noise_strength": 95.0,
@@ -63,6 +81,7 @@ def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "Noisy, frequent, fragile joints",
             "mutation_description": "Higher noise, higher frequency, lower joint/damage limits so ref fails.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "noise_strength": 90.0,
@@ -78,6 +97,7 @@ def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Hostile environment",
             "mutation_description": "High noise, high frequency, lower damping, faster beam fatigue, higher cascade.",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "noise_strength": 72.0,

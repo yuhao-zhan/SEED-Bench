@@ -82,6 +82,18 @@ def _magnets_stage4() -> List[tuple]:
     return out
 
 
+TASK_DESCRIPTION_SUFFIX = """
+Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - Gravity: The magnitude and direction of the gravitational field.
+ - Electromagnetic Fields: The strength, position, and temporal rhythm of force fields.
+ - Motion Damping: Air resistance and structural motion resistance.
+
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
+
+
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description for visible changes."""
     return base_description
@@ -103,7 +115,7 @@ def get_e05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-1",
             "title": "Heavier world",
             "mutation_description": "Gravity increased. Ref solution uses fixed gravity compensation; under-compensates and sinks.",
-            "task_description_suffix": "",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
                 "gravity": (0, -14.0),
@@ -113,7 +125,7 @@ def get_e05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-2",
             "title": "Shifted gate rhythm",
             "mutation_description": "Gate 1 weak window shifted to a narrow band (steps 28–29) and strength increased; ref timing (weak 8–20) never aligns.",
-            "task_description_suffix": "",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {
                 "magnets": _magnets_stage2(),
             },
@@ -123,7 +135,7 @@ def get_e05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-3",
             "title": "Different gate phase and resistance",
             "mutation_description": "Gate 2 phase changed (weak window moved); gravity and linear damping changed. Ref solution timing and compensation both wrong.",
-            "task_description_suffix": "",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {
                 "magnets": _magnets_stage3(),
             },
@@ -136,7 +148,7 @@ def get_e05_curriculum_stages() -> List[Dict[str, Any]]:
             "stage_id": "Stage-4",
             "title": "Stronger fields and altered dynamics",
             "mutation_description": "All force field strengths scaled up; keyhole period and weak window shifted; gravity and damping increased. Ref solution fails on timing and thrust.",
-            "task_description_suffix": "",
+            "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {
                 "magnets": _magnets_stage4(),
             },

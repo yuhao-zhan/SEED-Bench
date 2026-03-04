@@ -14,9 +14,13 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         body_y = metrics.get("body_y", 0)
         metric_parts.append(f"**Body position**: x={metrics['body_x']:.2f}m, y={body_y:.2f}m")
         if "target_x_min" in metrics:
+            tx_min = metrics.get('target_x_min', 28.0)
+            tx_max = metrics.get('target_x_max', 32.0)
+            ty_min = metrics.get('target_y_min', 6.0)
+            ty_max = metrics.get('target_y_max', 9.0)
             metric_parts.append(
-                f"**Target zone**: x=[{metrics.get('target_x_min', 28):.0f}, {metrics.get('target_x_max', 32):.0f}], "
-                f"y=[{metrics.get('target_y_min', 6):.0f}, {metrics.get('target_y_max', 9):.0f}] m"
+                f"**Target zone**: x=[{tx_min:.1f}, {tx_max:.1f}], "
+                f"y=[{ty_min:.1f}, {ty_max:.1f}] m"
             )
         if "progress_x" in metrics:
             metric_parts.append(f"**Horizontal progress**: {metrics['progress_x']*100:.1f}%")
@@ -100,11 +104,19 @@ def get_improvement_suggestions(
 
     elif failed:
         if failure_reason and "local minimum" in failure_reason.lower():
+            tx_min = metrics.get('target_x_min', 28.0)
+            tx_max = metrics.get('target_x_max', 32.0)
+            ty_min = metrics.get('target_y_min', 6.0)
+            ty_max = metrics.get('target_y_max', 9.0)
             suggestions.append("Invisible force fields can trap the body; try different thrust directions or paths.")
             suggestions.append("Use get_body_position() and get_body_velocity() to detect when progress stalls and adjust thrust.")
-            suggestions.append("Target zone is x in [28, 32], y in [6, 9]; plan a path that may need to go around repulsive regions.")
+            suggestions.append(f"Target zone is x in [{tx_min:.1f}, {tx_max:.1f}], y in [{ty_min:.1f}, {ty_max:.1f}]; plan a path that may need to go around repulsive regions.")
 
     elif not success:
-        suggestions.append("Adjust thrust to navigate the force field and reach the target zone (x in [28, 32], y in [6, 9]).")
+        tx_min = metrics.get('target_x_min', 28.0)
+        tx_max = metrics.get('target_x_max', 32.0)
+        ty_min = metrics.get('target_y_min', 6.0)
+        ty_max = metrics.get('target_y_max', 9.0)
+        suggestions.append(f"Adjust thrust to navigate the force field and reach the target zone (x in [{tx_min:.1f}, {tx_max:.1f}], y in [{ty_min:.1f}, {ty_max:.1f}]).")
 
     return suggestions

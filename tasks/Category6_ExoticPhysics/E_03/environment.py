@@ -104,7 +104,8 @@ class Sandbox:
         self.bodies = []
         self.joints = []
 
-        self._create_terrain(terrain_config)
+        self._sled_start_x = float(terrain_config.get("sled_start_x", self.SLED_START_X))
+        self._sled_start_y = float(terrain_config.get("sled_start_y", self.SLED_START_Y))
         self._create_sled(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):
@@ -121,8 +122,7 @@ class Sandbox:
         self._ground_y = ground_height
 
     def _create_sled(self, terrain_config: dict):
-        sx = float(terrain_config.get("sled_start_x", self.SLED_START_X))
-        sy = float(terrain_config.get("sled_start_y", self.SLED_START_Y))
+        sx, sy = self._sled_start_x, self._sled_start_y
         w, h = 1.0, 0.5
         sled = self._world.CreateDynamicBody(
             position=(sx, sy),
@@ -224,7 +224,7 @@ class Sandbox:
     def get_terrain_bounds(self):
         return {
             "ground_y": self._ground_y,
-            "sled_start": {"x": self.SLED_START_X, "y": self.SLED_START_Y},
+            "sled_start": {"x": self._sled_start_x, "y": self._sled_start_y},
             "target_zone": {
                 "x_min": self.TARGET_X_MIN,
                 "x_max": self.TARGET_X_MAX,

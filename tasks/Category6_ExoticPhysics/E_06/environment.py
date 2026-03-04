@@ -116,6 +116,14 @@ class Sandbox:
         else:
             self._burst_prob = 0.026
 
+        # Instance-specific constraints (overridable via terrain_config)
+        self._max_structure_mass = float(terrain_config.get("max_structure_mass", self.MAX_STRUCTURE_MASS))
+        self._max_ground_anchors = int(terrain_config.get("max_ground_anchors", self.MAX_GROUND_ANCHORS))
+        self._forbidden_zone_x_lo = float(terrain_config.get("forbidden_zone_x_lo", self.FORBIDDEN_ZONE_X_LO))
+        self._forbidden_zone_x_hi = float(terrain_config.get("forbidden_zone_x_hi", self.FORBIDDEN_ZONE_X_HI))
+        self._allowed_anchor_x_lo = float(terrain_config.get("allowed_anchor_x_lo", self.ALLOWED_ANCHOR_X_LO))
+        self._allowed_anchor_x_hi = float(terrain_config.get("allowed_anchor_x_hi", self.ALLOWED_ANCHOR_X_HI))
+
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
         self._joints = []
@@ -311,7 +319,7 @@ class Sandbox:
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
         if len(self._bodies) >= self.MAX_BEAMS:
             raise ValueError(f"Maximum {self.MAX_BEAMS} beams allowed")
-        if self.FORBIDDEN_ZONE_X_LO <= x <= self.FORBIDDEN_ZONE_X_HI:
+        if self._forbidden_zone_x_lo <= x <= self._forbidden_zone_x_hi:
             raise ValueError(
                 "Beam placement not allowed in this region. "
                 "Use feedback and trial to infer where geometry is restricted."
@@ -341,9 +349,9 @@ class Sandbox:
         anchor_x, anchor_y = anchor_point[0], anchor_point[1]
         is_ground = body_b is None
         if is_ground:
-            if self._ground_anchor_count >= self.MAX_GROUND_ANCHORS:
-                raise ValueError(f"Maximum {self.MAX_GROUND_ANCHORS} ground anchors allowed")
-            if not (self.ALLOWED_ANCHOR_X_LO <= anchor_x <= self.ALLOWED_ANCHOR_X_HI):
+            if self._ground_anchor_count >= self._max_ground_anchors:
+                raise ValueError(f"Maximum {self._max_ground_anchors} ground anchors allowed")
+            if not (self._allowed_anchor_x_lo <= anchor_x <= self._allowed_anchor_x_hi):
                 raise ValueError(
                     "Ground anchors are allowed only in the left support zone. "
                     "The structure must cantilever from this support; use feedback to infer valid placement."
@@ -391,7 +399,7 @@ class Sandbox:
 
     def get_structure_mass_limit(self):
         """Maximum allowed structure mass (kg)."""
-        return self.MAX_STRUCTURE_MASS
+        return self._max_structure_mass
 
     def get_terrain_bounds(self):
         return {
@@ -400,4 +408,8 @@ class Sandbox:
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX],
             },
+            "max_structure_mass": self._max_structure_mass,
+            "forbidden_zone": [self._forbidden_zone_x_lo, self._forbidden_zone_x_hi],
+            "allowed_anchor_zone": [self._allowed_anchor_x_lo, self._allowed_anchor_x_hi],
+            "max_ground_anchors": self._max_ground_anchors,
         }

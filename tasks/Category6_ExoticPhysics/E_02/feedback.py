@@ -20,9 +20,13 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             f"**Craft position**: x={metrics['craft_x']:.2f} m, y={metrics.get('craft_y', 0):.2f} m"
         )
     if "target_x_min" in metrics:
+        tx_min = metrics.get('target_x_min', 28.0)
+        tx_max = metrics.get('target_x_max', 32.0)
+        ty_min = metrics.get('target_y_min', 2.0)
+        ty_max = metrics.get('target_y_max', 5.0)
         metric_parts.append(
-            f"**Target zone**: x=[{metrics.get('target_x_min', 28):.0f}, {metrics.get('target_x_max', 32):.0f}], "
-            f"y=[{metrics.get('target_y_min', 2):.0f}, {metrics.get('target_y_max', 5):.0f}] m"
+            f"**Target zone**: x=[{tx_min:.1f}, {tx_max:.1f}], "
+            f"y=[{ty_min:.1f}, {ty_max:.1f}] m"
         )
     if "reached_target" in metrics:
         metric_parts.append(f"**Reached target**: {'YES' if metrics['reached_target'] else 'NO'}")
@@ -69,9 +73,11 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "heat_remaining" in metrics:
         metric_parts.append(f"- Heat remaining before overheat: {metrics['heat_remaining']:.3f} N·s")
     if "distance_to_target" in metrics:
-        metric_parts.append(f"- Distance to target center (30, 3.5): {metrics['distance_to_target']:.3f} m")
+        metric_parts.append(f"- Distance to target center: {metrics['distance_to_target']:.3f} m")
     if "progress_x" in metrics:
-        metric_parts.append(f"- Horizontal progress (start x=8 → target x≥28): {metrics['progress_x']:.1f}%")
+        start_x = metrics.get("craft_start_x", 8.0)
+        target_x = metrics.get("target_x_min", 28.0)
+        metric_parts.append(f"- Horizontal progress (start x={start_x:.1f} → target x≥{target_x:.1f}): {metrics['progress_x']:.1f}%")
 
     excluded = {
         "step_count", "craft_x", "craft_y", "target_x_min", "target_x_max",
@@ -118,7 +124,11 @@ def get_improvement_suggestions(
             suggestions.append("Use feedback: get_craft_position() and get_craft_velocity() to steer with minimal thrust.")
             suggestions.append("Consider coasting when already moving toward the target.")
         elif failure_reason and "cannot move" in failure_reason.lower():
-            suggestions.append("Thrust is needed to overcome high drag; apply thrust toward the target (x in [28, 32], y in [2, 5]).")
+            tx_min = metrics.get('target_x_min', 28.0)
+            tx_max = metrics.get('target_x_max', 32.0)
+            ty_min = metrics.get('target_y_min', 2.0)
+            ty_max = metrics.get('target_y_max', 5.0)
+            suggestions.append(f"Thrust is needed to overcome high drag; apply thrust toward the target (x in [{tx_min:.1f}, {tx_max:.1f}], y in [{ty_min:.1f}, {ty_max:.1f}]).")
             suggestions.append(f"Increase thrust when far from target, but stay under the heat limit ({limit_str}).")
             suggestions.append("Check that you call apply_thrust(fx, fy) every simulation step.")
 

@@ -14,9 +14,13 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "sled_x" in metrics:
         metric_parts.append(f"**Sled position**: x={metrics['sled_x']:.2f}m, y={metrics.get('sled_y', 0):.2f}m")
     if "target_x_min" in metrics:
+        tx_min = metrics.get('target_x_min', 28.0)
+        tx_max = metrics.get('target_x_max', 32.0)
+        ty_min = metrics.get('target_y_min', 2.2)
+        ty_max = metrics.get('target_y_max', 2.8)
         metric_parts.append(
-            f"**Target zone**: x=[{metrics.get('target_x_min', 28):.0f}, {metrics.get('target_x_max', 32):.0f}], "
-            f"y=[{metrics.get('target_y_min', 2):.0f}, {metrics.get('target_y_max', 5):.0f}] m"
+            f"**Target zone**: x=[{tx_min:.1f}, {tx_max:.1f}], "
+            f"y=[{ty_min:.1f}, {ty_max:.1f}] m"
         )
     if "progress_pct" in metrics:
         metric_parts.append(f"**Progress (x toward target)**: {metrics['progress_pct']:.1f}%")
@@ -48,7 +52,8 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if "distance_to_target" in metrics:
             metric_parts.append(f"- Distance to target zone: {metrics['distance_to_target']:.3f} m")
         if "progress_pct" in metrics:
-            metric_parts.append(f"- Progress: {metrics['progress_pct']:.1f}%")
+            start_x = metrics.get("sled_start_x", 8.0)
+            metric_parts.append(f"- Progress: {metrics['progress_pct']:.1f}% (start x={start_x:.1f})")
 
     excluded = {
         "step_count", "sled_x", "sled_y", "target_x_min", "target_x_max",
