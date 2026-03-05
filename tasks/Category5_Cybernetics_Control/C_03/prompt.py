@@ -1,19 +1,13 @@
 """
 C-03: The Seeker (Very Hard) task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    APPLY_SEEKER_FORCE,
-    GET_CORRIDOR_BOUNDS,
-    GET_LOCAL_WIND,
-    GET_REMAINING_IMPULSE_BUDGET,
-    GET_SEEKER_BODY,
-    GET_SEEKER_HEADING,
-    GET_SEEKER_POSITION,
-    GET_SEEKER_VELOCITY,
-    GET_TARGET_POSITION,
-    GET_TERRAIN_OBSTACLES,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -44,15 +38,5 @@ Design a multi-phase control strategy:
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_SEEKER_BODY
-    + GET_SEEKER_POSITION
-    + GET_SEEKER_VELOCITY
-    + GET_SEEKER_HEADING
-    + GET_TARGET_POSITION
-    + GET_TERRAIN_OBSTACLES
-    + GET_LOCAL_WIND
-    + GET_REMAINING_IMPULSE_BUDGET
-    + GET_CORRIDOR_BOUNDS
-    + APPLY_SEEKER_FORCE,
+    'primitives_api': '\n\n'.join(_api_data['C_03'].values()),
 }

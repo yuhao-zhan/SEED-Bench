@@ -10,9 +10,9 @@ def build_agent(sandbox):
     if cabin is None:
         raise ValueError("Cart not found")
 
-    # Build zone is [4.8, 9.0]. Cart is at (4.0, 2.5).
+
     beams = []
-    # 4 thin beams, density 5.0.
+
     for (xx, yy) in [(4.8, 2.6), (4.9, 2.6), (5.0, 2.6), (5.1, 2.6)]:
         b = sandbox.add_beam(xx, yy, 0.08, 0.16, angle=0, density=5.0)
         sandbox.add_joint(cabin, b, (xx, yy), type="rigid")

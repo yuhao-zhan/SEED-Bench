@@ -1,14 +1,13 @@
 """
 F-06: The Pipeline (hard) task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    APPLY_FORCE_TO_PARTICLE,
-    GET_FLUID_PARTICLES,
-    SET_MATERIAL_PROPERTIES,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -37,10 +36,5 @@ Design a system (structure and control) that:
 - **Force Budget**: 12000 N per step (nominal).
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + ADD_BEAM
-    + ADD_JOINT_RIGID
-    + SET_MATERIAL_PROPERTIES
-    + GET_FLUID_PARTICLES
-    + APPLY_FORCE_TO_PARTICLE,
+    'primitives_api': '\n\n'.join(_api_data['F_06'].values()),
 }

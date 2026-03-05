@@ -38,7 +38,7 @@ def build_agent(sandbox):
     sandbox.set_material_properties(arm, restitution=0.35)
     sandbox.add_joint(arm, None, (pivot_x, pivot_y), type="pivot")
 
-    # Single spring: high stiffness so arc reaches y in [2,5] in band (stiffness limit 3000)
+
     sandbox.add_spring(
         ground,
         arm,

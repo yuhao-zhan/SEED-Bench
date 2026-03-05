@@ -1,14 +1,13 @@
 """
 D-04: The Swing task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    APPLY_FORCE_TO_SEAT,
-    APPLY_IMPULSE_TO_SEAT,
-    GET_SIM_TIME,
-    GET_SWING_SEAT,
-    GET_WIND_FORCE_AT_TIME,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -34,10 +33,5 @@ Design a controller that:
 - **Pump Force**: |fx| <= 42 N per step.
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_SWING_SEAT
-    + APPLY_FORCE_TO_SEAT
-    + APPLY_IMPULSE_TO_SEAT
-    + GET_WIND_FORCE_AT_TIME
-    + GET_SIM_TIME,
+    'primitives_api': '\n\n'.join(_api_data['D_04'].values()),
 }

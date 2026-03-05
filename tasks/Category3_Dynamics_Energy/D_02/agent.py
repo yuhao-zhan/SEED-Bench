@@ -42,5 +42,5 @@ def agent_action(sandbox, agent_body, step_count):
     """
     if step_count != 0:
         return
-    vx, vy = 10.0, 15.9  # tuned: pass all three slots and land on right platform
+    vx, vy = 10.0, 15.9
     sandbox.set_jumper_velocity(vx, vy)

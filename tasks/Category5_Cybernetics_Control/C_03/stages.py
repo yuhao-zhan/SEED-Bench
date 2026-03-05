@@ -11,16 +11,36 @@ Do NOT reveal exact parameter values in task_description_suffix; agent must infe
 from __future__ import annotations
 
 from typing import Any, Dict, List
-
+import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description for visible changes."""
-    return base_description
+    description = base_description
+    target_dist = target_terrain_config.get("rendezvous_distance")
+    target_v = target_terrain_config.get("rendezvous_rel_speed")
+    
+    if target_dist is not None and target_dist != 6.0:
+        pattern = r"(getting close \(< )(\d+\.?\d*)(m\))"
+        description = re.sub(pattern, f"\\g<1>{target_dist:.1f}m (originally < 6.0m))", description)
+    if target_v is not None and target_v != 1.8:
+        pattern = r"(matching velocity \(rel speed < )(\d+\.?\d*)( m/s\))"
+        description = re.sub(pattern, f"\\g<1>{target_v:.1f} m/s (originally < 1.8 m/s))", description)
+        
+    return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
-    return base_success_criteria
+    criteria = base_success_criteria
+    target_dist = target_terrain_config.get("rendezvous_distance")
+    
+    if target_dist is not None and target_dist != 6.0:
+        # success_criteria has "Maintain distance <= 8.5 m" which relates to rendezvous_dist + 2.5
+        new_track_dist = target_dist + 2.5
+        pattern = r"(Maintain distance <= )(\d+\.?\d*)( m from target)"
+        criteria = re.sub(pattern, f"\\g<1>{new_track_dist:.1f} m from target (originally <= 8.5 m)", criteria)
+        
+    return criteria
 
 
 def get_c03_curriculum_stages() -> List[Dict[str, Any]]:

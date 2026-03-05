@@ -22,7 +22,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
 
     # 2. Earthquake Survival
     if 'min_height_during_quake' in metrics and metrics['min_height_during_quake'] is not None:
-        threshold = metrics.get('survival_threshold', 10.0)
+        threshold = metrics.get('survival_threshold', 5.0)
         min_h = metrics['min_height_during_quake']
         status = "✅" if min_h >= threshold else "❌"
         metric_parts.append(f"{status} **Min Height during Quake**: {min_h:.2f}m (Threshold: >{threshold:.1f}m)")
@@ -31,7 +31,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
 
     # 3. Stability (Center of Mass)
     if 'rel_com_x' in metrics:
-        zone = metrics.get('stability_zone', 8.0)
+        zone = metrics.get('stability_zone', 300.0)
         com_x = metrics['rel_com_x']
         status = "✅" if abs(com_x) <= zone else "❌"
         metric_parts.append(f"{status} **Center of Mass X**: {com_x:.3f}m (Allowed Range: ±{zone:.1f}m)")

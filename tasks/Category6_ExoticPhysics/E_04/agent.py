@@ -28,7 +28,7 @@ def build_agent(sandbox):
     strut_h = deck_cy - ground_top
     strut_cy = ground_top + strut_h / 2
 
-    # Span beams: left at x=6, right at x=14
+
     left_span = sandbox.add_beam(
         x=span_left, y=deck_cy,
         width=0.5, height=deck_h,
@@ -39,7 +39,7 @@ def build_agent(sandbox):
         width=0.5, height=deck_h,
         angle=0, density=density,
     )
-    # Middle deck segments (max width 4 each)
+
     deck_left = sandbox.add_beam(
         x=8.0, y=deck_cy,
         width=2.0, height=deck_h,
@@ -51,7 +51,7 @@ def build_agent(sandbox):
         angle=0, density=density,
     )
 
-    # Struts at x = 6, 7, 8, 9, 11, 12, 13, 14 (center 10 added separately with pivot)
+
     strut_xs = [6.0, 7.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0]
     strut_bodies = []
     for sx in strut_xs:
@@ -66,7 +66,7 @@ def build_agent(sandbox):
             sandbox.add_joint(deck_left, s, (sx, deck_cy), type="rigid")
         else:
             sandbox.add_joint(deck_right, s, (sx, deck_cy), type="rigid")
-    # Center strut (x=10): connect to both decks; ONE pivot here to satisfy constraint
+
     sx_center = 10.0
     strut_center = sandbox.add_beam(
         x=sx_center, y=strut_cy,
@@ -77,11 +77,11 @@ def build_agent(sandbox):
     sandbox.add_joint(deck_left, strut_center, (sx_center, deck_cy), type="rigid")
     sandbox.add_joint(deck_right, strut_center, (sx_center, deck_cy), type="pivot")
 
-    # Connect deck segments and outriggers
+
     sandbox.add_joint(left_span, deck_left, (7.0, deck_cy), type="rigid")
     sandbox.add_joint(deck_left, deck_right, (10.0, deck_cy), type="rigid")
     sandbox.add_joint(deck_right, right_span, (13.0, deck_cy), type="rigid")
-    # Anchor left/right span to their struts
+
     sandbox.add_joint(left_span, strut_bodies[0][1], (span_left, deck_cy), type="rigid")
     sandbox.add_joint(right_span, strut_bodies[-1][1], (span_right, deck_cy), type="rigid")
 

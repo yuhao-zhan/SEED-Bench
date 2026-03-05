@@ -1,16 +1,13 @@
 """
 F-01: The Dam (extreme) task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES,
-    GET_TERRAIN_JOINT_COUNT,
-    BODIES_LIST,
-    JOINTS_LIST,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -43,12 +40,5 @@ Design a structure that:
 - **Joint Limit**: Maximum 15 beam-to-beam joints.
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + ADD_BEAM
-    + ADD_JOINT_RIGID
-    + SET_MATERIAL_PROPERTIES
-    + GET_STRUCTURE_MASS
-    + GET_TERRAIN_JOINT_COUNT
-    + BODIES_LIST
-    + JOINTS_LIST,
+    'primitives_api': '\n\n'.join(_api_data['F_01'].values()),
 }

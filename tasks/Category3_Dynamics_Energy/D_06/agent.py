@@ -18,7 +18,7 @@ def build_agent(sandbox):
     rest = 0.0
     slab_y = 2.65
 
-    # ---- LEFT [7, 7.18] ----
+
     p1 = sandbox.add_beam(7.08, 1.75, pillar_w, 2.5, 0, density)
     sandbox.set_material_properties(p1, restitution=rest)
     sandbox.add_joint(p1, None, (7.08, GROUND_TOP), type="rigid")
@@ -30,7 +30,7 @@ def build_agent(sandbox):
     sandbox.add_joint(p1, slab_left, (7.08, slab_y), type="rigid")
     sandbox.add_joint(p2, slab_left, (7.16, slab_y), type="rigid")
 
-    # ---- RIGHT-A [9.5, 10] ----
+
     p5 = sandbox.add_beam(9.75, 1.75, pillar_w, 2.0, 0, density)
     sandbox.set_material_properties(p5, restitution=rest)
     sandbox.add_joint(p5, None, (9.75, GROUND_TOP), type="rigid")
@@ -38,7 +38,7 @@ def build_agent(sandbox):
     sandbox.set_material_properties(slab_right_a, restitution=0.0)
     sandbox.add_joint(p5, slab_right_a, (9.75, slab_y), type="rigid")
 
-    # ---- RIGHT-B [10.5, 11] ----
+
     slab_right_b = sandbox.add_beam(10.75, 1.7, 0.45, 0.3, 0, density)
     sandbox.set_material_properties(slab_right_b, restitution=0.0)
     sandbox.add_joint(slab_right_b, None, (10.75, GROUND_TOP), type="rigid")

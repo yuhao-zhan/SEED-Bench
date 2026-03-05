@@ -1,14 +1,13 @@
 """
 E-06: Cantilever Endurance task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    GET_BUILD_ZONE,
-    GET_STRUCTURE_MASS,
-    GET_STRUCTURE_MASS_LIMIT,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -39,10 +38,5 @@ Design a cantilever that:
 - **Mass Budget**: Total structure mass <= 120 kg.
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_BUILD_ZONE
-    + ADD_BEAM
-    + ADD_JOINT_RIGID
-    + GET_STRUCTURE_MASS
-    + GET_STRUCTURE_MASS_LIMIT,
+    'primitives_api': '\n\n'.join(_api_data['E_06'].values()),
 }

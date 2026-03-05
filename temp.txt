@@ -1,0 +1,691 @@
+
+"## Task Setting
+
+You are adapting a solution from an **old (source) environment** to a **new (target) environment**. The environment has changed (e.g. terrain, physics, constraints). Your goal is to revise the code so it works in the **new** environment. Numbers and criteria in the task description and success criteria below are for the **new** environment; where the source environment differed, it is noted as "(originally ... in the source environment)".
+
+
+# Task Description
+
+
+Design a static bridge to connect two cliffs. A vehicle will spawn on the left cliff and attempt to cross to the right.
+
+## Task Environment
+- **Cliffs**: Two static platforms separated by a wide gap.
+- **Left Cliff**: Ends at x=10.0m, y=10.0m.
+- **Right Cliff**: Starts at x=25.0m (originally x=35.0m in the source environment), y=10.0m.
+- **Vehicle**: A motorized vehicle will spawn on the left cliff and move right at a constant velocity.
+- **Fail Zone**: A water surface exists at y=0m. If the vehicle or structural components fall into it, the task fails.
+- **Target**: The vehicle must fully cross the gap and reach at least x=30.0m on the right side.
+
+## Task Objective
+Design a stable bridge structure that can:
+1. Span the gap and connect the two cliffs.
+2. Support the dynamic load of the heavy vehicle as it crosses.
+3. Provide a continuous and smooth deck surface for the vehicle's wheels.
+4. Maintain structural integrity under load. Joints have strength limits; excessive force or torque will cause them to break.
+
+## Constraints (must satisfy)
+- **Mass Budget**: Total structure mass must be less than 2000 kg.
+- **Build Zone**: Structure must be built within x=[10, 25], y=[5, 15]. The deck surface may extend beyond these bounds to reach the target x=30.0m.
+- **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters.
+- **Traction**: The deck surface must provide sufficient friction for the vehicle's wheels to roll without excessive slipping.
+
+
+# Success Criteria
+
+
+## Success Criteria
+1. **Passage**: Vehicle reaches x >= 30.0m (originally x >= 40.0m in the source environment).
+2. **Integrity**: No structural breaks (all joints must remain intact during the crossing).
+3. **Smoothness**: The vehicle's vertical acceleration must remain low (avoid bumpy or collapsing decks).
+
+## Design Constraints
+- **Mass Budget**: < 2000 kg (originally < 1000 kg in the source environment).
+- **APIs**: Use only the primitives documented below.
+
+
+# Available Primitives API
+
+## Available Primitives API
+
+**STRICT RULE**: You are restricted to using ONLY the `primitives_api` explicitly documented here. You are STRICTLY PROHIBITED from hallucinating APIs or utilizing any undocumented functions. You may access `sandbox._terrain_bodies` (a dictionary of environment body objects) for state information, but you are STRICTLY PROHIBITED from directly assigning values to its contents (e.g., `body.position = ...`) or directly overriding physics state variables (e.g., `body.linearVelocity = ...`, `body.angularVelocity = ...`). Use forces and torques for control.
+
+### Add Beam
+```python
+beam = sandbox.add_beam(x, y, width, height, angle=0, density=1.0)
+```
+- `x, y`: The coordinates (meters) for the center of the beam.
+- `width, height`: The full width and height (meters) of the rectangular beam.
+- `angle`: The initial rotation of the beam in radians (clockwise is positive).
+- `density`: The material density in kg/m³. Mass is automatically calculated based on area.
+- **Function**: Creates a dynamic rectangular body that responds to gravity and collisions.
+- **Returns**: A Box2D body object.
+
+### Add Joint (Rigid)
+```python
+joint = sandbox.add_joint(body_a, body_b, anchor_point, type='rigid')
+```
+- `body_a`: The first body to connect.
+- `body_b`: The second body to connect. If `None`, the joint anchors `body_a` to the static environment.
+- `anchor_point`: The (x, y) coordinates in the world where the connection occurs.
+- `type`: Must be `'rigid'`.
+- **Function**: Creates a Weld joint that prevents all relative motion between the two bodies.
+- **Returns**: A Box2D joint object.
+
+### Get Structure Mass
+```python
+total_mass = sandbox.get_structure_mass()
+```
+- **Returns**: The total mass (kg) of all components created by the agent.
+- **Function**: Used to monitor compliance with the task's mass budget.
+
+# Example: Environment Change Adaptation
+
+## Task Description
+
+You need to design a vehicle that can climb slopes in the Sandbox.
+
+### Task Environment
+- Start position: x=5.0m
+- Target position: x=30.0m (must pass all obstacles)
+- Terrain: Contains rough terrain and obstacles
+  - **Ground**: Starts from x=0, width 50m, **ground top is at y=1.0m** (ground bottom is at y=0m, ground height is 1.0m)
+  - Obstacle 1: Position x=15m, height 2m, angle 0.2 radians
+  - Obstacle 2: Position x=25m, height 3m, angle -0.3 radians
+
+### Task Objective
+Design a mechanical structure (vehicle) that can:
+1. Move stably on the terrain
+2. Pass all obstacles
+3. Reach the target position (x=30.0m)
+
+### Success Criteria
+- **Primary Objective**: Agent's chassis must reach position x=30.0m
+- **Secondary Constraint**: Agent cannot fall off the map (y < -10)
+- **Design Constraint**: Agent cannot move backward too much (x < start_x - 5)
+- **Stability Constraint**: Agent must move stably on the terrain
+  - Angular velocity must remain below 2.0 rad/s
+  - Altitude must remain below 8.0m
+  - **Cannot rotate more than 180 degrees while airborne** (agent cannot flip/spin excessively in the air)
+
+---
+
+## Previous Successful Code (worked in the Original Environment)
+
+```python
+def build_agent(sandbox):
+    GROUND_TOP = 1.0
+    WHEEL_RADIUS = 1.5
+    wheel_y = GROUND_TOP + WHEEL_RADIUS
+    chassis = sandbox.add_beam(x=5.0, y=wheel_y + 0.2, width=5.0, height=0.4, density=3.0)
+    wheel1 = sandbox.add_wheel(x=3.2, y=wheel_y, radius=WHEEL_RADIUS, friction=4.0, density=1.0)
+    wheel2 = sandbox.add_wheel(x=6.8, y=wheel_y, radius=WHEEL_RADIUS, friction=4.0, density=1.0)
+    sandbox.connect(chassis, wheel1, anchor_x=3.2, anchor_y=wheel_y, motor_speed=-6.0, max_torque=1800.0)
+    sandbox.connect(chassis, wheel2, anchor_x=6.8, anchor_y=wheel_y, motor_speed=-6.0, max_torque=1800.0)
+    return chassis
+
+def agent_action(sandbox, agent_body, step_count):
+    pass
+```
+
+## Test Result in Original Environment
+
+✅ **Task completed successfully!**
+
+**Score**: 100.0/100
+
+**Distance traveled**: 37.43m
+**Current position**: x=42.43m, y=2.71m
+**Target position**: x=30.00m
+**Progress**: 100.0%
+
+---
+
+# Example : Environment Change
+
+## ⚠️ CRITICAL: The Physical Environment Has Changed
+
+The physics environment has been modified. Your previously successful design NO LONGER WORKS.
+You must **infer what changed** from the feedback and adapt.
+
+## Feedback from Running Previous Code in the NEW Environment
+
+## Iteration 1 Evaluation Results
+
+⚠️ **Task not completed**
+
+**Score**: 24.8/100
+
+## Task Execution Results
+
+**Distance traveled**: 7.75m
+**Current position**: x=12.75m, y=3.64m
+**Target position**: x=30.00m
+**Progress**: 31.0%
+**Maximum distance reached**: 7.75m
+**Simulation steps**: 588
+
+**Physical State Information**:
+- Agent position: (12.751, 3.639)
+- Agent velocity: 0.000 m/s
+- Agent velocity components: vx=0.000 m/s, vy=-0.000 m/s
+- Agent angular velocity: -0.000 rad/s
+- Agent angle: 0.565 rad (32.4°)
+
+**Additional Metrics**:
+- is_airborne: True
+- airborne_rotation_accumulated: 0.339 rad
+
+## Step 1: Environment Change Diagnosis (Required)
+
+### 1. Compare Expected vs Actual
+The code worked successfully in the original environment (reached target, score 100/100).
+However, in the new environment, the same code failed or performed poorly.
+
+### 2. Hypothesize
+Based on the feedback, the physical environment has changed. Key observations:
+- Vehicle only traveled 7.75m (target: 25.0m), far less than expected
+- Vehicle appears stuck or unable to maintain forward motion
+- **Likely cause**: Ground friction has decreased significantly
+- Low friction causes wheels to slip, especially with high motor torque and speed
+- High motor speed (-6.0 rad/s) with low ground friction causes excessive wheel spin, preventing forward progress
+
+### 3. Plan Adaptation
+To adapt to low friction environment:
+1. **Increase wheel friction** from 4.0 to 5.0: Higher friction provides better traction on slippery surfaces
+2. **Reduce motor speed** from -6.0 to -3.2 rad/s: Lower speed prevents wheel slip in low friction conditions
+3. **Increase wheel radius** from 1.5m to 1.8m: Larger wheels provide better contact area and stability
+4. **Widen wheelbase** (1.5 to 8.5m): Wider wheelbase increases stability on slippery surfaces
+5. **Lower chassis** (height 0.2m, y=wheel_y+0.0): Lower center of mass improves stability
+6. **Adjust density** (chassis 1.5, wheels 1.0): Balanced weight distribution for stability
+
+**Why this works**: In low friction environments, high torque causes wheel slip. Lower speed with higher wheel friction provides better traction. Wider wheelbase and lower center of mass prevent sliding and improve stability.
+
+## Step 2: Adapted Code (Static Parameters Only)
+
+```python
+def build_agent(sandbox):
+    GROUND_TOP = 1.0
+    WHEEL_RADIUS = 1.8  # Larger wheels for better obstacle clearance
+    wheel_y = GROUND_TOP + WHEEL_RADIUS
+    # Very wide wheelbase (1.5 to 8.5) and low chassis for maximum stability
+    # Balanced density for stability
+    chassis = sandbox.add_beam(x=5.0, y=wheel_y + 0.0, width=7.5, height=0.2, density=1.5)
+    wheel1 = sandbox.add_wheel(x=1.5, y=wheel_y, radius=WHEEL_RADIUS, friction=5.0, density=1.0)
+    wheel2 = sandbox.add_wheel(x=8.5, y=wheel_y, radius=WHEEL_RADIUS, friction=5.0, density=1.0)
+    # Safe speed to prevent rotation, maximum torque to overcome obstacles
+    sandbox.connect(chassis, wheel1, anchor_x=1.5, anchor_y=wheel_y, motor_speed=-3.2, max_torque=2000.0)
+    sandbox.connect(chassis, wheel2, anchor_x=8.5, anchor_y=wheel_y, motor_speed=-3.2, max_torque=2000.0)
+    return chassis
+
+def agent_action(sandbox, agent_body, step_count):
+    pass
+```
+
+## Test Result in New Environment (with Adapted Code)
+
+✅ **Task completed successfully!**
+
+**Score**: 100.0/100
+
+**Distance traveled**: 29.49m
+**Current position**: x=34.49m, y=2.93m
+**Target position**: x=30.00m
+**Progress**: 100.0%
+
+---
+
+
+
+# ⚠️ CRITICAL: The Physical Environment Has Changed
+
+The physics environment has been modified. Your previously successful design NO LONGER WORKS.
+
+# Previous Successful Code (worked in the Original Environment)
+
+```python
+import math
+
+
+"""
+
+S-01: The Bridge task Agent module
+
+Reference solution: Robust truss bridge designs for high-difficulty stages.
+
+"""
+
+def build_truss(sandbox, start_x, end_x, top_y, bottom_y, num_panels, deck_density=50.0, truss_density=20.0, joint_type='rigid'):
+    """
+    Helper to build a robust Warren-style truss bridge.
+    Using higher densities for better stability with the 2000kg vehicle.
+    """
+    gap_width = end_x - start_x
+    panel_width = gap_width / num_panels
+    deck_height = 0.4
+    
+    deck_beams = []
+    for i in range(num_panels):
+        cx = start_x + (i + 0.5) * panel_width
+        b = sandbox.add_beam(x=cx, y=top_y, width=panel_width+0.01, height=deck_height, density=deck_density)
+        deck_beams.append(b)
+        
+    bottom_beams = []
+    for i in range(num_panels):
+        cx = start_x + (i + 0.5) * panel_width
+        b = sandbox.add_beam(x=cx, y=bottom_y, width=panel_width+0.01, height=0.3, density=truss_density)
+        bottom_beams.append(b)
+        
+    v_beams = []
+    for i in range(num_panels + 1):
+        x = start_x + i * panel_width
+        b = sandbox.add_beam(x=x, y=(top_y+bottom_y)/2, width=0.3, height=abs(top_y-bottom_y), density=truss_density)
+        v_beams.append(b)
+        
+    diag_beams = []
+    for i in range(num_panels):
+        x1, y1 = start_x + i * panel_width, bottom_y
+        x2, y2 = start_x + (i+1) * panel_width, top_y
+        cx, cy = (x1+x2)/2, (y1+y2)/2
+        dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+        angle = math.atan2(y2-y1, x2-x1)
+        b = sandbox.add_beam(x=cx, y=cy, width=dist+0.1, height=0.3, angle=angle, density=truss_density)
+        diag_beams.append(b)
+
+    for i in range(num_panels + 1):
+        nx = start_x + i * panel_width
+        node_pos = (nx, top_y)
+        master = v_beams[i]
+        if i > 0: sandbox.add_joint(master, deck_beams[i-1], node_pos, type='rigid')
+        if i < num_panels: sandbox.add_joint(master, deck_beams[i], node_pos, type='rigid')
+        if i > 0: sandbox.add_joint(master, diag_beams[i-1], node_pos, type=joint_type)
+        
+    for i in range(num_panels + 1):
+        nx = start_x + i * panel_width
+        node_pos = (nx, bottom_y)
+        master = v_beams[i]
+        if i > 0: sandbox.add_joint(master, bottom_beams[i-1], node_pos, type=joint_type)
+        if i < num_panels: sandbox.add_joint(master, bottom_beams[i], node_pos, type=joint_type)
+        if i < num_panels: sandbox.add_joint(master, diag_beams[i], node_pos, type=joint_type)
+
+    return deck_beams, bottom_beams, v_beams
+
+
+# --- INITIAL REFERENCE SOLUTION ---
+
+# This solution is designed for the source environment (gap=15m, gravity=-10, standard joint strength)
+
+# --- MUTATED TASK SOLUTIONS ---
+
+
+def build_agent(sandbox):
+    """Stage-4: Gap 25m, Gravity -20, Low mass limit (1000kg)"""
+    L_X, R_X = 10.0, 35.0
+    # Large span, extreme gravity, must be light but very stiff. Raise deck to 10.0.
+    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 10.0, 6.5, 12, deck_density=32.0, truss_density=12.0, joint_type='rigid')
+    for y in [10.0, 8.25, 6.5]:
+        sandbox.add_joint(v_beams[0], None, (L_X, y), type='rigid')
+        sandbox.add_joint(v_beams[-1], None, (R_X, y), type='rigid')
+    
+    ext_width = 5.5
+    ext = sandbox.add_beam(x=R_X + ext_width/2, y=10.0, width=ext_width, height=0.4, density=20.0)
+    sandbox.add_joint(v_beams[-1], ext, (R_X, 10.0), type='rigid')
+    return deck[0]
+
+
+def agent_action(sandbox, agent_body, step_count): pass
+```
+
+# Feedback from Running in the NEW Environment (Iteration 1)
+
+## Iteration 0 Evaluation Results
+
+❌ **Task failed**: Design constraint violated: Beam at (31.88, 10.00) outside build zone; Beam at (33.96, 10.00) outside build zone; Beam at (31.88, 6.50) outside build zone; Beam at (33.96, 6.50) outside build zone; Beam at (30.83, 8.25) outside build zone; Beam at (32.92, 8.25) outside build zone; Beam at (35.00, 8.25) outside build zone; Beam at (31.88, 8.25) outside build zone; Beam at (33.96, 8.25) outside build zone; Beam at (37.75, 10.00) outside build zone
+
+**Score**: 0.0/100
+
+
+## Task Execution Results
+
+**Vehicle position**: x=5.00m, y=10.50m
+**Target position**: x=30.00m
+**Progress**: 0.0%
+**Structure mass**: 800.05kg
+**Mass limit**: 2000kg
+**Max vertical acceleration**: 0.00 m/s² (limit: 19.6 m/s² = 2g)
+**Structure integrity**: INTACT
+**Joint count**: 79 / 79
+**Simulation steps**: 0
+
+**Physical State Information**:
+- Vehicle position: (5.000, 10.500)
+- Vehicle velocity: 5.000 m/s
+- Vehicle velocity components: vx=5.000 m/s, vy=0.000 m/s
+- Vehicle angular velocity: 0.000 rad/s
+- Vehicle angle: 0.000 rad (0.0°)
+- Vehicle normalized angle: 0.000 rad (0.0°)
+
+**Additional Metrics**:
+- initial_joint_count: 79
+
+**Stability Metrics**:
+- Vehicle is airborne: False
+- Airborne rotation accumulated: 0.000 rad (0.0°)
+- High angular velocity count: 0
+
+You must **infer what changed** from the feedback above and adapt.
+
+# Best-Scoring Attempt So Far (in New Environment)
+
+```python
+import math
+
+
+"""
+
+S-01: The Bridge task Agent module
+
+Reference solution: Robust truss bridge designs for high-difficulty stages.
+
+"""
+
+def build_truss(sandbox, start_x, end_x, top_y, bottom_y, num_panels, deck_density=50.0, truss_density=20.0, joint_type='rigid'):
+    """
+    Helper to build a robust Warren-style truss bridge.
+    Using higher densities for better stability with the 2000kg vehicle.
+    """
+    gap_width = end_x - start_x
+    panel_width = gap_width / num_panels
+    deck_height = 0.4
+    
+    deck_beams = []
+    for i in range(num_panels):
+        cx = start_x + (i + 0.5) * panel_width
+        b = sandbox.add_beam(x=cx, y=top_y, width=panel_width+0.01, height=deck_height, density=deck_density)
+        deck_beams.append(b)
+        
+    bottom_beams = []
+    for i in range(num_panels):
+        cx = start_x + (i + 0.5) * panel_width
+        b = sandbox.add_beam(x=cx, y=bottom_y, width=panel_width+0.01, height=0.3, density=truss_density)
+        bottom_beams.append(b)
+        
+    v_beams = []
+    for i in range(num_panels + 1):
+        x = start_x + i * panel_width
+        b = sandbox.add_beam(x=x, y=(top_y+bottom_y)/2, width=0.3, height=abs(top_y-bottom_y), density=truss_density)
+        v_beams.append(b)
+        
+    diag_beams = []
+    for i in range(num_panels):
+        x1, y1 = start_x + i * panel_width, bottom_y
+        x2, y2 = start_x + (i+1) * panel_width, top_y
+        cx, cy = (x1+x2)/2, (y1+y2)/2
+        dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+        angle = math.atan2(y2-y1, x2-x1)
+        b = sandbox.add_beam(x=cx, y=cy, width=dist+0.1, height=0.3, angle=angle, density=truss_density)
+        diag_beams.append(b)
+
+    for i in range(num_panels + 1):
+        nx = start_x + i * panel_width
+        node_pos = (nx, top_y)
+        master = v_beams[i]
+        if i > 0: sandbox.add_joint(master, deck_beams[i-1], node_pos, type='rigid')
+        if i < num_panels: sandbox.add_joint(master, deck_beams[i], node_pos, type='rigid')
+        if i > 0: sandbox.add_joint(master, diag_beams[i-1], node_pos, type=joint_type)
+        
+    for i in range(num_panels + 1):
+        nx = start_x + i * panel_width
+        node_pos = (nx, bottom_y)
+        master = v_beams[i]
+        if i > 0: sandbox.add_joint(master, bottom_beams[i-1], node_pos, type=joint_type)
+        if i < num_panels: sandbox.add_joint(master, bottom_beams[i], node_pos, type=joint_type)
+        if i < num_panels: sandbox.add_joint(master, diag_beams[i], node_pos, type=joint_type)
+
+    return deck_beams, bottom_beams, v_beams
+
+
+# --- INITIAL REFERENCE SOLUTION ---
+
+# This solution is designed for the source environment (gap=15m, gravity=-10, standard joint strength)
+
+# --- MUTATED TASK SOLUTIONS ---
+
+
+def build_agent(sandbox):
+    """Stage-4: Gap 25m, Gravity -20, Low mass limit (1000kg)"""
+    L_X, R_X = 10.0, 35.0
+    # Large span, extreme gravity, must be light but very stiff. Raise deck to 10.0.
+    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 10.0, 6.5, 12, deck_density=32.0, truss_density=12.0, joint_type='rigid')
+    for y in [10.0, 8.25, 6.5]:
+        sandbox.add_joint(v_beams[0], None, (L_X, y), type='rigid')
+        sandbox.add_joint(v_beams[-1], None, (R_X, y), type='rigid')
+    
+    ext_width = 5.5
+    ext = sandbox.add_beam(x=R_X + ext_width/2, y=10.0, width=ext_width, height=0.4, density=20.0)
+    sandbox.add_joint(v_beams[-1], ext, (R_X, 10.0), type='rigid')
+    return deck[0]
+
+
+def agent_action(sandbox, agent_body, step_count): pass
+```
+
+Feedback: ## Iteration 0 Evaluation Results
+
+❌ **Task failed**: Design constraint violated: Beam at (31.88, 10.00) outside build zone; Beam at (33.96, 10.00) outside build zone; Beam at (31.88, 6.50) outside build zone; Beam at (33.96, 6.50) outside build zone; Beam at (30.83, 8.25) outside build zone; Beam at (32.92, 8.25) outside build zone; Beam at (35.00, 8.25) outside build zone; Beam at (31.88, 8.25) outside build zone; Beam at (33.96, 8.25) outside build zone; Beam at (37.75, 10.00) outside build zone
+
+**Score**: 0.0/100
+
+
+## Task Execution Results
+
+**Vehicle position**: x=5.00m, y=10.50m
+**Target position**: x=30.00m
+**Progress**: 0.0%
+**Structure mass**: 800.05kg
+**Mass limit**: 2000kg
+**Max vertical acceleration**: 0.00 m/s² (limit: 19.6 m/s² = 2g)
+**Structure integrity**: INTACT
+**Joint count**: 79 / 79
+**Simulation steps**: 0
+
+**Physical State Information**:
+- Vehicle position: (5.000, 10.500)
+- Vehicle velocity: 5.000 m/s
+- Vehicle velocity components: vx=5.000 m/s, vy=0.000 m/s
+- Vehicle angular velocity: 0.000 rad/s
+- Vehicle angle: 0.000 rad (0.0°)
+- Vehicle normalized angle: 0.000 rad (0.0°)
+
+**Additional Metrics**:
+- initial_joint_count: 79
+
+**Stability Metrics**:
+- Vehicle is airborne: False
+- Airborne rotation accumulated: 0.000 rad (0.0°)
+- High angular velocity count: 0
+
+# Previous Attempt
+
+```python
+import math
+
+def build_truss(sandbox, start_x, end_x, top_y, bottom_y, num_panels, deck_density=80.0, truss_density=30.0):
+    """
+    Build a Warren truss bridge within specified bounds.
+    """
+    gap_width = end_x - start_x
+    panel_width = gap_width / num_panels
+    deck_height = 0.4
+    
+    # Deck beams
+    deck_beams = []
+    for i in range(num_panels):
+        cx = start_x + (i + 0.5) * panel_width
+        b = sandbox.add_beam(x=cx, y=top_y, width=panel_width+0.01, height=deck_height, density=deck_density)
+        deck_beams.append(b)
+    
+    # Bottom chord beams  
+    bottom_beams = []
+    for i in range(num_panels):
+        cx = start_x + (i + 0.5) * panel_width
+        b = sandbox.add_beam(x=cx, y=bottom_y, width=panel_width+0.01, height=0.3, density=truss_density)
+        bottom_beams.append(b)
+    
+    # Vertical beams
+    v_beams = []
+    for i in range(num_panels + 1):
+        x = start_x + i * panel_width
+        b = sandbox.add_beam(x=x, y=(top_y+bottom_y)/2, width=0.3, height=abs(top_y-bottom_y), density=truss_density)
+        v_beams.append(b)
+    
+    # Diagonal beams
+    diag_beams = []
+    for i in range(num_panels):
+        x1, y1 = start_x + i * panel_width, bottom_y
+        x2, y2 = start_x + (i+1) * panel_width, top_y
+        cx, cy = (x1+x2)/2, (y1+y2)/2
+        dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+        angle = math.atan2(y2-y1, x2-x1)
+        b = sandbox.add_beam(x=cx, y=cy, width=dist+0.1, height=0.3, angle=angle, density=truss_density)
+        diag_beams.append(b)
+    
+    # Connect deck to verticals
+    for i in range(num_panels + 1):
+        nx = start_x + i * panel_width
+        node_pos = (nx, top_y)
+        master = v_beams[i]
+        if i > 0:
+            sandbox.add_joint(master, deck_beams[i-1], node_pos, type='rigid')
+        if i < num_panels:
+            sandbox.add_joint(master, deck_beams[i], node_pos, type='rigid')
+        if i > 0:
+            sandbox.add_joint(master, diag_beams[i-1], node_pos, type='rigid')
+    
+    # Connect bottom chord to verticals
+    for i in range(num_panels + 1):
+        nx = start_x + i * panel_width
+        node_pos = (nx, bottom_y)
+        master = v_beams[i]
+        if i > 0:
+            sandbox.add_joint(master, bottom_beams[i-1], node_pos, type='rigid')
+        if i < num_panels:
+            sandbox.add_joint(master, bottom_beams[i], node_pos, type='rigid')
+        if i < num_panels:
+            sandbox.add_joint(master, diag_beams[i], node_pos, type='rigid')
+    
+    return deck_beams, bottom_beams, v_beams
+
+def build_agent(sandbox):
+    """Adapted for new environment: 15m gap, build zone x=[10,25], target x=30.0m"""
+    # Cliff positions
+    LEFT_X = 10.0
+    RIGHT_X = 25.0  # Right cliff starts here (was 35.0)
+    TARGET_X = 30.0  # Vehicle must reach here
+    
+    # Bridge parameters
+    DECK_Y = 10.0  # Match cliff height
+    BOTTOM_Y = 6.5  # Truss depth
+    NUM_PANELS = 8  # Reduced from 12 for 15m span
+    
+    # Build main truss within build zone (x=10 to 25)
+    deck_beams, bottom_beams, v_beams = build_truss(
+        sandbox, LEFT_X, RIGHT_X, DECK_Y, BOTTOM_Y, NUM_PANELS,
+        deck_density=100.0,  # Higher density for stronger deck
+        truss_density=40.0   # Higher density for stronger joints
+    )
+    
+    # Anchor left side to left cliff
+    sandbox.add_joint(v_beams[0], None, (LEFT_X, DECK_Y), type='rigid')
+    sandbox.add_joint(v_beams[0], None, (LEFT_X, BOTTOM_Y), type='rigid')
+    
+    # Anchor right side to right cliff
+    sandbox.add_joint(v_beams[-1], None, (RIGHT_X, DECK_Y), type='rigid')
+    sandbox.add_joint(v_beams[-1], None, (RIGHT_X, BOTTOM_Y), type='rigid')
+    
+    # Add extension from x=25 to x=30 for vehicle to reach target
+    # Extension starts at x=25.0 (right cliff) and extends to x=30.0
+    ext_length = TARGET_X - RIGHT_X  # 5.0 meters
+    ext = sandbox.add_beam(
+        x=RIGHT_X + ext_length/2, 
+        y=DECK_Y, 
+        width=ext_length, 
+        height=0.4, 
+        density=100.0
+    )
+    
+    # Connect extension to the last vertical beam at right cliff
+    sandbox.add_joint(v_beams[-1], ext, (RIGHT_X, DECK_Y), type='rigid')
+    
+    # Optional: Add support under extension
+    support = sandbox.add_beam(
+        x=RIGHT_X + ext_length/2,
+        y=DECK_Y - 1.5,
+        width=ext_length,
+        height=0.3,
+        density=40.0
+    )
+    sandbox.add_joint(ext, support, (RIGHT_X + ext_length/2, DECK_Y - 0.75), type='rigid')
+    
+    # Return first deck beam as agent body
+    return deck_beams[0]
+
+def agent_action(sandbox, agent_body, step_count):
+    # No control needed for static bridge
+    pass
+```
+
+Feedback: ## Iteration 1 Evaluation Results
+
+⚠️ **Task not completed**
+
+**Score**: 0.0/100
+
+
+## Task Execution Results
+
+**Vehicle position**: x=0.39m, y=10.44m
+**Target position**: x=30.00m
+**Progress**: 0.0%
+**Structure mass**: 1812.94kg
+**Mass limit**: 2000kg
+**Max vertical acceleration**: 0.43 m/s² (limit: 19.6 m/s² = 2g)
+**Structure integrity**: INTACT
+**Joint count**: 54 / 54
+**Simulation steps**: 2132
+
+**Physical State Information**:
+- Vehicle position: (0.389, 10.444)
+- Vehicle velocity: 0.000 m/s
+- Vehicle velocity components: vx=-0.000 m/s, vy=-0.000 m/s
+- Vehicle angular velocity: 0.000 rad/s
+- Vehicle angle: 0.385 rad (22.1°)
+- Vehicle normalized angle: 0.385 rad (22.1°)
+
+**Additional Metrics**:
+- initial_joint_count: 54
+
+**Stability Metrics**:
+- Vehicle is airborne: False
+- Airborne rotation accumulated: 0.000 rad (0.0°)
+- High angular velocity count: 0
+
+
+# Your Task: Diagnose and Adapt
+
+Compare these attempts. Learn from what worked best and what changed recently. Provide an improved adapted solution.
+
+**Output Format**:
+
+```python
+def build_agent(sandbox):
+    # Your improved implementation
+    return chassis
+
+def agent_action(sandbox, agent_body, step_count):
+    # Control logic if needed
+    pass
+```
+
+Begin with your analysis, then provide the code.
+",

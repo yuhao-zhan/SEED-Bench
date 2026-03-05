@@ -7,7 +7,7 @@ Usage-specific variables are provided for complex APIs with many optional parame
 API_INTRO = """
 ## Available Primitives API
 
-**Important**: You may ONLY use the APIs documented below. Do not access internal attributes (e.g. _world, _bodies) or use undocumented methods.
+**STRICT RULE**: You are restricted to using ONLY the `primitives_api` explicitly documented here. You are STRICTLY PROHIBITED from hallucinating APIs or utilizing any undocumented functions. You may access `sandbox._terrain_bodies` (a dictionary of environment body objects) for state information, but you are STRICTLY PROHIBITED from directly assigning values to its contents (e.g., `body.position = ...`) or directly overriding physics state variables (e.g., `body.linearVelocity = ...`, `body.angularVelocity = ...`). Use forces and torques for control.
 """
 
 # --- Body Creation ---
@@ -908,6 +908,7 @@ ACCESS_TERRAIN_BODIES = """
 terrain_body = sandbox._terrain_bodies.get("key")
 ```
 - **Returns**: The Box2D body for a fixed environment object (e.g., "cliff", "wall", "foundation").
+- **Usage**: You may access `sandbox._terrain_bodies` for state information, but you are STRICTLY PROHIBITED from directly assigning values to its contents (e.g., `body.position = ...`) or directly overriding physics state variables (e.g., `body.linearVelocity = ...`, `body.angularVelocity = ...`). Use forces and torques for control.
 """
 
 HAS_CENTRAL_WALL = """

@@ -1,13 +1,13 @@
 """
 S-04: The Balancer task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    GET_STRUCTURE_MASS,
-    ACCESS_TERRAIN_BODIES,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     'task_description': """
@@ -16,7 +16,7 @@ The goal is to design a system that maintains a level orientation despite the un
 
 ## Task Environment
 - **Pivot**: A sharp static support at (0,0).
-- **The Load**: A heavy block located at or near x=3.0. It may automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3,0), OR it may be DROPPED from above. If the load is not caught or falls, the task fails.
+- **The Load**: A heavy block (mass: 200.0 kg) located at or near x=3.0. It may automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3,0), OR it may be DROPPED from above. If the load is not caught or falls, the task fails.
 - **Environmental Anomalies**: The environment may contain static obstacles you must build around, or experience severe lateral wind forces that apply continuous torque to your structure.
 - **Beam Dimensions**: 0.1 <= width <= 7.0 m, 0.1 <= height <= 2.0 m.
 
@@ -44,5 +44,5 @@ Design a balanced structure that:
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + ADD_BEAM + ADD_JOINT_RIGID + GET_STRUCTURE_MASS + ACCESS_TERRAIN_BODIES,
+    'primitives_api': '\n\n'.join(_api_data['S_04'].values()),
 }

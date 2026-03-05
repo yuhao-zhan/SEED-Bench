@@ -8,7 +8,7 @@ THRUST_PER_BODY = 520.0
 STOP_X = 26.0
 MAX_VX = 3.0
 MAX_VY = 4.0
-# Three pillars at x~14, 17, 20; one continuous lift zone through mid-water
+
 PILLAR_ZONE_1 = (11.5, 16.0)
 PILLAR_ZONE_2 = (16.0, 22.0)
 LIFT_FY = 175.0
@@ -24,7 +24,7 @@ def build_agent(sandbox):
     beam_h = 0.35
     density = 55.0
     y_center = 0.5 + beam_h / 2
-    # 9 beams in [2, 8]: centers at 2.31 + i*0.62 for i in 0..8
+
     centers_x = [2.31 + i * 0.62 for i in range(9)]
 
     bodies = []

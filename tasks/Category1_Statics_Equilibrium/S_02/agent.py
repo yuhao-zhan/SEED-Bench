@@ -1,20 +1,25 @@
 """
 S-02: The Skyscraper task Agent module
-Build a tall tower that survives earthquake and wind.
-Reference solutions for initial and mutated tasks are strictly independent.
+Overhauled reference solutions for high-difficulty mutated stages.
+Each solution is tailored to specific physical challenges (torque limits, resonance, etc.)
 """
 import math
 
-def build_robust_tower(sandbox, levels=25, base_w=4.0, beam_h=1.5, base_density=200.0, top_density=5.0, joints_per_level=20, tmd=True):
+def build_advanced_tower(sandbox, levels=25, base_w=4.0, beam_h=1.5, base_density=200.0, top_density=5.0,
+                         taper_rate=0.8, density_taper=0.95, tmd_params=None):
+    """
+    Core building logic for high-difficulty towers.
+    """
     foundation_y = 1.0
     foundation = sandbox._terrain_bodies.get("foundation")
-    
-    # Base
+
+
     base = sandbox.add_beam(x=0, y=foundation_y + beam_h/2, width=base_w, height=beam_h, density=base_density)
     if foundation:
-        # Use 4 joints distributed on the narrow foundation
-        for i in range(4):
-            ax = -1.5 + (i * 1.0) # [-1.5, -0.5, 0.5, 1.5]
+
+        num_joints = max(4, int(base_w * 0.8))
+        for i in range(num_joints):
+            ax = -(base_w/2 - 0.1) + (i * (base_w-0.2)/(num_joints-1))
             sandbox.add_joint(foundation, base, (ax, foundation_y), type='rigid')
 
     prev = base
@@ -23,58 +28,86 @@ def build_robust_tower(sandbox, levels=25, base_w=4.0, beam_h=1.5, base_density=
     for i in range(1, levels):
         curr_y = prev_y + beam_h
         progress = i / (levels - 1)
-        # Taper the width and density to reduce top-heaviness and wind pressure
-        curr_w = max(0.8, base_w * (1 - progress * 0.75))
-        d = max(top_density, base_density * (1 - progress * 0.9))
+
+        curr_w = max(0.4, base_w * (1.0 - progress**taper_rate))
+        d = max(top_density, base_density * (1.0 - progress**density_taper))
         b = sandbox.add_beam(x=0, y=curr_y, width=curr_w, height=beam_h, density=d)
-        
+
         anchor_y = curr_y - beam_h/2
-        # Use two joints at the edges of the current beam width to distribute load without internal stress
-        sandbox.add_joint(prev, b, (-curr_w/2 + 0.1, anchor_y), type='rigid')
-        sandbox.add_joint(prev, b, (curr_w/2 - 0.1, anchor_y), type='rigid')
-            
+
+        j_count = 3 if curr_w > 1.5 else 2
+        for j in range(j_count):
+            jx = -(curr_w/2 - 0.05) + (j * (curr_w-0.1)/(j_count-1))
+            sandbox.add_joint(prev, b, (jx, anchor_y), type='rigid')
+
         prev = b
         prev_y = curr_y
         beams.append(b)
 
-    if tmd:
+    if tmd_params:
         top = beams[-1]
-        # Tuned Mass Damper: A heavy block suspended to absorb energy and reduce oscillation
-        tmd_body = sandbox.add_beam(x=0, y=prev_y + 2.0, width=1.5, height=1.5, density=100.0)
-        sandbox.add_spring(top, tmd_body, (0, prev_y + beam_h/2), (0, 0), stiffness=2.5, damping=0.9)
-    
+
+        mass_w, mass_h = tmd_params.get('size', (1.0, 1.0))
+        mass_d = tmd_params.get('density', 100.0)
+        stiff = tmd_params.get('stiffness', 4.0)
+        damp = tmd_params.get('damping', 0.9)
+
+        tmd_body = sandbox.add_beam(x=0, y=prev_y + 1.5, width=mass_w, height=mass_h, density=mass_d)
+        sandbox.add_spring(top, tmd_body, (0, prev_y + beam_h/2), (0, 0), stiffness=stiff, damping=damp)
+
     return base
 
 def build_agent(sandbox):
-    return build_robust_tower(sandbox, levels=22, base_w=5.0)
+
+    return build_advanced_tower(sandbox, levels=22, base_w=5.0)
 
 def agent_action(sandbox, agent_body, step_count):
     pass
 
-def build_agent_stage_1(sandbox):
-    # Stage 1: Fragile joints. Needs wider base and lighter top to distribute load.
-    return build_robust_tower(sandbox, levels=22, base_w=6.5, top_density=5.0)
 
-def agent_action_stage_1(sandbox, agent_body, step_count):
-    pass
+
+def build_agent_stage_1(sandbox):
+    """
+    Stage-1: The Brittle Foundation (max_joint_torque: 1200.0).
+    Strategy: Ultra-light upper levels and wide base to minimize leverage.
+    """
+    return build_advanced_tower(sandbox, levels=28, base_w=11.5,
+                               base_density=50.0, top_density=1.0,
+                               taper_rate=0.5, density_taper=0.4)
 
 def build_agent_stage_2(sandbox):
-    # Stage 2: Wind Shear. Needs a low-profile, light-weight top and strong base.
-    return build_robust_tower(sandbox, levels=23, base_w=5.5, top_density=2.0)
-
-def agent_action_stage_2(sandbox, agent_body, step_count):
-    pass
+    """
+    Stage-2: Atmospheric Resonance (wind_oscillation: 5.0).
+    Strategy: Very slender top, robust TMD, and more levels to reach height.
+    """
+    tmd = {'size': (1.2, 1.2), 'density': 300.0, 'stiffness': 15.0, 'damping': 1.0}
+    return build_advanced_tower(sandbox, levels=32, base_w=10.0,
+                               base_density=400.0, top_density=0.01,
+                               taper_rate=0.2, density_taper=0.1,
+                               tmd_params=tmd)
 
 def build_agent_stage_3(sandbox):
-    # Stage 3: Resonance. Needs TMD and light structure to shift natural frequency.
-    return build_robust_tower(sandbox, levels=22, base_w=6.0, tmd=True)
-
-def agent_action_stage_3(sandbox, agent_body, step_count):
-    pass
+    """
+    Stage-3: Seismic Amplification (evolution: 0.3).
+    Strategy: Very low center of mass (heavy base) and robust TMD to absorb growing energy.
+    """
+    tmd = {'size': (1.2, 1.2), 'density': 400.0, 'stiffness': 15.0, 'damping': 1.0}
+    return build_advanced_tower(sandbox, levels=28, base_w=11.5,
+                               base_density=400.0, top_density=0.01,
+                               tmd_params=tmd)
 
 def build_agent_stage_4(sandbox):
-    # Stage 4: Chaos. Robust 5m base, heavy bottom, and TMD for oscillation control.
-    return build_robust_tower(sandbox, levels=22, base_w=5.0, tmd=True, top_density=2.0, base_density=500.0)
+    """
+    Stage-4: The Gravity Well Collapse (gravity: -25.0).
+    Strategy: Extreme density taper and ultra-light top to minimize self-weight stress.
+    """
+    tmd = {'size': (0.8, 0.8), 'density': 400.0, 'stiffness': 15.0, 'damping': 1.0}
+    return build_advanced_tower(sandbox, levels=28, base_w=11.8,
+                               base_density=600.0, top_density=0.1,
+                               taper_rate=0.3, density_taper=0.1,
+                               tmd_params=tmd)
 
-def agent_action_stage_4(sandbox, agent_body, step_count):
-    pass
+def agent_action_stage_1(sandbox, agent_body, step_count): pass
+def agent_action_stage_2(sandbox, agent_body, step_count): pass
+def agent_action_stage_3(sandbox, agent_body, step_count): pass
+def agent_action_stage_4(sandbox, agent_body, step_count): pass

@@ -131,7 +131,19 @@ class DaVinciSandbox:
                 self._load_body.angularVelocity = 0
                 self._load_body.linearVelocity = (0, 0)
                 self._load_body.angle = 0
-
+            
+            # If there's an explicit disturbance, apply it
+            if self._bodies and self._initial_disturbance:
+                main_beam = self._bodies[0]
+                if "angular_velocity" in self._initial_disturbance:
+                    main_beam.angularVelocity = float(self._initial_disturbance["angular_velocity"])
+                if "linear_velocity" in self._initial_disturbance:
+                    vx = float(self._initial_disturbance["linear_velocity"][0])
+                    vy = float(self._initial_disturbance["linear_velocity"][1])
+                    main_beam.linearVelocity = (vx, vy)
+            
+            self._initial_disturbance_applied = True
+            
         # Auto-attach load
         if not self._load_attached and not self._drop_load and self._bodies:
             for body in self._bodies:
@@ -153,17 +165,7 @@ class DaVinciSandbox:
                     self._load_attached = True
                     self._terrain_bodies["load"] = self._load_body
                     break
-
-        if not self._initial_disturbance_applied and self._bodies and self._initial_disturbance:
-            main_beam = self._bodies[0]
-            if "angular_velocity" in self._initial_disturbance:
-                main_beam.angularVelocity = float(self._initial_disturbance["angular_velocity"])
-            if "linear_velocity" in self._initial_disturbance:
-                vx = float(self._initial_disturbance["linear_velocity"][0])
-                vy = float(self._initial_disturbance["linear_velocity"][1])
-                main_beam.linearVelocity = (vx, vy)
-            self._initial_disturbance_applied = True
-            
+                    
         if self._wind_active:
             for body in self._bodies:
                 body.ApplyForceToCenter((body.mass * self._wind_force_multiplier, 0), wake=True)
@@ -190,9 +192,11 @@ class DaVinciSandbox:
                 net_torque += (rx * Fy - ry * Fx)
                 
             if abs(net_torque) > self._max_joint_torque:
+                # print(f"Torque exceeded: {net_torque} > {self._max_joint_torque}")
                 pivot = self._terrain_bodies.get("pivot")
                 for j in list(self._joints):
-                    if j.bodyA == pivot or j.bodyB == pivot:
+                    # Only destroy WeldJoints (rigid). RevoluteJoints (pivot) are the task foundation.
+                    if isinstance(j, Box2D.b2WeldJoint) and (j.bodyA == pivot or j.bodyB == pivot):
                         try:
                             self._world.DestroyJoint(j)
                             self._joints.remove(j)

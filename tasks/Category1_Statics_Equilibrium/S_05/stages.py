@@ -5,6 +5,7 @@ S-05: The Shelter task curriculum stages (mutations).
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 # Base task defaults (must match environment.py and prompt.py)
 DEFAULT_METEOR_COUNT = 12
@@ -17,14 +18,39 @@ DEFAULT_FLOOR_FRICTION = 0.5
 
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    # Information Hiding: We no longer update the prompt with specific mutated values.
-    # The agent must discover these via the UNIFORM_SUFFIX and environmental feedback.
-    return base_description
+    description = base_description
+    
+    # Update Core Force Threshold
+    target_force = target_terrain_config.get("max_core_force", DEFAULT_CORE_MAX_FORCE)
+    if target_force != DEFAULT_CORE_MAX_FORCE:
+        pattern = r"(force reaching the core remains minimal \(< )(\d+\.?\d*)(N\))"
+        description = re.sub(pattern, f"\\g<1>{target_force:.1f}N (originally {DEFAULT_CORE_MAX_FORCE:.1f}N))", description)
+        
+    # Update Mass Budget
+    target_mass = target_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
+    if target_mass != DEFAULT_MAX_MASS:
+        pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*) kg"
+        description = re.sub(pattern, f"\\g<1>{target_mass:.1f} kg (originally {DEFAULT_MAX_MASS:.1f} kg)", description)
+        
+    return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    # Information Hiding: We no longer update the success criteria with specific mutated values.
-    return base_success_criteria
+    criteria = base_success_criteria
+    
+    # Update Core Force in Success Criteria
+    target_force = target_terrain_config.get("max_core_force", DEFAULT_CORE_MAX_FORCE)
+    if target_force != DEFAULT_CORE_MAX_FORCE:
+        pattern = r"(without exceeding its )(\d+\.?\d*)(N impact force threshold)"
+        criteria = re.sub(pattern, f"\\g<1>{target_force:.1f}N impact force threshold (originally {DEFAULT_CORE_MAX_FORCE:.1f}N)", criteria)
+        
+    # Update Mass Budget in Success Criteria
+    target_mass = target_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
+    if target_mass != DEFAULT_MAX_MASS:
+        pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*) kg"
+        criteria = re.sub(pattern, f"\\g<1>{target_mass:.1f} kg (originally {DEFAULT_MAX_MASS:.1f} kg)", criteria)
+        
+    return criteria
 
 UNIFORM_SUFFIX = """
 Environmental Anomalies Detected

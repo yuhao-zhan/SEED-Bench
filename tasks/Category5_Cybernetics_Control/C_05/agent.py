@@ -4,7 +4,7 @@ Waits BARRIER_DELAY_STEPS after A before moving to B (timed gate); goes to B (el
 """
 import math
 
-# Timed barrier: must wait this many steps after A before barrier opens (discoverable via feedback)
+
 BARRIER_DELAY_STEPS = 70
 ZONE_CENTERS = {"A": (2.0, 2.0), "B": (4.95, 3.2), "C": (8.0, 2.0)}
 MAX_FORCE = 50.0
@@ -20,7 +20,7 @@ RAMP_Y_TARGET = 3.2
 RAMP_X_FRAC = 0.3
 RAMP_Y_GAIN = 48.0
 
-# Mutable state to track when A was triggered (for timed barrier wait)
+
 _step_when_a_triggered = [None]
 
 
@@ -44,7 +44,7 @@ def agent_action(sandbox, agent_body, step_count):
         sandbox.apply_agent_force(-HOLD_DAMP * vx, -HOLD_DAMP * vy)
         return
 
-    # Timed gate: wait BARRIER_DELAY_STEPS after A before moving toward B (barrier opens then)
+
     if next_switch == "B" and _step_when_a_triggered[0] is not None:
         steps_since_a = step_count - _step_when_a_triggered[0]
         if steps_since_a < BARRIER_DELAY_STEPS:
@@ -59,7 +59,7 @@ def agent_action(sandbox, agent_body, step_count):
     dy = ty - y
     dist = math.sqrt(dx * dx + dy * dy)
 
-    # On flat ground (y low or past ramp): strong horizontal push toward C. Skip when in front of ramp (3.5<=x<4.5) — must climb first.
+
     on_flat_for_c = (y <= 2.6 or x >= 6.4) and not (3.5 <= x < 4.5)
     if next_switch == "C" and x < 7.5 and dist > 0.2 and on_flat_for_c:
         fx = MAX_FORCE * 0.98 if dx > 0 else -MAX_FORCE * 0.4
@@ -73,7 +73,7 @@ def agent_action(sandbox, agent_body, step_count):
 
     if dist < HOLD_RADIUS:
         speed = math.sqrt(vx * vx + vy * vy)
-        # In C we must stay below 0.5 m/s for 25 steps; brake hard until very slow
+
         if next_switch == "C" or speed > 0.35:
             fx = -HOLD_DAMP * 2.5 * vx
             fy = -HOLD_DAMP * 2.5 * vy
@@ -87,16 +87,16 @@ def agent_action(sandbox, agent_body, step_count):
         return
 
     in_ramp = RAMP_X_LO <= x <= RAMP_X_HI
-    # When going to C and in front of ramp (x < 4.5), must climb ramp first; else when C and on ramp use descending
+
     use_ramp = in_ramp and (next_switch == "B" or (next_switch == "C" and (x < 4.5 or y > 2.4)))
     if use_ramp:
         if next_switch == "B" or (next_switch == "C" and x < 4.5):
-            # Climb: get over the ramp (needed when coming from left toward C)
+
             y_target = RAMP_Y_TARGET
             fx = min(MAX_FORCE * 0.75, 36.0) * (1.0 if dx > 0 else -0.5) - APPROACH_DAMP * vx
             fy = RAMP_Y_GAIN * (y_target - y) - APPROACH_DAMP * vy
         else:
-            # Descending to C (already over ramp)
+
             y_target = 2.0
             dy_local = y_target - y
             if y > 3.0:

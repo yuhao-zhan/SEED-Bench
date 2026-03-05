@@ -5,23 +5,58 @@ Reference solutions for high-difficulty mutations.
 import math
 
 def build_agent(sandbox):
-    return build_agent_stage_1(sandbox)
+    """Initial environment: 12m reach, no obstacles. Simple truss."""
+    target_reach = 13.5
+    structure_y = 10.0
+    WALL_X = 0.0
+    num_segments = 5
+    seg_len = target_reach / num_segments
+    top_chord = []
+    bot_chord = []
+    angle = 0.08
+    for i in range(num_segments):
+        x = WALL_X + (i + 0.5) * seg_len
+        ty = structure_y + 0.5 + i * seg_len * math.sin(angle)
+        by = structure_y - 0.5 + i * seg_len * math.sin(angle)
+        tb = sandbox.add_beam(x=x, y=ty, width=seg_len + 0.1, height=0.6, angle=angle, density=15.0)
+        bb = sandbox.add_beam(x=x, y=by, width=seg_len + 0.1, height=0.6, angle=angle, density=15.0)
+        top_chord.append(tb)
+        bot_chord.append(bb)
+        if i > 0:
+            sandbox.add_joint(top_chord[i-1], tb, (WALL_X + i * seg_len, ty))
+            sandbox.add_joint(bot_chord[i-1], bb, (WALL_X + i * seg_len, by))
+    wall = sandbox._terrain_bodies["wall"]
+    sandbox.add_joint(wall, top_chord[0], (WALL_X, structure_y + 1.0))
+    sandbox.add_joint(wall, bot_chord[0], (WALL_X, structure_y - 1.0))
+    for i in range(num_segments):
+        x = WALL_X + i * seg_len
+        ty = structure_y + 0.5 + i * seg_len * math.sin(angle)
+        by = structure_y - 0.5 + i * seg_len * math.sin(angle)
+        next_ty = structure_y + 0.5 + (i+1) * seg_len * math.sin(angle)
+        next_by = structure_y - 0.5 + (i+1) * seg_len * math.sin(angle)
+        v = sandbox.add_beam(x=x + seg_len, y=(next_ty + next_by)/2, width=0.3, height=next_ty - next_by, density=12.0)
+        sandbox.add_joint(top_chord[i], v, (x + seg_len, next_ty))
+        sandbox.add_joint(bot_chord[i], v, (x + seg_len, next_by))
+        d = sandbox.add_beam(x=x + seg_len/2, y=(ty + next_by)/2, width=math.sqrt(seg_len**2 + (ty-next_by)**2), height=0.3, angle=-math.atan2(ty-next_by, seg_len), density=10.0)
+        sandbox.add_joint(top_chord[i], d, (x, ty))
+        sandbox.add_joint(bot_chord[i], d, (x + seg_len, next_by))
+    return top_chord[0]
 
 def agent_action(sandbox, agent_body, step_count):
     pass
 
-# --- Mutated Task Solutions ---
+
 
 def build_agent_stage_1(sandbox):
     """Stage 1: The Slalom Tunnel. Reach 25m at y=7.0. Stiff truss."""
-    target_reach = 28.5 # Increased for sag overhead
+    target_reach = 28.5
     structure_y = 7.0
     WALL_X = 0.0
     num_segments = 10
     seg_len = target_reach / num_segments
     top_chord = []
     bot_chord = []
-    angle = 0.1 # More camber
+    angle = 0.1
     for i in range(num_segments):
         x = WALL_X + (i + 0.5) * seg_len
         ty = structure_y + 0.5 + i * seg_len * math.sin(angle)
@@ -62,7 +97,7 @@ def build_agent_stage_2(sandbox):
     seg_len = target_reach / num_segments
     top_chord = []
     bot_chord = []
-    angle = 0.15 # More camber
+    angle = 0.15
     for i in range(num_segments):
         x = WALL_X + (i + 0.5) * seg_len
         ty = structure_y + 1.0 + i * seg_len * math.sin(angle)
@@ -107,7 +142,7 @@ def build_agent_stage_3(sandbox):
     seg_len = target_reach / num_segments
     top_chord = []
     bot_chord = []
-    angle = 0.18 # High camber
+    angle = 0.18
     for i in range(num_segments):
         x = WALL_X + (i + 0.5) * seg_len
         ty = y_top_wall + i * seg_len * math.sin(angle)
@@ -152,7 +187,7 @@ def build_agent_stage_4(sandbox):
     seg_len = target_reach / num_segments
     top_chord = []
     bot_chord = []
-    angle = 0.22 # Extreme camber
+    angle = 0.22
     for i in range(num_segments):
         x = WALL_X + (i+0.5)*seg_len
         ty = y_top_wall + i*seg_len*math.sin(angle)

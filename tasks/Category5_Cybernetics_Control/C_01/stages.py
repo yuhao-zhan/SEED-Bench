@@ -9,11 +9,18 @@ Stages ordered by difficulty: Stage-1 (easiest, one param) -> Stage-4 (hardest, 
 from __future__ import annotations
 
 from typing import Any, Dict, List
-
+import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description for visible changes."""
-    return base_description
+    description = base_description
+    target_length = target_terrain_config.get("pole_length")
+
+    if target_length is not None and target_length != 2.0:
+        pattern = r"(- \*\*Pole\*\*: Initially hanging downward \(angle = 180° or π\)\. \*\*Length\*\*: )(\d+\.?\d*)(m\.)"
+        description = re.sub(pattern, f"\\g<1>{target_length:.1f}m (originally 2.0m).", description)
+
+    return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:

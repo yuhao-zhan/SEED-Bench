@@ -17,6 +17,11 @@ from common.simulator import Simulator, TIME_STEP, TARGET_FPS
 from evaluation.prompt import parse_task_name
 
 
+class ProhibitedOperationError(Exception):
+    """Exception raised for prohibited operations in agent code."""
+    pass
+
+
 class CodeVerifier:
     """Code verifier"""
     
@@ -68,7 +73,48 @@ class CodeVerifier:
         
         if not hasattr(self.task_module, 'environment'):
             raise ImportError(f"Environment file not found in {task_dir}")
-    
+            
+        # Load allowed APIs for this task
+        self.allowed_apis = self._load_allowed_apis(task_path)
+
+    def _load_allowed_apis(self, task_path: str) -> set:
+        """Load allowed APIs from primitives_api.json for the current task"""
+        import json
+        import re
+        allowed = {'build_agent', 'agent_action', 'math', 'np', 'numpy'} # Standard allowed symbols
+        
+        try:
+            script_dir = os.path.dirname(os.path.dirname(__file__))
+            api_file = os.path.join(script_dir, 'tasks', 'primitives_api.json')
+            if os.path.exists(api_file):
+                with open(api_file, 'r') as f:
+                    api_data = json.load(f)
+                
+                # Get task key (e.g., 'S_01') from task_path (e.g., 'Category1_Statics_Equilibrium/S_01')
+                task_key = os.path.basename(task_path)
+                if task_key.startswith('Stage-'):
+                    # If it's a mutated stage, the actual task key is the parent folder
+                    task_key = os.path.basename(os.path.dirname(task_path))
+                    
+                if task_key in api_data:
+                    task_apis = api_data[task_key]
+                    for api_desc in task_apis.values():
+                        # Extract all 'sandbox.method_name' or 'sandbox.attribute' from the documentation string
+                        # Support both lowercase and uppercase (for constants)
+                        matches = re.findall(r'sandbox\.([a-zA-Z0-9_]+)', api_desc)
+                        for m in matches:
+                            allowed.add(m)
+                
+                # Also allow reading internal attributes that are documented as allowed in API_INTRO
+                allowed.add('_terrain_bodies')
+                allowed.add('get_structure_mass_limit')
+                allowed.add('get_arena_bounds')
+                allowed.add('get_build_zone')
+        except Exception as e:
+            print(f"Warning: Failed to load allowed APIs: {e}")
+            
+        return allowed
+
     def verify_code(self, code: str, headless: bool = True, save_gif_path: Optional[str] = None) -> Tuple[bool, float, Dict[str, Any], Optional[str]]:
         """
         Verify code: execute code, run simulation, return evaluation results
@@ -84,6 +130,9 @@ class CodeVerifier:
                 - error_message: Error message (if any)
         """
         try:
+            # 0. Check for prohibited operations (direct state manipulation)
+            self._check_prohibited_operations(code)
+
             # 1. Compile and execute code, get build_agent and agent_action functions
             code_module = self._execute_code(code)
             
@@ -129,6 +178,15 @@ class CodeVerifier:
             
             return success, score, metrics, None
             
+        except ProhibitedOperationError as e:
+            # Prohibited operation in agent code
+            error_msg = str(e)
+            error_metrics = {
+                'error_type': 'prohibited_operation',
+                'error_stage': 'static_analysis',
+                'error_message': error_msg
+            }
+            return False, 0.0, error_metrics, error_msg
         except SyntaxError as e:
             # Syntax error during code execution
             error_msg = f"Code syntax error: {str(e)}"
@@ -160,6 +218,58 @@ class CodeVerifier:
             }
             return False, 0.0, error_metrics, error_msg
     
+    def _check_prohibited_operations(self, code: str):
+        """
+        Check for prohibited operations in the agent code using AST-based static analysis.
+        1. Enforce task-specific API usage from primitives_api.json.
+        2. Prohibit direct assignment to physical state variables or environmental variables.
+        """
+        import ast
+        
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            # Let _execute_code handle syntax errors with more context
+            return
+
+        prohibited_attrs = {'linearVelocity', 'angularVelocity', 'position', 'angle', 'friction', 'density', 'restitution'}
+        
+        for node in ast.walk(tree):
+            # 1. Check for attribute access on 'sandbox'
+            if isinstance(node, ast.Attribute):
+                # Check if it's an access to sandbox (e.g., sandbox.add_beam)
+                if isinstance(node.value, ast.Name) and node.value.id == 'sandbox':
+                    api_name = node.attr
+                    # Check if the API is allowed for this task
+                    if api_name.lower() not in self.allowed_apis and api_name not in self.allowed_apis:
+                        raise ProhibitedOperationError(
+                            f"Prohibited API usage: 'sandbox.{api_name}' is NOT allowed for this task. "
+                            f"You are restricted to the documented Primitives API."
+                        )
+                
+                # 2. Prohibit direct assignment to physical state variables (e.g., body.linearVelocity = ...)
+                if isinstance(node.ctx, ast.Store) and node.attr in prohibited_attrs:
+                    raise ProhibitedOperationError(
+                        f"Prohibited operation detected: Direct assignment to '{node.attr}' is NOT allowed. "
+                        f"You must use documented APIs (e.g., ApplyForce, ApplyTorque, set_motor) "
+                        f"to control the simulation, not direct state manipulation."
+                    )
+            
+            # 3. Prohibit direct assignment to elements of _terrain_bodies (e.g., sandbox._terrain_bodies['core'] = ...)
+            if isinstance(node, ast.Subscript) and isinstance(node.ctx, ast.Store):
+                if isinstance(node.value, ast.Attribute) and node.value.attr == '_terrain_bodies':
+                    raise ProhibitedOperationError(
+                        "Prohibited operation detected: You cannot directly assign to or modify elements of 'sandbox._terrain_bodies'."
+                    )
+            
+            # 4. Handle augmented assignments (e.g., body.linearVelocity += ...)
+            if isinstance(node, ast.AugAssign):
+                target = node.target
+                if isinstance(target, ast.Attribute) and target.attr in prohibited_attrs:
+                     raise ProhibitedOperationError(
+                        f"Prohibited operation detected: Direct modification of '{target.attr}' via augmented assignment is NOT allowed."
+                    )
+
     def _execute_code(self, code: str):
         """Execute code and return module object"""
         # First perform syntax check

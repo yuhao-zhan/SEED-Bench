@@ -6,20 +6,20 @@ Handles: nonlinear load, step load, periodic disturbances, stiction,
 speed-dependent torque limit, delayed measurement, time-varying target.
 """
 
-# Delay compensation: use delayed omega and extrapolate (infer delay from sluggish response)
+
 DELAY_EST = 5
-# Base feedforward
+
 BASE_FF = 2.0
 KFF_QUADRATIC = 0.55
 KP = 18.0
 KI = 0.5
 INTEGRAL_CLAMP = 5.0
-# Anti-windup: only integrate when |error| below this (avoid windup during startup/saturation)
+
 INTEGRAL_ERR_THRESHOLD = 1.5
-# At very low speed, request max torque (get clamped by env) to escape stall / stiction
+
 LOW_SPEED_THRESHOLD = 0.65
 STICTION_BOOST = 2.0
-COGGING_EST = 0.0  # set > 0 to enable cogging compensation (angle-dependent load cancel)
+COGGING_EST = 0.0
 DT = 1.0 / 60.0
 DEADZONE_MIN_TORQUE = 2.2
 
@@ -49,7 +49,7 @@ def agent_action(sandbox, agent_body, step_count):
     else:
         omega_pred = omega_d
     _omega_d_prev = omega_d
-    _angle_est += omega_d * DT  # use delayed omega for angle (consistent with measurement)
+    _angle_est += omega_d * DT
     if abs(_angle_est) > 100.0:
         _angle_est = math.fmod(_angle_est, 2.0 * math.pi)
 
@@ -65,11 +65,11 @@ def agent_action(sandbox, agent_body, step_count):
     else:
         ff = BASE_FF + KFF_QUADRATIC * (omega_pred * omega_pred)
         torque = ff + KP * err + KI * _integral
-        # Cogging compensation: cancel periodic load (angle from integrated omega; phase advance for delay)
+
         if COGGING_EST > 0:
             phase_advance = DELAY_EST * DT * max(0, omega_pred)
             torque += COGGING_EST * math.sin(_angle_est + phase_advance)
-        # Deadzone overcoming: only when error is meaningful so we don't over-correct near target
+
         if abs(err) > 0.08 and abs(torque) > 1e-6 and abs(torque) < DEADZONE_MIN_TORQUE:
             torque = (torque / abs(torque)) * DEADZONE_MIN_TORQUE
 

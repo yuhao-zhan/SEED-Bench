@@ -5,7 +5,7 @@ GIF 里能看到架子从下方向红线上升的过程。
 """
 import math
 
-# 红线 9m 不动。L=3, half-span 2 -> H_GAIN ~2.24 per stage.
+
 CENTER_X = 4.0
 BASE_Y = 1.15
 HALF_SPAN = 2.0
@@ -15,8 +15,8 @@ PLATFORM_W = 4.0
 PLATFORM_H = 0.12
 DENSITY = 0.6
 
-H_GAIN = math.sqrt(ARM_LEN**2 - HALF_SPAN**2)  # ~2.24
-# 4 stages，平台初始 ~8.5m（低于红线 9m），短稳后立即升到 9m，GIF 里可见上升
+H_GAIN = math.sqrt(ARM_LEN**2 - HALF_SPAN**2)
+
 BASE_TOP = BASE_Y + 0.16
 CY_LIST = [
     BASE_Y + 0.05 + 0.85 * H_GAIN,
@@ -90,7 +90,7 @@ def build_agent(sandbox):
     return base
 
 
-SETTLE_STEPS = 30  # 短时稳定后立即上升，GIF 里看到架子从 8.5m 升到红线 9m
+SETTLE_STEPS = 30
 
 def agent_action(sandbox, agent_body, step_count):
     """架子从 ~8.5m 展开升到 9m 再保持 3s（GIF 里明显从低到红线）。"""

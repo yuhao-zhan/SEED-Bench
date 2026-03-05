@@ -1,11 +1,13 @@
 """
 D-02: The Jumper task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    SET_VELOCITY,
-    GET_BODY_POSITION,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -32,7 +34,5 @@ Design a controller that:
 - **Mass Budget**: Total structure mass < 180 kg.
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_BODY_POSITION
-    + SET_VELOCITY,
+    'primitives_api': '\n\n'.join(_api_data['D_02'].values()),
 }

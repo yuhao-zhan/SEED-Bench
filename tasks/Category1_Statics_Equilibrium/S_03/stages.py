@@ -24,11 +24,16 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     if target_mass != base_mass:
         pattern = r"(- \*\*Mass Limit\*\*: < )(\d+,?\d*) kg"
         description = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg)", description)
+    
+    # Update Obstacles visibility
+    if target_terrain_config.get("obstacle_active", False):
+        pattern = r"(- \*\*Obstacles\*\*: Static )"
+        description = re.sub(pattern, f"\\g<1>A narrow winding path is present, created by several static ", description)
         
     return description
 
 
-def update_success_criteria_for_visible_criteria(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     criteria = base_success_criteria
     
     # Update Reach in Success Criteria

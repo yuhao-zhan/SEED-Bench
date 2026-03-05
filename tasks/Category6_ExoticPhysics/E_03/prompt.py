@@ -1,13 +1,13 @@
 """
 E-03: The Sled task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    APPLY_THRUST,
-    GET_CHECKPOINT_B_REACHED,
-    GET_SLED_POSITION,
-    GET_SLED_VELOCITY,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -33,9 +33,5 @@ Design a control loop that:
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_SLED_POSITION
-    + GET_SLED_VELOCITY
-    + GET_CHECKPOINT_B_REACHED
-    + APPLY_THRUST,
+    'primitives_api': '\n\n'.join(_api_data['E_03'].values()),
 }

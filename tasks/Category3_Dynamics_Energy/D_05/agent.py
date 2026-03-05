@@ -7,7 +7,7 @@ import math
 
 
 def build_agent(sandbox):
-    # Pivot (12, 7.5): head at x=15 has y≈2.89; pass slot at step ~409 when bar at bottom (late window)
+
     pivot_x, pivot_y = 12.0, 7.5
     arm_len = 5.5
     arm_center_y = pivot_y - arm_len / 2
@@ -39,8 +39,8 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    # LATE window: bar at bottom at step ~409. Hammer WAITs ~380 steps, then three-phase (pass at 409, then re-accelerate).
-    # Not "one hit": long idle then timed swing.
+
+
     arm = sandbox.bodies[0] if sandbox.bodies else None
     if not arm:
         return

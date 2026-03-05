@@ -1,13 +1,13 @@
 """
 E-05: The Magnet task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    APPLY_THRUST,
-    GET_BODY_POSITION,
-    GET_BODY_VELOCITY,
-    GET_STEP_COUNT,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -35,9 +35,5 @@ Design a control loop that:
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_BODY_POSITION
-    + GET_BODY_VELOCITY
-    + GET_STEP_COUNT
-    + APPLY_THRUST,
+    'primitives_api': '\n\n'.join(_api_data['E_05'].values()),
 }

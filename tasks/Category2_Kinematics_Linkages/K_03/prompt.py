@@ -1,20 +1,13 @@
 """
 K-03: The Gripper task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    ADD_JOINT_SLIDER,
-    ADD_JOINT_PIVOT,
-    SET_MOTOR,
-    SET_SLIDER_MOTOR,
-    GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES,
-    GET_ANCHOR_FOR_GRIPPER,
-    GET_OBJECT_POSITION,
-    JOINTS_LIST,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     'task_description': """
@@ -50,5 +43,5 @@ Design a gripper mechanism that grasps an object and lifts it using motor rotati
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + GET_ANCHOR_FOR_GRIPPER + ADD_BEAM + ADD_JOINT_RIGID + ADD_JOINT_SLIDER + ADD_JOINT_PIVOT + SET_MOTOR + SET_SLIDER_MOTOR + GET_OBJECT_POSITION + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES + JOINTS_LIST,
+    'primitives_api': '\n\n'.join(_api_data['K_03'].values()),
 }

@@ -1,15 +1,13 @@
 """
 E-02: The Thick Air task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    APPLY_THRUST,
-    GET_CRAFT_POSITION,
-    GET_HEAT,
-    GET_OVERHEAT_LIMIT,
-    GET_STEP_COUNT,
-    IS_OVERHEATED,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -34,11 +32,5 @@ Design a control loop that:
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_CRAFT_POSITION
-    + IS_OVERHEATED
-    + GET_HEAT
-    + GET_OVERHEAT_LIMIT
-    + GET_STEP_COUNT
-    + APPLY_THRUST,
+    'primitives_api': '\n\n'.join(_api_data['E_02'].values()),
 }

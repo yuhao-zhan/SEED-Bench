@@ -13,7 +13,7 @@ MAX_TORQUE = 120.0
 BARRIER_X_LEFT = 10.5
 BARRIER_X_RIGHT = 13.5
 BARRIER_Y_TOP = 6.0
-BARRIER_CLEAR_Y = BARRIER_Y_TOP + 1.2 # Lower clearance
+BARRIER_CLEAR_Y = BARRIER_Y_TOP + 1.2
 CROSS_TARGET_X = 14.5
 
 PLATFORM_CENTER_BASE = 17.0
@@ -86,36 +86,36 @@ def agent_action(sandbox, agent_body, step_count):
 
     dx = target_x - x
     _x_integral = max(-1.0, min(1.0, _x_integral + dx * DT))
-    
+
     max_tilt = 0.3 if height_above_ground > 1.0 else 0.15
     desired_angle = -0.4 * dx - 0.2 * _x_integral + 0.1 * vx
     desired_angle = max(-max_tilt, min(max_tilt, desired_angle))
-    
+
     steering = Kp_angle * (desired_angle - angle) - Kd_angle * omega
     steering = max(-MAX_TORQUE, min(MAX_TORQUE, steering))
 
     if height_above_ground <= 0:
         main_thrust = 0.0
     elif phase1_climb:
-        target_vy = 0.8 # Slower climb to save fuel
+        target_vy = 0.8
         desired_Fy = HOVER_THRUST + 40.0 * (target_vy - vy)
         main_thrust = desired_Fy / max(0.5, math.cos(angle))
     elif phase2_cross:
         target_vy = 0.0
-        desired_Fy = HOVER_THRUST * 0.9 + 30.0 * (target_vy - vy) # Slight descent to save fuel
+        desired_Fy = HOVER_THRUST * 0.9 + 30.0 * (target_vy - vy)
         main_thrust = desired_Fy / max(0.5, math.cos(angle))
     elif height_above_ground > BURN_HEIGHT_THRESHOLD:
-        main_thrust = 0.0 # Free fall to save fuel
+        main_thrust = 0.0
     else:
-        # Land
+
         if height_above_ground < 0.3:
             target_vy = -0.15
         elif height_above_ground < 1.0:
             target_vy = -0.4
         else:
             target_vy = -0.8
-        
-        Kp_vy = 250.0 # Very high gain for precise landing speed
+
+        Kp_vy = 250.0
         desired_Fy = HOVER_THRUST + Kp_vy * (target_vy - vy)
         main_thrust = desired_Fy / max(0.5, math.cos(angle))
 

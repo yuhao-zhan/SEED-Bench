@@ -17,11 +17,11 @@ TARGET_Y_CENTER = 8.85
 CORRIDOR_Y = 8.95
 KEYHOLE_Y = 6.75
 
-# Gate 1: period 52, weak steps 8-20
+
 G1_PERIOD, G1_WEAK_LO, G1_WEAK_HI = 52, 8, 20
-# Gate 2: period ~42 (omega 0.15), phase π, weak when step % 42 in [28, 35]
+
 G2_PERIOD, G2_WEAK_LO, G2_WEAK_HI = 42, 28, 35
-# Keyhole: period ~38 (omega 0.165), weak when step % 38 in [8, 18]
+
 KH_PERIOD, KH_WEAK_LO, KH_WEAK_HI = 38, 8, 18
 
 GRAVITY_COMPENSATION = 102.0
@@ -59,7 +59,7 @@ def agent_action(sandbox, agent_body, step_count):
         fx = -6.0 * vx
         fy = GRAVITY_COMPENSATION - 6.0 * vy
     else:
-        # Strong descent only when well above corridor (y>9.65)
+
         fy_ceiling = -60.0 if y > 9.65 else 0.0
 
         if x < 11.0:

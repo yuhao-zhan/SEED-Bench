@@ -1,15 +1,13 @@
 """
 F-04: The Filter (Three-way) task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_STATIC_BEAM,
-    GET_PARTICLES_SMALL,
-    GET_PARTICLES_MEDIUM,
-    GET_PARTICLES_LARGE,
-    GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -40,11 +38,5 @@ Design a multi-layered filter that:
 - **Beam Limit**: Maximum 6 beams.
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + ADD_STATIC_BEAM
-    + SET_MATERIAL_PROPERTIES
-    + GET_STRUCTURE_MASS
-    + GET_PARTICLES_SMALL
-    + GET_PARTICLES_MEDIUM
-    + GET_PARTICLES_LARGE,
+    'primitives_api': '\n\n'.join(_api_data['F_04'].values()),
 }

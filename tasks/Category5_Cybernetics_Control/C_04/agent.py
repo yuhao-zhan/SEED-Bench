@@ -23,10 +23,10 @@ EXIT_Y_MIN = 1.25
 EXIT_Y_MAX = 1.45
 TARGET_Y = 1.35
 
-# Counterintuitive unlock: apply backward force (fx < -30) while speed < 1.0 for 20 consecutive steps
+
 UNLOCK_BACKWARD_STEPS = 25
 UNLOCK_FX = -50.0
-UNLOCK_FY = 50.0  # counteract gravity so speed stays low
+UNLOCK_FY = 50.0
 
 OBST1_X = 5.0
 OBST1_PASS_ABOVE = 1.25
@@ -67,7 +67,7 @@ def agent_action(sandbox, agent_body, step_count):
     fx = BASE_FX
     fy = 0.0
 
-    # Phase 1: counterintuitive unlock — backward force + low speed for 20 consecutive steps
+
     if step_count < UNLOCK_BACKWARD_STEPS:
         fx = UNLOCK_FX
         fy = UNLOCK_FY
@@ -76,7 +76,7 @@ def agent_action(sandbox, agent_body, step_count):
         sandbox.apply_agent_force(fx, fy)
         return
 
-    # Phase 2: navigate to exit
+
     if left < WALL_THRESHOLD:
         fy -= 32.0
     if right < WALL_THRESHOLD:
@@ -144,7 +144,7 @@ def agent_action(sandbox, agent_body, step_count):
         elif y > EXIT_Y_MAX and x >= 15:
             fy -= 30.0
 
-    # Hold in exit zone for 60 consecutive steps
+
     if x >= EXIT_X_MIN and EXIT_Y_MIN <= y <= EXIT_Y_MAX:
         fx = 28.0
         if y < TARGET_Y:

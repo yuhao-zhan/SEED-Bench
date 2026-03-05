@@ -156,6 +156,7 @@ class DaVinciSandbox:
             "core": {"x": self.CORE_X, "y": self.CORE_Y, "radius": self.CORE_RADIUS},
             "build_zone": {"x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX], "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]},
             "core_max_force": self.CORE_MAX_FORCE,
+            "max_structure_mass": self.MAX_STRUCTURE_MASS,
             "max_structure_height": self.MAX_STRUCTURE_HEIGHT,
             "meteor_count": self._meteor_count,
             "meteor_spawn_interval": self._meteor_spawn_interval,

@@ -5,6 +5,7 @@ S-04: The Balancer task curriculum stages (mutations).
 from __future__ import annotations
 
 from typing import Any, Dict, List
+import re
 
 
 UNIFORM_SUFFIX = """
@@ -24,6 +25,13 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update description for visible changes."""
     description = base_description
+    
+    # Update Load Mass
+    target_mass = target_terrain_config.get("load_mass", 200.0)
+    if target_mass != 200.0:
+        pattern = r"(- \*\*The Load\*\*: A heavy block \(mass: )(\d+\.?\d*)( kg\))"
+        description = re.sub(pattern, f"\\g<1>{target_mass:.1f} kg (originally 200.0 kg)\\g<3>", description)
+
     if target_terrain_config.get("obstacle_active"):
         if target_terrain_config.get("moving_obstacle"):
             description += "\n- **Moving Obstacle Detected**: A dynamic obstruction is oscillating in the environment."
@@ -60,10 +68,11 @@ def get_s04_curriculum_stages() -> List[Dict[str, Any]]:
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "force_pivot_joint": True,
-                "fragile_joints": True,
-                "max_joint_torque": 50.0,
+                "fragile_joints": True, 
+                "max_joint_torque": 8000.0, 
                 "load_mass": 200.0,
             },
+
             "physics_config": {
                 "angular_damping": 2.0,
             },
@@ -115,7 +124,7 @@ def get_s04_curriculum_stages() -> List[Dict[str, Any]]:
                 "drop_load": True,
                 "load_mass": 300.0,
                 "fragile_joints": True,
-                "max_joint_torque": 500.0,
+                "max_joint_torque": 25000.0,
             },
             "physics_config": {
                 "gravity": (0, -20.0),

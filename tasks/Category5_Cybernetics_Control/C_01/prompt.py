@@ -1,15 +1,13 @@
 """
 C-01: The Cart-Pole Swing-up and Balance task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    APPLY_CART_FORCE,
-    GET_CART_BODY,
-    GET_CART_POSITION,
-    GET_CART_VELOCITY,
-    GET_POLE_ANGLE,
-    GET_POLE_ANGULAR_VELOCITY,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -17,7 +15,7 @@ Design a controller to swing up a pole from a hanging position and balance it on
 
 ## Task Environment
 - **Cart**: A body that moves along a horizontal track (center x=10m, safe range ±8.5m).
-- **Pole**: Initially hanging downward (angle = 180° or π).
+- **Pole**: Initially hanging downward (angle = 180° or π). **Length**: 2.0m.
 - **Oscillation**: The track base oscillates, creating inertial disturbances.
 - **Goal**: Swing the pole up to the upright position and keep it balanced (|angle| < 45°) until the end.
 
@@ -35,11 +33,5 @@ Design a two-phase control strategy:
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_CART_BODY
-    + GET_POLE_ANGLE
-    + GET_POLE_ANGULAR_VELOCITY
-    + GET_CART_POSITION
-    + GET_CART_VELOCITY
-    + APPLY_CART_FORCE,
+    'primitives_api': '\n\n'.join(_api_data['C_01'].values()),
 }

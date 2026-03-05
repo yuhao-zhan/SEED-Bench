@@ -1,16 +1,13 @@
 """
 C-02: The Lander (obstacle + moving platform) task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    APPLY_THRUST,
-    GET_GROUND_Y_TOP,
-    GET_LANDER_ANGLE,
-    GET_LANDER_ANGULAR_VELOCITY,
-    GET_LANDER_BODY,
-    GET_LANDER_POSITION,
-    GET_LANDER_SIZE,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -39,12 +36,5 @@ Design a control loop that:
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_LANDER_BODY
-    + GET_LANDER_POSITION
-    + GET_LANDER_ANGLE
-    + GET_LANDER_ANGULAR_VELOCITY
-    + GET_GROUND_Y_TOP
-    + GET_LANDER_SIZE
-    + APPLY_THRUST,
+    'primitives_api': '\n\n'.join(_api_data['C_02'].values()),
 }

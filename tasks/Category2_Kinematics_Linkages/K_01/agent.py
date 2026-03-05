@@ -9,16 +9,16 @@ def build_agent(sandbox):
     """
     Build a stable walker with rotating leg wheels that can move forward.
     """
-    # Starting position - higher for stability
+
     start_x = 10.0
     start_y = 4.5
-    
-    # Torso dimensions - wider and heavier for better stability
+
+
     torso_width = 0.7
     torso_height = 0.35
-    torso_density = 2.0  # Heavier torso for stability
-    
-    # Create torso
+    torso_density = 2.0
+
+
     torso = sandbox.add_beam(
         x=start_x,
         y=start_y,
@@ -28,23 +28,23 @@ def build_agent(sandbox):
         density=torso_density
     )
     sandbox.set_material_properties(torso, restitution=0.1, friction=0.5)
-    
-    # Leg wheel parameters
-    leg_length = 0.9  # Moderate length for stability
+
+
+    leg_length = 0.9
     leg_width = 0.08
     leg_density = 0.8
-    num_legs_per_wheel = 6  # More legs for smoother rotation
-    
-    # Create left leg wheel
+    num_legs_per_wheel = 6
+
+
     left_wheel_legs = []
     wheel_center_x = start_x - torso_width/2
     wheel_center_y = start_y
-    
+
     for i in range(num_legs_per_wheel):
-        angle = i * 2 * math.pi / num_legs_per_wheel  # Evenly spaced
+        angle = i * 2 * math.pi / num_legs_per_wheel
         leg_x = wheel_center_x + math.cos(angle) * leg_length/2
         leg_y = wheel_center_y + math.sin(angle) * leg_length/2
-        
+
         leg = sandbox.add_beam(
             x=leg_x,
             y=leg_y,
@@ -55,24 +55,24 @@ def build_agent(sandbox):
         )
         sandbox.set_material_properties(leg, restitution=0.1, friction=0.8)
         left_wheel_legs.append(leg)
-        
-        # Connect to torso at wheel center
+
+
         sandbox.add_joint(
             torso, leg,
             (wheel_center_x, wheel_center_y),
             type='pivot'
         )
-    
-    # Create right leg wheel
+
+
     right_wheel_legs = []
     wheel_center_x = start_x + torso_width/2
     wheel_center_y = start_y
-    
+
     for i in range(num_legs_per_wheel):
-        angle = i * 2 * math.pi / num_legs_per_wheel  # Evenly spaced
+        angle = i * 2 * math.pi / num_legs_per_wheel
         leg_x = wheel_center_x + math.cos(angle) * leg_length/2
         leg_y = wheel_center_y + math.sin(angle) * leg_length/2
-        
+
         leg = sandbox.add_beam(
             x=leg_x,
             y=leg_y,
@@ -83,15 +83,15 @@ def build_agent(sandbox):
         )
         sandbox.set_material_properties(leg, restitution=0.1, friction=0.8)
         right_wheel_legs.append(leg)
-        
-        # Connect to torso at wheel center
+
+
         sandbox.add_joint(
             torso, leg,
             (wheel_center_x, wheel_center_y),
             type='pivot'
         )
-    
-    # Store joints for motor control
+
+
     left_joint = None
     right_joint = None
     for joint in sandbox.joints:
@@ -100,19 +100,19 @@ def build_agent(sandbox):
                 left_joint = joint
             elif right_wheel_legs[0] in [joint.bodyA, joint.bodyB]:
                 right_joint = joint
-    
+
     sandbox._walker_joints = {
         'left_wheel': left_joint,
         'right_wheel': right_joint,
     }
-    
-    # Check mass
+
+
     total_mass = sandbox.get_structure_mass()
     if total_mass > sandbox.MAX_STRUCTURE_MASS:
         raise ValueError(f"Structure mass {total_mass:.2f}kg exceeds limit {sandbox.MAX_STRUCTURE_MASS}kg")
-    
+
     print(f"Walker constructed: {len(sandbox.bodies)} beams, {len(sandbox.joints)} joints, {total_mass:.2f}kg")
-    
+
     return torso
 
 def agent_action(sandbox, agent_body, step_count):
@@ -129,9 +129,9 @@ def agent_action(sandbox, agent_body, step_count):
         sandbox.set_motor(joints['right_wheel'], rotation_speed, max_torque)
 
 
-# ==========================================
-# Mutated Task Reference Solutions
-# ==========================================
+
+
+
 
 def build_agent_stage_1(sandbox):
     start_x = 15.0
@@ -139,7 +139,7 @@ def build_agent_stage_1(sandbox):
     num_legs = 6
     length = 1.0
     torso = sandbox.add_beam(x=start_x, y=start_y, width=2.0, height=0.5, density=2.0)
-    
+
     def create_wheel(cx, cy):
         legs = []
         leg0 = sandbox.add_beam(x=cx, y=cy, width=0.1, height=length, angle=0, density=1.0)
@@ -151,7 +151,7 @@ def build_agent_stage_1(sandbox):
             sandbox.add_joint(leg0, leg, (cx, cy), type='rigid')
             legs.append(leg)
         return pivot
-        
+
     sandbox._walker_joints = [create_wheel(start_x - 1.0, start_y), create_wheel(start_x + 1.0, start_y)]
     return torso
 
@@ -167,7 +167,7 @@ def build_agent_stage_2(sandbox):
     num_legs = 6
     length = 1.0
     torso = sandbox.add_beam(x=start_x, y=start_y, width=2.0, height=0.5, density=2.0)
-    
+
     def create_wheel(cx, cy):
         legs = []
         leg0 = sandbox.add_beam(x=cx, y=cy, width=0.1, height=length, angle=0, density=1.0)
@@ -179,7 +179,7 @@ def build_agent_stage_2(sandbox):
             sandbox.add_joint(leg0, leg, (cx, cy), type='rigid')
             legs.append(leg)
         return pivot
-        
+
     sandbox._walker_joints = [create_wheel(start_x - 1.0, start_y), create_wheel(start_x + 1.0, start_y)]
     return torso
 
@@ -195,7 +195,7 @@ def build_agent_stage_3(sandbox):
     num_legs = 6
     length = 1.0
     torso = sandbox.add_beam(x=start_x, y=start_y, width=2.0, height=0.5, density=2.0)
-    
+
     def create_wheel(cx, cy):
         legs = []
         leg0 = sandbox.add_beam(x=cx, y=cy, width=0.1, height=length, angle=0, density=1.0)
@@ -207,7 +207,7 @@ def build_agent_stage_3(sandbox):
             sandbox.add_joint(leg0, leg, (cx, cy), type='rigid')
             legs.append(leg)
         return pivot
-        
+
     sandbox._walker_joints = [create_wheel(start_x - 1.0, start_y), create_wheel(start_x + 1.0, start_y)]
     return torso
 
@@ -223,7 +223,7 @@ def build_agent_stage_4(sandbox):
     num_legs = 12
     length = 1.2
     torso = sandbox.add_beam(x=start_x, y=start_y, width=2.0, height=0.5, density=2.0)
-    
+
     def create_wheel(cx, cy):
         legs = []
         leg0 = sandbox.add_beam(x=cx, y=cy, width=0.1, height=length, angle=0, density=1.0)
@@ -235,7 +235,7 @@ def build_agent_stage_4(sandbox):
             sandbox.add_joint(leg0, leg, (cx, cy), type='rigid')
             legs.append(leg)
         return pivot
-        
+
     sandbox._walker_joints = [create_wheel(start_x - 1.0, start_y), create_wheel(start_x + 1.0, start_y)]
     return torso
 

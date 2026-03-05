@@ -5,21 +5,21 @@ reaches target without overheating. Uses waypoints and zone-specific thrust.
 """
 import math
 
-# Target
+
 TX_MIN, TX_MAX = 28.0, 32.0
 TY_MIN, TY_MAX = 2.0, 5.0
 TARGET_X, TARGET_Y = 30.0, 3.5
 
-# Waypoints (gate gap centers — discovered in real task via feedback)
-G1_X, G1_Y = 13.0, 2.0    # gate 1 gap center (y in [1.2, 2.8])
-G2_X, G2_Y = 23.0, 2.4    # gate 2 gap center
 
-# Zone x-ranges (discoverable)
+G1_X, G1_Y = 13.0, 2.0
+G2_X, G2_Y = 23.0, 2.4
+
+
 DRAIN_LO, DRAIN_HI = 14.5, 17.0
 SLIP_LO, SLIP_HI = 17.5, 20.0
 WIND_LO, WIND_HI = 20.5, 28.0
 
-# Wind compensation (environment uses WIND_AMPLITUDE=20, WIND_OMEGA≈0.055)
+
 WIND_AMP = 20.0
 WIND_OMEGA = 0.055
 
@@ -57,12 +57,12 @@ def agent_action(sandbox, agent_body, step_count):
         sandbox.apply_thrust(0.0, 0.0)
         return
 
-    # Thrust magnitude: save heat early; use more near gate 1 (lift) and in drain/slip/wind
+
     if heat >= overheat_limit * HEAT_SAFE_FRAC:
         thrust_mag = min(LOW_THRUST, remaining * 0.25)
     else:
         thrust_mag = min(MAX_THRUST, remaining * 0.35)
-    # Early phase: enough to overcome friction (~75 N) but save heat
+
     if x < 10.0:
         thrust_mag = min(100.0, thrust_mag)
     if 10.0 <= x <= 15.0:
@@ -76,13 +76,13 @@ def agent_action(sandbox, agent_body, step_count):
     wx, wy = _waypoint(x, y)
     if x < G1_X + 0.5 and y < 1.2:
         wy = max(wy, 1.3)
-    # Keep altitude above ground (craft half-height 0.25, ground y=1) -> center y >= 1.3
+
     if y < 1.4:
         wy = max(wy, 1.5)
-    # Gate 2 gap y in [1.8, 3.0]: lift to pass through
+
     if G2_X - 1.0 <= x <= G2_X + 2.0 and y < 1.9:
         wy = max(wy, 2.2)
-    # Approach gate 2: lift first so we pass through gap (y in [1.8, 3.0])
+
     if 20.5 <= x <= G2_X + 1.0 and y < 1.85:
         wx, wy = x + 0.3, 2.5
     dx = wx - x
@@ -96,20 +96,20 @@ def agent_action(sandbox, agent_body, step_count):
 
     fx = thrust_mag * ux
     fy = thrust_mag * uy
-    # Overcome weight to lift off ground when in contact (gravity -3 -> weight ~75 N)
+
     if y < 1.4:
         fy += 100.0
     if x < G1_X + 1.0 and y < 1.1:
         fy += min(30.0, (1.2 - y) * 40.0)
-    # Lift through gate 2 gap (y in [1.8, 3.0])
+
     if 20.5 <= x <= G2_X + 2.0 and y < 1.9:
         fy += 110.0
 
-    # Slippery zone: extra forward thrust to overcome backward force
+
     if SLIP_LO <= x <= SLIP_HI:
         fx += 35.0
 
-    # Wind zone: compensate oscillating vertical force
+
     if WIND_LO <= x <= WIND_HI:
         wind_fy = WIND_AMP * math.sin(WIND_OMEGA * step_idx)
         fy -= wind_fy
@@ -117,9 +117,9 @@ def agent_action(sandbox, agent_body, step_count):
     total = math.sqrt(fx * fx + fy * fy)
     cap = thrust_mag * 2.0
     if y < 1.4:
-        cap = max(cap, 180.0)  # allow lift force to overcome weight
+        cap = max(cap, 180.0)
     if 20.5 <= x <= G2_X + 2.0 and y < 1.9:
-        cap = max(cap, 250.0)  # allow lift through gate 2 gap
+        cap = max(cap, 250.0)
     if total > cap:
         scale = cap / total
         fx *= scale

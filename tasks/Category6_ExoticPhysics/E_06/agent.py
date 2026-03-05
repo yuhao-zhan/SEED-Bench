@@ -19,8 +19,8 @@ def build_agent(sandbox):
     bottom_y = 2.0
     top_y = 5.8
 
-    # Columns along the cantilever: support region then span to tip
-    # Avoid forbidden zone [9.7, 10.3] for beam centers; use 9.0 and 10.35
+
+
     xs = [5.75, 6.5, 8.0, 9.0, 10.35, 12.0, 14.0, 15.0]
     xs = [min(x_max - bw / 2, max(x_min + bw / 2, x)) for x in xs]
 
@@ -43,7 +43,7 @@ def build_agent(sandbox):
         sandbox.add_joint(bottom_beams[i], vert, (xs[i], bottom_y + bh / 2), type="rigid")
         sandbox.add_joint(top_beams[i], vert, (xs[i], top_y - bh / 2), type="rigid")
 
-    # Diagonals for shear/moment resistance (critical for cantilever)
+
     for i in range(len(xs) - 1):
         dx = xs[i + 1] - xs[i]
         d = math.sqrt(dx**2 + (top_y - bottom_y)**2) * 0.92
@@ -55,7 +55,7 @@ def build_agent(sandbox):
         sandbox.add_joint(bottom_beams[i + 1], diag2, (xs[i + 1] - 0.06, bottom_y + 0.02), type="rigid")
         sandbox.add_joint(top_beams[i], diag2, (xs[i] + 0.06, top_y - 0.02), type="rigid")
 
-    # Single ground anchor in support zone (only one allowed)
+
     ground_y = 1.0
     sandbox.add_joint(bottom_beams[0], None, (5.75, ground_y), type="rigid")
 

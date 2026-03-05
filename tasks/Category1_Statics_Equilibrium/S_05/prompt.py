@@ -1,13 +1,13 @@
 """
 S-05: The Shelter task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     'task_description': """
@@ -46,5 +46,5 @@ Design a shelter structure that:
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + ADD_BEAM + ADD_JOINT_RIGID + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES,
+    'primitives_api': '\n\n'.join(_api_data['S_05'].values()),
 }

@@ -5,7 +5,7 @@ Zone bounds discoverable via feedback; ref uses known values.
 """
 import math
 
-# Checkpoint A (first)
+
 CHECKPOINT_X_LO = 17.5
 CHECKPOINT_X_HI = 19.0
 CHECKPOINT_Y_LO = 3.8
@@ -13,7 +13,7 @@ CHECKPOINT_Y_HI = 4.5
 CHECKPOINT_X_CENTER = 18.25
 CHECKPOINT_Y_CENTER = 4.15
 
-# Checkpoint B (second): inside reverse zone, narrow y
+
 CHECKPOINT_B_X_LO = 23.0
 CHECKPOINT_B_X_HI = 24.5
 CHECKPOINT_B_Y_LO = 2.5
@@ -21,20 +21,20 @@ CHECKPOINT_B_Y_HI = 3.2
 CHECKPOINT_B_X_CENTER = 23.75
 CHECKPOINT_B_Y_CENTER = 2.85
 
-# Final target
+
 TARGET_X_MIN = 28.0
 TARGET_X_MAX = 32.0
 TARGET_X_CENTER = 30.0
 TARGET_Y_CENTER = 2.5
 
-# Zones
+
 MOMENTUM_DRAIN_X_LO = 11.0
 MOMENTUM_DRAIN_X_HI = 17.0
 REVERSE_THRUST_X_LO = 20.0
 REVERSE_THRUST_X_HI = 25.0
 THRUST_SCALE_X_LO = 19.5
 THRUST_SCALE_X_HI = 21.0
-THRUST_SCALE_FACTOR = 0.5   # env scales by this; we compensate by 1/0.5 = 2
+THRUST_SCALE_FACTOR = 0.5
 OSCILLATING_FX_X_LO = 21.0
 OSCILLATING_FX_X_HI = 27.0
 OSCILLATING_FX_AMP = 30.0
@@ -89,25 +89,25 @@ def agent_action(sandbox, agent_body, step_count):
     in_speed_penalty = SPEED_PENALTY_X_LO <= x <= SPEED_PENALTY_X_HI
     in_vert_reverse = VERT_REVERSE_X_LO <= x <= VERT_REVERSE_X_HI
 
-    # ----- Vertical -----
+
     if not past_a:
         dy = CHECKPOINT_Y_CENTER - y
         fy = GRAVITY_COMPENSATION + K_Y_CHECKPOINT * dy
     elif past_b:
-        # Phase 3: final target y
+
         if in_vert_reverse:
             fy = GRAVITY_COMPENSATION + K_Y * (y - TARGET_Y_CENTER)
         else:
             fy = GRAVITY_COMPENSATION + K_Y * (TARGET_Y_CENTER - y)
     else:
-        # Phase 2: aim for B y (2.85); descend strongly so we're in y band before passing B x
+
         dy = CHECKPOINT_B_Y_CENTER - y
-        fy = GRAVITY_COMPENSATION + K_Y * dy * 1.4  # stronger descent toward B band
+        fy = GRAVITY_COMPENSATION + K_Y * dy * 1.4
 
     if WIND_ZONE_X_LO <= x <= WIND_ZONE_X_HI:
         fy -= WIND_FY_BASE + WIND_FY_AMP * math.sin(step_count * WIND_OMEGA)
 
-    # ----- Horizontal -----
+
     if x > TARGET_X_MAX:
         if in_reverse:
             fx = K_BRAKE * vx if vx > 0 else K_BRAKE * 2.0
@@ -125,7 +125,7 @@ def agent_action(sandbox, agent_body, step_count):
     elif x > REVERSE_THRUST_X_HI:
         fx = K_X * (TARGET_X_CENTER - x)
     elif past_b and x <= REVERSE_THRUST_X_HI:
-        # Past B but still in reverse zone (24.5 < x <= 25): command opposite to go right
+
         fx = -K_X * (TARGET_X_CENTER - x)
     elif past_b:
         fx = K_X * (TARGET_X_CENTER - x)
@@ -134,17 +134,17 @@ def agent_action(sandbox, agent_body, step_count):
         if in_drain:
             fx *= (K_X_DRAIN / K_X)
     elif past_a:
-        # Phase 2: aim for B (in reverse zone); slow only when in B x-band and y still high
+
         dx_b = CHECKPOINT_B_X_CENTER - x
         fx = -K_X * dx_b
         if in_drain:
             fx *= (K_X_DRAIN / K_X)
         if in_speed_penalty and speed > SPEED_PENALTY_THRESHOLD * 0.8:
             fx *= SPEED_ZONE_FX_SCALE
-        # In B x-band [23, 24.5]: slow so we don't leave before y enters [2.5, 3.2]
+
         if CHECKPOINT_B_X_LO <= x <= CHECKPOINT_B_X_HI:
             if y > CHECKPOINT_B_Y_HI:
-                fx *= 0.45   # wait for y to descend into B band
+                fx *= 0.45
             else:
                 fx *= 0.7
         elif 21.0 <= x < CHECKPOINT_B_X_LO:
@@ -157,11 +157,11 @@ def agent_action(sandbox, agent_body, step_count):
         if 15.0 <= x < CHECKPOINT_X_LO and dx > 0:
             fx *= 1.4
 
-    # Compensate oscillating horizontal force (discoverable; ref uses known formula)
+
     if in_oscillating_fx:
         fx -= OSCILLATING_FX_AMP * math.sin(step_count * OSCILLATING_FX_OMEGA)
 
-    # Compensate thrust-scale zone: env multiplies by 0.5, so we multiply by 2 to get same effect
+
     if in_thrust_scale:
         fx *= (1.0 / THRUST_SCALE_FACTOR)
         fy *= (1.0 / THRUST_SCALE_FACTOR)

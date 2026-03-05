@@ -4,6 +4,41 @@ Redesigned for extreme difficulty progression and implicit physical discovery.
 """
 from __future__ import annotations
 from typing import Any, Dict, List
+import re
+
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    description = base_description
+    
+    # Update Target Overhang
+    target_overhang = target_terrain_config.get("target_overhang", 0.1)
+    if target_overhang != 0.1:
+        pattern = r"(- \*\*Goal\*\*: Reach x >= )(\d+\.?\d*)(m beyond the edge.)"
+        description = re.sub(pattern, f"\\g<1>{target_overhang:.1f}m (originally 0.1m) \\g<3>", description)
+    
+    # Update Spawn Zone
+    target_spawn = target_terrain_config.get("spawn_zone", [-10.0, 0.0])
+    if target_spawn != [-10.0, 0.0]:
+        pattern = r"(- \*\*Spawn Rule\*\*: Blocks must be initialized within the permitted build access zone \(typically x < 0.0, but may be further restricted: x in )(\[.*?\])(\)\.)"
+        description = re.sub(pattern, f"\\g<1>[{target_spawn[0]:.1f}, {target_spawn[1]:.1f}] (originally [-10.0, 0.0])\\g<3>", description)
+    
+    # Update Ceiling Clearance
+    target_ceiling = target_terrain_config.get("ceiling_y", 100.0)
+    if target_ceiling != 100.0:
+        pattern = r"(- \*\*Clearance\*\*: Watch out for overhead obstacles \(ceilings\) in some regions. Current clearance y: )(\d+\.?\d*)(m\.)"
+        description = re.sub(pattern, f"\\g<1>{target_ceiling:.1f}m (originally 100.0m)\\g<3>", description)
+        
+    return description
+
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    criteria = base_success_criteria
+    
+    # Update Reach in Success Criteria
+    target_overhang = target_terrain_config.get("target_overhang", 0.1)
+    if target_overhang != 0.1:
+        pattern = r"(Tip reaches x > )(\d+\.?\d*)(m\))"
+        criteria = re.sub(pattern, f"\\g<1>{target_overhang:.1f}m (originally 0.1m))", criteria)
+        
+    return criteria
 
 def get_s06_curriculum_stages() -> List[Dict[str, Any]]:
     # Define the uniform suffix based on the union of all mutated variables

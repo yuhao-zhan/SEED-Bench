@@ -1,16 +1,13 @@
 """
 D-01: The Launcher task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_PIVOT,
-    ADD_SPRING_DYNAMICS,
-    GET_GROUND,
-    GET_PROJECTILE,
-    GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -37,12 +34,5 @@ Design a launcher that:
 - **Mass Budget**: Total structure mass < 500 kg.
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_GROUND
-    + GET_PROJECTILE
-    + ADD_BEAM
-    + ADD_JOINT_PIVOT
-    + ADD_SPRING_DYNAMICS
-    + SET_MATERIAL_PROPERTIES
-    + GET_STRUCTURE_MASS,
+    'primitives_api': '\n\n'.join(_api_data['D_01'].values()),
 }

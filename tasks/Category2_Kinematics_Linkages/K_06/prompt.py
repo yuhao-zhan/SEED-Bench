@@ -1,18 +1,13 @@
 """
 K-06: The Wiper task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_PIVOT,
-    ADD_JOINT_RIGID,
-    SET_MOTOR,
-    GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES,
-    SET_AWAKE,
-    WELD_TO_GLASS,
-    JOINTS_LIST,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     'task_description': """
@@ -49,5 +44,5 @@ Design a wiper mechanism that can clean all particles from a glass surface using
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': API_INTRO + WELD_TO_GLASS + ADD_BEAM + ADD_JOINT_PIVOT + ADD_JOINT_RIGID + SET_MOTOR + GET_STRUCTURE_MASS + SET_MATERIAL_PROPERTIES + SET_AWAKE + JOINTS_LIST,
+    'primitives_api': '\n\n'.join(_api_data['K_06'].values()),
 }

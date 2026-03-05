@@ -10,7 +10,7 @@ Stages ordered by difficulty: Stage-1 (single param) -> Stage-4 (multiple params
 from __future__ import annotations
 
 from typing import Any, Dict, List
-
+import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description for visible changes."""
@@ -19,7 +19,13 @@ def update_task_description_for_visible_changes(base_description: str, target_te
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
-    return base_success_criteria
+    criteria = base_success_criteria
+    target_fuel = target_terrain_config.get("min_fuel_remaining_at_landing")
+    
+    if target_fuel is not None and target_fuel != 450.0:
+        pattern = r"(Efficiency\*\*: Land with at least )(\d+\.?\d*)( N·s of impulse budget remaining.)"
+        criteria = re.sub(pattern, f"\\g<1>{target_fuel:.0f} N·s of impulse budget remaining (originally 450 N·s).", criteria)
+    return criteria
 
 
 def get_c02_curriculum_stages() -> List[Dict[str, Any]]:
@@ -61,10 +67,11 @@ While the following variables **MIGHT** have changed from the initial environmen
             "title": "Fuel scarcity",
             "mutation_description": "Total fuel reduced, min fuel remaining at landing increased.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {},
+            "terrain_config": {
+                "min_fuel_remaining_at_landing": 420.0,
+            },
             "physics_config": {
                 "total_fuel_impulse": 3800.0,
-                "min_fuel_remaining_at_landing": 420.0,
             },
         },
         {
@@ -72,11 +79,12 @@ While the following variables **MIGHT** have changed from the initial environmen
             "title": "Gravity spike and fuel scarcity",
             "mutation_description": "Gravity mutation at step 200 plus reduced fuel budget.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {},
+            "terrain_config": {
+                "min_fuel_remaining_at_landing": 400.0,
+            },
             "physics_config": {
                 "gravity_mutation": {"at_step": 200, "gravity_after": (0, -15.5)},
                 "total_fuel_impulse": 4000.0,
-                "min_fuel_remaining_at_landing": 400.0,
             },
         },
         {
@@ -84,11 +92,12 @@ While the following variables **MIGHT** have changed from the initial environmen
             "title": "Hostile environment",
             "mutation_description": "Gravity mutation, limited fuel, longer thrust delay, stronger wind.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {},
+            "terrain_config": {
+                "min_fuel_remaining_at_landing": 450.0,
+            },
             "physics_config": {
                 "gravity_mutation": {"at_step": 150, "gravity_after": (0, -17.0)},
                 "total_fuel_impulse": 3600.0,
-                "min_fuel_remaining_at_landing": 450.0,
                 "thrust_delay_steps": 6,
                 "wind_amplitude": 48.0,
                 "gust_amplitude": 75.0,

@@ -1,15 +1,13 @@
 """
 D-05: The Hammer task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_PIVOT,
-    ADD_JOINT_RIGID,
-    GET_STRUCTURE_MASS,
-    SET_MATERIAL_PROPERTIES,
-    JOINTS_LIST,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -37,5 +35,5 @@ Design a hammer that:
 - **Mass Budget**: Total structure mass < 70.0 kg.
 - **APIs**: Use only the primitives documented below.
 """,
-    'primitives_api': API_INTRO + ADD_BEAM + ADD_JOINT_RIGID + ADD_JOINT_PIVOT + SET_MATERIAL_PROPERTIES + GET_STRUCTURE_MASS + JOINTS_LIST,
+    'primitives_api': '\n\n'.join(_api_data['D_05'].values()),
 }

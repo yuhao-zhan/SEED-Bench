@@ -27,15 +27,15 @@ def build_agent(sandbox):
     sandbox.set_material_properties(base, restitution=0.05, friction=0.6)
     sandbox.add_joint(gantry, base, (base_x, GANTRY_Y), type='rigid')
 
-    pivot_y = base_y - base_h / 2  # bottom of base, y ≈ 9.6
-    # Slider: vertical beam, no rotation
+    pivot_y = base_y - base_h / 2
+
     slider_half_h = 2.0
     slider_center_y = pivot_y - slider_half_h
-    stroke = 7.0  # further stroke
+    stroke = 7.0
     slider = sandbox.add_beam(
         x=base_x, y=slider_center_y, width=0.35, height=slider_half_h, angle=0, density=0.6
     )
-    slider.fixedRotation = True  # keep slider vertical, no tilt
+    slider.fixedRotation = True
     sandbox.set_material_properties(slider, restitution=0.05, friction=0.5)
     sandbox.add_joint(
         base, slider, (base_x, pivot_y), type='slider',
@@ -46,13 +46,13 @@ def build_agent(sandbox):
         motor_speed=1.2,
         max_motor_force=10000.0,
     )
-    wrist_y = slider_center_y - slider_half_h  # bottom of slider
+    wrist_y = slider_center_y - slider_half_h
     finger_w, finger_h = 0.28, 0.5
     finger_density = 0.5
     finger_offset_x = 0.28
 
-    # No finger angle limits: revolute fingers can flip if motor keeps rotating during lift.
-    # During lift we keep a moderate close speed; solver task is to design a gripper that holds at target without flip.
+
+
     left_finger = sandbox.add_beam(
         x=base_x - finger_offset_x, y=wrist_y - finger_h / 2, width=finger_w, height=finger_h,
         angle=0.1 * math.pi, density=finger_density
@@ -104,7 +104,7 @@ def agent_action(sandbox, agent_body, step_count):
     obj_pos = sandbox.get_object_position()
     obj_y = obj_pos[1] if obj_pos else 0.0
 
-    # Phase 1 (0~5s): Lower slider slowly
+
     if t < 5.0:
         if slider_j is not None:
             sandbox.set_slider_motor(slider_j, 1.2, max_force)
@@ -112,11 +112,11 @@ def agent_action(sandbox, agent_body, step_count):
             sandbox.set_motor(joints['left_finger'], 0.0, 100.0)
         if joints.get('right_finger'):
             sandbox.set_motor(joints['right_finger'], 0.0, 100.0)
-    # Phase 2 (5~7s): Wait for settle
+
     elif t < 7.0:
         if slider_j is not None:
             sandbox.set_slider_motor(slider_j, 0.0, max_force)
-    # Phase 3 (7~10s): Grasp
+
     elif t < 10.0:
         if slider_j is not None:
             sandbox.set_slider_motor(slider_j, 0.0, max_force)
@@ -125,7 +125,7 @@ def agent_action(sandbox, agent_body, step_count):
             sandbox.set_motor(joints['left_finger'], 4.0, grip_torque)
         if joints.get('right_finger'):
             sandbox.set_motor(joints['right_finger'], -4.0, grip_torque)
-    # Phase 4 (10s+): Lift
+
     else:
         if slider_j is not None:
             sandbox.set_slider_motor(slider_j, -2.0, max_force)

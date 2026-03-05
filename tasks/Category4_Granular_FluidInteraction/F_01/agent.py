@@ -20,7 +20,7 @@ def build_agent(sandbox):
     min_bottom_y = getattr(sandbox, 'MIN_BEAM_BOTTOM_Y', 0.5)
     density = 46.0
 
-    # Left column: 8 beams, height 0.7 — bands [0.5,2.5] 3, [2.5,5] 3, [5,7.5] 2
+
     left_layer_h = min(0.7, max_h)
     left_n = 8
     left_first_y = min_bottom_y + left_layer_h / 2
@@ -34,13 +34,13 @@ def build_agent(sandbox):
         y_anchor = (left_beams[i].position.y + left_beams[i - 1].position.y) / 2
         sandbox.add_joint(left_beams[i], left_beams[i - 1], (x_left, y_anchor), type='rigid')
 
-    # Middle strip: exactly 1 beam (bridge) at x=13.0, y in [5,7.5] so band [5,7.5] has 3 beams
+
     middle_h = min(0.6, max_h)
     middle_y = 6.0
     middle_beam = sandbox.add_beam(x_middle, middle_y, width=beam_w, height=middle_h, angle=0, density=density)
     sandbox.set_material_properties(middle_beam, restitution=0.05)
 
-    # Right column: 2 beams, height 1.5 — both in lower bands
+
     right_layer_h = min(1.5, max_h)
     right_n = 2
     right_first_y = min_bottom_y + right_layer_h / 2
@@ -52,17 +52,17 @@ def build_agent(sandbox):
         right_beams.append(b)
     sandbox.add_joint(right_beams[1], right_beams[0], (x_right, (right_beams[1].position.y + right_beams[0].position.y) / 2), type='rigid')
 
-    # Cross-joint 1: left (top of left column, index 7, y~5.75) to middle — anchor between them
+
     anchor_left_mid_x = (x_left + x_middle) / 2
     anchor_left_mid_y = (left_beams[7].position.y + middle_beam.position.y) / 2
     sandbox.add_joint(left_beams[7], middle_beam, (anchor_left_mid_x, anchor_left_mid_y), type='rigid')
 
-    # Cross-joint 2: middle to right (connect to top right beam index 1 for stability)
+
     anchor_mid_right_x = (x_middle + x_right) / 2
     anchor_mid_right_y = (middle_beam.position.y + right_beams[1].position.y) / 2
     sandbox.add_joint(middle_beam, right_beams[1], (anchor_mid_right_x, anchor_mid_right_y), type='rigid')
 
-    # Cross-joint 3: bottom A-frame — left[0] to right[0] for better seal (11 joints total)
+
     cross_anchor_y = (left_beams[0].position.y + right_beams[0].position.y) / 2
     sandbox.add_joint(left_beams[0], right_beams[0], (13.0, cross_anchor_y), type='rigid')
 

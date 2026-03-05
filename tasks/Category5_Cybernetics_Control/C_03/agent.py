@@ -19,13 +19,13 @@ BLIND_ZONE_X_MAX = 15.0
 JUMP_THRESHOLD_SQ = 4.0
 REPEL_GAIN = 45.0
 REPEL_RANGE = 1.4
-# Activation: must stay in zone [13, 17] for 120 consecutive steps (discover via feedback)
+
 ACTIVATION_ZONE_X_MIN = 13.0
 ACTIVATION_ZONE_X_MAX = 17.0
 ACTIVATION_ZONE_CENTER = 15.0
 ACTIVATION_HOLD_STEPS = 130
-ACTIVATION_PHASE_END = 800   # Extended: ensure 120+ consecutive steps in zone before first slot
-# Slotted windows (must phase approach)
+ACTIVATION_PHASE_END = 800
+
 SLOTS_PHASE1 = [(3720, 3780), (4220, 4280), (4720, 4780)]
 SLOTS_PHASE2 = [(6220, 6280), (6720, 6780), (7220, 7280)]
 RENDEZVOUS_WINDOW1_LO = 3720
@@ -34,7 +34,7 @@ RENDEZVOUS_WINDOW2_LO = 6220
 RENDEZVOUS_WINDOW2_HI = 7280
 RENDEZVOUS_ZONE_X_MIN = 10.0
 RENDEZVOUS_ZONE_X_MAX = 20.0
-HEADING_ALIGN_TOL_RAD = 0.55  # ~32 deg; match evaluator
+HEADING_ALIGN_TOL_RAD = 0.55
 EVASIVE_SAFE_DIST = 4.5
 SPEED_CAP_FOR_SENSING = 1.92
 MAX_STEPS = 10000
@@ -129,7 +129,7 @@ def agent_action(sandbox, agent_body, step_count):
             _last_pred_x = tx_delayed + tvx * delay_time
             _last_pred_y = ty_delayed + tvy * delay_time
         tx, ty = _last_pred_x, _last_pred_y
-        # In blind zone target position is stale; when tracking (after second window), drive right to exit blind zone (x>15) for fresh updates
+
         if step_count > RENDEZVOUS_WINDOW2_HI:
             tx = max(tx, sx + 1.5, BLIND_ZONE_X_MAX + 0.5)
             if _smooth_tx is not None and _smooth_tx < BLIND_ZONE_X_MAX:
@@ -152,7 +152,7 @@ def agent_action(sandbox, agent_body, step_count):
     rel_speed = math.sqrt(rel_vx * rel_vx + rel_vy * rel_vy)
     zone_center_x = (RENDEZVOUS_ZONE_X_MIN + RENDEZVOUS_ZONE_X_MAX) * 0.5
 
-    # Stay well inside moving corridor; bias toward center early
+
     center_corridor = (x_lo + x_hi) * 0.5
     if sx < center_corridor - 0.5 and step_count < 2000:
         tx_blend_corr = center_corridor
@@ -161,8 +161,8 @@ def agent_action(sandbox, agent_body, step_count):
 
     in_activation_zone = ACTIVATION_ZONE_X_MIN <= sx <= ACTIVATION_ZONE_X_MAX
 
-    # Phase 0: Activation — go to zone [13, 17] and hold for 120+ consecutive steps so rendezvous can count
-    # MUST complete before approach logic (approach overwrites target and would pull seeker out)
+
+
     target_speed = math.sqrt(tvx * tvx + tvy * tvy)
     if target_speed >= 0.15:
         target_vel_dir = math.atan2(tvy, tvx)
@@ -176,13 +176,13 @@ def agent_action(sandbox, agent_body, step_count):
             tx_blend = ACTIVATION_ZONE_CENTER
             ty_blend = sy
         else:
-            # Strong hold: stay near center; wind zone (14,17) pushes left so bias slightly right
+
             tx_blend = 0.3 * sx + 0.7 * ACTIVATION_ZONE_CENTER
             ty_blend = sy
         if tx_blend_corr is not None and not in_activation_zone:
             tx_blend = tx_blend * 0.5 + tx_blend_corr * 0.5
     elif step_count < RENDEZVOUS_WINDOW1_LO:
-        # Approach for first slot phase (get to zone and near target before slot)
+
         if dist_to_target > EVASIVE_SAFE_DIST or not in_central:
             tx_blend = tx * 0.65 + zone_center_x * 0.35
             ty_blend = ty
@@ -192,13 +192,13 @@ def agent_action(sandbox, agent_body, step_count):
         if tx_blend_corr is not None:
             tx_blend = tx_blend * 0.5 + tx_blend_corr * 0.5
     elif in_any_slot1:
-        # First slot: align heading with target velocity while closing
+
         tx_blend = 0.55 * align_ax + 0.45 * tx
         ty_blend = 0.55 * align_ay + 0.45 * ty
         if tx_blend_corr is not None:
             tx_blend = tx_blend * 0.7 + tx_blend_corr * 0.3
     elif step_count < RENDEZVOUS_WINDOW2_LO:
-        # Approach for second slot: get close before slot (slots at 6220, 6720, 7220)
+
         if dist_to_target > 4.0 or not in_central:
             tx_blend = tx * 0.75 + zone_center_x * 0.25
             ty_blend = ty
@@ -208,7 +208,7 @@ def agent_action(sandbox, agent_body, step_count):
         if tx_blend_corr is not None:
             tx_blend = tx_blend * 0.7 + tx_blend_corr * 0.3
     elif in_any_slot2:
-        # Second slot: align heading with target velocity while closing
+
         tx_blend = 0.55 * align_ax + 0.45 * tx
         ty_blend = 0.55 * align_ay + 0.45 * ty
         if tx_blend_corr is not None:
@@ -224,7 +224,7 @@ def agent_action(sandbox, agent_body, step_count):
     _smooth_ty = _smooth_ty + SMOOTH_ALPHA * (ty_blend - _smooth_ty)
     tx_ctl, ty_ctl = _smooth_tx, _smooth_ty
 
-    # Corridor: strong repulsion so we never leave; when pinch (narrow corridor), bias to center
+
     margin = 1.3
     if sx < x_lo + margin:
         ax_corr = 25.0 * (x_lo + margin - sx)
@@ -237,8 +237,8 @@ def agent_action(sandbox, agent_body, step_count):
         center_corridor = (x_lo + x_hi) * 0.5
         ax_corr += 12.0 * (center_corridor - sx)
 
-    # Evasive: when distance < EVASIVE_SAFE_DIST, emphasize velocity matching over position (reduce kp, keep kd)
-    # When in slot: higher kp to close quickly; when very close, lower kp for velocity matching
+
+
     if in_any_slot1 or in_any_slot2:
         if dist_to_target > 2.5:
             kp = 95.0
@@ -277,21 +277,21 @@ def agent_action(sandbox, agent_body, step_count):
     fy = SEEKER_MASS * ay
     mag = math.sqrt(fx * fx + fy * fy)
 
-    # Thrust cap: avoid cooldown; save fuel in activation phase; allow slightly higher when closing/tracking
+
     steps_left = max(1, MAX_STEPS - step_count)
     budget_per_step = budget / (steps_left * TIME_STEP)
     thrust_cap = THRUST_CAP_NO_COOLDOWN
     if step_count < ACTIVATION_PHASE_END:
-        thrust_cap = 110.0   # Higher to fight wind in zone [14,17]
+        thrust_cap = 110.0
     elif (in_any_slot1 or in_any_slot2) and dist_to_target > 1.5:
-        thrust_cap = 120.0   # Allow strong thrust during slots to close
+        thrust_cap = 120.0
     elif (step_count > RENDEZVOUS_WINDOW1_HI or step_count > RENDEZVOUS_WINDOW2_HI) and dist_to_target > 4.0:
         thrust_cap = min(115.0, THRUST_CAP_NO_COOLDOWN + 15.0)
     max_mag_step = min(thrust_cap, max(50.0, budget_per_step * 0.96))
     if pinch_mode:
         max_mag_step = min(max_mag_step, 60.0)
 
-    # Speed cap when we need target updates (avoid speed-blind)
+
     if not in_blind and seeker_speed > SPEED_CAP_FOR_SENSING and (in_any_slot1 or in_any_slot2):
         max_mag_step = min(max_mag_step, 50.0)
 

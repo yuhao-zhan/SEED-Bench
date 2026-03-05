@@ -1,19 +1,13 @@
 """
 E-04: Variable Mass task Prompt and Primitives definition
 """
-from ...primitives_api import (
-    API_INTRO,
-    ADD_BEAM,
-    ADD_JOINT_RIGID,
-    ADD_JOINT_PIVOT,
-    GET_BUILD_ZONE,
-    GET_GROUND_Y_TOP,
-    GET_MIN_BEAMS,
-    GET_MIN_JOINTS,
-    GET_SPAN_BOUNDS,
-    GET_STRUCTURE_MASS,
-    GET_STRUCTURE_MASS_LIMIT,
-)
+
+import json
+import os
+
+with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+    _api_data = json.load(f)
+
 
 TASK_PROMPT = {
     "task_description": """
@@ -44,15 +38,5 @@ Design a structure that:
 - **Mass Budget**: Total structure mass (instantaneous) must remain within the limit (default 400 kg).
 - **APIs**: Use only the primitives documented below.
 """,
-    "primitives_api": API_INTRO
-    + GET_GROUND_Y_TOP
-    + GET_BUILD_ZONE
-    + GET_SPAN_BOUNDS
-    + ADD_BEAM
-    + ADD_JOINT_RIGID
-    + ADD_JOINT_PIVOT
-    + GET_STRUCTURE_MASS
-    + GET_STRUCTURE_MASS_LIMIT
-    + GET_MIN_BEAMS
-    + GET_MIN_JOINTS,
+    'primitives_api': '\n\n'.join(_api_data['E_04'].values()),
 }

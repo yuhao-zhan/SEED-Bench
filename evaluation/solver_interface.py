@@ -59,7 +59,7 @@ class SolverInterface:
     
     # API configuration for all OpenAI-compatible models (single gateway)
     API_KEY = 'sk-LRhP4AOlyeHBJh4NiVlg7YYPE8DdUTgykbEsMR7UVoNIQxS3'
-    BASE_URL = 'sk-LRhP4AOlyeHBJh4NiVlg7YYPE8DdUTgykbEsMR7UVoNIQxS3'
+    BASE_URL = 'https://yeysai.com/v1'
 
     def __init__(self, model_type='openai', model_name='gpt-4', api_key=None,
                  model_path: Optional[str] = None, device: Optional[str] = None):
