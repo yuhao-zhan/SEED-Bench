@@ -32,15 +32,15 @@ def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Sensing latency (Velocity)**: Unexpected latency in the rotational speed measurements.
- - **Low-speed torque availability**: Changes in the maximum torque available at low rotational speeds.
- - **Load disturbance timing**: Sudden changes in when external loads are applied during operation.
- - **Load disturbance magnitude**: Variations in the intensity of unexpected external load spikes.
- - **Periodic disturbances**: Changes in the frequency and strength of cyclic external forces.
- - **Actuator deadzones**: Modifications to the range of control inputs that yield zero response.
- - **Rotational resistance**: Alterations in the internal or external rotational drag of the system.
- - **Mechanical resistance profile**: Changes in the internal resistance to smooth rotational motion (cogging).
- - **Static friction behavior**: Modifications to the breakaway force and low-speed friction (stiction).
+- **Sensing latency (Velocity)**: Latency in the rotational speed measurements may occur.
+- **Low-speed torque availability**: Changes in the maximum torque available at low rotational speeds may be present.
+- **Load disturbance timing**: Sudden changes in when external loads are applied during operation may occur.
+- **Load disturbance magnitude**: Variations in the intensity of unexpected external load spikes may be observed.
+- **Periodic disturbances**: Changes in the frequency and strength of cyclic external forces may have occurred.
+- **Actuator deadzones**: Modifications to the range of control inputs that yield zero response may be present.
+- **Rotational resistance**: Alterations in the internal or external rotational drag of the system may have changed.
+- **Mechanical resistance profile**: Changes in the internal resistance to smooth rotational motion (cogging) may occur.
+- **Static friction behavior**: Modifications to the breakaway force and low-speed friction (stiction) may be present.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the system stalls or oscillates) to infer the hidden constraints and adapt your control design.
 """

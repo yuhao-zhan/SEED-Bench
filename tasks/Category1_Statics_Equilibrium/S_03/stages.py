@@ -59,13 +59,13 @@ def get_s03_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Terrain Geometry & Obstructions**: Static obstructions may block standard construction paths, requiring navigation through narrow corridors.
- - **Target Reach Distance**: The required horizontal extension from the anchor wall may have been significantly adjusted.
- - **Payload Dynamics & Impact Forces**: Payloads may be applied as static forces or dropped from height, introducing high-energy dynamic impacts.
- - **Gravitational Acceleration**: Local gravity may be significantly higher, affecting structural weight, sag, and load-bearing capacity.
+ - **Terrain Geometry & Obstructions**: Static obstructions may alter available construction paths, requiring navigation through different corridors.
+ - **Target Reach Distance**: The required horizontal extension from the anchor wall may have been adjusted.
+ - **Payload Dynamics & Impact Forces**: Payloads may be applied as static forces or dropped from height, introducing dynamic impacts.
+ - **Gravitational Acceleration**: Local gravity may be altered, affecting structural weight, sag, and load-bearing capacity.
  - **Anchor & Joint Strength**: The capacity of wall anchors to withstand force and torque may vary, potentially exhibiting spatial gradients in strength.
  - **Atmospheric Conditions**: Constant or periodic oscillatory wind forces may exert lateral or vertical pressure on the structure.
- - **Structural Mass Budget**: The total allowed mass for your cantilever design may be restricted to specific limits.
+ - **Structural Mass Budget**: The total allowed mass for your cantilever design may be adjusted to specific limits.
  - **Wall Anchor Zoning**: Certain vertical regions of the wall may be unsuitable for anchoring or forbidden for structural use.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where an anchor breaks or how the structure sags) to infer the hidden constraints and adapt your design.

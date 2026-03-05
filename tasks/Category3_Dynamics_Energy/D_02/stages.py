@@ -25,14 +25,14 @@ def update_success_criteria_for_visible_changes(
 
 
 _D02_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Gravity: Variations in the gravitational field will directly alter the parabolic trajectory and time-of-flight of the jumper.
- - Air Resistance: Increased atmospheric drag can reduce momentum over time, affecting the jump range.
- - Surface Behavior: The elasticity or restitution of the launch surface may have changed, affecting the initial takeoff impulse.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Gravity**: Variations in the gravitational field may alter the parabolic trajectory and time-of-flight of the jumper.
+- **Air Resistance**: Atmospheric drag may be altered, affecting momentum over time and jump range.
+- **Surface Behavior**: The elasticity or restitution of the launch surface may have changed, affecting the initial takeoff impulse.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

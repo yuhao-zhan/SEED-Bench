@@ -12,18 +12,18 @@ from typing import Any, Dict, List
 
 
 TASK_DESCRIPTION_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Noise Strength: The intensity of random thermal and environmental disturbances.
- - Joint and Damage Thresholds: The force, torque, and damage limits of structural components.
- - Coherent Pulses: The frequency and magnitude of periodic energy impacts.
- - Motion Damping: Resistance affecting the dissipation of kinetic energy.
- - Shock Propagation: The severity of damage cascading through the structure.
- - Fatigue Dynamics: Thresholds for angular velocity-induced structural wear.
- - Environmental Storms: Multipliers for storm intensity and burst probability.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Noise Strength**: The intensity of random thermal and environmental disturbances may vary.
+- **Joint and Damage Thresholds**: The force, torque, and damage limits of structural components may be altered.
+- **Coherent Pulses**: The frequency and magnitude of periodic energy impacts may have changed.
+- **Motion Damping**: Resistance affecting the dissipation of kinetic energy may be adjusted.
+- **Shock Propagation**: The severity of damage cascading through the structure may differ from standard.
+- **Fatigue Dynamics**: Thresholds for angular velocity-induced structural wear may vary.
+- **Environmental Storms**: Multipliers for storm intensity and burst probability may be altered.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

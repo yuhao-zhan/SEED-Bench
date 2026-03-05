@@ -83,14 +83,14 @@ def _magnets_stage4() -> List[tuple]:
 
 
 TASK_DESCRIPTION_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Gravity: The magnitude and direction of the gravitational field.
- - Electromagnetic Fields: The strength, position, and temporal rhythm of force fields.
- - Motion Damping: Air resistance and structural motion resistance.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Gravity**: The magnitude and direction of the gravitational field may be altered.
+- **Electromagnetic Fields**: The strength, position, and temporal rhythm of force fields may vary.
+- **Motion Damping**: Air resistance and structural motion resistance may have changed.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

@@ -12,11 +12,11 @@ UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Fragile Anchor Points: The central pivot joint has a strict static torque capacity. Even slight imbalances will snap the structure.
- - Lateral Wind Currents: Invisible air currents exert a continuous horizontal force, creating a persistent overturning torque.
- - Dynamic Loading: The target mass is dropped from a height rather than being stationary, requiring robust impact absorption.
- - Kinetic Obstructions: Moving or static structural barriers exist in the environment, requiring precise spatial planning.
- - Variable Gravity: Local gravitational fluctuations increase the effective weight of all components.
+ - Fragile Anchor Points: The central pivot joint has an altered static torque capacity. Imbalances may snap the structure.
+ - Lateral Wind Currents: Invisible air currents may exert a horizontal force, creating an overturning torque.
+ - Dynamic Loading: The target mass delivery method may change, potentially requiring impact absorption.
+ - Kinetic Obstructions: Moving or static structural barriers may exist in the environment, requiring spatial planning.
+ - Variable Gravity: Local gravitational fluctuations may alter the effective weight of all components.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode to infer the hidden constraints and adapt your design.
 """

@@ -40,15 +40,15 @@ def get_k03_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-03: The Gripper task variants.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Object Friction: The surface traction and slipperiness of the target object.
- - Gravity: The magnitude and direction of the gravitational force.
- - Damping: The rate at which the object's momentum and motion are dissipated.
- - Object Geometry: The physical shape and cross-section of the target object.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Object Friction**: The surface traction and slipperiness of the target object may be altered.
+- **Gravity**: The magnitude and direction of the gravitational force may differ from standard.
+- **Damping**: The rate at which the object's momentum and motion are dissipated may vary.
+- **Object Geometry**: The physical shape and cross-section of the target object may have changed.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

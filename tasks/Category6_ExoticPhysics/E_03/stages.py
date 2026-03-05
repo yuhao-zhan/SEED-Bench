@@ -14,16 +14,16 @@ from typing import Any, Dict, List
 
 
 TASK_DESCRIPTION_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Surface Friction: Resistance encountered when sliding or moving across the terrain.
- - Gravity: The magnitude and direction of the gravitational acceleration.
- - Momentum Drain: The rate at which the system loses momentum over time.
- - Atmospheric Damping: Air resistance and motion drag.
- - Propulsion Efficiency: The scaling factor affecting thrust output.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Surface Friction**: Resistance encountered when sliding or moving across the terrain may have changed.
+- **Gravity**: The magnitude and direction of the gravitational acceleration may differ from standard.
+- **Momentum Drain**: The rate at which the system loses momentum over time may be altered.
+- **Atmospheric Damping**: Air resistance and motion drag may vary.
+- **Propulsion Efficiency**: The scaling factor affecting thrust output may be adjusted.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

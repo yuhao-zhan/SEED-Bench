@@ -27,15 +27,15 @@ def get_k02_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-02: The Climber task variants.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Wall Friction: The traction and slipperiness of the vertical climbing surface.
- - Gravity: The magnitude and direction of the gravitational force.
- - Suction Force Scale: The scaling factor for the adhesive force of suction pads.
- - Maximum Suction Force: The peak force limit for individual suction pad attachments.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Wall Friction**: The traction and slipperiness of the vertical climbing surface may be altered.
+- **Gravity**: The magnitude and direction of the gravitational force may differ from standard.
+- **Suction Force Scale**: The scaling factor for the adhesive force of suction pads may be adjusted.
+- **Maximum Suction Force**: The peak force limit for individual suction pad attachments may have changed.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

@@ -38,13 +38,13 @@ def get_c02_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Dynamic gravitational shifts**: Sudden shifts in gravitational acceleration that may occur during the mission.
- - **Resource availability**: Significant reductions in the total fuel or energy available for the descent.
- - **Operational safety margins**: Stricter requirements for remaining resources at task completion.
- - **Actuation latency**: Delay in engine or actuator response to control commands.
- - **Atmospheric disturbances**: Continuous horizontal forces acting on the vehicle during flight.
- - **Transient turbulence**: Intermittent high-intensity environmental disturbances (gusts).
- - **Disturbance frequency**: Changes in the likelihood of encountering environmental turbulence.
+- **Dynamic gravitational shifts**: Sudden shifts in gravitational acceleration may occur during the mission.
+- **Resource availability**: The total fuel or energy available for the descent may be altered.
+- **Operational safety margins**: Requirements for remaining resources at task completion may be adjusted.
+- **Actuation latency**: Delay in engine or actuator response to control commands may have changed.
+- **Atmospheric disturbances**: Continuous horizontal forces acting on the vehicle during flight may vary.
+- **Transient turbulence**: Intermittent high-intensity environmental disturbances (gusts) may be present.
+- **Disturbance frequency**: The likelihood of encountering environmental turbulence may have changed.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the vehicle deviates or crashes) to infer the hidden constraints and adapt your design.
 """

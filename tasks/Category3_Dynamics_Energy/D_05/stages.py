@@ -27,15 +27,15 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 
 
 _D05_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Shell Hardness: The force threshold required to break the target shell may have increased, requiring a more powerful impact.
- - Slot Bar Oscillation: The frequency or phase of the moving barrier may have changed, requiring precise timing adjustments for the hammer's release.
- - Angular Damping: Increased rotational resistance can reduce the hammer's kinetic energy as it swings toward the target.
- - Gravity: Changes in the gravitational field will affect the hammer's acceleration and the force it delivers upon impact.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Shell Hardness**: The force threshold required to break the target shell may have changed, altering the required impact power.
+- **Slot Bar Oscillation**: The frequency or phase of the moving barrier may have changed, requiring precise timing adjustments for the hammer's release.
+- **Angular Damping**: Rotational resistance may be altered, affecting the hammer's kinetic energy as it swings toward the target.
+- **Gravity**: Changes in the gravitational field may affect the hammer's acceleration and the force it delivers upon impact.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

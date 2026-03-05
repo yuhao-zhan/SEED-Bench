@@ -33,16 +33,16 @@ def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Proximity sensing latency**: Unexpected latency in obstacle detection (whisker) sensor feedback.
- - **Behavioral duration requirements**: Changes in the time or steps needed to satisfy progression conditions.
- - **Operational speed limits**: Stricter limits on velocity during specific movement phases.
- - **Surface traction**: Variations in friction affecting movement precision and stability.
- - **Energy dissipation**: Increased environmental resistance causing faster loss of kinetic energy.
- - **Sensor blind zones**: Discovery of regions where sensor coverage is unavailable or unreliable.
- - **Gravitational acceleration**: Alterations in the vertical force field affecting motion and buoyancy.
- - **Translational resistance**: Increased resistance to movement through the medium (linear damping).
- - **Environmental flow**: Constant external forces (e.g., currents) opposing progress in specific directions.
- - **Atmospheric disturbances**: Static and oscillating external forces (e.g., wind) affecting stability.
+- **Proximity sensing latency**: Latency in obstacle detection (whisker) sensor feedback may be present.
+- **Behavioral duration requirements**: Changes in the time or steps needed to satisfy progression conditions may occur.
+- **Operational speed limits**: Limits on velocity during specific movement phases may be adjusted.
+- **Surface traction**: Variations in friction affecting movement precision and stability may occur.
+- **Energy dissipation**: Environmental resistance causing loss of kinetic energy may vary.
+- **Sensor blind zones**: Regions where sensor coverage is unavailable or unreliable may exist.
+- **Gravitational acceleration**: Alterations in the vertical force field affecting motion and buoyancy may be present.
+- **Translational resistance**: Resistance to movement through the medium (linear damping) may have changed.
+- **Environmental flow**: Constant external forces (e.g., currents) opposing progress in specific directions may vary.
+- **Atmospheric disturbances**: Static and oscillating external forces (e.g., wind) affecting stability may be present.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where the agent gets stuck or drifts) to infer the hidden constraints and adapt your design.
 """

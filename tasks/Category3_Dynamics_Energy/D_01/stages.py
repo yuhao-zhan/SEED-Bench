@@ -68,14 +68,14 @@ def update_success_criteria_for_visible_changes(
 
 
 _D01_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Air Resistance: Increased atmospheric drag can cause projectiles to lose energy and velocity more rapidly during flight.
- - Target Zone Position: The coordinates of the destination region may have been shifted, requiring adjustments to the required launch force or angle.
- - Gravity: Variations in the gravitational field will directly alter the parabolic trajectory and time-of-flight of any launched object.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Air Resistance**: Atmospheric drag may be altered, causing projectiles to lose energy and velocity differently during flight.
+- **Target Zone Position**: The coordinates of the destination region may have been shifted, requiring adjustments to the required launch force or angle.
+- **Gravity**: Variations in the gravitational field may alter the parabolic trajectory and time-of-flight of any launched object.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

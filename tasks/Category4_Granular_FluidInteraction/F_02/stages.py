@@ -30,18 +30,18 @@ def get_f02_curriculum_stages() -> List[Dict[str, Any]]:
     Original solution (9-paddle raft, lift over pillars) should fail in all mutated stages.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Thrust Cooldown: The minimum time required between propulsion strokes, affecting the frequency and consistency of forward thrust.
- - Opposing Current: The magnitude of the water's flow against the direction of travel, resisting forward progress.
- - Liquid Density: The mass per unit volume of the surrounding fluid, determining the buoyancy and flotation depth of the vehicle.
- - Fluid Drag: The resistance encountered by bodies moving through the water, impacting velocity and energy efficiency.
- - Wind Intensity: The strength of atmospheric forces acting on the structure above the waterline.
- - Ambient Damping: The rate at which the vehicle's linear and angular momentum are dissipated by the environment.
- - Gravity: The acceleration due to the local gravitational field, influencing the effective weight and displacement of the vessel.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Thrust Cooldown**: The minimum time required between propulsion strokes may have changed, affecting the frequency and consistency of forward thrust.
+- **Opposing Current**: The magnitude of the water's flow against the direction of travel may be altered, resisting forward progress.
+- **Liquid Density**: The mass per unit volume of the surrounding fluid may be adjusted, determining the buoyancy and flotation depth of the vehicle.
+- **Fluid Drag**: The resistance encountered by bodies moving through the water may vary, impacting velocity and energy efficiency.
+- **Wind Intensity**: The strength of atmospheric forces acting on the structure above the waterline may have changed.
+- **Ambient Damping**: The rate at which the vehicle's linear and angular momentum are dissipated by the environment may be altered.
+- **Gravity**: The acceleration due to the local gravitational field may differ from standard, influencing the effective weight and displacement of the vessel.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

@@ -36,15 +36,16 @@ def gravity_extreme(t: float) -> tuple:
 
 
 TASK_DESCRIPTION_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Arena and Build Zone Boundaries: The vertical limits of the navigable and buildable space.
- - Gravity: The magnitude, direction, or periodicity of the gravitational field.
- - Damping: Air resistance or internal friction affecting the decay of motion.
- - Material Density: The mass-to-volume ratio of the structural components.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Arena and Build Zone Boundaries**: The vertical limits of the navigable and buildable space may differ from standard.
+- **Gravity**: The magnitude, direction, or periodicity of the gravitational field may be altered.
+- **Damping**: Air resistance or internal friction affecting the decay of motion may have changed.
+- **Material Density**: The mass-to-volume ratio of the structural components may vary.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+"""
 import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:

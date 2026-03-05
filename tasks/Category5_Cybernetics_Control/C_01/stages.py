@@ -39,13 +39,13 @@ def get_c01_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Sensing latency (Orientation)**: Unexpected latency in orientation sensor readings may affect balance timing.
- - **Sensing latency (Angular Velocity)**: Unexpected latency in angular velocity feedback can lead to delayed control responses.
- - **Gravitational acceleration**: Alterations in the gravitational field significantly affecting system weight and balance dynamics.
- - **Structural dimensions**: Modifications to the physical length of system components, altering the natural frequency.
- - **Mass distribution**: Changes in the mass and rotational inertia of the pole, shifting the center of gravity.
- - **Joint resistance**: Increased resistance to rotational motion within the joints (damping).
- - **Actuation speed limits**: Constraints on how quickly control forces can be adjusted by the actuator.
+- **Sensing latency (Orientation)**: Unexpected latency in orientation sensor readings may occur, affecting balance timing.
+- **Sensing latency (Angular Velocity)**: Unexpected latency in angular velocity feedback may occur, leading to delayed control responses.
+- **Gravitational acceleration**: Alterations in the gravitational field may occur, significantly affecting system weight and balance dynamics.
+- **Structural dimensions**: Modifications to the physical length of system components may have occurred, altering the natural frequency.
+- **Mass distribution**: Changes in the mass and rotational inertia of the pole may be present, shifting the center of gravity.
+- **Joint resistance**: Resistance to rotational motion within the joints (damping) may be altered.
+- **Actuation speed limits**: Constraints on how quickly control forces can be adjusted by the actuator may have changed.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """

@@ -56,12 +56,12 @@ UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Gravity**: The downward acceleration may be significantly higher than standard, increasing impact energy.
- - **Atmospheric Turbulence (Wind)**: A constant lateral force may be acting on all structures and debris.
- - **Surface Friction**: The ground may be exceptionally slippery, making unanchored structures unstable.
- - **Material Elasticity (Restitution)**: Falling boulders may be highly bouncy, transferring more momentum upon impact.
- - **Core Fragility**: The central object may have a much lower tolerance for impact forces than usual.
- - **Resource Scarcity (Mass Budget)**: The total mass of materials allowed for construction may be severely limited.
+ - **Gravity**: The downward acceleration may differ from standard, altering impact energy.
+ - **Atmospheric Turbulence (Wind)**: A lateral force may be acting on all structures and debris.
+ - **Surface Friction**: The ground friction may be altered, affecting the stability of unanchored structures.
+ - **Material Elasticity (Restitution)**: The elasticity of falling boulders may change, altering the momentum transferred upon impact.
+ - **Core Fragility**: The central object may have an altered tolerance for impact forces.
+ - **Resource Scarcity (Mass Budget)**: The total mass of materials allowed for construction may be adjusted.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """

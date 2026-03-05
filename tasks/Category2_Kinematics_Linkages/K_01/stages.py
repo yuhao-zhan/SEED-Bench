@@ -31,16 +31,16 @@ def get_k01_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-01: The Walker task variants.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Ground Friction: The traction and slipperiness of the walking surface.
- - Joint Limits: The permitted range of motion for the walker's pivot joints.
- - Gravity: The magnitude and direction of the gravitational force.
- - Body Friction: The friction coefficient of the walker's physical components.
- - Damping: The rate at which mechanical energy and momentum are dissipated.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Ground Friction**: The traction and slipperiness of the walking surface may be altered.
+- **Joint Limits**: The permitted range of motion for the walker's pivot joints may have changed.
+- **Gravity**: The magnitude and direction of the gravitational force may differ from standard.
+- **Body Friction**: The friction coefficient of the walker's physical components may be adjusted.
+- **Damping**: The rate at which mechanical energy and momentum are dissipated may vary.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

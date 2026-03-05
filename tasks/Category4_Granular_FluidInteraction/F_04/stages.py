@@ -42,16 +42,16 @@ def get_f04_curriculum_stages() -> List[Dict[str, Any]]:
     Each stage: terrain_config + physics_config. Original solution (two-layer sieve, fixed gaps/nudge) should fail in all mutated stages.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Separation Standards: The minimum required purity for classified material has been updated, demanding more precise filtration.
- - Ambient Viscosity: Variations in atmospheric damping affect how quickly particles respond to external forces and settle into bins.
- - Mixture Composition: The relative proportions of small, medium, and large particles in the feed material may have shifted.
- - Particle Surface Physics: Changes in friction and restitution coefficients alter how grains slide, bounce, and interact with the filter structure.
- - Gravity: The acceleration due to the local gravitational field, influencing the weight and flow rate of the granular material.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Separation Standards**: The minimum required purity for classified material may have been updated, demanding more precise filtration.
+- **Ambient Viscosity**: Variations in atmospheric damping may affect how quickly particles respond to external forces and settle into bins.
+- **Mixture Composition**: The relative proportions of small, medium, and large particles in the feed material may have shifted.
+- **Particle Surface Physics**: Changes in friction and restitution coefficients may alter how grains slide, bounce, and interact with the filter structure.
+- **Gravity**: The acceleration due to the local gravitational field may differ from standard, influencing the weight and flow rate of the granular material.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

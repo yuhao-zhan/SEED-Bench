@@ -70,7 +70,7 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Gravitational acceleration**: Vertical loads on the structure may be significantly different.
 - **Atmospheric conditions**: Potential lateral forces (e.g., wind) may act on the vehicle and structure.
 - **Structural integrity limits**: Critical force and torque thresholds for joints and anchors may have changed.
-- **Resource availability**: The maximum allowed structure mass may be restricted.
+- **Resource availability**: The maximum allowed structure mass may differ from standard limits.
 - **Terrain geometry**: The distance between cliffs or target location may have been adjusted.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how the vehicle deviates) to infer the hidden constraints and adapt your design.

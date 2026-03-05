@@ -12,16 +12,16 @@ import re
 
 
 TASK_DESCRIPTION_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Atmospheric Damping: Air resistance and motion drag.
- - Velocity Drain: Rate of kinetic energy loss in specialized zones.
- - Slip Forces: Magnitude of directional forces in slipping regions.
- - Wind Intensity: Amplitude of atmospheric disturbances.
- - Thermal Threshold: Maximum overheat limit for safe operation.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Atmospheric Damping**: Air resistance and motion drag may be altered.
+- **Velocity Drain**: Rate of kinetic energy loss in specialized zones may vary.
+- **Slip Forces**: Magnitude of directional forces in slipping regions may have changed.
+- **Wind Intensity**: Amplitude of atmospheric disturbances may differ from standard.
+- **Thermal Threshold**: Maximum overheat limit for safe operation may be adjusted.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

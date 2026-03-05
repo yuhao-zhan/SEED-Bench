@@ -26,16 +26,16 @@ def get_c05_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Temporal sequencing windows**: Changes in the allowed time between sequential interaction phases (e.g., visiting A then B).
- - **Environmental response timing**: Unexpected delays in system feedback or barrier activation.
- - **Interaction recovery periods**: Increased cooldown periods required between consecutive actions.
- - **Spatial positioning requirements**: Stricter accuracy needed in target location or relative altitude.
- - **Repulsive field strength**: Alterations in the intensity of environmental repulsion forces.
- - **Repulsive field radius**: Changes in the effective reach of environmental repulsion.
- - **Oscillating disturbances**: Periodic external forces (e.g., wind) affecting precise control and stability.
- - **Regional speed limits**: Stricter constraints on maximum velocity within specific zones.
- - **Activation duration**: Increased time required to remain within a zone to trigger environmental changes.
- - **State persistence requirements**: Changes in how long a specific state must be maintained for success.
+- **Temporal sequencing windows**: Changes in the allowed time between sequential interaction phases (e.g., visiting A then B) may occur.
+- **Environmental response timing**: Delays in system feedback or barrier activation may be present.
+- **Interaction recovery periods**: Cooldown periods required between consecutive actions may have changed.
+- **Spatial positioning requirements**: Accuracy needed in target location or relative altitude may be adjusted.
+- **Repulsive field strength**: Alterations in the intensity of environmental repulsion forces may occur.
+- **Repulsive field radius**: Changes in the effective reach of environmental repulsion may be present.
+- **Oscillating disturbances**: Periodic external forces (e.g., wind) affecting precise control and stability may vary.
+- **Regional speed limits**: Constraints on maximum velocity within specific zones may be altered.
+- **Activation duration**: Time required to remain within a zone to trigger environmental changes may have changed.
+- **State persistence requirements**: Changes in how long a specific state must be maintained for success may occur.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the sequence fails to trigger) to infer the hidden constraints and adapt your strategy.
 """

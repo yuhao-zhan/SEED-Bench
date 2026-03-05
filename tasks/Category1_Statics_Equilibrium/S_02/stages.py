@@ -25,10 +25,10 @@ def get_s02_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Structural Integrity Thresholds**: Joints between beams may now have finite breaking limits for both force and torque.
- - **Seismic Dynamics**: The foundation's oscillation may exhibit varying amplitudes, frequencies, or even evolve in intensity over time.
+ - **Structural Integrity Thresholds**: Joints between beams may have altered breaking limits for both force and torque.
+ - **Seismic Dynamics**: The foundation's oscillation may exhibit varying amplitudes, frequencies, or evolve in intensity over time.
  - **Atmospheric Loading**: Lateral wind forces may change in magnitude, height-dependent shear, or periodic pulsation (oscillation).
- - **Gravitational Constant**: The local vertical acceleration may be significantly higher than standard earth gravity.
+ - **Gravitational Constant**: The local vertical acceleration may differ from standard earth gravity, altering the weight of the structure.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how the tower sways) to infer the hidden constraints and adapt your design.
 """

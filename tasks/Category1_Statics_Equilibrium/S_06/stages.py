@@ -47,12 +47,12 @@ Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
  - Table Friction: The surface of the table may have altered grip levels, affecting the stability of the anchor blocks.
- - Build Access Zone: Construction may be restricted to specific regions far from the edge, requiring longer cantilever extensions.
+ - Build Access Zone: Construction may be constrained to specific regions, requiring different cantilever extensions.
  - Table Inclination: The foundation may be tilted, introducing lateral gravitational components that cause sliding.
- - Atmospheric Wind: Constant lateral forces may be present, pushing the structure towards or away from the abyss.
+ - Atmospheric Wind: Lateral forces may be present, affecting the structure's balance.
  - Seismic Activity: The ground may oscillate, testing the dynamic stability and structural integrity of your design.
- - Vertical Clearance: Overhead barriers may limit the height of your structure, forcing low-profile horizontal designs.
- - Gravitational Intensity: The downward pull may be significantly stronger, increasing the stress on contact points and balancing requirements.
+ - Vertical Clearance: Overhead barriers may alter the available height for your structure, requiring adapted horizontal designs.
+ - Gravitational Intensity: The downward pull may differ from standard, altering the stress on contact points and balancing requirements.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """

@@ -54,15 +54,15 @@ def get_k05_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-05: The Lifter task variants.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Gravity: The magnitude and direction of the gravitational force.
- - Object Mass: The total weight and inertia of the target object.
- - Target Height: The required vertical elevation for task completion.
- - Ground Friction: The traction and slipperiness of the base surface.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Gravity**: The magnitude and direction of the gravitational force may differ from standard.
+- **Object Mass**: The total mass and inertia of the target object may have changed.
+- **Target Height**: The required vertical elevation for task completion may be adjusted.
+- **Ground Friction**: The traction and slipperiness of the base surface may be altered.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

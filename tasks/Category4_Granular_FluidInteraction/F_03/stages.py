@@ -49,17 +49,17 @@ def get_f03_curriculum_stages() -> List[Dict[str, Any]]:
     terrain_config, physics_config. Original reference solution should fail in all mutated stages.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Particle Friction: The surface traction between individual grains, affecting how easily material slides or piles within the scoop.
- - Gravity: The acceleration due to the local gravitational field, influencing the weight of the mechanism and the stability of the granular load.
- - Ambient Damping: The rate at which mechanical motion and material flow are resisted by the environment.
- - Transfer Requirement: The minimum quantity of material that must be successfully relocated to the target zone for mission success.
- - Internal Pit Drift: Persistent lateral forces acting within the excavation zone, potentially shifting material or resisting scoop entry.
- - Volumetric Capacity: Hidden limits on how much material can be effectively retained and transported during each cycle of operation.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Particle Friction**: The surface traction between individual grains may be altered, affecting how easily material slides or piles within the scoop.
+- **Gravity**: The acceleration due to the local gravitational field may vary, influencing the weight of the mechanism and the stability of the granular load.
+- **Ambient Damping**: The rate at which mechanical motion and material flow are resisted by the environment may have changed.
+- **Transfer Requirement**: The minimum quantity of material that must be successfully relocated to the target zone for mission success may be adjusted.
+- **Internal Pit Drift**: Persistent lateral forces acting within the excavation zone may vary, potentially shifting material or resisting scoop entry.
+- **Volumetric Capacity**: Hidden limits on how much material can be effectively retained and transported during each cycle of operation may be altered.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

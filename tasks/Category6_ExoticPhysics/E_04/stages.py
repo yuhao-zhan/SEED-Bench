@@ -11,16 +11,16 @@ from typing import Any, Dict, List
 
 
 TASK_DESCRIPTION_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Joint Strength: The force and torque limits before mechanical failure.
- - Structural Fatigue: The rate at which joints weaken over time.
- - Base Vibration: The frequency and amplitude of external oscillations.
- - Mass Dynamics: The frequency and amplitude of periodic mass fluctuations.
- - Gravity: The magnitude and direction of the gravitational field.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Joint Strength**: The force and torque limits before mechanical failure may have changed.
+- **Structural Fatigue**: The rate at which joints weaken over time may vary.
+- **Base Vibration**: The frequency and amplitude of external oscillations may be altered.
+- **Mass Dynamics**: The frequency and amplitude of periodic mass fluctuations may differ from standard.
+- **Gravity**: The magnitude and direction of the gravitational field may be adjusted.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

@@ -24,16 +24,16 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 
 
 _D06_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Structural Stress Limits: The maximum force and fatigue thresholds of joints may have been lowered, making the catcher more prone to breaking under impact.
- - Projectile Dynamics: The velocity and launch timing of arriving balls may have changed, altering their arrival frequency and impact energy.
- - Projectile Mass: The density and weight of the balls may have increased, requiring a more robust structure to absorb the momentum.
- - Gravity: Variations in the gravitational field will alter the balls' trajectories and the effective weight of the catcher structure.
- - Lateral Forces: Changes in wind amplitude or other lateral forces can add unexpected horizontal loads to the structure.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Structural Stress Limits**: The maximum force and fatigue thresholds of joints may have changed, affecting the catcher's proneness to breaking under impact.
+- **Projectile Dynamics**: The velocity and launch timing of arriving balls may have changed, altering their arrival frequency and impact energy.
+- **Projectile Mass**: The density and mass of the balls may have changed, affecting the momentum that must be absorbed.
+- **Gravity**: Variations in the gravitational field may alter the balls' trajectories and the effective weight of the catcher structure.
+- **Lateral Forces**: Changes in wind amplitude or other lateral forces may add unexpected horizontal loads to the structure.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

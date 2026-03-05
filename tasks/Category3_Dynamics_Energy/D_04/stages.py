@@ -29,14 +29,14 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 
 
 _D04_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Gravity: Variations in the gravitational field will alter the swing's natural period and the effort required to reach the apex.
- - Seat Damping: Increased resistance at the swing's pivot or seat can cause more energy to be lost during each oscillation.
- - Wind Period: The timing and frequency of atmospheric wind gusts may have changed, requiring adjustments to the pumping rhythm.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Gravity**: Variations in the gravitational field may alter the swing's natural period and the effort required to reach the apex.
+- **Seat Damping**: Resistance at the swing's pivot or seat may be altered, affecting the energy lost during each oscillation.
+- **Wind Period**: The timing and frequency of atmospheric wind gusts may have changed, requiring adjustments to the pumping rhythm.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 

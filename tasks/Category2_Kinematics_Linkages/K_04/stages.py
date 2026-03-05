@@ -29,15 +29,15 @@ def get_k04_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-04: The Pusher task variants.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Ground Friction: The traction and slipperiness of the pushing surface.
- - Center of Mass Offset: The internal mass distribution and balance of the pushed object.
- - Gravity: The magnitude and direction of the gravitational force.
- - Damping: The rate at which the object's momentum and motion are dissipated.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Ground Friction**: The traction and slipperiness of the pushing surface may be altered.
+- **Center of Mass Offset**: The internal mass distribution and balance of the pushed object may have changed.
+- **Gravity**: The magnitude and direction of the gravitational force may differ from standard.
+- **Damping**: The rate at which the object's momentum and motion are dissipated may vary.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

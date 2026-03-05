@@ -35,18 +35,18 @@ def get_f05_curriculum_stages() -> List[Dict[str, Any]]:
     current, lateral impulses, etc.); prompt only gets generic environmental warning.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Wave Dynamics: The amplitude and frequency of primary and secondary wave patterns, affecting vessel roll and heave.
- - Fluid Current: The strength of the water's flow, impacting the vessel's drift and required station-keeping.
- - Stability Coefficients: The restoring torque and angular stiffness of the vessel, determining its ability to self-right after tilting.
- - Lateral Disturbances: The magnitude and timing of impulsive side-forces or wind gusts acting on the structure.
- - Rogue Activity: The presence and intensity of unpredictable, high-amplitude wave events.
- - Cargo Traction: The surface friction of the transported objects, affecting how easily they slide across the deck.
- - Gravity: The acceleration due to the local gravitational field, influencing displacement, weight distribution, and stability.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Wave Dynamics**: The amplitude and frequency of primary and secondary wave patterns may be altered, affecting vessel roll and heave.
+- **Fluid Current**: The strength of the water's flow may vary, impacting the vessel's drift and required station-keeping.
+- **Stability Coefficients**: The restoring torque and angular stiffness of the vessel may have changed, determining its ability to self-right after tilting.
+- **Lateral Disturbances**: The magnitude and timing of impulsive side-forces or wind gusts acting on the structure may be adjusted.
+- **Rogue Activity**: The presence and intensity of unpredictable, high-amplitude wave events may have changed.
+- **Cargo Traction**: The surface friction of the transported objects may differ from standard, affecting how easily they slide across the deck.
+- **Gravity**: The acceleration due to the local gravitational field may be altered, influencing displacement, weight distribution, and stability.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

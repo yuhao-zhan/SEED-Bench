@@ -97,8 +97,8 @@ def build_agent(sandbox):
                 right_joint = joint
 
     sandbox._walker_joints = {
-        : left_joint,
-        : right_joint,
+        'left_joint': left_joint,
+        'right_joint': right_joint,
     }
 
 

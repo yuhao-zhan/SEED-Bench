@@ -54,16 +54,16 @@ def get_k06_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-06: The Wiper task variants.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Particle Count: The total number of particles requiring removal.
- - Particle Distribution: The initial layout and seeding of particles on the surface.
- - Particle Friction: The adhesion and resistance of particles to being moved.
- - Particle Mass: The weight and inertia of the individual particles.
- - Mass Budget: The maximum total mass allowed for the wiper structure.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Particle Count**: The total number of particles requiring removal may be adjusted.
+- **Particle Distribution**: The initial layout and seeding of particles on the surface may have changed.
+- **Particle Friction**: The adhesion and resistance of particles to being moved may be altered.
+- **Particle Mass**: The mass and inertia of the individual particles may differ from standard.
+- **Mass Budget**: The maximum total mass allowed for the wiper structure may be adjusted.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

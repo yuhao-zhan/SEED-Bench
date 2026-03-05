@@ -46,18 +46,18 @@ def get_f06_curriculum_stages() -> List[Dict[str, Any]]:
     55% delivery) should fail in all mutated stages.
     """
     task_description_suffix = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Fluid Viscosity: The internal resistance of the transport medium, affecting how much force is required to move particles through the pipeline.
- - Loss Zone Activation: The presence and effective reach of hazardous regions (pits) where material can be permanently lost.
- - Operational Resource Limit: The total force or energy budget available for particle manipulation during the mission.
- - Target Elevation: The vertical coordinates of the delivery zone, requiring adjustments to particle routing and trajectory.
- - Gravity: The acceleration due to the local gravitational field, influencing the downward pull on all transported material.
- - Atmospheric Resistance: Headwinds or other directional forces acting against the flow of material.
- - Local Field Fluctuations: Deeper gravity wells or localized force gradients that can trap or deflect particles.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Fluid Viscosity**: The internal resistance of the transport medium may be altered, affecting how much force is required to move particles through the pipeline.
+- **Loss Zone Activation**: The presence and effective reach of hazardous regions (pits) where material can be permanently lost may have changed.
+- **Operational Resource Limit**: The total force or energy budget available for particle manipulation during the mission may be adjusted.
+- **Target Elevation**: The vertical coordinates of the delivery zone may differ from standard, requiring adjustments to particle routing and trajectory.
+- **Gravity**: The acceleration due to the local gravitational field may vary, influencing the downward pull on all transported material.
+- **Atmospheric Resistance**: Headwinds or other directional forces acting against the flow of material may be altered.
+- **Local Field Fluctuations**: Deeper gravity wells or localized force gradients that can trap or deflect particles may be present.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {

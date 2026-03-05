@@ -26,15 +26,15 @@ def update_success_criteria_for_visible_changes(
 
 
 _D03_SUFFIX = """
-Environmental Anomalies Detected
+## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - External Track Forces: The magnitude of impulses applied along the track may vary, affecting the cart's acceleration and peak velocity.
- - Ambient Resistance: Increased linear or angular damping across the environment can cause the cart to shed speed more quickly.
- - Deceleration Zone Damping: The resistance within specific slowing zones may have been adjusted, altering how effectively the cart is braked.
- - Gravity: Changes in the gravitational field can affect the effective weight and friction of the cart as it moves.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **External Track Forces**: The magnitude of impulses applied along the track may vary, affecting the cart's acceleration and peak velocity.
+- **Ambient Resistance**: Linear or angular damping across the environment may be altered, causing the cart to shed speed differently.
+- **Deceleration Zone Damping**: The resistance within specific slowing zones may have been adjusted, altering how effectively the cart is braked.
+- **Gravity**: Changes in the gravitational field may affect the effective weight and friction of the cart as it moves.
 
-Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
 
