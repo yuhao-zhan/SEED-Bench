@@ -1,9 +1,4 @@
-"""
-F-04: The Filter task Agent module (feedback-driven variant)
-Reference solution: two-layer sieve, 6 beams (4 upper + 2 lower).
-Zone boundaries: lower y<1.92, middle 1.92<=y<2.52, upper y>=2.52.
-Upper gap 0.22 (block large). Lower gap 0.14 (small pass, medium blocked).
-"""
+
 BAR_WIDTH = 0.08
 GAP_UPPER = 0.22
 GAP_LOWER = 0.14
@@ -22,7 +17,7 @@ NUDGE_FORCE_MEDIUM = 30.0
 
 
 def build_agent(sandbox):
-    """Build two-layer sieve: 4 upper, 2 lower. Total 6 static beams."""
+
     bodies = []
     x = X_START
     for _ in range(N_UPPER):
@@ -46,7 +41,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """Gentle downward nudge to assist settling under wind."""
+
     if step_count % NUDGE_PERIOD != 0:
         return
     for p in sandbox.get_particles_small():

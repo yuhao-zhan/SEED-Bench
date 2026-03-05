@@ -1,13 +1,8 @@
-"""
-S-04: The Balancer task Agent module.
-Refined solutions for high-difficulty mutations using monolithic stabilization.
-"""
+
 import math
 
 def build_agent(sandbox):
-    """
-    Initial environment: Simple balanced beam.
-    """
+
     MAIN_Y = 0.5
     main_beam = sandbox.add_beam(x=0.0, y=MAIN_Y, width=8.0, height=0.4, density=10.0)
     pivot = sandbox._terrain_bodies.get("pivot")
@@ -27,9 +22,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 
 def build_agent_stage_1(sandbox):
-    """
-    Stage 1: Structural Fragility. Monolithic weight.
-    """
+
 
     main_beam = sandbox.add_beam(x=0.0, y=0.0, width=8.0, height=1.0, density=100000.0)
     pivot = sandbox._terrain_bodies.get("pivot")
@@ -44,9 +37,7 @@ def build_agent_stage_1(sandbox):
 def agent_action_stage_1(sandbox, agent_body, step_count): pass
 
 def build_agent_stage_2(sandbox):
-    """
-    Stage 2: Aerodynamic Overturning. Monolithic weight.
-    """
+
 
     main_beam = sandbox.add_beam(x=0.0, y=0.0, width=8.0, height=1.0, density=100000.0)
     pivot = sandbox._terrain_bodies.get("pivot")
@@ -61,9 +52,7 @@ def build_agent_stage_2(sandbox):
 def agent_action_stage_2(sandbox, agent_body, step_count): pass
 
 def build_agent_stage_3(sandbox):
-    """
-    Stage 3: The Labyrinth. Symmetric U-shape for balance.
-    """
+
     pivot = sandbox._terrain_bodies.get("pivot")
 
     base = sandbox.add_beam(x=0.0, y=0.5, width=1.0, height=1.0, density=5000.0)
@@ -96,9 +85,7 @@ def build_agent_stage_3(sandbox):
 def agent_action_stage_3(sandbox, agent_body, step_count): pass
 
 def build_agent_stage_4(sandbox):
-    """
-    Stage 4: Planetary Kinetic Storm.
-    """
+
 
     main_beam = sandbox.add_beam(x=0.0, y=0.0, width=15.0, height=1.0, density=100000.0)
     pivot = sandbox._terrain_bodies.get("pivot")

@@ -1,7 +1,4 @@
-"""
-F-03: The Excavator — agent module.
-Optimized for higher particle collection: minimal scoop size and torque adjustments.
-"""
+
 import math
 
 BASE_X = -2.0
@@ -16,10 +13,7 @@ _bucket_joint = None
 
 
 def build_agent(sandbox):
-    """
-    Build excavator per user spec: fixed base at (-2, 0), Arm + Bucket (2 DOF).
-    Arm: revolute at base. Bucket: revolute at end of arm.
-    """
+
     global _arm_joint, _bucket_joint
 
     base = sandbox.add_anchored_base(BASE_X, BASE_Y, 0.4, 0.2, angle=0, density=400.0)
@@ -43,10 +37,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Control arm and bucket motors: wall-clearing path (lift high before swing), then dump into valid zone.
-    Central wall at x=0, y in [0, 2.2]: arm must be above 2.2 when crossing x=0 -> lift to ~1.25 rad first.
-    """
+
     global _arm_joint, _bucket_joint
     if agent_body is None or not agent_body.active:
         return

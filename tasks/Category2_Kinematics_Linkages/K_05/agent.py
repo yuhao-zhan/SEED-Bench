@@ -1,8 +1,4 @@
-"""
-K-05: The Lifter task Agent module
-架子从低处建：平台初始 ~8.0m（明显低于红线 9m），电机展开升到 9m 并保持 3s，
-GIF 里能看到架子从下方向红线上升的过程。
-"""
+
 import math
 
 
@@ -35,9 +31,7 @@ def _arm_center_angle_len(px, py, cx, cy):
 
 
 def build_agent(sandbox):
-    """
-    Build 4-stage scissor with top platform ~8.5m（低于红线 9m），短稳后立即升到 9m，GIF 里可见明显上升过程。
-    """
+
     base = sandbox.add_beam(
         x=CENTER_X, y=BASE_Y + 0.05,
         width=PLATFORM_W, height=0.22,
@@ -93,7 +87,7 @@ def build_agent(sandbox):
 SETTLE_STEPS = 30
 
 def agent_action(sandbox, agent_body, step_count):
-    """架子从 ~8.5m 展开升到 9m 再保持 3s（GIF 里明显从低到红线）。"""
+
     if not hasattr(sandbox, '_lifter_motor_joints'):
         return
     if step_count < SETTLE_STEPS:

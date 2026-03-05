@@ -1,14 +1,9 @@
-"""
-K-01: The Walker task Agent module
-Reference solution: Stable walker with rotating leg wheels
-"""
+
 import math
 
 
 def build_agent(sandbox):
-    """
-    Build a stable walker with rotating leg wheels that can move forward.
-    """
+
 
     start_x = 10.0
     start_y = 4.5
@@ -102,8 +97,8 @@ def build_agent(sandbox):
                 right_joint = joint
 
     sandbox._walker_joints = {
-        'left_wheel': left_joint,
-        'right_wheel': right_joint,
+        : left_joint,
+        : right_joint,
     }
 
 

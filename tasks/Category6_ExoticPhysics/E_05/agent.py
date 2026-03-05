@@ -1,10 +1,4 @@
-"""
-E-05: The Magnet task agent module.
-Reference solution: dual-gate timing + oscillating keyhole.
 
-Strategy: ascend → gate1 (wait weak) → wait for gate2 weak → gate2 → traverse →
-         keyhole (wait weak) → target.
-"""
 import math
 
 TARGET_X_MIN = 28.0

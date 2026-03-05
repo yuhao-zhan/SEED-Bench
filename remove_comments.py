@@ -11,6 +11,7 @@ def remove_comments_from_file(file_path):
     
     last_lineno = -1
     last_col = 0
+    last_tok_type = tokenize.INDENT
     
     out = ""
     try:
@@ -24,9 +25,21 @@ def remove_comments_from_file(file_path):
                 
             if tok_type == tokenize.COMMENT:
                 pass # Skip comment token
+            elif tok_type == tokenize.STRING:
+                # Check if it's a docstring: usually it's a string token that stands alone on a line
+                # or is the first thing after a function/class definition.
+                # A simple heuristic for "removing all docstrings" is to check the context, 
+                # but since the user wants "all comments" including those in triple quotes,
+                # we'll skip strings that aren't being assigned to anything.
+                # In tokenize, docstrings are just STRING tokens.
+                if last_tok_type in (tokenize.INDENT, tokenize.NEWLINE, tokenize.NL):
+                    pass
+                else:
+                    out += tok_string
             else:
                 out += tok_string
                 
+            last_tok_type = tok_type
             last_lineno = end_line
             last_col = end_col
     except tokenize.TokenError as e:

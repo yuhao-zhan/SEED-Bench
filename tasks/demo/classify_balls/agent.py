@@ -1,17 +1,8 @@
-"""
-ClassifyBalls task Agent module
-Strategy: Use sensor + delay + piston to push red balls right
-"""
+
 
 
 def build_agent(sandbox):
-    """
-    Build ball classification device
 
-    Strategy:
-    - Blue balls naturally fall into blue bin (x=1.0, width=2.0) - NO ACTION NEEDED
-    - Red balls need push right to reach red bin (x=4.5, width=2.0, range 3.5-5.5)
-    """
 
     sensor = sandbox.add_raycast_sensor(
         origin=(-0.5, 5.35),
@@ -46,21 +37,15 @@ def build_agent(sandbox):
     wire = sandbox.add_wire(source=delay, target=piston)
 
     return {
-        'sensor': sensor,
-        'piston': piston,
-        'delay': delay,
-        'wire': wire
+        : sensor,
+        : piston,
+        : delay,
+        : wire
     }
 
 
 def agent_action(sandbox, agent_components, step_count):
-    """
-    Agent action: Update delay input
-    CRITICAL: Only activate piston for RED balls, NOT for BLUE balls
-    - When RED ball detected: Set delay input to True (will trigger piston after delay)
-    - When BLUE ball detected: Set delay input to False (piston stays retracted)
-    - When no ball detected: Keep previous state (don't change)
-    """
+
     sensor = agent_components['sensor']
     delay = agent_components['delay']
 

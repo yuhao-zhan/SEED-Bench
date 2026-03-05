@@ -1,16 +1,9 @@
-"""
-D-02: The Jumper task Agent module (slots: trajectory must pass through narrow gaps between lower and upper red bars)
-Reference: impulse (vx, vy) so trajectory passes through all three slots and lands on right platform.
-Tuned: (10, 15.9) passes slot 1 (x~17), slot 3 (x~19), slot 2 (x~21) and lands x>=26.
-"""
+
 import math
 
 
 def build_agent(sandbox):
-    """
-    Build a minimal launcher pad and return the jumper. Launch via impulse in agent_action.
-    Trajectory must pass through all three narrow slots (between lower and upper red bars) and land at x>=26.
-    """
+
     jumper = sandbox.get_jumper()
     if jumper is None:
         raise ValueError("Jumper not found in environment")
@@ -36,10 +29,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Apply impulse on first step. Trajectory must pass through all three slots (center inside floor+margin to ceil-margin).
-    (10, 15.65): at x=17 y~13.7, x=19 y~13.2, x=21 y~12.1; lands x>=26.
-    """
+
     if step_count != 0:
         return
     vx, vy = 10.0, 15.9

@@ -1,7 +1,4 @@
-"""
-C-05: Timed Gate + State-Dependent Triggers. Reference agent.
-Waits BARRIER_DELAY_STEPS after A before moving to B (timed gate); goes to B (elevated) so C accepts (high-path).
-"""
+
 import math
 
 

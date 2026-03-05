@@ -1,22 +1,9 @@
-"""
-E-04: Variable Mass task agent module (hard variant).
-Reference solution: survives spatial-phase mass variation + 2D base excitation + fatigue,
-with span requirement and at least one revolute joint.
-Strategy: span [6, 14] with outriggers; one pivot at symmetric center; many light beams/joints.
-"""
+
 import math
 
 
 def build_agent(sandbox):
-    """
-    Build a structure that survives:
-    - Mass variation with position-dependent phase (internal forces between beams)
-    - 2D base excitation (support moves in horizontal and vertical)
-    - Joint fatigue (effective limits decay over time)
-    - Span: at least one beam center x <= 6, one >= 14
-    - At least one pivot (revolute) joint; rest rigid.
-    Keep forces/torques very low: many joints, very light, low profile.
-    """
+
     ground_top = sandbox.get_ground_y_top()
     x_min, x_max, _, _ = sandbox.get_build_zone()
     span_left, span_right = sandbox.get_span_bounds()
@@ -89,7 +76,7 @@ def build_agent(sandbox):
     mass_limit = sandbox.get_structure_mass_limit()
     if total_mass > mass_limit:
         raise ValueError(
-            "Structure mass {:.2f} kg exceeds limit {} kg".format(total_mass, mass_limit)
+            .format(total_mass, mass_limit)
         )
     n_bodies = len(sandbox.bodies)
     n_joints = len(sandbox.joints)
@@ -103,5 +90,5 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """No per-step action required for E-04 (purely structural)."""
+
     pass

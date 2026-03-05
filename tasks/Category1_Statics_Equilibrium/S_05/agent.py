@@ -1,6 +1,4 @@
-"""
-S-05: The Shelter task Agent module
-"""
+
 
 import math
 

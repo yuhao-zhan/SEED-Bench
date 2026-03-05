@@ -1,8 +1,4 @@
-"""
-E-03: Slippery World task agent module (hard v3).
-Reference solution: A -> B -> final; thrust-scale zone (2x thrust), oscillating Fx compensation.
-Zone bounds discoverable via feedback; ref uses known values.
-"""
+
 import math
 
 
@@ -66,11 +62,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Phase 1: Climb to A.
-    Phase 2: After A, aim for B (in reverse zone); 2x thrust in thrust-scale zone; compensate oscillating Fx.
-    Phase 3: After B, aim for final; speed penalty, vert reverse, brake.
-    """
+
     pos = sandbox.get_sled_position()
     if pos is None:
         return

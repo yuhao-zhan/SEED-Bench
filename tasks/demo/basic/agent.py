@@ -1,22 +1,14 @@
-"""
-Basic task Agent module
-Contains Agent construction logic and control logic
-"""
+
 import math
 
 
 def build_agent(sandbox):
-    """
-    Standard entry point for the benchmark.
-    Uses build_agent_raw as the default.
-    """
+
     return build_agent_raw(sandbox)
 
 
 def build_agent_raw(sandbox):
-    """
-    Minimal design: chassis + 2 wheels + 2 motors
-    """
+
     GROUND_TOP = 1.0
     WHEEL_RADIUS = 1.5
     wheel_y = GROUND_TOP + WHEEL_RADIUS
@@ -32,10 +24,7 @@ def build_agent_raw(sandbox):
 
 
 def build_agent_ice_world(sandbox):
-    """
-    Stage-1: The Ice World - Low friction (0.1)
-    Solution: Larger wheels for better obstacle clearance, wide wheelbase, safe speed
-    """
+
     GROUND_TOP = 1.0
     WHEEL_RADIUS = 1.8
     wheel_y = GROUND_TOP + WHEEL_RADIUS
@@ -54,10 +43,7 @@ def build_agent_ice_world(sandbox):
 
 
 def build_agent_steep_canyon(sandbox):
-    """
-    Stage-2: The Steep Canyon - Extreme obstacle angles
-    Solution: Maximum wheels + ultra-low chassis + asymmetric weight + dynamic speed control
-    """
+
     GROUND_TOP = 1.0
     WHEEL_RADIUS = 2.0
     wheel_y = GROUND_TOP + WHEEL_RADIUS
@@ -79,11 +65,7 @@ def build_agent_steep_canyon(sandbox):
 
 
 def build_agent_mud_pit(sandbox):
-    """
-    Stage-3: The Mud Pit - Moderate damping (2.0, reduced from 5.0)
-    Physics-based solution: Symmetric design with optimized speed control
-    Key insight: Lower damping allows faster speeds, but still need to slow on obstacles
-    """
+
     GROUND_TOP = 1.0
     WHEEL_RADIUS = 1.8
     wheel_y = GROUND_TOP + WHEEL_RADIUS
@@ -105,10 +87,7 @@ def build_agent_mud_pit(sandbox):
 
 
 def build_agent_heavy_planet(sandbox):
-    """
-    Stage-4: The Heavy Planet - High gravity (-30.0)
-    Solution: Reduce density significantly, slower speed to prevent rotation, maximum torque
-    """
+
     GROUND_TOP = 1.0
     WHEEL_RADIUS = 1.5
     wheel_y = GROUND_TOP + WHEEL_RADIUS
@@ -125,24 +104,7 @@ def build_agent_heavy_planet(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Agent control logic - called by simulation loop at each step
 
-    For Stage-2 (Steep Canyon): Dynamic speed/torque control based on position
-    - Phase 1 (x < 15): High speed + high torque - overcome first obstacle
-    - Phase 2 (15 < x < 20): Maximum torque - climb steep upward slope (40°)
-    - Phase 3 (20 < x < 25): Reduce speed - prepare for steep descent
-    - Phase 4 (x > 25): Very low speed - prevent flip on -46° descent
-
-    For Stage-3 (Mud Pit): Dynamic speed control to prevent rotation at obstacles
-    - Phase 1 (x < 13): High speed - overcome damping on flat ground
-    - Phase 2 (13 < x < 18): Low speed - approach and pass first obstacle safely
-    - Phase 3 (18 < x < 23): Moderate speed - between obstacles
-    - Phase 4 (23 < x < 28): Low speed - approach and pass second obstacle safely
-    - Phase 5 (x > 28): High speed - final push to target
-
-    For other stages (raw, ice_world, etc.): No-op (purely passive control)
-    """
 
     if hasattr(sandbox, '_front_joint') and hasattr(sandbox, '_rear_joint'):
 

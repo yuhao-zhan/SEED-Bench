@@ -1,7 +1,4 @@
-"""
-K-04: The Pusher task Agent module
-Reference solution: Low-center-of-gravity heavy pusher.
-"""
+
 import math
 
 GROUND_TOP = 1.0

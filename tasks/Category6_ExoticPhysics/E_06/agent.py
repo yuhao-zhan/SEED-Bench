@@ -1,17 +1,9 @@
-"""
-E-06: Cantilever Endurance task agent module.
-Reference: Single ground anchor; structure bypasses forbidden build zone
-(no beam center in [9.7, 10.3]); top/bottom chords and diagonals for
-moment resistance under distance-scaled, moment-dominant excitation.
-"""
+
 import math
 
 
 def build_agent(sandbox):
-    """
-    Cantilever truss: one ground anchor; span to x=15 avoiding forbidden zone.
-    Top/bottom chords and diagonals for moment and shear.
-    """
+
     x_min, x_max, _, _ = sandbox.get_build_zone()
     support_lo, support_hi = 5.0, 6.5
     bw, bh = 0.32, 0.2

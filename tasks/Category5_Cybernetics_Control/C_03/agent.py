@@ -1,11 +1,4 @@
-"""
-C-03: The Seeker reference agent (Two Rendezvous then Track)
-- Body-fixed: thrust is along current heading only; command (fx, fy) toward target so heading aligns and thrust is effective.
-- Phase 0 (activation): go to activation zone center and hold for 120+ consecutive steps.
-- Phase 1: achieve first rendezvous in window 1 [3500, 5000].
-- Phase 2: achieve second rendezvous in window 2 [6000, 7500].
-- Phase 3: track until end. Avoid cooldown; match velocity before closing; fuel-efficient.
-"""
+
 import math
 
 TIME_STEP = 1.0 / 60.0

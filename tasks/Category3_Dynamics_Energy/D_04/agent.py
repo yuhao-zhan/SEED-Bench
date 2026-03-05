@@ -1,7 +1,4 @@
-"""
-D-04: The Swing task Agent module
-Pumping strategy for parametric resonance.
-"""
+
 import math
 
 def build_agent(sandbox):

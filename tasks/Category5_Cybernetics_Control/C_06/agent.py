@@ -1,10 +1,4 @@
-"""
-C-06: The Governor task Agent module (hard variant v2)
-Reference solution: delay compensation (predict current omega from delayed measurement),
-anti-windup, speed-dependent feedforward + P + I, max torque at very low speed.
-Handles: nonlinear load, step load, periodic disturbances, stiction,
-speed-dependent torque limit, delayed measurement, time-varying target.
-"""
+
 
 
 DELAY_EST = 5
@@ -29,15 +23,12 @@ _angle_est = 0.0
 
 
 def build_agent(sandbox):
-    """Return the wheel body."""
+
     return sandbox.get_wheel_body()
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Governor control: delay comp, anti-windup, ff + P + I, low-speed max,
-    cogging compensation (angle_est from integrated omega), deadzone overcoming.
-    """
+
     global _integral, _omega_d_prev, _angle_est
     import math
     omega_d = sandbox.get_wheel_angular_velocity()

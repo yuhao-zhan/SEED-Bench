@@ -1,17 +1,9 @@
-"""
-D-01: The Launcher task Agent module
-Reference solution: pivot right of ball; arm tip left of ball; single strong spring
-so trajectory reaches y in [2,5] when x in [40,45]. Success = projectile center inside red zone.
-"""
+
 import math
 
 
 def build_agent(sandbox):
-    """
-    Pivot at (12, 1), tip at (9.5, 2.8). One strong spring (max stiffness, short rest)
-    so arc reaches red zone [40,45] x [2,5] without overshooting.
-    Returns projectile for camera.
-    """
+
     ground = sandbox.get_ground()
     projectile = sandbox.get_projectile()
     if not ground or not projectile:

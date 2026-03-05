@@ -1,17 +1,9 @@
-"""
-E-01: Inverted Gravity task agent module (hard variant: obstacles + two forbidden zones + beam limit).
-Reference solution: two pillars 3 beams each (x=12, x=26), split bridge, vertical connectors
-height 3 (center 15.5, clear of second forbidden band at y=15.9–16.1), top connector at y=17; 11 beams.
-"""
+
 
 
 
 def build_agent(sandbox):
-    """
-    Build a structure that avoids all obstacles, no beam center in any forbidden zone,
-    and uses at most 12 beams. Second forbidden band blocks y≈16; use verticals with
-    center 15.5 (clear) and top connector at y=17.
-    """
+
     _, _, arena_y_min, arena_y_max = sandbox.get_arena_bounds()
     x_left = 12.0
     x_right = 26.0
@@ -63,5 +55,5 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """No per-step control needed; structure is purely passive."""
+
     pass

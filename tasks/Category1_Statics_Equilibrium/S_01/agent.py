@@ -1,14 +1,8 @@
-"""
-S-01: The Bridge task Agent module
-Reference solution: Robust truss bridge designs for high-difficulty stages.
-"""
+
 import math
 
 def build_truss(sandbox, start_x, end_x, top_y, bottom_y, num_panels, deck_density=50.0, truss_density=20.0, joint_type='rigid'):
-    """
-    Helper to build a robust Warren-style truss bridge.
-    Using higher densities for better stability with the 2000kg vehicle.
-    """
+
     gap_width = end_x - start_x
     panel_width = gap_width / num_panels
     deck_height = 0.4
@@ -80,7 +74,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 
 def build_agent_stage_1(sandbox):
-    """Stage-1: Fragile Anchor Points (max_force: 15.0, max_torque: 50.0)"""
+
     L_X, R_X = 10.0, 25.0
 
     deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 9.8, 7.5, 6, deck_density=30.0, truss_density=15.0, joint_type='rigid')
@@ -92,7 +86,7 @@ def build_agent_stage_1(sandbox):
     return deck[0]
 
 def build_agent_stage_2(sandbox):
-    """Stage-2: Low Torque Resilience (max_torque: 30.0)"""
+
     L_X, R_X = 10.0, 25.0
 
     deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 9.8, 7.5, 8, deck_density=30.0, truss_density=15.0, joint_type='rigid')
@@ -104,7 +98,7 @@ def build_agent_stage_2(sandbox):
     return deck[0]
 
 def build_agent_stage_3(sandbox):
-    """Stage-3: High gravity (-15), wind (-5N), mass limit (1000kg)"""
+
     L_X, R_X = 10.0, 25.0
 
     deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 9.8, 7.0, 8, deck_density=50.0, truss_density=20.0, joint_type='rigid')
@@ -116,7 +110,7 @@ def build_agent_stage_3(sandbox):
     return deck[0]
 
 def build_agent_stage_4(sandbox):
-    """Stage-4: Gap 25m, Gravity -20, Low mass limit (1000kg)"""
+
     L_X, R_X = 10.0, 35.0
 
     deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 10.0, 6.5, 12, deck_density=32.0, truss_density=12.0, joint_type='rigid')

@@ -1,18 +1,11 @@
-"""
-D-06: The Catch — deflector cooperation, ball-ball coupling, order constraint.
-Center is blocked by deflector; left + right coverage only.
-6 beams, ~10 kg. Must anchor to ground.
-"""
+
 import math
 
 GROUND_TOP = 0.5
 
 
 def build_agent(sandbox):
-    """
-    Center [8.22, 8.55] is forbidden (deflector blocks). Use left [7, 7.18] and right [9.5, 10], [10.5, 11].
-    Low restitution for fast absorption — each ball caught before next arrives.
-    """
+
     density = 0.05
     pillar_w = 0.1
     rest = 0.0

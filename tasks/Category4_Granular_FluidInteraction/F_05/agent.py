@@ -1,7 +1,4 @@
-"""
-F-05: The Boat task Agent (EXTREME mode)
-Reference: 60 kg budget, 10 cargo, y≥2.0, angle≤18°, 4 rocks + current + rogue double-hit + lateral gusts.
-"""
+
 BOAT_LEFT_X = 13.5
 BOAT_RIGHT_X = 16.5
 BOAT_TOP_Y = 2.7
@@ -10,10 +7,7 @@ RAIL_WIDTH = 0.2
 
 
 def build_agent(sandbox):
-    """
-    Extreme: 60 kg, 10 cargo, y≥2.0, 18°, 4 rocks, current, rogue double-hit, lateral gusts.
-    Strategy: heavy ballast for 18° stability, compact rails + front/back barriers, all under 60 kg.
-    """
+
     bodies = []
 
 
@@ -61,5 +55,5 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """No active control; structure is passive."""
+
     pass

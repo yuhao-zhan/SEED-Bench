@@ -1,14 +1,9 @@
-"""
-K-02: The Climber task Agent module
-Reference solution: Climber with suction pads (stick to wall) + rotating legs (push up)
-"""
+
 import math
 
 
 def build_agent(sandbox):
-    """
-    Build a climber using suction pads (add_pad) to stick to the wall and rotating legs to push up.
-    """
+
     wall_x = 5.0
     start_x = 4.25
     start_y = 2.2
@@ -112,8 +107,8 @@ def build_agent(sandbox):
                 lower_joint = joint
 
     sandbox._climber_joints = {
-        'upper': upper_joint,
-        'lower': lower_joint,
+        : upper_joint,
+        : lower_joint,
     }
 
 
@@ -127,9 +122,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Agent control: keep pads active (stick to wall) and rotate legs to push upward.
-    """
+
 
     if hasattr(sandbox, '_climber_pads'):
         for pad in sandbox._climber_pads:

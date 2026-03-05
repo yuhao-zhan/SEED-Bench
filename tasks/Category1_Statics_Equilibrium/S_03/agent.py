@@ -1,11 +1,8 @@
-"""
-S-03: The Cantilever task Agent module.
-Reference solutions for high-difficulty mutations.
-"""
+
 import math
 
 def build_agent(sandbox):
-    """Initial environment: 12m reach, no obstacles. Simple truss."""
+
     target_reach = 13.5
     structure_y = 10.0
     WALL_X = 0.0
@@ -48,7 +45,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 
 def build_agent_stage_1(sandbox):
-    """Stage 1: The Slalom Tunnel. Reach 25m at y=7.0. Stiff truss."""
+
     target_reach = 28.5
     structure_y = 7.0
     WALL_X = 0.0
@@ -89,7 +86,7 @@ def agent_action_stage_1(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_2(sandbox):
-    """Stage 2: Impact Resilience. Even beefier double truss."""
+
     target_reach = 28.5
     structure_y = 5.0
     WALL_X = 0.0
@@ -133,7 +130,7 @@ def agent_action_stage_2(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_3(sandbox):
-    """Stage 3: The Weak Foundation. Massive truss."""
+
     target_reach = 31.0
     WALL_X = 0.0
     y_top_wall = 4.5
@@ -178,7 +175,7 @@ def agent_action_stage_3(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_4(sandbox):
-    """Stage 4: The Perfect Storm. Ultra-beefy."""
+
     target_reach = 38.5
     WALL_X = 0.0
     y_top_wall = 4.8

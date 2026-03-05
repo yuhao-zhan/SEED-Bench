@@ -1,7 +1,4 @@
-"""
-F-02: The Amphibian task Agent module (hard variant: 3-step cooldown, 3 pillars, headwind burst)
-Reference solution: 9-paddle raft (cooldown 3 gives 3 thrust per step), lift over three pillars.
-"""
+
 import math
 
 THRUST_PER_BODY = 520.0
@@ -16,10 +13,7 @@ LIFT_FX = 400.0
 
 
 def build_agent(sandbox):
-    """
-    Build a 9-paddle raft: 9 beams in a row (with 3-step cooldown, 3 thrust each step = 1560 N).
-    Light density, welded. Mass < 600 kg.
-    """
+
     beam_w = 0.62
     beam_h = 0.35
     density = 55.0
@@ -44,10 +38,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Apply thrust to all 9 bodies (env cooldown 3 gives 3 thrust per step).
-    Near pillars (three zones), apply lift to rise over. Brake at target.
-    """
+
     if agent_body is None or not agent_body.active:
         return
     front_x = sandbox.get_vehicle_front_x() or agent_body.position.x

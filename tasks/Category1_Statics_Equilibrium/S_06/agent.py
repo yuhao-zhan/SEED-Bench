@@ -1,11 +1,8 @@
-"""
-S-06: The Overhang task Agent module
-Highly robust reference solutions for refined difficulty progression tasks.
-"""
+
 import math
 
 def build_agent(sandbox):
-    """Initial Baseline: Standard cantilever."""
+
 
     sandbox.add_block(-1.0, 0.2, 4.0, 0.4)
     return None
@@ -14,7 +11,7 @@ def agent_action(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_1(sandbox):
-    """Stage 1: The Slick Anchor. Friction 0.05, Spawn x < -1.2, reach 0.8."""
+
 
     sandbox.add_block(-1.2, 0.2, 4.0, 0.4)
 
@@ -26,7 +23,7 @@ def agent_action_stage_1(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_2(sandbox):
-    """Stage 2: The Inclined Gale. Tilt -10, Spawn x < -0.8, reach 1.2."""
+
 
     sandbox.add_block(-0.8, 0.2, 4.0, 0.4)
 
@@ -38,7 +35,7 @@ def agent_action_stage_2(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_3(sandbox):
-    """Stage 3: The Seismic Squeeze. Oscillation, Wind 20, Spawn x < -0.5, reach 1.5."""
+
 
     d = 200.0
 
@@ -54,7 +51,7 @@ def agent_action_stage_3(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_4(sandbox):
-    """Stage 4: The Titan's Overhang. Gravity 60, Wind 30, Friction 0.02, Ceiling 0.5, Spawn x < -0.2, reach 1.8."""
+
 
     h = 0.1
 

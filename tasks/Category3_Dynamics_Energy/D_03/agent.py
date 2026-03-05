@@ -1,7 +1,4 @@
-"""
-D-03: Phase-Locked Gate — reference solution.
-Reduced mass to increase deceleration and pass velocity profile at x=11.
-"""
+
 import math
 
 

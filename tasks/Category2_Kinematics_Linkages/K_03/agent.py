@@ -1,9 +1,4 @@
-"""
-K-03: The Gripper task — REFERENCE AGENT (for testing only).
 
-Vertical gripper: base fixed on gantry, slider moves straight up/down (no rotation),
-wrist + two fingers at bottom of slider for grasp. Sequence: lower → grasp → lift.
-"""
 import math
 import Box2D
 
@@ -13,10 +8,7 @@ GANTRY_Y = 10.0
 
 
 def build_agent(sandbox):
-    """
-    Reference gripper: base on gantry, vertical slider (prismatic), wrist + two fingers.
-    No rotating arm — only vertical伸缩 (up/down).
-    """
+
     gantry = sandbox.get_anchor_for_gripper()
     if gantry is None:
         raise ValueError("Gantry anchor not found. Use get_anchor_for_gripper() to attach base.")
@@ -78,9 +70,9 @@ def build_agent(sandbox):
             right_finger_joint = joint
 
     sandbox._gripper_joints = {
-        'slider': slider_joint,
-        'left_finger': left_finger_joint,
-        'right_finger': right_finger_joint,
+        : slider_joint,
+        : left_finger_joint,
+        : right_finger_joint,
     }
 
     total_mass = sandbox.get_structure_mass()
@@ -91,9 +83,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Lower → grasp → lift.
-    """
+
     if not hasattr(sandbox, '_gripper_joints'):
         return
     joints = sandbox._gripper_joints

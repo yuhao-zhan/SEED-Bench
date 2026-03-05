@@ -1,8 +1,4 @@
-"""
-D-05: The Hammer — LATE safe window: bar at bottom only at step ~409. Must WAIT, then three-phase swing.
-Not "one hit": hammer idle ~380 steps, then timed swing to pass slot at 409 and break shell.
-Reference: pivot (12, 7.5); phase1 step 380 omega 26; phase2 step 398 omega 2.2; phase3 step 408 omega 12.
-"""
+
 import math
 
 

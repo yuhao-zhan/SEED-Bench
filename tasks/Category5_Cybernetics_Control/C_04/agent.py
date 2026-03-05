@@ -1,7 +1,4 @@
-"""
-C-04: Counterintuitive unlock (backward force + low speed for 20 steps) + one-way + hold 60 steps.
-Velocity sensor returns (0,0); control uses position and step_count; velocity estimated from position if needed.
-"""
+
 import math
 
 DT = 1.0 / 60.0
@@ -56,10 +53,7 @@ def build_agent(sandbox):
 
 
 def agent_action(sandbox, agent_body, step_count):
-    """
-    Phase 1: counterintuitive unlock — apply backward force while staying slow for 20+ steps.
-    Phase 2: navigate to exit, then hold in exit 60 steps.
-    """
+
     x, y = sandbox.get_agent_position()
     front, left, right = sandbox.get_whisker_readings()
     vx_est, vy_est = _estimate_velocity(x, y, step_count)

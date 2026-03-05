@@ -1,8 +1,4 @@
-"""
-C-02: The Lander task Agent (hard variant: obstacle + partial observability + moving platform)
-- Optimized for fuel efficiency: less aggressive climb and horizontal move.
-- Suicide burn logic: let it fall faster at high altitude, slow down late.
-"""
+
 import math
 
 DT = 1.0 / 60.0

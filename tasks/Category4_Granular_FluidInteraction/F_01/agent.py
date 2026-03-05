@@ -1,17 +1,8 @@
-"""
-F-01: The Dam task Agent module (three-strip bridge variant)
-Reference: ONE connected structure using all THREE strips — left column (8 beams), ONE middle
-bridge beam (x=[12.9,13.1]), right column (2 beams). Two cross-joints: left–middle and middle–right.
-At most 11 beam-to-beam joints; min 3 beams per band; middle strip at most 1 beam; right strip at most 2; leakage <= 0.1%.
-"""
+
 
 
 def build_agent(sandbox):
-    """
-    Build one connected dam: left column (8 beams), one middle bridge beam, right column (2 beams).
-    Joints: 7 (left) + 1 (right) + 2 (left–middle, middle–right) = 10 <= 11.
-    Bands: [0.5,2.5] and [2.5,5] get 3 left + 1 right each; [5,7.5] gets 2 left + 1 middle.
-    """
+
     x_left = 12.5
     x_middle = 13.0
     x_right = 13.5

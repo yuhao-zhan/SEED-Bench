@@ -1,15 +1,9 @@
-"""
-S-02: The Skyscraper task Agent module
-Overhauled reference solutions for high-difficulty mutated stages.
-Each solution is tailored to specific physical challenges (torque limits, resonance, etc.)
-"""
+
 import math
 
 def build_advanced_tower(sandbox, levels=25, base_w=4.0, beam_h=1.5, base_density=200.0, top_density=5.0,
                          taper_rate=0.8, density_taper=0.95, tmd_params=None):
-    """
-    Core building logic for high-difficulty towers.
-    """
+
     foundation_y = 1.0
     foundation = sandbox._terrain_bodies.get("foundation")
 
@@ -67,19 +61,13 @@ def agent_action(sandbox, agent_body, step_count):
 
 
 def build_agent_stage_1(sandbox):
-    """
-    Stage-1: The Brittle Foundation (max_joint_torque: 1200.0).
-    Strategy: Ultra-light upper levels and wide base to minimize leverage.
-    """
+
     return build_advanced_tower(sandbox, levels=28, base_w=11.5,
                                base_density=50.0, top_density=1.0,
                                taper_rate=0.5, density_taper=0.4)
 
 def build_agent_stage_2(sandbox):
-    """
-    Stage-2: Atmospheric Resonance (wind_oscillation: 5.0).
-    Strategy: Very slender top, robust TMD, and more levels to reach height.
-    """
+
     tmd = {'size': (1.2, 1.2), 'density': 300.0, 'stiffness': 15.0, 'damping': 1.0}
     return build_advanced_tower(sandbox, levels=32, base_w=10.0,
                                base_density=400.0, top_density=0.01,
@@ -87,20 +75,14 @@ def build_agent_stage_2(sandbox):
                                tmd_params=tmd)
 
 def build_agent_stage_3(sandbox):
-    """
-    Stage-3: Seismic Amplification (evolution: 0.3).
-    Strategy: Very low center of mass (heavy base) and robust TMD to absorb growing energy.
-    """
+
     tmd = {'size': (1.2, 1.2), 'density': 400.0, 'stiffness': 15.0, 'damping': 1.0}
     return build_advanced_tower(sandbox, levels=28, base_w=11.5,
                                base_density=400.0, top_density=0.01,
                                tmd_params=tmd)
 
 def build_agent_stage_4(sandbox):
-    """
-    Stage-4: The Gravity Well Collapse (gravity: -25.0).
-    Strategy: Extreme density taper and ultra-light top to minimize self-weight stress.
-    """
+
     tmd = {'size': (0.8, 0.8), 'density': 400.0, 'stiffness': 15.0, 'damping': 1.0}
     return build_advanced_tower(sandbox, levels=28, base_w=11.8,
                                base_density=600.0, top_density=0.1,

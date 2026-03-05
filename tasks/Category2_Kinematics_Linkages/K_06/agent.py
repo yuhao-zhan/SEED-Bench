@@ -1,8 +1,4 @@
-"""
-K-06: The Wiper task Agent module
-Center-pinned bar on glass; motor oscillates to sweep.
-6 segments (12m) for full coverage [1,12]; high bar friction for 100% particle removal.
-"""
+
 GLASS_Y = 2.0
 CENTER_X = 6.0
 GROUND_Y = 2.06
@@ -13,9 +9,7 @@ DENSITY = 0.08
 BAR_FRICTION = 0.55
 
 def build_agent(sandbox):
-    """
-    Center-pinned bar; 6 segments to cover [1,12]; strong motor for 100% cleaning.
-    """
+
     base = sandbox.add_beam(x=CENTER_X, y=GROUND_Y, width=0.5, height=0.12, angle=0, density=1.0)
     sandbox.set_material_properties(base, restitution=0.0, friction=0.5)
     if hasattr(sandbox, 'weld_to_glass'):

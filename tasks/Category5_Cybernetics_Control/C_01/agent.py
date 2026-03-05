@@ -1,9 +1,4 @@
-"""
-C-01: Cart-Pole Swing-up then Balance reference agent.
-Phase 1 (swing-up): when |angle| > threshold, use energy-based forcing to pump energy.
-Phase 2 (balance): when |angle| < threshold, use PD to hold upright.
-Delay and rate limit handled; position term keeps cart in safe zone.
-"""
+
 import math
 
 DT = 1.0 / 60.0

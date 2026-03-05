@@ -1,7 +1,4 @@
-"""
-F-06: The Pipeline task Agent module.
-Reference solution: Push all particles toward target; avoid pits by lifting when near; 55% delivery.
-"""
+
 import math
 
 
@@ -22,7 +19,7 @@ PUSH_TARGET_Y = 0.75
 
 
 def build_agent(sandbox):
-    """Minimal structure."""
+
     b = sandbox.add_beam(6.0, 5.5, 0.2, 0.2, angle=0, density=140.0)
     sandbox.set_material_properties(b, restitution=0.05)
     sandbox.add_joint(b, None, (6.0, 0.0), type='rigid')
@@ -30,7 +27,7 @@ def build_agent(sandbox):
 
 
 def _priority(p):
-    """Target first (hold), then push others toward (20, 6)."""
+
     x, y = p.position.x, p.position.y
     if TARGET_X_LO <= x <= TARGET_X_HI and TARGET_Y_LO <= y <= TARGET_Y_HI:
         return (0, 0)

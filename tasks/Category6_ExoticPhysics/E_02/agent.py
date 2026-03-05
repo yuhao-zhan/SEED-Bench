@@ -1,8 +1,4 @@
-"""
-E-02: Thick Air (Hard) — reference agent.
-Passes through gates, overcomes momentum-drain, slippery, and oscillating-wind zones,
-reaches target without overheating. Uses waypoints and zone-specific thrust.
-"""
+
 import math
 
 
@@ -33,7 +29,7 @@ def build_agent(sandbox):
 
 
 def _waypoint(x, y):
-    """Next waypoint: gate1 -> gate2 -> target. Switch before reaching waypoint to avoid stall."""
+
     if x < G1_X - 0.1:
         return (G1_X, G1_Y)
     if x < G2_X - 0.1:
