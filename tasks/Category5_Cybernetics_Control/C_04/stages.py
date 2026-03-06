@@ -14,9 +14,23 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update task description for visible changes."""
-    return base_description
+def update_task_description_for_visible_changes(base_description: str, target_physics_config: Dict[str, Any], base_physics_config: Dict[str, Any]) -> str:
+    """Update task description for visible changes in behavioral conditions."""
+    description = base_description
+    
+    # Update steps requirement if changed
+    target_steps = target_physics_config.get("backward_steps_required")
+    if target_steps is not None and target_steps != 25:
+        pattern = r"(\d+)( consecutive steps)"
+        description = re.sub(pattern, f"{target_steps}\\2 (originally 25)", description)
+        
+    # Update speed threshold if changed
+    target_speed = target_physics_config.get("backward_speed_max")
+    if target_speed is not None and target_speed != 1.0:
+        pattern = r"(speed < )(\d+\.?\d*)"
+        description = re.sub(pattern, f"\\1{target_speed:.1f} (originally 1.0)", description)
+        
+    return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
@@ -27,15 +41,13 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for C-04: The Escaper mutated tasks.
-    Original solution uses UNLOCK_BACKWARD_STEPS=25; env default BACKWARD_STEPS_REQUIRED=20.
+    Original solution and env use BACKWARD_STEPS_REQUIRED=25.
     """
     task_description_suffix = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
 - **Proximity sensing latency**: Latency in obstacle detection (whisker) sensor feedback may be present.
-- **Behavioral duration requirements**: Changes in the time or steps needed to satisfy progression conditions may occur.
-- **Operational speed limits**: Limits on velocity during specific movement phases may be adjusted.
 - **Surface traction**: Variations in friction affecting movement precision and stability may occur.
 - **Energy dissipation**: Environmental resistance causing loss of kinetic energy may vary.
 - **Sensor blind zones**: Regions where sensor coverage is unavailable or unreliable may exist.

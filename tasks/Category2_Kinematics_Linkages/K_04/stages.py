@@ -10,6 +10,8 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 
+import re
+
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes.
@@ -21,7 +23,35 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     """
     Update success criteria to reflect visible physical changes.
     """
-    return base_success_criteria
+    criteria = base_success_criteria
+    
+    # Target distance
+    target_dist = target_terrain_config.get("target_distance", 10.0)
+    base_dist = base_terrain_config.get("target_distance", 10.0)
+    if target_dist != base_dist:
+        # Match "Object reaches x >= 18.0m." or similar
+        dist_pattern = r"(Object reaches x >= )(\d+\.?\d*)(m\.)"
+        if re.search(dist_pattern, criteria):
+            criteria = re.sub(
+                dist_pattern,
+                f"\\g<1>{8.0 + target_dist:.1f}\\g<3> (originally x >= {8.0 + base_dist:.1f}\\g<3> in the source environment).",
+                criteria
+            )
+            
+    # Mass budget
+    target_mass = target_terrain_config.get("max_structure_mass", 40.0)
+    base_mass = base_terrain_config.get("max_structure_mass", 40.0)
+    if target_mass != base_mass:
+        # Match "**Mass Budget**: < 40 kg."
+        mass_pattern = r"(\*\*Mass Budget\*\*: < )(\d+\.?\d*)( kg\.)"
+        if re.search(mass_pattern, criteria):
+            criteria = re.sub(
+                mass_pattern,
+                f"\\g<1>{target_mass:.0f}\\g<3> (originally < {base_mass:.0f}\\g<3> in the source environment).",
+                criteria
+            )
+            
+    return criteria
 
 
 def get_k04_curriculum_stages() -> List[Dict[str, Any]]:

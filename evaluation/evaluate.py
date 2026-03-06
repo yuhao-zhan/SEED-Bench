@@ -1,10 +1,39 @@
 import os
 import sys
-
-# CRITICAL: Disable vLLM's V1 multiprocessing BEFORE any vllm import.
-os.environ["VLLM_ENABLE_V1_MULTIPROCESSING"] = "0"
-
+import time
+import random
 import multiprocessing
+import faulthandler
+import fcntl  # Unix-based file locking
+
+# Enable fault handler to see C-level stack trace on Segfault
+faulthandler.enable()
+
+def _safe_init_sdl():
+    """Use a TRUE global file lock to ensure sequential initialization across subprocesses"""
+    lock_file = "/tmp/seed_bench_sdl_init.lock"
+    with open(lock_file, 'w') as f:
+        try:
+            # Acquire exclusive lock (blocks until available)
+            fcntl.flock(f, fcntl.LOCK_EX)
+            
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+            os.environ["SDL_AUDIODRIVER"] = "dummy"
+            os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+            os.environ["VLLM_ENABLE_V1_MULTIPROCESSING"] = "0"
+            if "DISPLAY" in os.environ:
+                del os.environ["DISPLAY"]
+            
+            # Short delay to let the OS/Driver settle
+            time.sleep(1.0)
+            
+        finally:
+            # Release lock
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+# GLOBAL INITIALIZATION: This runs at the very start of every subprocess
+_safe_init_sdl()
+
 try:
     multiprocessing.set_start_method("spawn")
 except RuntimeError:
@@ -359,6 +388,11 @@ def evaluate_single_task(task_name, args):
     Unified entry point for a single task evaluation.
     Each task is run ONLY ONCE.
     """
+    # Force dummy video driver for headless stability in parallel mode
+    os.environ["SDL_VIDEODRIVER"] = "dummy"
+    import time, random
+    time.sleep(random.uniform(0.1, 0.5)) # Tiny random jitter to avoid SDL initialization peaks
+    
     print(f"\n{'='*80}")
     print(f"Evaluating task: {task_name}")
     print(f"{'='*80}\n")
@@ -504,7 +538,17 @@ def evaluate_single_task(task_name, args):
             evaluator.verifier.cleanup()
             
         return 0
+    except KeyboardInterrupt:
+        print("\n🛑 Evaluation interrupted by user.")
+        sys.exit(1)
     except Exception as e:
+        err_msg = str(e).lower()
+        # Detect fatal API errors that should stop the entire process
+        fatal_keywords = ["insufficient quota", "rate limit", "authentication failed", "429", "insufficient_quota", "too many requests"]
+        if any(k in err_msg for k in fatal_keywords):
+            print(f"\n🛑 FATAL API ERROR in {task_name}: {e}")
+            sys.exit(99) # Exit with specific code for run_evaluate_parallel to pick up
+        
         print(f"❌ Evaluation failed for {task_name}: {e}")
         traceback.print_exc()
         return 1

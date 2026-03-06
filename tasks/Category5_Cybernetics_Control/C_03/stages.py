@@ -79,6 +79,7 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "rendezvous_distance": 2.5,
+                "track_distance": 5.0,
                 "rendezvous_rel_speed": 0.8,
                 "impulse_budget": 8500.0,
             },
@@ -91,6 +92,7 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "rendezvous_distance": 3.0,
+                "track_distance": 5.5,
                 "rendezvous_rel_speed": 1.0,
             },
             "physics_config": {
@@ -105,6 +107,7 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "target_speed": 2.8,
+                "track_distance": 5.0,
                 "ground_friction": 0.01,
                 "impulse_budget": 9000.0,
                 "rendezvous_distance": 2.5,

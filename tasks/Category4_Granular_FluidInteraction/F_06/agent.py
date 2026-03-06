@@ -1,72 +1,190 @@
-
 import math
 
-
-TARGET_CX = 20.0
-TARGET_CY = 0.75
-TARGET_X_LO, TARGET_X_HI = 18.0, 22.0
-TARGET_Y_LO, TARGET_Y_HI = 0.0, 1.5
-
-PIT1_X_LO, PIT1_X_HI = 13.5, 15.5
-PIT1_Y_SAFE = 1.5
-PIT2_X_LO, PIT2_X_HI = 16.0, 17.5
-PIT2_Y_SAFE = 1.2
-
-HEADWIND_COMP = 70.0
-
-F_PUSH = 200.0
-PUSH_TARGET_Y = 0.75
 
 
 def build_agent(sandbox):
 
-    b = sandbox.add_beam(6.0, 5.5, 0.2, 0.2, angle=0, density=140.0)
-    sandbox.set_material_properties(b, restitution=0.05)
-    sandbox.add_joint(b, None, (6.0, 0.0), type='rigid')
-    return b
+                                                         
 
+    beams = []
 
-def _priority(p):
+          
 
-    x, y = p.position.x, p.position.y
-    if TARGET_X_LO <= x <= TARGET_X_HI and TARGET_Y_LO <= y <= TARGET_Y_HI:
-        return (0, 0)
-    return (1, -x)
+    for i in range(3):
+
+        x = 6.5 + i * 1.0
+
+        y = 0.5 + i * 0.7
+
+        b = sandbox.add_beam(x, y, 1.1, 0.2, angle=0.6, density=50.0)
+
+        sandbox.add_joint(b, None, (x, 0.0), type='rigid')
+
+        beams.append(b)
+
+                 
+
+    for i in range(9):
+
+        x = 9.5 + i * 1.0
+
+        y = 2.5
+
+        b = sandbox.add_beam(x, y, 1.1, 0.2, angle=0, density=50.0)
+
+        sandbox.add_joint(b, None, (x, 0.0), type='rigid')
+
+        beams.append(b)
+
+    return beams[0]
+
 
 
 def agent_action(sandbox, agent_body, step_count):
+
     if not hasattr(sandbox, "get_fluid_particles") or not hasattr(sandbox, "apply_force_to_particle"):
+
         return
-    budget = getattr(sandbox, 'FORCE_BUDGET_PER_STEP', 8000.0)
+
+    
+
+    budget = getattr(sandbox, 'FORCE_BUDGET_PER_STEP', 12000.0)
+
     particles = sandbox.get_fluid_particles()
+
     if not particles:
+
         return
-    particles.sort(key=_priority)
+
+    
+
+               
+
+                                              
+
+                                   
+
+                                     
+
+    
+
+    def get_prio(p):
+
+        px = p.position.x
+
+        if 10.0 <= px <= 18.0: return 0
+
+        if px < 10.0: return 1
+
+        return 2
+
+        
+
+    particles.sort(key=get_prio)
+
+    
+
     used = 0.0
+
+    m = 25.0
+
+    g = 10.0
+
+    
+
     for p in particles:
+
         if used >= budget:
+
             break
+
+        
+
         x, y = p.position.x, p.position.y
 
-        if TARGET_X_LO <= x <= TARGET_X_HI and TARGET_Y_LO <= y <= TARGET_Y_HI:
-            fx = HEADWIND_COMP if y > 3.0 else 0.0
-            fy = 60.0
-            mag = math.sqrt(fx*fx + fy*fy)
-            if used + mag <= budget:
-                sandbox.apply_force_to_particle(p, fx, fy)
-                used += mag
-            continue
+        vx, vy = p.linearVelocity.x, p.linearVelocity.y
 
-        dx = TARGET_CX - x
-        dy = max(PUSH_TARGET_Y - y, 1.0)
-        dist = math.sqrt(dx*dx + dy*dy)
-        if dist < 0.01:
-            continue
-        fx = (dx / dist) * F_PUSH
-        fy = (dy / dist) * F_PUSH
-        if y > 3.0:
-            fx += HEADWIND_COMP
+        
+
+        fx, fy = 0.0, 0.0
+
+        
+
+        if x > 22.0:
+
+                                        
+
+            fx = -m * 10.0 * (vx + 2.0)
+
+            fy = m * g
+
+        elif x >= 18.0:
+
+                                           
+
+            if abs(vx) > 0.2:
+
+                fx = -m * 10.0 * vx
+
+            if y > 0.2:
+
+                fy = -m * 5.0
+
+        elif x < 6.0:
+
+                                 
+
+            target_vx = 5.0
+
+            target_vy = 2.0
+
+            fx = m * 5.0 * (target_vx - vx)
+
+            fy = m * (g + 5.0 * (target_vy - vy))
+
+        else:
+
+                         
+
+            target_vx = 6.0
+
+            target_vy = 0.0
+
+            if y < 2.6:
+
+                target_vy = 3.0                      
+
+            
+
+            fx = m * 5.0 * (target_vx - vx)
+
+            fy = m * (g + 5.0 * (target_vy - vy))
+
+            
+
+            if y > 3.0:
+
+                fx += 150.0            
+
+                
+
         mag = math.sqrt(fx*fx + fy*fy)
-        if mag > 0 and used + mag <= budget:
-            sandbox.apply_force_to_particle(p, fx, fy)
-            used += mag
+
+        if mag > 0:
+
+            if used + mag <= budget:
+
+                sandbox.apply_force_to_particle(p, fx, fy)
+
+                used += mag
+
+            else:
+
+                scale = (budget - used) / mag
+
+                if scale > 0.1:
+
+                    sandbox.apply_force_to_particle(p, fx * scale, fy * scale)
+
+                    used = budget
+

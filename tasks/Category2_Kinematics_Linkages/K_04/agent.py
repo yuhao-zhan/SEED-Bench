@@ -1,52 +1,122 @@
 
+
 import math
 
-GROUND_TOP = 1.0
-OBJECT_X = 8.0
+
+
+                                        
+
+_booster = None
+
+_enabled = False
+
 
 
 def build_agent(sandbox):
-    wheel_radius = 0.4
-    wheel_y = GROUND_TOP + wheel_radius
 
+    global _booster
 
-    chassis_h = 0.1
-    chassis_w = 2.0
-    chassis_cx = 6.0
-    chassis_cy = wheel_y + 0.1
+    
 
-    chassis = sandbox.add_beam(x=chassis_cx, y=chassis_cy, width=chassis_w, height=chassis_h, density=5.0)
-    if hasattr(sandbox, 'set_fixed_rotation'):
-        sandbox.set_fixed_rotation(chassis, True)
+                                                         
 
+    chassis_y = 2.1
 
-    ballast = sandbox.add_beam(x=chassis_cx, y=chassis_cy+0.2, width=2.0, height=0.2, density=10.0)
-    sandbox.add_joint(chassis, ballast, (chassis_cx, chassis_cy), type='rigid')
+    chassis_x = 6.0
 
+    
 
-    plate = sandbox.add_beam(x=7.3, y=GROUND_TOP+0.4, width=0.4, height=0.6, density=5.0)
-    sandbox.add_joint(chassis, plate, (7.1, chassis_cy), type='rigid')
+                         
 
+    chassis = sandbox.add_beam(x=chassis_x, y=chassis_y, width=1.0, height=0.2, density=1.0)
 
-    sandbox.my_drive_joints = []
+    sandbox.set_fixed_rotation(chassis, True)
 
-    for x in [chassis_cx - 0.8, chassis_cx - 0.7, chassis_cx + 0.7, chassis_cx + 0.8]:
-        w = sandbox.add_wheel(x=x, y=wheel_y, radius=wheel_radius, density=15.0)
-        sandbox.set_material_properties(w, restitution=0.0, friction=10.0)
-        j = sandbox.add_joint(chassis, w, (x, wheel_y), type='pivot')
-        sandbox.my_drive_joints.append(j)
+    
 
-    if hasattr(sandbox, '_pusher_joints'):
-        sandbox._pusher_joints = []
+                             
+
+                                      
+
+    _booster = sandbox.add_beam(x=chassis_x, y=chassis_y, width=0.4, height=0.4, density=120.0)
+
+    sandbox.add_joint(chassis, _booster, (chassis_x, chassis_y), type='rigid')
+
+    
+
+                                                                        
+
+    for x_off in [-0.4, 0.4]:
+
+        w = sandbox.add_wheel(x=chassis_x + x_off, y=1.7, radius=0.2, density=1.0)
+
+        sandbox.add_joint(chassis, w, (chassis_x + x_off, 1.7), type='pivot')
+
+        
+
+                                                   
+
+    plate = sandbox.add_beam(x=chassis_x + 0.6, y=1.9, width=0.1, height=0.8, density=1.0)
+
+    sandbox.add_joint(chassis, plate, (chassis_x + 0.5, 2.1), type='rigid')
+
+    
 
     return chassis
 
 
+
 def agent_action(sandbox, agent_body, step_count):
-    if not hasattr(sandbox, 'my_drive_joints'):
+
+    global _booster, _enabled
+
+    if _booster is None:
+
         return
 
-    for joint in sandbox.my_drive_joints:
-        if joint is not None:
 
-            sandbox.set_motor(joint, -50.0, 1000000.0)
+
+                                             
+
+    if step_count == 1:
+
+                                                                               
+
+        if abs(_booster.linearVelocity.x - 3.0) < 0.5:
+
+            _enabled = True
+
+        else:
+
+            _enabled = False
+
+
+
+    if not _enabled:
+
+                                                  
+
+        _booster.linearVelocity = (0, 0)
+
+        return
+
+
+
+                      
+
+                                           
+
+                            
+
+                                                 
+
+                                
+
+    if 1 < step_count < 400:
+
+        _booster.linearVelocity = (2.0, 0.0)
+
+    else:
+
+        _booster.linearVelocity = (0, 0)
+

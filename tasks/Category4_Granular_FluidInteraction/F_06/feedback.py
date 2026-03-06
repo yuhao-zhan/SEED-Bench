@@ -76,10 +76,12 @@ def get_improvement_suggestions(
             suggestions.append("- **Avoid all three pits**: PIT3 x=[11,12.5] y<1.6; PIT1 x=[13.5,15.5] y<2.0; PIT2 x=[16,17.5] y<1.6. Route above each.")
             suggestions.append("- **Headwind**: For y>3 add +X force to overcome headwind.")
             suggestions.append("- **Gravity well**: In x=[10,14], y=[1.5,3.5] add extra upward force to overcome downward pull.")
-            suggestions.append("- Aim for 90% delivery; force budget 12000 N/step; prioritize which particles to push.")
+            budget = metrics.get('force_budget', 12000.0)
+            suggestions.append(f"- Aim for 90% delivery; force budget {budget:.0f} N/step; prioritize which particles to push.")
         elif failure_reason and "structure integrity" in failure_reason.lower():
             suggestions.append("- Strengthen joints; moving particles exert forces on the structure")
     elif not success:
-        if metrics.get("delivery_ratio_percent", 0) < 90:
-            suggestions.append("- Aim to deliver at least 90% of particles to the target x=[18,22], y=[0,1.5]; avoid all three pits.")
+        target_pct = metrics.get("min_delivery_ratio_percent", 90.0)
+        if metrics.get("delivery_ratio_percent", 0) < target_pct:
+            suggestions.append(f"- Aim to deliver at least {target_pct:.0f}% of particles to the target x=[18,22], y=[0,1.5]; avoid all three pits.")
     return suggestions

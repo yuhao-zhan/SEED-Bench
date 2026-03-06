@@ -1,0 +1,44 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.5)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+================================================================================
+Testing K_02 Reference Solution on Mutated Tasks
+================================================================================
+
+Reading reference solution from agent.py...
+Reference solution code length: 3887 characters
+
+Found 4 mutated stages to test
+
+================================================================================
+Testing Stage-1: Low Wall Friction
+Mutation: Wall friction reduced from 1.0 to 0.12. Legs and pads slip very easily; original grip is insufficient.
+================================================================================
+
+Environment config:
+  Terrain config: {'wall_friction': 0.12}
+  Physics config: {}
+
+Traceback (most recent call last):
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_02/test_mutated_tasks.py", line 139, in <module>
+    passed, total = main()
+                    ~~~~^^
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_02/test_mutated_tasks.py", line 98, in main
+    success, score, metrics, error = test_stage_with_reference_solution(stage, reference_code)
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_02/test_mutated_tasks.py", line 53, in test_stage_with_reference_solution
+    verifier = CodeVerifier(
+        task_name=task_name,
+        max_steps=20000,  # Same as K_02 test_agent (need time for climbing + motion)
+        env_overrides=env_overrides
+    )
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_02/../../../evaluation/verifier.py", line 72, in __init__
+    spec.loader.exec_module(mod)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "<frozen importlib._bootstrap_external>", line 1022, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1160, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1090, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_02/../../../tasks/Category2_Kinematics_Linkages/K_02/agent.py", line 110
+    : upper_joint,
+    ^
+SyntaxError: invalid syntax

@@ -66,13 +66,13 @@ While the following variables **MIGHT** have changed from the initial environmen
         },
         {
             "stage_id": "Stage-2",
-            "title": "Larger Motor Deadzone",
-            "mutation_description": "Motor applies a larger torque deadzone (small commands ignored).",
+            "title": "Stronger Mechanical Cogging",
+            "mutation_description": "System exhibits significantly higher periodic resistance (cogging) based on wheel angle.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {},
             "physics_config": {
-                # Hidden: increase torque deadzone (nominal is 2.0)
-                "torque_deadzone": 4.5,
+                # Hidden: increase cogging amplitude (nominal is 1.4)
+                "cogging_amplitude": 4.0,
             },
         },
         {

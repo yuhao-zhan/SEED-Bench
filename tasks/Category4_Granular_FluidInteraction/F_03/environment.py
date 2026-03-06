@@ -42,8 +42,8 @@ class Sandbox:
         self.PIT_Y_MAX = 2.5
         self.HOPPER_X_MIN = -6.0
         self.HOPPER_X_MAX = -4.0
-        self.HOPPER_Y_MIN = 2.0
-        self.HOPPER_Y_MAX = 4.0
+        self.HOPPER_Y_MIN = 0.5
+        self.HOPPER_Y_MAX = 5.0
         self.HOPPER_CENTER_X = -5.0
         self.HOPPER_CENTER_Y = 3.0
         self.BASE_X = -2.0
@@ -53,7 +53,7 @@ class Sandbox:
         self.BUILD_ZONE_Y_MIN = 0.0
         self.BUILD_ZONE_Y_MAX = 5.0
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 800.0))
-        self.MIN_PARTICLES_IN_HOPPER = int(terrain_config.get("min_particles_in_hopper", 50))
+        self.MIN_PARTICLES_IN_HOPPER = int(terrain_config.get("min_particles_in_hopper", 15))
         self.MAX_TIME_SECONDS = float(terrain_config.get("max_time_seconds", 40.0))
         # Pit drift: particles in pit get constant horizontal force (simulate slope/conveyor)
         self.PIT_DRIFT_FORCE = float(terrain_config.get("pit_drift_force", 0.0))
@@ -93,7 +93,7 @@ class Sandbox:
         if terrain_config.get("central_wall", True):
             wall_x = -1.0
             wall_bottom = 0.5
-            wall_top = 2.0
+            wall_top = 1.5
             wall_height = wall_top - wall_bottom
             wall_half_w = 0.12
             central_wall = self._world.CreateStaticBody(
@@ -272,7 +272,7 @@ class Sandbox:
                     p.ApplyForce((drift, 0), p.position, wake=True)
 
         DUMP_ANGLE_THRESHOLD = 0.6  # rad: dumping when angle > this
-        CARRY_MARGIN = 0.85  # capture zone so L-scoop holds many particles per cycle
+        CARRY_MARGIN = 2.0  # capture zone so L-scoop holds many particles per cycle
         scoop_cap = getattr(self, "SCOOP_CAPACITY", 999)
         for body in self._scoop_bodies:
             if not body.active:

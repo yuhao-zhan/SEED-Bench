@@ -17,10 +17,10 @@ class Evaluator:
         self.environment = environment
         
         self.target_height = float(terrain_bounds.get("target_height", 15.0))
-        self.min_simulation_time = 10.0 # seconds (aligned with description)
+        self.min_simulation_time = 10.0 # seconds
         self.min_simulation_steps = int(self.min_simulation_time / TIME_STEP)
         
-        self.initial_y = 5.0
+        self.initial_y = 5.0 # Reference height for progress calculation
         self.max_y_reached = 5.0
         self.min_height_seen = 5.0
         self.design_constraints_checked = False
@@ -29,7 +29,32 @@ class Evaluator:
         if not self.environment:
             return (False, 0.0, {"error": "Environment not available"})
         
-        # Robust body tracking
+        # 1. Design Constraints Check (Step 0)
+        if step_count == 0 and not self.design_constraints_checked:
+            self.design_constraints_checked = True
+            
+            # Mass Budget
+            total_mass = self.environment.get_structure_mass()
+            if total_mass > getattr(self.environment, 'MAX_STRUCTURE_MASS', 50.0):
+                return True, 0.0, {
+                    "failed": True,
+                    "failure_reason": f"Design constraint violated: Total mass ({total_mass:.2f}kg) exceeds budget (50kg)",
+                    "structure_mass": total_mass
+                }
+            
+            # Build Zone
+            for body in self.environment._bodies:
+                pos = body.position
+                if not (self.environment.BUILD_ZONE_X_MIN <= pos.x <= self.environment.BUILD_ZONE_X_MAX and
+                        self.environment.BUILD_ZONE_Y_MIN <= pos.y <= self.environment.BUILD_ZONE_Y_MAX):
+                    return True, 0.0, {
+                        "failed": True,
+                        "failure_reason": f"Design constraint violated: Component at ({pos.x:.2f}, {pos.y:.2f}) is outside Build Zone",
+                        "climber_x": pos.x,
+                        "climber_y": pos.y
+                    }
+
+        # 2. Body Tracking
         body = agent_body
         if body is None and self.environment._bodies:
             body = self.environment._bodies[0]
@@ -55,32 +80,35 @@ class Evaluator:
             failed = True
             failure_reason = f"Climber lost wall contact: x={current_x:.2f}m (required x in [3.0, 5.5]m)"
             
-        # Success if reached target height and survived minimum time
-        height_gained = current_y - self.initial_y
-        success = height_gained >= self.target_height and step_count >= self.min_simulation_steps
+        # Success if maintained target height and survived minimum time
+        target_y = 20.0
+        is_above_target = (current_y >= target_y)
+        success = is_above_target and step_count >= self.min_simulation_steps
         
         is_end = (step_count >= max_steps - 1)
-        done = failed or is_end
+        # Stop if failed, success achieved, or reached max steps
+        done = failed or success or is_end
         
         if success and not failed:
             score = 100.0
         elif failed:
             score = 0.0
         else:
-            progress = min(max(0, height_gained) / self.target_height, 1.0)
-            score = progress * 70.0
-            if step_count > 0:
-                score += (min(step_count, self.min_simulation_steps) / self.min_simulation_steps) * 30.0
+            # Score based on current height vs target (70%) and time survival (30%)
+            # This ensures that if the climber falls, the score decreases.
+            height_progress = min(max(0, current_y - self.initial_y) / (target_y - self.initial_y), 1.0)
+            time_progress = min(step_count, self.min_simulation_steps) / self.min_simulation_steps
+            score = height_progress * 70.0 + time_progress * 30.0
                 
         metrics = {
             'climber_x': current_x,
             'climber_y': current_y,
-            'height_gained': height_gained,
+            'height_gained': current_y - self.initial_y,
             'max_height_reached': self.max_y_reached,
             'min_height_seen': self.min_height_seen,
-            'climber_fell': current_y < 2.0, # Visual fall indication
-            'target_y': self.initial_y + self.target_height,
-            'progress': progress * 100.0 if 'progress' in locals() else 0.0,
+            'climber_fell': current_y < 2.0,
+            'target_y': target_y,
+            'progress': height_progress * 100.0 if 'height_progress' in locals() else 0.0,
             'success': success and not failed,
             'failed': failed,
             'failure_reason': failure_reason,

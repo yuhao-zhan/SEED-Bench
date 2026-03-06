@@ -1,0 +1,43 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.5)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+================================================================================
+Testing Reference Solution on K-03 Mutated Tasks
+================================================================================
+
+Reading reference solution from agent.py...
+Reference solution code length: 4723 characters
+
+Found 5 stages to test (baseline + Stage-1..4)
+
+================================================================================
+Testing baseline: K-03 baseline
+Mutation: Default values. Same as initial task.
+================================================================================
+
+Environment config:
+  Terrain config: {}
+  Physics config: {}
+
+Traceback (most recent call last):
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/test_mutated_tasks.py", line 145, in <module>
+    results = main()
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/test_mutated_tasks.py", line 97, in main
+    success, score, metrics, error = test_stage_with_reference_solution(stage, reference_code)
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/test_mutated_tasks.py", line 52, in test_stage_with_reference_solution
+    verifier = CodeVerifier(
+        task_name=task_name,
+        max_steps=20000,  # Match test_agent.py (grasp + lift + hold)
+        env_overrides=env_overrides
+    )
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/../../../evaluation/verifier.py", line 72, in __init__
+    spec.loader.exec_module(mod)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "<frozen importlib._bootstrap_external>", line 1022, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1160, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1090, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/../../../tasks/Category2_Kinematics_Linkages/K_03/agent.py", line 73
+    : slider_joint,
+    ^
+SyntaxError: invalid syntax

@@ -1,0 +1,133 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.5)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+================================================================================
+Testing K-04 Reference Solution on Mutated Tasks
+================================================================================
+
+Reading reference solution from agent.py...
+Reference solution code length: 1517 characters
+
+Found 4 mutated stages to test
+
+================================================================================
+Testing Stage-1: Low Ground Friction
+Mutation: Ground friction reduced from 1.2 to 0.18.
+================================================================================
+
+Environment config:
+  Terrain config: {'ground_friction': 0.18}
+  Physics config: {'do_sleep': False}
+
+Running simulation with reference solution...
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 31.66/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_pushed: 0.23648738861083984
+  max_distance_pushed: 0.23648738861083984
+  pusher_tipped: False
+  object_x: 8.23648738861084
+  target_object_x: 18.0
+
+================================================================================
+Testing Stage-2: Object Center of Mass Offset
+Mutation: Object center of mass offset (0.25, 0.15).
+================================================================================
+
+Environment config:
+  Terrain config: {'object': {'center_of_mass_offset': (0.25, 0.15)}}
+  Physics config: {'do_sleep': False}
+
+Running simulation with reference solution...
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 30.71/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_pushed: 0.10183143615722656
+  max_distance_pushed: 0.10183143615722656
+  pusher_tipped: False
+  object_x: 8.101831436157227
+  target_object_x: 18.0
+
+================================================================================
+Testing Stage-3: Low Friction + Heavy World
+Mutation: Ground friction 0.22, gravity -14 m/s².
+================================================================================
+
+Environment config:
+  Terrain config: {'ground_friction': 0.22}
+  Physics config: {'gravity': (0, -14.0), 'do_sleep': False}
+
+Running simulation with reference solution...
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 32.13/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_pushed: 0.30359745025634766
+  max_distance_pushed: 0.30359745025634766
+  pusher_tipped: False
+  object_x: 8.303597450256348
+  target_object_x: 18.0
+
+================================================================================
+Testing Stage-4: Extreme Challenge
+Mutation: Ground friction 0.16, gravity -15, damping 0.4, CoM offset (0.2, 0.12).
+================================================================================
+
+Environment config:
+  Terrain config: {'ground_friction': 0.16, 'object': {'linear_damping': 0.4, 'angular_damping': 0.4, 'center_of_mass_offset': (0.2, 0.12)}}
+  Physics config: {'gravity': (0, -15.0), 'do_sleep': False}
+
+Running simulation with reference solution...
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 32.00/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_pushed: 0.28585338592529297
+  max_distance_pushed: 0.28585338592529297
+  pusher_tipped: False
+  object_x: 8.285853385925293
+  target_object_x: 18.0
+
+================================================================================
+Summary
+================================================================================
+
+❌ Stage-1 (Low Ground Friction): FAILED with score 31.66
+   → Distance pushed: 0.24m / 8m target
+❌ Stage-2 (Object Center of Mass Offset): FAILED with score 30.71
+   → Distance pushed: 0.10m / 8m target
+❌ Stage-3 (Low Friction + Heavy World): FAILED with score 32.13
+   → Distance pushed: 0.30m / 8m target
+❌ Stage-4 (Extreme Challenge): FAILED with score 32.00
+   → Distance pushed: 0.29m / 8m target
+
+Total: 0/4 stages passed
+Pass rate: 0.0%
+
+✅ Expected result: All mutated tasks failed (original solution cannot adapt)
+
+================================================================================
+Final Result: 0/4 mutated tasks passed
+================================================================================
+

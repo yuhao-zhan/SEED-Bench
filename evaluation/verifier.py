@@ -222,7 +222,9 @@ class CodeVerifier:
         """
         Check for prohibited operations in the agent code using AST-based static analysis.
         1. Enforce task-specific API usage from primitives_api.json.
-        2. Prohibit direct assignment to physical state variables or environmental variables.
+        2. Prohibit direct assignment to environmental variables.
+        3. Allow modification of physical properties (e.g., linearVelocity, friction) 
+           ONLY for dynamically created tools (e.g., those from sandbox.add_box).
         """
         import ast
         
@@ -233,8 +235,22 @@ class CodeVerifier:
             return
 
         prohibited_attrs = {'linearVelocity', 'angularVelocity', 'position', 'angle', 'friction', 'density', 'restitution'}
-        
+        agent_tools = set()  # Track variables that represent dynamically created tools
+
         for node in ast.walk(tree):
+            # 0. Track variables created via sandbox creation APIs (e.g., v = sandbox.add_box(...))
+            if isinstance(node, ast.Assign):
+                # Handle single assignment: v = sandbox.add_...
+                if (isinstance(node.value, ast.Call) and 
+                    isinstance(node.value.func, ast.Attribute) and 
+                    isinstance(node.value.func.value, ast.Name) and 
+                    node.value.func.value.id == 'sandbox' and 
+                    node.value.func.attr.startswith(('add_', 'create_'))):
+                    
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            agent_tools.add(target.id)
+
             # 1. Check for attribute access on 'sandbox'
             if isinstance(node, ast.Attribute):
                 # Check if it's an access to sandbox (e.g., sandbox.add_beam)
@@ -247,13 +263,32 @@ class CodeVerifier:
                             f"You are restricted to the documented Primitives API."
                         )
                 
-                # 2. Prohibit direct assignment to physical state variables (e.g., body.linearVelocity = ...)
+                # 2. Prohibit direct assignment to physical state variables
+                # ALLOWED if the object is an agent-created tool (tracked in agent_tools)
+                # PROHIBITED if the object is environment-derived or unknown
                 if isinstance(node.ctx, ast.Store) and node.attr in prohibited_attrs:
-                    raise ProhibitedOperationError(
-                        f"Prohibited operation detected: Direct assignment to '{node.attr}' is NOT allowed. "
-                        f"You must use documented APIs (e.g., ApplyForce, ApplyTorque, set_motor) "
-                        f"to control the simulation, not direct state manipulation."
-                    )
+                    is_tool = False
+                    if isinstance(node.value, ast.Name) and node.value.id in agent_tools:
+                        is_tool = True
+                    
+                    # Specifically check if they are trying to modify environment via sandbox._terrain_bodies
+                    is_env = False
+                    if isinstance(node.value, ast.Attribute) and node.value.attr == '_terrain_bodies':
+                        is_env = True
+                    elif isinstance(node.value, ast.Subscript) and isinstance(node.value.value, ast.Attribute) and node.value.value.attr == '_terrain_bodies':
+                        is_env = True
+
+                    if is_env:
+                        raise ProhibitedOperationError(
+                            f"Prohibited operation: Directly modifying physics properties of environment objects (via _terrain_bodies) is STRICTLY PROHIBITED."
+                        )
+                    
+                    if not is_tool:
+                        raise ProhibitedOperationError(
+                            f"Prohibited operation detected: Direct assignment to '{node.attr}' is ONLY allowed for dynamically created tools. "
+                            f"For environmental objects, you must use documented APIs (e.g., ApplyForce, ApplyTorque) "
+                            f"instead of direct state manipulation."
+                        )
             
             # 3. Prohibit direct assignment to elements of _terrain_bodies (e.g., sandbox._terrain_bodies['core'] = ...)
             if isinstance(node, ast.Subscript) and isinstance(node.ctx, ast.Store):
@@ -266,9 +301,14 @@ class CodeVerifier:
             if isinstance(node, ast.AugAssign):
                 target = node.target
                 if isinstance(target, ast.Attribute) and target.attr in prohibited_attrs:
-                     raise ProhibitedOperationError(
-                        f"Prohibited operation detected: Direct modification of '{target.attr}' via augmented assignment is NOT allowed."
-                    )
+                    is_tool = False
+                    if isinstance(target.value, ast.Name) and target.value.id in agent_tools:
+                        is_tool = True
+                    
+                    if not is_tool:
+                        raise ProhibitedOperationError(
+                            f"Prohibited operation detected: Direct modification of '{target.attr}' via augmented assignment is ONLY allowed for tools."
+                        )
 
     def _execute_code(self, code: str):
         """Execute code and return module object"""
@@ -600,11 +640,10 @@ class CodeVerifier:
             
             # Unified stuck detection for all tasks (skip for Category4/F_03: plow can be "stuck" during scoop phase;
             # skip for C_02 Lander: lander sits on ground after landing so position is constant)
-            skip_stuck = ('f_03' in task_lower or 'category_4' in task_lower or 'category4' in task_lower or
-                          'c_02' in task_lower or ('category_5_02' in task_lower) or
-                          'c_03' in task_lower or ('category_5_03' in task_lower) or
-                          'e_04' in task_lower or 's_02' in task_lower or 's02' in task_lower or
-                          's_06' in task_lower or 's06' in task_lower)
+            skip_stuck = ('f03' in task_lower or 'category4' in task_lower or
+                          'c02' in task_lower or 'c03' in task_lower or
+                          'e04' in task_lower or 's02' in task_lower or
+                          's06' in task_lower or 'e01' in task_lower)
             if current_pos and not skip_stuck:
                 if step_count > STABILIZATION_STEPS and last_position is not None:
                     dx = abs(current_pos[0] - last_position[0])

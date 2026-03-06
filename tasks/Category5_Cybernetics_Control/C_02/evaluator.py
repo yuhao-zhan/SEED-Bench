@@ -53,8 +53,8 @@ class Evaluator:
                 "success": False,
                 "lander_x": x,
                 "lander_y": y,
-                "lander_vx": self.environment.get_lander_velocity()[0],
-                "lander_vy": self.environment.get_lander_velocity()[1],
+                "lander_vx": self.environment._get_lander_velocity()[0],
+                "lander_vy": self.environment._get_lander_velocity()[1],
                 "lander_angle": self.environment.get_lander_angle(),
                 "step_count": step_count,
                 "landed": False,
@@ -71,7 +71,7 @@ class Evaluator:
         ground_y_top = self.environment.get_ground_y_top()
         bottom_y = self.environment.get_lander_bottom_y()
         x, y = self.environment.get_lander_position()
-        vx, vy = self.environment.get_lander_velocity()
+        vx, vy = self.environment._get_lander_velocity()
         angle = self.environment.get_lander_angle()
 
         LAND_TOLERANCE = 0.02

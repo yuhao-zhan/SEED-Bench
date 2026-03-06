@@ -63,14 +63,14 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-1",
             "title": "High-Viscosity Fluid",
-            "mutation_description": "Fluid viscosity increased significantly; particles respond slowly to forces.",
+            "mutation_description": "Fluid viscosity increased significantly and force budget reduced; particles respond slowly and limited control is available.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "fluid": {"viscosity": 4.0},
+                "fluid": {"viscosity": 6.0},
                 "pit1_y_max": 1.5,
             },
             "physics_config": {
-                "force_budget": 10000.0,
+                "force_budget": 4500.0,
             },
         },
         {
@@ -87,14 +87,14 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-3",
             "title": "Viscous Fluid and Stronger Gravity",
-            "mutation_description": "Higher fluid viscosity + stronger gravity; arcs fall short, delivery drops.",
+            "mutation_description": "Higher fluid viscosity + stronger gravity + extremely tight budget; arcs fall short and control is insufficient.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "fluid": {"viscosity": 1.8},
+                "fluid": {"viscosity": 2.5},
             },
             "physics_config": {
-                "gravity": (0, -15.0),
-                "force_budget": 9500.0,
+                "gravity": (0, -18.0),
+                "force_budget": 4000.0,
             },
         },
         {

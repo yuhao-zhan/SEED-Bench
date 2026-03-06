@@ -196,12 +196,16 @@ class Sandbox:
         self._bodies.append(body)
         return body
 
-    def add_joint(self, body_a, body_b, anchor_point, type='pivot', lower_limit=None, upper_limit=None):
+    def add_joint(self, body_a, body_b, anchor_point, type='pivot', lower_limit=None, upper_limit=None,
+                  axis=None, lower_translation=None, upper_translation=None):
         """
         API: Add a joint between two bodies
         - type='rigid': Locks relative rotation (Weld)
         - type='pivot': Allows free rotation (Revolute) - use for motor-driven joints
+        - type='slider': Prismatic joint (linear motion)
         - lower_limit, upper_limit: Joint angle limits in radians (for pivot joints)
+        - axis: (dx, dy) direction of motion for slider (e.g. (0,1) for vertical)
+        - lower_translation, upper_translation: limits in meters for slider
         """
         # Validate body_a (must not be None)
         if body_a is None:
@@ -236,6 +240,21 @@ class Sandbox:
                 joint_kwargs['enableLimit'] = True
             
             joint = self._world.CreateRevoluteJoint(**joint_kwargs)
+        elif type == 'slider':
+            # Prismatic joint
+            ax = axis if axis is not None else (0, 1)
+            lo = float(lower_translation) if lower_translation is not None else -10.0
+            hi = float(upper_translation) if upper_translation is not None else 10.0
+            joint = self._world.CreatePrismaticJoint(
+                bodyA=body_a,
+                bodyB=body_b,
+                anchor=(anchor_x, anchor_y),
+                axis=ax,
+                lowerTranslation=lo,
+                upperTranslation=hi,
+                enableLimit=True,
+                collideConnected=False
+            )
         else:
             raise ValueError(f"Unknown joint type: {type}")
         
@@ -256,6 +275,20 @@ class Sandbox:
         joint.motorSpeed = float(motor_speed)
         joint.maxMotorTorque = float(max_torque)
 
+    def set_slider_motor(self, joint, motor_speed, max_force=100.0):
+        """
+        API: Set motor properties for a prismatic (slider) joint
+        - joint: Joint object (must be a slider/prismatic joint)
+        - motor_speed: Target linear velocity (m/s)
+        - max_force: Maximum motor force (N)
+        """
+        if type(joint).__name__ != 'b2PrismaticJoint':
+            raise ValueError("set_slider_motor: joint must be a slider/prismatic joint")
+        
+        joint.enableMotor = True
+        joint.motorSpeed = float(motor_speed)
+        joint.maxMotorForce = float(max_force)
+
     def get_structure_mass(self):
         """
         API: Returns total mass of created objects
@@ -275,6 +308,20 @@ class Sandbox:
             fixture.restitution = float(restitution)
             if friction is not None:
                 fixture.friction = float(friction)
+
+    def set_fixed_rotation(self, body, fixed=True):
+        """
+        API: Set fixed rotation for a body
+        """
+        if body:
+            body.fixedRotation = bool(fixed)
+
+    def apply_force(self, body, force_vector):
+        """
+        API: Apply a world-space force to the center of a body.
+        """
+        if body and force_vector:
+            body.ApplyForceToCenter(tuple(force_vector), True)
 
     def step(self, time_step):
         """Physics step"""

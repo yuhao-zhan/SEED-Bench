@@ -46,10 +46,11 @@ class F06Renderer(Renderer):
                     )
 
         if hasattr(sandbox, "_fluid_particles"):
+            default_radius = getattr(sandbox, "_PARTICLE_RADIUS", 0.10)
             for p in sandbox._fluid_particles:
                 if p is not None and p.active:
                     px, py = p.position.x, p.position.y
-                    r = 0.10
+                    r = default_radius
                     for f in p.fixtures:
                         if hasattr(f.shape, "radius"):
                             r = f.shape.radius

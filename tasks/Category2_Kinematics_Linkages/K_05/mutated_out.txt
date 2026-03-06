@@ -1,0 +1,149 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.5)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+================================================================================
+K-05: Testing Reference Solution on Mutated Tasks
+================================================================================
+
+Reading reference solution from agent.py...
+Reference solution code length: 3787 characters
+
+Found 4 mutated stages to test
+
+================================================================================
+Testing Stage-1: Increased Gravity
+Mutation: Gravity increased from -10 to -28 m/s².
+================================================================================
+
+Environment config:
+  Terrain config: {}
+  Physics config: {'gravity': (0, -28.0)}
+
+Running simulation with reference solution...
+Lifter constructed: 13 bodies, 20 joints, 3.61kg
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 0.00/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  object_y: 1.4499151706695557
+  target_object_y: 9.0
+  height_gained: -0.3500847816467285
+  max_object_y_reached: 1.7999999523162842
+  steps_with_object_above_target: 0
+  min_simulation_steps_required: 180
+  structure_broken: False
+  structure_mass: 3.612324446439743
+
+================================================================================
+Testing Stage-2: Heavier Object
+Mutation: Object mass increased from 20kg to 50kg.
+================================================================================
+
+Environment config:
+  Terrain config: {'object': {'mass': 50.0, 'friction': 0.6}}
+  Physics config: {}
+
+Running simulation with reference solution...
+Lifter constructed: 13 bodies, 20 joints, 3.61kg
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 0.00/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  object_y: 1.4495095014572144
+  target_object_y: 9.0
+  height_gained: -0.3504904508590698
+  max_object_y_reached: 1.7999999523162842
+  steps_with_object_above_target: 0
+  min_simulation_steps_required: 180
+  structure_broken: False
+  structure_mass: 3.612324446439743
+
+================================================================================
+Testing Stage-3: Higher Target + Heavier Object
+Mutation: Target height 10.5m, object mass 42kg.
+================================================================================
+
+Environment config:
+  Terrain config: {'target_object_y': 10.5, 'object': {'mass': 42.0, 'friction': 0.6}}
+  Physics config: {}
+
+Running simulation with reference solution...
+Lifter constructed: 13 bodies, 20 joints, 3.61kg
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 0.00/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  object_y: 1.449782133102417
+  target_object_y: 10.5
+  height_gained: -0.3502178192138672
+  max_object_y_reached: 1.7999999523162842
+  steps_with_object_above_target: 0
+  min_simulation_steps_required: 180
+  structure_broken: False
+  structure_mass: 3.612324446439743
+
+================================================================================
+Testing Stage-4: Multi-Parameter Challenge
+Mutation: Gravity -16, object 46kg, target 10m, friction 0.4.
+================================================================================
+
+Environment config:
+  Terrain config: {'target_object_y': 10.0, 'ground_friction': 0.4, 'object': {'mass': 46.0, 'friction': 0.6}}
+  Physics config: {'gravity': (0, -16.0)}
+
+Running simulation with reference solution...
+Lifter constructed: 13 bodies, 20 joints, 3.61kg
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 0.00/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  object_y: 1.4489939212799072
+  target_object_y: 10.0
+  height_gained: -0.35100603103637695
+  max_object_y_reached: 1.7999999523162842
+  steps_with_object_above_target: 0
+  min_simulation_steps_required: 180
+  structure_broken: False
+  structure_mass: 3.612324446439743
+
+================================================================================
+Summary
+================================================================================
+
+  Stage-1 (Increased Gravity): FAILED with score 0.00
+     Max height: 1.80m / target: 9.00m
+  Stage-2 (Heavier Object): FAILED with score 0.00
+     Max height: 1.80m / target: 9.00m
+  Stage-3 (Higher Target + Heavier Object): FAILED with score 0.00
+     Max height: 1.80m / target: 10.50m
+  Stage-4 (Multi-Parameter Challenge): FAILED with score 0.00
+     Max height: 1.80m / target: 10.00m
+
+Total: 0/4 stages passed
+Pass rate: 0.0%
+
+Expected result: All mutated tasks failed (original solution cannot adapt).
+
+================================================================================
+Final Result: 0/4 mutated tasks passed
+================================================================================
+

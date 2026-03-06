@@ -28,11 +28,11 @@ def update_success_criteria_for_visible_changes(
     criteria = base_success_criteria
     
     # Target particle count
-    target_count = target_terrain_config.get("min_particles_in_hopper", 50) # Default 50
-    base_count = base_terrain_config.get("min_particles_in_hopper", 50)
+    target_count = target_terrain_config.get("min_particles_in_hopper", 15) # Default 15
+    base_count = base_terrain_config.get("min_particles_in_hopper", 15)
     
     if target_count != base_count:
-        pattern = r"(1\. \*\*Material Transfer\*\*: At least )(\d+)( sand particles are deposited in the hopper)"
+        pattern = r"(1\. \*\*Material Transfer\*\*: At least )(\d+)( sand particles are deposited in the hopper \(x=-5.0, y=3.0\)\.)"
         criteria = re.sub(
             pattern,
             f"\\g<1>{target_count}\\g<3> (originally {base_count} particles in the source environment)",
@@ -65,32 +65,36 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-1",
             "title": "Slippery sand",
-            "mutation_description": "Particle friction reduced; sand slides off scoop more easily, fewer grains retained per trip.",
+            "mutation_description": "Particle friction reduced significantly; sand slides off scoop almost immediately.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "particles": {"friction": 0.22, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
+                "particles": {"friction": 0.05, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
+                "min_particles_in_hopper": 100,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
             "title": "Heavier world",
-            "mutation_description": "Gravity increased; arm and scoop feel heavier, timing and clearance may be affected.",
+            "mutation_description": "Gravity increased; arm and scoop feel heavier, torque is insufficient to lift load.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {},
+            "terrain_config": {
+                "min_particles_in_hopper": 30,
+            },
             "physics_config": {"gravity": (0, -14.0)},
         },
         {
             "stage_id": "Stage-3",
             "title": "Dense atmosphere and slippery grains",
-            "mutation_description": "Higher linear/angular damping and lower particle friction; grains slide off more and mechanism coasts less.",
+            "mutation_description": "Higher damping and near-zero friction; grains slide off and mechanism is sluggish.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "particles": {"friction": 0.32, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
+                "particles": {"friction": 0.01, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
+                "min_particles_in_hopper": 100,
             },
             "physics_config": {
-                "linear_damping": 0.06,
-                "angular_damping": 0.06,
+                "linear_damping": 0.2,
+                "angular_damping": 0.2,
             },
         },
         {
@@ -99,8 +103,8 @@ While the following variables **MIGHT** have changed from the initial environmen
             "mutation_description": "Lower particle friction, stronger gravity, pit drift, higher target count, and limited scoop capacity per trip.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "particles": {"friction": 0.26, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
-                "min_particles_in_hopper": 70,
+                "particles": {"friction": 0.1, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
+                "min_particles_in_hopper": 100,
                 "pit_drift_force": 1.8,
                 "scoop_capacity": 28,
             },

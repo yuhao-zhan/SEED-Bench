@@ -15,7 +15,7 @@ def main():
         code = f.read()
 
     gif_path = os.path.join(os.path.dirname(__file__), "reference_solution_success.gif")
-    verifier = CodeVerifier(task_name=task_name, max_steps=10000)
+    verifier = CodeVerifier(task_name=task_name, max_steps=2400)
     success, score, metrics, error = verifier.verify_code(
         code=code,
         headless=True,

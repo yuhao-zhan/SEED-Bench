@@ -1,0 +1,129 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.5)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+================================================================================
+Testing Reference Solution on Mutated Tasks (K-01: The Walker)
+================================================================================
+
+Reading reference solution from agent.py...
+Reference solution code length: 7571 characters
+
+Found 4 mutated stages to test
+
+================================================================================
+Testing Stage-1: Low Ground Friction
+Mutation: Ground friction 0.01. Extremely slippery surface.
+================================================================================
+
+Environment config:
+  Terrain config: {'ground_friction': 0.01}
+  Physics config: {}
+
+Running simulation with reference solution...
+Walker constructed: 13 beams, 12 joints, 1.18kg
+Detected stuck at step 972 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 39.31/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_traveled: 1.9957876205444336
+  min_torso_y: 1.6055461168289185
+  min_simulation_steps_required: 900
+  structure_mass: 1.1811999678611755
+
+================================================================================
+Testing Stage-2: Restricted Joint Limits
+Mutation: Pivot joints have default angle limits ±π/2 (90°). Leg rotation restricted.
+================================================================================
+
+Environment config:
+  Terrain config: {}
+  Physics config: {'default_joint_lower_limit': -1.5707963267948966, 'default_joint_upper_limit': 1.5707963267948966}
+
+Running simulation with reference solution...
+Walker constructed: 13 beams, 12 joints, 1.18kg
+Detected stuck at step 972 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 39.93/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_traveled: 2.1286211013793945
+  min_torso_y: 1.611588954925537
+  min_simulation_steps_required: 900
+  structure_mass: 1.1811999678611755
+
+================================================================================
+Testing Stage-3: Reduced Friction + Restricted Joints
+Mutation: Ground friction 0.12 + joint limits ±π/2 (90°). Dual params.
+================================================================================
+
+Environment config:
+  Terrain config: {'ground_friction': 0.12}
+  Physics config: {'default_joint_lower_limit': -1.5707963267948966, 'default_joint_upper_limit': 1.5707963267948966}
+
+Running simulation with reference solution...
+Walker constructed: 13 beams, 12 joints, 1.18kg
+Detected stuck at step 972 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 40.25/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_traveled: 2.197421073913574
+  min_torso_y: 1.6078224182128906
+  min_simulation_steps_required: 900
+  structure_mass: 1.1811999678611755
+
+================================================================================
+Testing Stage-4: Extreme Challenge
+Mutation: Gravity -30, ground friction 0.01, max_body_friction 0.06, joint limits ±π/2 (90°), damping 3.0.
+================================================================================
+
+Environment config:
+  Terrain config: {'ground_friction': 0.01}
+  Physics config: {'gravity': (0, -30.0), 'max_body_friction': 0.06, 'default_joint_lower_limit': -1.5707963267948966, 'default_joint_upper_limit': 1.5707963267948966, 'linear_damping': 3.0, 'angular_damping': 3.0}
+
+Running simulation with reference solution...
+Walker constructed: 13 beams, 12 joints, 1.18kg
+Detected stuck at step 1001 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 30.00/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  distance_traveled: -0.5436477661132812
+  min_torso_y: 1.5846227407455444
+  min_simulation_steps_required: 900
+  structure_mass: 1.1811999678611755
+
+================================================================================
+Summary
+================================================================================
+
+❌ Stage-1 (Low Ground Friction): FAILED with score 39.31
+❌ Stage-2 (Restricted Joint Limits): FAILED with score 39.93
+❌ Stage-3 (Reduced Friction + Restricted Joints): FAILED with score 40.25
+❌ Stage-4 (Extreme Challenge): FAILED with score 30.00
+
+Total: 0/4 stages passed
+Pass rate: 0.0%
+
+✅ Expected result: All mutated tasks failed (original solution cannot adapt)
+
+================================================================================
+Final Result: 0/4 mutated tasks passed
+================================================================================
+

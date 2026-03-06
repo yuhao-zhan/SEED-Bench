@@ -106,6 +106,7 @@ class Sandbox:
 
         self._sled_start_x = float(terrain_config.get("sled_start_x", self.SLED_START_X))
         self._sled_start_y = float(terrain_config.get("sled_start_y", self.SLED_START_Y))
+        self._create_terrain(terrain_config)
         self._create_sled(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):

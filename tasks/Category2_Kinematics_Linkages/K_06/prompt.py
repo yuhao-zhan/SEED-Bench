@@ -2,12 +2,28 @@
 K-06: The Wiper task Prompt and Primitives definition
 """
 
-import json
 import os
+import json
+import sys
+
+# Add the tasks directory to sys.path to find primitives_api.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from primitives_api import API_INTRO
+import sys
+
+# Add tasks directory to path to import primitives_api
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
     _api_data = json.load(f)
 
+if 'K_06' in _api_data and 'API_INTRO' in _api_data['K_06']:
+    del _api_data['K_06']['API_INTRO']
+
+task_data = _api_data['K_06']
+if 'API_INTRO' in task_data:
+    del task_data['API_INTRO']
 
 TASK_PROMPT = {
     'task_description': """
@@ -24,7 +40,7 @@ Design a wiper mechanism that can clean all particles from a glass surface using
 - **Cleaning**: At least 80% of particles must be removed (residual <= 20%).
 - **Motion**: The wiper must maintain active movement for at least 8.0 seconds.
 - **Mass Budget**: Total structure mass must be less than 15 kg.
-- **Build Zone**: All components must be within x=[0, 12], y=[2, 10].
+- **Build Zone**: All components must within x=[0, 12], y=[2, 10].
 - **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters.
 
 ## Instructions
@@ -44,5 +60,5 @@ Design a wiper mechanism that can clean all particles from a glass surface using
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': '\n\n'.join(_api_data['K_06'].values()),
+    'primitives_api': API_INTRO + '\n\n' + '\n\n'.join(task_data.values()),
 }

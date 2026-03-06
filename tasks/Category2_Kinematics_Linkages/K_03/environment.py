@@ -338,6 +338,13 @@ class Sandbox:
             if friction is not None:
                 fixture.friction = float(friction)
 
+    def set_fixed_rotation(self, body, fixed=True):
+        """
+        API: Set fixed rotation for a body
+        """
+        if body:
+            body.fixedRotation = bool(fixed)
+
     def step(self, time_step):
         """Physics step"""
         self._world.Step(time_step, 10, 10)

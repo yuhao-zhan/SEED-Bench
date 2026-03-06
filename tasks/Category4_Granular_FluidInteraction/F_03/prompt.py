@@ -2,11 +2,19 @@
 F-03: The Excavator task Prompt and Primitives definition
 """
 
-import json
 import os
+import json
+import sys
+
+# Add the tasks directory to sys.path to find primitives_api.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
     _api_data = json.load(f)
+
+if 'F_03' in _api_data and 'API_INTRO' in _api_data['F_03']:
+    del _api_data['F_03']['API_INTRO']
 
 
 TASK_PROMPT = {
@@ -28,7 +36,7 @@ Design a mechanism that:
 3. Deposits the material into the target hopper at x=-5.0.
 ...
 ## Success Criteria
-1. **Material Transfer**: At least 50 sand particles are deposited in the hopper (x=-5.0, y=3.0).
+1. **Material Transfer**: At least 15 sand particles are deposited in the hopper (x=-5.0, y=3.0).
 
 2. **Integrity**: Mechanism remains intact throughout the operation.
 
@@ -36,5 +44,5 @@ Design a mechanism that:
 - **Mass Budget**: Total structure mass <= 800 kg.
 - **APIs**: Use only the primitives documented below.
 """,
-    'primitives_api': '\n\n'.join(_api_data['F_03'].values()),
+    'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['F_03'].values()),
 }

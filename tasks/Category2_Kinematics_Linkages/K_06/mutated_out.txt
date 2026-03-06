@@ -1,0 +1,140 @@
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.5)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+================================================================================
+K-06: Testing Reference Solution on Mutated Tasks
+================================================================================
+
+Reading reference solution from agent.py...
+Reference solution code length: 1827 characters
+
+Found 4 mutated stages to test
+
+================================================================================
+Testing Stage-1: More Particles and Difficult Layout
+Mutation: Particle count 80, layout seed changed.
+================================================================================
+
+Environment config:
+  Terrain config: {'particles': {'count': 80, 'seed': 0, 'friction': 0.45, 'mass': 0.15}}
+  Physics config: {}
+
+Running simulation with reference solution...
+Wiper: 6×2m bar, mass=0.29kg
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 52.97/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  current_particle_count: 59
+  initial_particle_count: 80
+  cleaning_percentage: 26.25
+  residual_percentage: 73.75
+  structure_mass: 0.2903999872505665
+  max_structure_mass: 15.0
+
+================================================================================
+Testing Stage-2: Stickier Particles
+Mutation: Particle friction 0.70.
+================================================================================
+
+Environment config:
+  Terrain config: {'particles': {'count': 45, 'seed': 42, 'friction': 0.7, 'mass': 0.15}}
+  Physics config: {}
+
+Running simulation with reference solution...
+Wiper: 6×2m bar, mass=0.29kg
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 63.06/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  current_particle_count: 28
+  initial_particle_count: 45
+  cleaning_percentage: 37.77777777777778
+  residual_percentage: 62.22222222222222
+  structure_mass: 0.2903999872505665
+  max_structure_mass: 15.0
+
+================================================================================
+Testing Stage-3: Strict Mass Limit
+Mutation: Mass limit reduced to 0.25 kg.
+================================================================================
+
+Environment config:
+  Terrain config: {'max_structure_mass': 0.25, 'particles': {'count': 45, 'seed': 42, 'friction': 0.35, 'mass': 0.15}}
+  Physics config: {}
+
+Running simulation with reference solution...
+
+Results:
+  Success: False
+  Score: 0.00/100
+  Error: Error building agent: Structure mass 0.29kg exceeds limit 0.25kg
+Traceback (most recent call last):
+  File "/Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/../../../evaluation/verifier.py", line 156, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 41, in build_agent
+ValueError: Structure mass 0.29kg exceeds limit 0.25kg
+
+
+Key metrics:
+
+================================================================================
+Testing Stage-4: Combined Challenge
+Mutation: 55 particles, friction 0.55, seed 5.
+================================================================================
+
+Environment config:
+  Terrain config: {'particles': {'count': 55, 'seed': 5, 'friction': 0.55, 'mass': 0.15}}
+  Physics config: {}
+
+Running simulation with reference solution...
+Wiper: 6×2m bar, mass=0.29kg
+Detected stuck at step 960 (position change < 0.02m for 900 steps), stopping simulation
+
+Results:
+  Success: False
+  Score: 65.00/100
+
+Key metrics:
+  failed: False
+  failure_reason: None
+  current_particle_count: 33
+  initial_particle_count: 55
+  cleaning_percentage: 40.0
+  residual_percentage: 60.0
+  structure_mass: 0.2903999872505665
+  max_structure_mass: 15.0
+
+================================================================================
+Summary
+================================================================================
+
+  Stage-1 (More Particles and Difficult Layout): FAILED with score 52.97
+     Particles left: 59/80
+  Stage-2 (Stickier Particles): FAILED with score 63.06
+     Particles left: 28/45
+  Stage-3 (Strict Mass Limit): FAILED with score 0.00
+     Error: Error building agent: Structure mass 0.29kg exceeds limit 0.25kg
+Traceback (most recent call last):
+  File "/Users/zhany...
+  Stage-4 (Combined Challenge): FAILED with score 65.00
+     Particles left: 33/55
+
+Total: 0/4 stages passed
+Pass rate: 0.0%
+
+Expected result: All mutated tasks failed (original solution cannot adapt).
+
+================================================================================
+Final Result: 0/4 mutated tasks passed
+================================================================================
+

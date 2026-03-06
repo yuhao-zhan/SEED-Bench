@@ -157,7 +157,7 @@ class Sandbox:
             return (0.0, 0.0)
         return (lander.position.x, lander.position.y)
 
-    def get_lander_velocity(self):
+    def _get_lander_velocity(self):
         """Return lander velocity (vx, vy) in m/s."""
         lander = self._terrain_bodies.get("lander")
         if lander is None:

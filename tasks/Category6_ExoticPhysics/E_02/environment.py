@@ -67,6 +67,7 @@ class Sandbox:
         self.joints = []
         self._craft_start_x = float(terrain_config.get("craft_start_x", self.CRAFT_START_X))
         self._craft_start_y = float(terrain_config.get("craft_start_y", self.CRAFT_START_Y))
+        self._create_terrain(terrain_config)
         self._create_craft(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):

@@ -1,57 +1,114 @@
 
+
 GLASS_Y = 2.0
+
 CENTER_X = 6.0
+
 GROUND_Y = 2.06
+
 BAR_Y = 2.08
+
 BAR_H = 0.24
-SEG = 2.0
-DENSITY = 0.08
-BAR_FRICTION = 0.55
+
+SEG_W = 2.0
+
+DENSITY = 0.12
+
+BAR_FRICTION = 0.6
+
+
 
 def build_agent(sandbox):
 
+                    
+
     base = sandbox.add_beam(x=CENTER_X, y=GROUND_Y, width=0.5, height=0.12, angle=0, density=1.0)
-    sandbox.set_material_properties(base, restitution=0.0, friction=0.5)
+
     if hasattr(sandbox, 'weld_to_glass'):
+
         sandbox.weld_to_glass(base, (CENTER_X, GLASS_Y))
 
 
-    seg_centers = [2.0, 4.0, 6.0, 8.0, 10.0, 11.0]
+
+                                                                    
+
+    seg_centers = [2.0, 4.0, 6.0, 8.0, 10.0]
 
     bars = []
+
     for cx in seg_centers:
-        b = sandbox.add_beam(x=cx, y=BAR_Y, width=SEG, height=BAR_H, angle=0, density=DENSITY)
+
+        b = sandbox.add_beam(x=cx, y=BAR_Y, width=SEG_W, height=BAR_H, angle=0, density=DENSITY)
+
         sandbox.set_material_properties(b, restitution=0.0, friction=BAR_FRICTION)
+
         bars.append(b)
 
-    mid = len(bars) // 2
+    
+
+                              
+
+    for i in range(len(bars) - 1):
+
+        jx = (seg_centers[i] + seg_centers[i+1]) / 2.0
+
+        sandbox.add_joint(bars[i], bars[i+1], (jx, BAR_Y), type='rigid')
+
+    
+
+                                           
 
     pivot = sandbox.add_joint(
-        base, bars[mid], (CENTER_X, BAR_Y), type='pivot',
-        lower_limit=-1.05, upper_limit=1.05
+
+        base, bars[2], (CENTER_X, BAR_Y), type='pivot',
+
+        lower_limit=-1.3, upper_limit=1.3
+
     )
-    for i in range(len(bars) - 1):
-        jx = (seg_centers[i] + seg_centers[i + 1]) / 2.0
-        sandbox.add_joint(bars[i], bars[i + 1], (jx, BAR_Y), type='rigid')
+
+    
 
     sandbox._wiper_motor_joint = pivot
 
+
+
     total_mass = sandbox.get_structure_mass()
-    if total_mass > sandbox.MAX_STRUCTURE_MASS:
-        raise ValueError(f"Structure mass {total_mass:.2f}kg exceeds limit {sandbox.MAX_STRUCTURE_MASS}kg")
-    print(f"Wiper: {len(bars)}×2m bar, mass={total_mass:.2f}kg")
+
+    print(f"Wiper: 5 segments, total width {SEG_W*5}m, mass={total_mass:.2f}kg")
+
     return base
 
 
+
 def agent_action(sandbox, agent_body, step_count):
-    if not hasattr(sandbox, '_wiper_motor_joint') or sandbox._wiper_motor_joint is None:
+
+    if not hasattr(sandbox, '_wiper_motor_joint'):
+
         return
 
+
+
+                       
+
     if hasattr(sandbox, 'set_awake'):
+
         for body in sandbox.bodies:
+
             sandbox.set_awake(body, True)
 
-    period = 500
+
+
+                                          
+
+                                                              
+
+                                        
+
+    period = 300
+
     half = (step_count // period) % 2
-    motor_speed = 10.0 if half == 0 else -10.0
-    sandbox.set_motor(sandbox._wiper_motor_joint, motor_speed, max_torque=8000.0)
+
+    motor_speed = 18.0 if half == 0 else -18.0
+
+    sandbox.set_motor(sandbox._wiper_motor_joint, motor_speed, max_torque=4500.0)
+

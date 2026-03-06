@@ -2,39 +2,55 @@
 K-05: The Lifter task Prompt and Primitives definition
 """
 
-import json
 import os
+import json
+import sys
+
+# Add the tasks directory to sys.path to find primitives_api.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from primitives_api import API_INTRO
+import sys
+
+# Add tasks directory to path to import primitives_api
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
     _api_data = json.load(f)
 
+if 'K_05' in _api_data and 'API_INTRO' in _api_data['K_05']:
+    del _api_data['K_05']['API_INTRO']
+
+task_data = _api_data['K_05']
+if 'API_INTRO' in task_data:
+    del task_data['API_INTRO']
 
 TASK_PROMPT = {
     'task_description': """
-Design a lift mechanism that can lift an object vertically from the ground to a specified height using only motor rotation.
+Design a scissor lift mechanism that can lift objects vertically using motor rotation or linear forces.
 
 ## Task Environment
-- **Ground**: Flat surface at y=1.0m.
-- **Object**: Located at x=4.0m, y=1.8m (resting on the ground).
+- **Ground**: A flat horizontal surface at y=1.0m.
+- **Target Object**: A 20 kg block resting at y=1.8m.
+- **Target Height**: Lift the object so its center reaches at least y=9.0m.
 - **Build Zone**: x=[0, 8], y=[1, 12]. All structure components must be placed within this zone.
-- **Target (Red Line)**: Lift the object to at least y=9.0m (8.0 meters above the ground).
 
 ## Constraints (must satisfy)
-- **Sustain**: Once reached, the object must be held at or above y=9.0m for at least 3.0 seconds. The sustain count only increments when the object is NOT sliding down (vertical velocity >= -0.4 m/s).
-- **Integrity**: The lifter structure must remain intact; the task fails if any joints break under the load.
+- **Vertical Lift**: Object center reaches y >= 9.0m.
+- **Sustain**: Object held at target height for at least 3.0 seconds.
 - **Mass Budget**: Total structure mass must be less than 60 kg.
-- **Build Zone**: All components must be within x=[0, 8], y=[1, 12].
+- **Build Zone**: All components must stay within x=[0, 8], y=[1, 12].
 - **Beam Dimensions**: 0.05 <= width, height <= 4.0 meters.
 
 ## Instructions
-1. **Design**: Create a lifting structure (e.g., a scissor lift or an arm) that starts below or around the object and moves it upward.
-2. **Control**: Use `set_motor` on pivot joints in `agent_action` to drive the lifting motion and maintain the target height.
+1. **Design**: Create a scissor lift or telescoping mechanism.
+2. **Control**: Use `set_motor` on pivot joints or `set_slider_motor` on prismatic joints to drive the lift.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Lifting**: Reaches y >= 9.0m.
-2. **Sustain**: Holds the object at target for >= 3.0 seconds (velocity_y >= -0.4 m/s).
+1. **Vertical Movement**: Object reaches y >= 9.0m.
+2. **Sustain**: Held at target height for >= 3.0 seconds.
 3. **Integrity**: Structure remains intact (no joint breaks).
 
 ## Design Constraints
@@ -42,5 +58,5 @@ Design a lift mechanism that can lift an object vertically from the ground to a 
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': '\n\n'.join(_api_data['K_05'].values()),
+    'primitives_api': API_INTRO + '\n\n' + '\n\n'.join(task_data.values()),
 }

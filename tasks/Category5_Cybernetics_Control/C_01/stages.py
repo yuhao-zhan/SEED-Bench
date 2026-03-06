@@ -15,10 +15,16 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     """Update task description for visible changes."""
     description = base_description
     target_length = target_terrain_config.get("pole_length")
+    target_mass = target_terrain_config.get("pole_mass")
 
     if target_length is not None and target_length != 2.0:
         pattern = r"(- \*\*Pole\*\*: Initially hanging downward \(angle = 180° or π\)\. \*\*Length\*\*: )(\d+\.?\d*)(m\.)"
         description = re.sub(pattern, f"\\g<1>{target_length:.1f}m (originally 2.0m).", description)
+
+    if target_mass is not None and target_mass != 1.0:
+        # Since mass isn't in the base description, we append it to the pole line
+        pattern = r"(- \*\*Pole\*\*: .*?\*\*Length\*\*: .*?m\.)"
+        description = re.sub(pattern, f"\\g<1> **Mass**: {target_mass:.1f}kg (originally 1.0kg).", description)
 
     return description
 
@@ -43,7 +49,6 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Sensing latency (Angular Velocity)**: Unexpected latency in angular velocity feedback may occur, leading to delayed control responses.
 - **Gravitational acceleration**: Alterations in the gravitational field may occur, significantly affecting system weight and balance dynamics.
 - **Structural dimensions**: Modifications to the physical length of system components may have occurred, altering the natural frequency.
-- **Mass distribution**: Changes in the mass and rotational inertia of the pole may be present, shifting the center of gravity.
 - **Joint resistance**: Resistance to rotational motion within the joints (damping) may be altered.
 - **Actuation speed limits**: Constraints on how quickly control forces can be adjusted by the actuator may have changed.
 

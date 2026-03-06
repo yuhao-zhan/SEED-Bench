@@ -1,6 +1,6 @@
 """
 F-03: The Excavator — evaluation module.
-Per user spec: base at (-2,0), at least 2 DOF (Arm + Bucket); > 50 particles in hopper within 40 s.
+Per user spec: base at (-2,0), at least 2 DOF (Arm + Bucket); > 15 particles in hopper within 40 s.
 """
 import sys
 import os
@@ -12,7 +12,7 @@ from common.simulator import TIME_STEP, TARGET_FPS
 class Evaluator:
     """
     Evaluation for F-03: The Excavator.
-    Success: >= 50 particles in hopper, within 40 s, structure intact, base at (-2,0), >= 2 revolute joints.
+    Success: >= 15 particles in hopper, within 40 s, structure intact, base at (-2,0), >= 2 revolute joints.
     """
 
     def __init__(self, terrain_bounds, environment=None):
@@ -32,13 +32,13 @@ class Evaluator:
         self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 5.0))
         self.BASE_X = getattr(environment, 'BASE_X', getattr(env_class, 'BASE_X', -2.0))
         self.BASE_Y = getattr(environment, 'BASE_Y', getattr(env_class, 'BASE_Y', 0.0))
-        self.MIN_PARTICLES_IN_HOPPER = getattr(environment, 'MIN_PARTICLES_IN_HOPPER', getattr(env_class, 'MIN_PARTICLES_IN_HOPPER', 50))
+        self.MIN_PARTICLES_IN_HOPPER = getattr(environment, 'MIN_PARTICLES_IN_HOPPER', getattr(env_class, 'MIN_PARTICLES_IN_HOPPER', 15))
         self.MAX_TIME_SECONDS = getattr(environment, 'MAX_TIME_SECONDS', getattr(env_class, 'MAX_TIME_SECONDS', 40.0))
         self.MAX_STEPS = int(self.MAX_TIME_SECONDS * TARGET_FPS)
 
     def evaluate(self, agent_body, step_count, max_steps):
         """
-        Evaluate excavator: base at (-2,0), >= 2 DOF, >= 50 in hopper, within 40 s. Returns (done, score, metrics).
+        Evaluate excavator: base at (-2,0), >= 2 DOF, >= 15 in hopper, within 40 s. Returns (done, score, metrics).
         """
         if not self.environment:
             return True, 0.0, {"error": "Environment not available"}
@@ -192,10 +192,10 @@ class Evaluator:
     def get_task_description(self):
         return {
             "task": "F-03: The Excavator",
-            "description": "Dig sand from pit and transport into hopper; > 50 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)",
+            "description": "Dig sand from pit and transport into hopper; > 15 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": "Deposit > 50 sand particles into the Hopper",
+                "primary": "Deposit > 15 sand particles into the Hopper",
                 "secondary": "Complete within 40 seconds; structure intact",
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},

@@ -2,11 +2,19 @@
 C-06: The Governor task Prompt and Primitives definition
 """
 
-import json
 import os
+import json
+import sys
+
+# Add the tasks directory to sys.path to find primitives_api.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
     _api_data = json.load(f)
+
+if 'C_06' in _api_data and 'API_INTRO' in _api_data['C_06']:
+    del _api_data['C_06']['API_INTRO']
 
 
 TASK_PROMPT = {
@@ -31,11 +39,11 @@ Design a control loop that:
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Speed Regulation**: Mean speed error during the regulation phase (after startup) remains within a tight threshold (e.g., < 0.23 rad/s).
-2. **No Stall**: The wheel must not stall (speed must remain above a minimum threshold like 0.3 rad/s) for any sustained period.
+1. **Speed Regulation**: Mean speed error during the regulation phase (after startup) remains within the required threshold (<= 0.23 rad/s).
+2. **No Stall**: The wheel must not stall (speed must remain above the minimum threshold of 0.3 rad/s) for 60 or more consecutive steps.
 
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    'primitives_api': '\n\n'.join(_api_data['C_06'].values()),
+    'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['C_06'].values()),
 }

@@ -2,9 +2,16 @@
 Common simulator module
 Provides physics simulation, rendering, GIF generation and other common functionality
 """
-import pygame
 import os
 import sys
+
+# CRITICAL: Force headless BEFORE importing pygame
+if not os.environ.get('DISPLAY'):
+    os.environ['SDL_VIDEODRIVER'] = 'dummy'
+os.environ['SDL_AUDIODRIVER'] = 'dummy'
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
+import pygame
 import warnings
 
 # Try importing PIL/Pillow for GIF generation

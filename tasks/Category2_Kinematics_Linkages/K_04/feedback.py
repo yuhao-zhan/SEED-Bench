@@ -166,7 +166,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             suggestions.append("- Check that wheels/tracks maintain good contact with high-friction ground")
             suggestions.append("- Consider increasing wheel friction or using tracks instead of wheels")
             suggestions.append("- Ensure pusher makes proper contact with object to transfer force")
-            suggestions.append("- High ground friction (1.2) can cause wheel slipping - adjust motor torque")
+            suggestions.append("- High ground friction can cause wheel slipping - adjust motor torque")
     elif not success:
         if 'distance_pushed' in metrics:
             if metrics.get('distance_pushed', 0) < 3.0:

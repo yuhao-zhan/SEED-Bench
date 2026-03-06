@@ -2,11 +2,19 @@
 C-02: The Lander (obstacle + moving platform) task Prompt and Primitives definition
 """
 
-import json
 import os
+import json
+import sys
+
+# Add the tasks directory to sys.path to find primitives_api.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
     _api_data = json.load(f)
+
+if 'C_02' in _api_data and 'API_INTRO' in _api_data['C_02']:
+    del _api_data['C_02']['API_INTRO']
 
 
 TASK_PROMPT = {
@@ -28,13 +36,13 @@ Design a control loop that:
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Soft Landing**: Land on the platform with low downward velocity (|vy| < 2.0 m/s).
-2. **Upright Orientation**: Land with the craft nearly upright (|angle| < 10 degrees).
+1. **Soft Landing**: Land on the platform with low downward velocity (|vy| <= 2.0 m/s).
+2. **Upright Orientation**: Land with the craft nearly upright (|angle| <= 10 degrees).
 3. **Accuracy**: Land within the platform's horizontal bounds at the moment of contact.
 4. **Efficiency**: Land with at least 450 N·s of impulse budget remaining.
 
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.
 """,
-    'primitives_api': '\n\n'.join(_api_data['C_02'].values()),
+    'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['C_02'].values()),
 }

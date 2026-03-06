@@ -87,10 +87,10 @@ def get_improvement_suggestions(
                 suggestions.append("- Ensure all beams are inside the build zone between pit and truck")
         elif failure_reason and ("deposited" in failure_reason.lower() or "hopper" in failure_reason.lower()):
             suggestions.append("- Design bucket/scoop to hold material without spilling during rotation")
-            suggestions.append("- Use at least 2 DOF (Arm + Bucket) with revolute joints; control motors to scoop at pit and dump at hopper (x=-5, y=3)")
+            suggestions.append("- Use at least 2 DOF (Arm + Bucket) with revolute joints; control motors to scoop at pit and dump at hopper (x=-5.0, y=3.0)")
         elif failure_reason and "structure integrity" in failure_reason.lower():
             suggestions.append("- Strengthen joints; scooping and dumping exert large forces")
     elif not success:
-        if (metrics.get("particles_in_truck") or 0) < 50:
-            suggestions.append("- Aim to deposit > 50 sand particles into the Hopper within 40 seconds")
+        if (metrics.get("particles_in_truck") or 0) < 15:
+            suggestions.append("- Aim to deposit > 15 sand particles into the Hopper within 40 seconds")
     return suggestions

@@ -107,7 +107,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             suggestions.append("- Consider using fewer or smaller components")
         elif "build zone" in error_lower:
             suggestions.append("- Ensure all beams are placed within the build zone")
-            suggestions.append("- Check that climber components are within x=[0, 5], y=[0, 20]")
+            suggestions.append("- Check that climber components are within x=[0, 5], y=[0, 25]")
         elif "error building" in error_lower:
             suggestions.append("- Review the error message above to identify the specific constraint violation")
             suggestions.append("- Ensure all parameters (beam sizes, positions) are within allowed ranges")

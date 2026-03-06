@@ -2,12 +2,29 @@
 K-01: The Walker task Prompt and Primitives definition
 """
 
-import json
 import os
+import json
+import sys
+
+# Add the tasks directory to sys.path to find primitives_api.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from primitives_api import API_INTRO
+import sys
+
+# Add tasks directory to path to import primitives_api
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
     _api_data = json.load(f)
 
+if 'K_01' in _api_data and 'API_INTRO' in _api_data['K_01']:
+    del _api_data['K_01']['API_INTRO']
+
+task_data = _api_data['K_01']
+# Use centralized API_INTRO and remove local one if it exists
+if 'API_INTRO' in task_data:
+    del task_data['API_INTRO']
 
 TASK_PROMPT = {
     'task_description': """
@@ -43,5 +60,5 @@ Design a 2D side-view walker that moves forward using motor-driven joints.
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': '\n\n'.join(_api_data['K_01'].values()),
+    'primitives_api': API_INTRO + '\n\n' + '\n\n'.join(task_data.values()),
 }

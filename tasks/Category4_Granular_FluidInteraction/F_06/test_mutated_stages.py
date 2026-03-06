@@ -14,7 +14,7 @@ from main import TaskRunner
 def run_one(task_name, task_module, env_overrides=None, label="Baseline"):
     overrides = env_overrides or {}
     runner = TaskRunner(task_name, task_module)
-    result = runner.run(headless=True, max_steps=10000, save_gif=False, env_overrides=overrides)
+    result = runner.run(headless=True, max_steps=2400, save_gif=False, env_overrides=overrides)
     if result is None:
         return None, f"{label}: build/run error (no result)"
     score, metrics = result

@@ -54,9 +54,7 @@ class Evaluator:
         # Design constraint check (height)
         if not failed:
             for body in self.environment._bodies:
-                # Margin for beam half-height (max beam height is 10, so half is 5.0)
-                # But typically they use smaller beams. 0.5m buffer is standard.
-                if body.position.y > self.MAX_STRUCTURE_HEIGHT + 0.5:
+                if body.position.y > self.MAX_STRUCTURE_HEIGHT:
                     failed, failure_reason = True, f"Structure exceeds height limit {self.MAX_STRUCTURE_HEIGHT}m"
                     break
 

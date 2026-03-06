@@ -1,111 +1,112 @@
 
+
 import math
 
 
+
 CENTER_X = 4.0
+
 BASE_Y = 1.15
-HALF_SPAN = 2.0
-ARM_LEN = 3.0
-ARM_THICK = 0.08
-PLATFORM_W = 4.0
-PLATFORM_H = 0.12
-DENSITY = 0.6
 
-H_GAIN = math.sqrt(ARM_LEN**2 - HALF_SPAN**2)
-
-BASE_TOP = BASE_Y + 0.16
-CY_LIST = [
-    BASE_Y + 0.05 + 0.85 * H_GAIN,
-    BASE_Y + 0.05 + 1.70 * H_GAIN,
-    BASE_Y + 0.05 + 2.55 * H_GAIN,
-    BASE_Y + 0.05 + 3.40 * H_GAIN,
-]
-
-
-def _arm_center_angle_len(px, py, cx, cy):
-    bx = (px + cx) / 2
-    by = (py + cy) / 2
-    angle = math.atan2(cy - py, cx - px)
-    length = math.sqrt((cx - px)**2 + (cy - py)**2)
-    return bx, by, angle, min(length, 4.0)
 
 
 def build_agent(sandbox):
 
-    base = sandbox.add_beam(
-        x=CENTER_X, y=BASE_Y + 0.05,
-        width=PLATFORM_W, height=0.22,
-        angle=0, density=1.6
-    )
-    sandbox.set_material_properties(base, restitution=0.0, friction=0.9)
+                                         
 
-    left_pivot_x = CENTER_X - HALF_SPAN
-    right_pivot_x = CENTER_X + HALF_SPAN
-    prev_plat = base
-    prev_cy = BASE_Y + 0.16
-    motor_joints = []
+    base = sandbox.add_beam(x=CENTER_X, y=BASE_Y, width=4.0, height=0.3, density=10.0)
 
-    for cy in CY_LIST:
-        cx = CENTER_X
-        blx, bly, angle_left, len_left = _arm_center_angle_len(left_pivot_x, prev_cy, cx, cy)
-        arm_left = sandbox.add_beam(
-            x=blx, y=bly, width=len_left, height=ARM_THICK,
-            angle=angle_left, density=DENSITY
-        )
-        sandbox.set_material_properties(arm_left, restitution=0.0, friction=0.5)
-        sandbox.add_joint(prev_plat, arm_left, (left_pivot_x, prev_cy), type='pivot')
+    sandbox.weld_to_ground(base, (CENTER_X, BASE_Y))
 
-        brx, bry, angle_right, len_right = _arm_center_angle_len(right_pivot_x, prev_cy, cx, cy)
-        arm_right = sandbox.add_beam(
-            x=brx, y=bry, width=len_right, height=ARM_THICK,
-            angle=angle_right, density=DENSITY
-        )
-        sandbox.set_material_properties(arm_right, restitution=0.0, friction=0.5)
-        sandbox.add_joint(prev_plat, arm_right, (right_pivot_x, prev_cy), type='pivot')
+    
 
-        j_center = sandbox.add_joint(arm_left, arm_right, (cx, cy), type='pivot')
-        motor_joints.append(j_center)
+                   
 
-        plat = sandbox.add_beam(x=cx, y=cy, width=PLATFORM_W, height=PLATFORM_H, angle=0, density=DENSITY)
-        sandbox.set_material_properties(plat, restitution=0.0, friction=0.9)
-        sandbox.add_joint(arm_left, plat, (cx, cy), type='rigid')
-        sandbox.add_joint(arm_right, plat, (cx, cy), type='rigid')
+                                                                   
 
-        prev_plat = plat
-        prev_cy = cy
+                           
 
-    sandbox._lifter_motor_joints = motor_joints
-    sandbox._top_platform = prev_plat
+                    
 
-    total_mass = sandbox.get_structure_mass()
-    if total_mass > sandbox.MAX_STRUCTURE_MASS:
-        raise ValueError(f"Structure mass {total_mass:.2f}kg exceeds limit {sandbox.MAX_STRUCTURE_MASS}kg")
-    print(f"Lifter constructed: {len(sandbox.bodies)} bodies, {len(sandbox.joints)} joints, {total_mass:.2f}kg")
+    arm = sandbox.add_beam(x=1.0, y=6.0, width=0.4, height=10.0, angle=0, density=2.0)
+
+    j_motor = sandbox.add_joint(base, arm, (1.0, 1.3), type='pivot')
+
+    
+
+                                       
+
+                                                 
+
+                          
+
+                                                            
+
+    
+
+    return build_simple_push(sandbox)
+
+
+
+def build_simple_push(sandbox):
+
+    base = sandbox.add_beam(x=CENTER_X, y=BASE_Y, width=4.0, height=0.2, density=10.0)
+
+    sandbox.weld_to_ground(base, (CENTER_X, BASE_Y))
+
+    
+
+                                       
+
+    plat = sandbox.add_beam(x=CENTER_X, y=1.5, width=4.0, height=0.2, density=5.0)
+
+    
+
+                             
+
+    sandbox.add_joint(base, plat, (CENTER_X, 1.5), type='slider', axis=(0, 1), lower_translation=-10.0, upper_translation=10.0)
+
+    
+
+    sandbox.set_fixed_rotation(plat, True)
+
+    sandbox._top_platform = plat
+
+    
+
     return base
 
 
-SETTLE_STEPS = 30
 
 def agent_action(sandbox, agent_body, step_count):
 
-    if not hasattr(sandbox, '_lifter_motor_joints'):
-        return
-    if step_count < SETTLE_STEPS:
-        for joint in sandbox._lifter_motor_joints:
-            if joint is not None:
-                sandbox.set_motor(joint, 0.0, 30.0)
-        return
-    plat_y = sandbox._top_platform.position.y if hasattr(sandbox, '_top_platform') and sandbox._top_platform else None
-    if plat_y is not None and plat_y >= 8.4:
-        motor_speed, max_torque = 0.0, 35.0
-    elif plat_y is not None and plat_y >= 8.0:
-        motor_speed, max_torque = -0.02, 38.0
-    elif plat_y is not None and plat_y >= 7.0:
-        motor_speed, max_torque = -0.06, 42.0
-    elif plat_y is not None and plat_y >= 6.0:
-        motor_speed, max_torque = -0.10, 48.0
+    if not hasattr(sandbox, '_top_platform'): return
+
+    
+
+    plat = sandbox._top_platform
+
+    target_y = 9.5
+
+    
+
+                                
+
+    if plat.position.y < target_y:
+
+                            
+
+        sandbox.apply_force(plat, (0, 2000.0))
+
     else:
-        motor_speed, max_torque = -0.14, 52.0
-    for joint in sandbox._lifter_motor_joints:
-        if joint is not None:
-            sandbox.set_motor(joint, motor_speed, max_torque)
+
+                 
+
+        sandbox.apply_force(plat, (0, 40.0))
+
+    
+
+                                            
+
+                        
+

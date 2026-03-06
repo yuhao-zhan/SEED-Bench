@@ -33,7 +33,23 @@ class Sandbox:
         self._pad_force_scale = float(physics_config.get("pad_force_scale", self.PAD_FORCE_SCALE))
         self._max_pad_force = float(physics_config.get("max_pad_force", self.MAX_PAD_FORCE))
 
-        # 1. Initialize physics world (private attributes, solver LLM should not directly access)
+        # New mechanics for innovative mutations
+        self._wind_force = float(terrain_config.get("wind_force", 0.0))
+        self._wind_oscillation = float(terrain_config.get("wind_oscillation", 0.0))
+        self._max_joint_force = float(physics_config.get("max_joint_force", float('inf')))
+        self._max_joint_torque = float(physics_config.get("max_joint_torque", float('inf')))
+        self._gravity_evolution = float(physics_config.get("gravity_evolution", 0.0))
+        self._initial_gravity_y = gravity[1]
+        
+        self._destroy_ground_time = float(terrain_config.get("destroy_ground_time", -1.0))
+        self._boulder_interval = float(terrain_config.get("boulder_interval", -1.0))
+        self._wall_oscillation_amp = float(terrain_config.get("wall_oscillation_amp", 0.0))
+        self._wall_oscillation_freq = float(terrain_config.get("wall_oscillation_freq", 0.0))
+        self._vortex_y = float(terrain_config.get("vortex_y", 100.0))
+        self._vortex_force_x = float(terrain_config.get("vortex_force_x", 0.0))
+        self._vortex_force_y = float(terrain_config.get("vortex_force_y", 0.0))
+
+        # 1. Initialize physics world
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []  # Private list, prevent direct manipulation
         self._joints = []  # Private list, prevent direct manipulation
@@ -60,7 +76,7 @@ class Sandbox:
         self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
         self.BUILD_ZONE_X_MAX = 5.0  # Build zone x end (narrow zone near wall)
         self.BUILD_ZONE_Y_MIN = 0.0  # Build zone y start (ground level)
-        self.BUILD_ZONE_Y_MAX = 20.0  # Build zone y end (high enough for climbing)
+        self.BUILD_ZONE_Y_MAX = 25.0  # Build zone y end (high enough for climbing or high anchors)
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 50.0))  # Maximum total structure mass (kg)
         
         # 4. Create initial climber structure (basic template - solver will build their own)
@@ -73,11 +89,13 @@ class Sandbox:
         """
         wall_friction = float(terrain_config.get("wall_friction", 1.0))  # Increased friction for better grip
         wall_x = 5.0  # Wall position at x=5m
-        wall_height = 25.0  # Wall height
+        wall_height = 30.0  # Wall height increased to match zone
         wall_thickness = 0.5  # Wall thickness
         
         # Vertical wall
-        wall = self._world.CreateStaticBody(
+        wall_type = Box2D.b2_kinematicBody if self._wall_oscillation_amp > 0 else Box2D.b2_staticBody
+        wall = self._world.CreateBody(
+            type=wall_type,
             position=(wall_x, wall_height / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(wall_thickness / 2, wall_height / 2)),
@@ -140,7 +158,7 @@ class Sandbox:
     BUILD_ZONE_X_MIN = 0.0  # Default, will be updated in __init__
     BUILD_ZONE_X_MAX = 5.0  # Default, will be updated in __init__
     BUILD_ZONE_Y_MIN = 0.0  # Build zone y start
-    BUILD_ZONE_Y_MAX = 20.0  # Build zone y end
+    BUILD_ZONE_Y_MAX = 25.0  # Build zone y end
     MAX_STRUCTURE_MASS = 50.0  # Default, will be updated in __init__
 
     # --- Below are Primitives API open to LLM (with physical constraints) ---
@@ -278,17 +296,88 @@ class Sandbox:
                 fixture.friction = float(friction)
 
     def step(self, time_step):
-        """Physics step: apply pad forces toward wall, then step world."""
+        """Physics step: apply forces, then step world."""
         wall_x = getattr(self, '_wall_x', 5.0)
         scale = getattr(self, '_pad_force_scale', self.PAD_FORCE_SCALE)
         max_f = getattr(self, '_max_pad_force', self.MAX_PAD_FORCE)
+        
+        # 1. Apply Pad Suction Forces
         for pad in self._pads:
             if self._pad_active.get(pad, False):
                 dx = wall_x - pad.position.x
-                if dx > 0:  # Pad is left of wall — pull toward wall (capped by max load)
+                if dx > 0:
                     F = min(dx * scale, max_f)
                     pad.ApplyForce((F, 0), pad.position, True)
+        
+        # 2. Apply Wind Forces
+        if self._wind_force != 0:
+            # Apply wind force to the first body (usually the torso)
+            # This prevents force multiplying by the number of small pads/components
+            if self._bodies:
+                b = self._bodies[0]
+                force_x = self._wind_force
+                if self._wind_oscillation > 0:
+                    t = getattr(self, '_time', 0.0)
+                    force_x *= (0.5 + 0.5 * math.sin(self._wind_oscillation * t))
+                b.ApplyForce((force_x, 0), b.worldCenter, True)
+
+        # Update time
+        if not hasattr(self, '_time'): self._time = 0.0
+        self._time += time_step
+
+        # 3. Handle Ground Destruction (Stage 1)
+        if self._destroy_ground_time > 0 and self._time >= self._destroy_ground_time:
+            if "ground" in self._terrain_bodies:
+                self._world.DestroyBody(self._terrain_bodies["ground"])
+                del self._terrain_bodies["ground"]
+
+        # 4. Handle Boulder Spawning (Stage 2)
+        if self._boulder_interval > 0:
+            if not hasattr(self, '_last_boulder_time'): self._last_boulder_time = 0.0
+            if self._time - self._last_boulder_time >= self._boulder_interval:
+                boulder = self._world.CreateDynamicBody(position=(4.6, 28.0))
+                boulder.CreateCircleFixture(radius=0.3, density=20.0, friction=0.5, restitution=0.1)
+                self._last_boulder_time = self._time
+
+        # 5. Handle Wall Oscillation (Stage 3)
+        if self._wall_oscillation_amp > 0:
+            wall = self._terrain_bodies["wall"]
+            vx = self._wall_oscillation_amp * self._wall_oscillation_freq * math.cos(self._wall_oscillation_freq * self._time)
+            wall.linearVelocity = (vx, 0)
+            self._wall_x = wall.position.x
+
+        # 6. Handle Vortex/Height-dependent forces (Stage 4)
+        if self._vortex_y < 100.0:
+            for b in self._bodies:
+                if b.position.y > self._vortex_y:
+                    b.ApplyForceToCenter((self._vortex_force_x * b.mass, self._vortex_force_y * b.mass), True)
+
+        # 7. Handle Gravity Evolution
+        if self._gravity_evolution != 0:
+            new_g = self._initial_gravity_y + self._gravity_evolution * self._time
+            self._world.gravity = (0, new_g)
+
+        # 8. Physics Engine Step
         self._world.Step(time_step, 10, 10)
+
+        # 9. Joint Breaking Logic
+        if self._max_joint_force < float('inf') or self._max_joint_torque < float('inf'):
+            to_destroy = []
+            for j in self._joints:
+                try:
+                    # Reaction force/torque at the anchors
+                    reaction_force = j.GetReactionForce(1.0/time_step).length
+                    reaction_torque = abs(j.GetReactionTorque(1.0/time_step))
+                    
+                    if reaction_force > self._max_joint_force or reaction_torque > self._max_joint_torque:
+                        to_destroy.append(j)
+                except:
+                    continue
+            
+            for j in to_destroy:
+                if j in self._joints:
+                    self._world.DestroyJoint(j)
+                    self._joints.remove(j)
     
     def get_terrain_bounds(self):
         """Get terrain bounds (for evaluation)"""

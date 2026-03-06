@@ -2,48 +2,61 @@
 K-04: The Pusher task Prompt and Primitives definition
 """
 
-import json
 import os
+import json
+import sys
+
+# Add the tasks directory to sys.path to find primitives_api.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from primitives_api import API_INTRO
+import sys
+
+# Add tasks directory to path to import primitives_api
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
     _api_data = json.load(f)
 
+if 'K_04' in _api_data and 'API_INTRO' in _api_data['K_04']:
+    del _api_data['K_04']['API_INTRO']
+
+task_data = _api_data['K_04']
+if 'API_INTRO' in task_data:
+    del task_data['API_INTRO']
 
 TASK_PROMPT = {
     'task_description': """
-Design a pusher mechanism that can push a heavy object forward along high-friction ground using motor rotation.
+Design a ground-based pusher vehicle that can move a heavy object across a high-friction surface.
 
 ## Task Environment
-- **Ground**: Flat surface at y=1.0m.
-- **Object**: A heavy box at x=8.0m.
-- **Build Zone**: x=[0, 15], y=[1.5, 8.0]. All structure components must be placed within this zone.
-- **Starting Position**: Pusher components should be centered around x≈3.0m, y≈2.5m (behind the object).
-- **Target**: Push the object forward at least 10.0 meters.
+- **Ground**: A high-friction horizontal surface at y=1.0m.
+- **Heavy Object**: A 50 kg rectangular block at x=8.0m.
+- **Build Zone**: x=[0, 15], y=[1.5, 8]. All structure components must be placed within this zone.
+- **Target**: Push the object to at least x=18.0m (10 meters forward from starting x).
 
 ## Constraints (must satisfy)
-- **Stability**: The pusher must not tip over. Its tilt angle must stay within ±30 degrees from horizontal (radians: [-π/6, π/6]).
-- **Traction**: The pusher must maintain ground contact and forward motion. Avoid excessive wheel spinning or lifting wheels off the ground.
+- **Distance**: The object center reaches x >= 18.0m.
+- **Motion**: The pusher must maintain forward motion for at least 12.0 seconds.
 - **Mass Budget**: Total structure mass must be less than 40 kg.
-- **Build Zone**: All components must be within x=[0, 15], y=[1.5, 8.0].
+- **Build Zone**: All components must stay within x=[0, 15], y=[1.5, 8].
 - **Beam Dimensions**: 0.05 <= width, height <= 3.0 meters.
-- **Wheel Radius** (if used): 0.05 <= radius <= 0.8 meters.
 
 ## Instructions
-1. **Design**: Create a stable, low-center-of-gravity chassis with wheels or legs.
-2. **Control**: Use `set_motor` on pivot joints in `agent_action` to drive the pusher forward and push the object.
-3. **Stability**: Use `set_fixed_rotation()` if needed to prevent the chassis from tipping.
+1. **Design**: Create a wheeled or sliding pusher vehicle.
+2. **Control**: Use `set_motor` on pivot joints (wheels) or apply forces/torques to drive the vehicle.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Pushing**: Object reaches x >= 18.0m.
-2. **Stability**: Pusher tilt angle stays within ±30°.
-3. **Locomotion**: Sustained forward progress (no excessive wheel spinning or lifting).
+1. **Movement**: Object reaches x >= 18.0m.
+2. **Locomotion**: Maintains active motion for >= 12.0 seconds.
+3. **Stability**: Structure remains intact and within constraints.
 
 ## Design Constraints
 - **Mass Budget**: < 40 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     
-    'primitives_api': '\n\n'.join(_api_data['K_04'].values()),
+    'primitives_api': API_INTRO + '\n\n' + '\n\n'.join(task_data.values()),
 }

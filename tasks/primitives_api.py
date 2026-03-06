@@ -7,7 +7,7 @@ Usage-specific variables are provided for complex APIs with many optional parame
 API_INTRO = """
 ## Available Primitives API
 
-**STRICT RULE**: You are restricted to using ONLY the `primitives_api` explicitly documented here. You are STRICTLY PROHIBITED from hallucinating APIs or utilizing any undocumented functions. You may access `sandbox._terrain_bodies` (a dictionary of environment body objects) for state information, but you are STRICTLY PROHIBITED from directly assigning values to its contents (e.g., `body.position = ...`) or directly overriding physics state variables (e.g., `body.linearVelocity = ...`, `body.angularVelocity = ...`). Use forces and torques for control.
+**STRICT RULE**: You are restricted to using ONLY the `primitives_api` explicitly documented here. You are STRICTLY PROHIBITED from hallucinating APIs or utilizing any undocumented functions. You may access any body's state (e.g., `body.position`, `body.linearVelocity`, `body.angle`) for control logic. You are permitted to modify the physical properties of **dynamically created tools** (e.g., setting `tool.linearVelocity`, `tool.angularVelocity`, or using `tool.ApplyForceToCenter`). However, directly modifying physics properties of environmental bodies (like ground friction) is STRICTLY PROHIBITED. Use forces and torques for primary control.
 """
 
 # --- Body Creation ---

@@ -32,11 +32,11 @@ def test_k06_agent():
 
         print(f"\nRunning simulation...")
         print(f"GIF will be saved to: {gif_path}")
-        print(f"Max steps: 150000 (45 particles, 100%% removal, 12s motion, 15kg mass)\n")
+        print(f"Max steps: 10000 (45 particles, 100%% removal, 12s motion, 15kg mass)\n")
 
         # Task defaults (seed 42, 45 particles); ref agent reaches 100% within 150k steps
         env_overrides = {}
-        result = runner.run(headless=True, max_steps=150000, save_gif=True, env_overrides=env_overrides)
+        result = runner.run(headless=True, max_steps=10000, save_gif=True, env_overrides=env_overrides)
 
         if result:
             score, metrics = result

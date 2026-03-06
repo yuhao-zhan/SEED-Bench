@@ -14,54 +14,33 @@ DEFAULT_MAX_MASS = 300.0
 DEFAULT_METEOR_SPAWN_INTERVAL = 30
 DEFAULT_WIND_FORCE = 0.0
 DEFAULT_METEOR_RESTITUTION = 0.2
+DEFAULT_METEOR_DENSITY = 5.0
 DEFAULT_FLOOR_FRICTION = 0.5
 
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    description = base_description
-    
-    # Update Core Force Threshold
-    target_force = target_terrain_config.get("max_core_force", DEFAULT_CORE_MAX_FORCE)
-    if target_force != DEFAULT_CORE_MAX_FORCE:
-        pattern = r"(force reaching the core remains minimal \(< )(\d+\.?\d*)(N\))"
-        description = re.sub(pattern, f"\\g<1>{target_force:.1f}N (originally {DEFAULT_CORE_MAX_FORCE:.1f}N))", description)
-        
-    # Update Mass Budget
-    target_mass = target_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
-    if target_mass != DEFAULT_MAX_MASS:
-        pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*) kg"
-        description = re.sub(pattern, f"\\g<1>{target_mass:.1f} kg (originally {DEFAULT_MAX_MASS:.1f} kg)", description)
-        
-    return description
+    # We keep the description mostly base to follow the "Information Hiding" mandate.
+    return base_description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    criteria = base_success_criteria
-    
-    # Update Core Force in Success Criteria
-    target_force = target_terrain_config.get("max_core_force", DEFAULT_CORE_MAX_FORCE)
-    if target_force != DEFAULT_CORE_MAX_FORCE:
-        pattern = r"(without exceeding its )(\d+\.?\d*)(N impact force threshold)"
-        criteria = re.sub(pattern, f"\\g<1>{target_force:.1f}N impact force threshold (originally {DEFAULT_CORE_MAX_FORCE:.1f}N)", criteria)
-        
-    # Update Mass Budget in Success Criteria
-    target_mass = target_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
-    if target_mass != DEFAULT_MAX_MASS:
-        pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*) kg"
-        criteria = re.sub(pattern, f"\\g<1>{target_mass:.1f} kg (originally {DEFAULT_MAX_MASS:.1f} kg)", criteria)
-        
-    return criteria
+    # We keep the success criteria mostly base to follow the "Information Hiding" mandate.
+    return base_success_criteria
 
+# DYNAMICALLY GENERATED UNIFORM_SUFFIX based on the union of all mutated variables in Stages 1-4
 UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Gravity**: The downward acceleration may differ from standard, altering impact energy.
- - **Atmospheric Turbulence (Wind)**: A lateral force may be acting on all structures and debris.
- - **Surface Friction**: The ground friction may be altered, affecting the stability of unanchored structures.
- - **Material Elasticity (Restitution)**: The elasticity of falling boulders may change, altering the momentum transferred upon impact.
- - **Core Fragility**: The central object may have an altered tolerance for impact forces.
- - **Resource Scarcity (Mass Budget)**: The total mass of materials allowed for construction may be adjusted.
+ - **Gravity**: The downward acceleration may differ from standard, altering impact energy and structural load.
+ - **Debris Density**: Falling boulders may have significantly higher mass, leading to massive accumulation of weight.
+ - **Bombardment Intensity & Frequency**: More boulders may fall, and they may fall more frequently.
+ - **Material Elasticity (Restitution)**: The elasticity of falling boulders may change, altering how they ricochet off surfaces.
+ - **Atmospheric Turbulence (Wind)**: A lateral force may be acting on all structures and debris, potentially causing drift or collapse.
+ - **Surface Friction**: The ground friction may be altered, affecting the stability of unanchored structures on the terrain.
+ - **Structural Integrity (Joint Strength)**: Anchors and connections may have limited load-bearing capacity and can snap under excessive force or torque.
+ - **Core Fragility**: The central object may have an extremely low tolerance for impact forces, requiring near-perfect isolation.
+ - **Resource Scarcity (Mass Budget)**: The total mass of materials allowed for construction may be significantly restricted.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -70,49 +49,65 @@ def get_s05_curriculum_stages() -> List[Dict[str, Any]]:
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Extreme Gravity",
-            "mutation_description": "Gravity increased to -60.0 m/s². The structural integrity of the shelter will be tested under extreme impact loads.",
+            "title": "The Heavy Accumulation",
+            "mutation_description": "Dense boulders (100.0) and high gravity (-30.0). Joint strength is limited (15000N). Requires a multi-pillar sloped design to shed weight and survive impacts.",
             "task_description_suffix": UNIFORM_SUFFIX,
-            "terrain_config": {},
+            "terrain_config": {
+                "meteor_density": 100.0,
+                "meteor_restitution": 0.0,
+                "meteor_count": 20,
+                "meteor_spawn_interval": 30,
+                "max_joint_force": 15000.0,
+                "max_core_force": 1000.0,
+            },
             "physics_config": {
-                "gravity": (0, -60.0),
+                "gravity": (0, -30.0),
             },
         },
         {
             "stage_id": "Stage-2",
-            "title": "The Slippery Gale",
-            "mutation_description": "Constant lateral wind force (15.0 N/kg) and low ground friction (0.1).",
+            "title": "The Elastic Hurricane",
+            "mutation_description": "Strong wind (50.0), perfectly bouncy boulders (1.0), and zero ground friction. Joint torque is fragile (5000Nm).",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "wind_force": 15.0,
-                "floor_friction": 0.1,
+                "wind_force": 50.0,
+                "meteor_restitution": 1.0,
+                "floor_friction": 0.0,
+                "max_joint_torque": 5000.0,
+                "max_core_force": 50.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "Kinetic Overload",
-            "mutation_description": "High restitution meteors (0.8) and extremely fragile core (5.0N).",
+            "title": "The Fragile Resonance",
+            "mutation_description": "Absolute core fragility (0.01N), 50 meteors, and high gravity (-50.0). Requires perfect isolation.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "meteor_restitution": 0.8,
-                "max_core_force": 5.0,
+                "max_core_force": 0.01,
+                "meteor_spawn_interval": 10,
+                "meteor_count": 50,
             },
-            "physics_config": {},
+            "physics_config": {
+                "gravity": (0, -50.0),
+            },
         },
         {
             "stage_id": "Stage-4",
             "title": "The Ultimate Gauntlet",
-            "mutation_description": "High gravity (-40), low mass (120kg), bouncy debris (0.8), wind (5.0), and fragile core (15N).",
+            "mutation_description": "Mass budget (100kg), wind (20.0), gravity (-30.0), bouncy debris, and fragile core (1.0N) with weak joints (10000N).",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "max_structure_mass": 120.0,
+                "max_structure_mass": 100.0,
+                "wind_force": 20.0,
+                "meteor_density": 20.0,
                 "meteor_restitution": 0.8,
-                "max_core_force": 15.0,
-                "wind_force": 5.0,
+                "max_core_force": 1.0,
+                "max_joint_force": 10000.0,
+                "meteor_count": 30,
             },
             "physics_config": {
-                "gravity": (0, -40.0),
+                "gravity": (0, -30.0),
             },
         },
     ]
