@@ -124,11 +124,11 @@ class Evaluator:
                 failure_reason = "First rendezvous missed: activation not achieved."
             else:
                 failure_reason = "First rendezvous slot missed."
-        elif self._rendezvous_count >= 1 and distance > self.track_distance:
+        elif self._rendezvous_count >= 2 and distance > self.track_distance:
             failed = True
             failure_reason = f"Target lost after rendezvous: distance {distance:.2f} m exceeds track limit {self.track_distance:.1f} m"
 
-        success = (step_count >= max_steps - 1) and self._rendezvous_count >= 1 and not failed
+        success = (step_count >= max_steps - 1) and self._rendezvous_count >= 2 and not failed
 
         if success and not failed:
             score = 100.0

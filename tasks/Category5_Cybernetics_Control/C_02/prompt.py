@@ -26,6 +26,7 @@ Design a controller to safely land a craft on a moving platform while navigating
 - **No-Fly Zone**: A vertical barrier located at x in [10.5, 13.5] m, extending from the ground up to y=6.0m. Collisions with this zone must be avoided.
 - **Landing Zone**: A moving platform on the ground. Its center oscillates around x=17.0m with an amplitude of 1.8m. The valid landing area is 4.0m wide (center ± 2.0m) and its position depends on the time of landing.
 - **Thrust**: Main engine provides upward thrust; steering thrusters provide torque.
+- **Control Latency**: Note that actuation commands may take a few steps to take effect due to engine startup and sensor processing delays.
 - **Impulse Budget**: You have a limited fuel supply. You must land with a significant portion of your impulse budget remaining.
 
 ## Task Objective

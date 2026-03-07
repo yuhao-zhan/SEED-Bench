@@ -13,10 +13,8 @@ from Box2D.b2 import (
 )
 from collections import deque
 
-# Max distance (m) from seeker to target; beyond this = "lost target"
-LOSE_TARGET_DISTANCE = 8.5
-
 # Variable delay: get_target_position() returns value from 2 to 6 steps ago; delay changes every ~2 s
+LOSE_TARGET_DISTANCE = 8.5
 DELAY_MIN_STEPS = 2
 DELAY_MAX_STEPS = 6
 DELAY_CHANGE_INTERVAL_STEPS = 120  # change delay every 2 s at 60 Hz

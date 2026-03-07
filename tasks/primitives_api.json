@@ -1,15 +1,15 @@
 {
     "C_01": {
-        "APPLY_CART_FORCE": "### Apply Cart Force\n```python\nsandbox.apply_cart_force(f)\n```\n- `f`: Horizontal force in Newtons.\n- **Function**: Applies a force to the cart to control its position and the pole's balance.",
-        "GET_CART_BODY": "### Get Cart Body\n```python\ncart = sandbox.get_cart_body()\n```\n- **Returns**: The Box2D body object of the cart.",
-        "GET_POLE_BODY": "### Get Pole Body\n```python\npole = sandbox.get_pole_body()\n```\n- **Returns**: The Box2D body object of the pole.",
-        "GET_CART_POSITION": "### Get Cart Position\n```python\nx = sandbox.get_cart_position()\n```\n- **Returns**: The X-coordinate of the cart's center.",
-        "GET_CART_VELOCITY": "### Get Cart Velocity\n```python\nvx = sandbox.get_cart_velocity()\n```\n- **Returns**: The current horizontal speed of the cart.",
-        "GET_POLE_ANGLE": "### Get Pole Angle\n```python\nangle = sandbox.get_pole_angle()\n```\n- **Returns**: The current tilt angle of the pole in radians (delayed and noisy).",
-        "GET_POLE_ANGULAR_VELOCITY": "### Get Pole Angular Velocity\n```python\nomega = sandbox.get_pole_angular_velocity()\n```\n- **Returns**: The current rotation speed of the pole in rad/s (delayed and noisy).",
-        "GET_WORLD": "### Get Physics World\n```python\nworld = sandbox.world\n```\n- **Returns**: The Box2D world object. Use to read `world.gravity`.",
-        "TRACK_CENTER_X": "### Track Center X\n- `sandbox.TRACK_CENTER_X`: Standard center position (10.0m) for the cart track.",
-        "SAFE_HALF_RANGE": "### Safe Half Range\n- `sandbox.SAFE_HALF_RANGE`: The allowable distance (8.5m) the cart can move from the center."
+        "APPLY_CART_FORCE": "### Apply Cart Force\n```python\nsandbox.apply_cart_force(f: float)\n```\n- `f`: Horizontal force in Newtons (N). Positive is right, negative is left.\n- **Actuator Limits**: Clamped to [-450, 450] N. Subject to rate limiting and actuation delay.\n- **Function**: Applies force to the cart body to move it along the track.",
+        "GET_CART_BODY": "### Get Cart Body\n```python\ncart = sandbox.get_cart_body()\n```\n- **Returns**: The `b2Body` object representing the cart. Useful for reading internal physics state like `cart.position.x`.",
+        "GET_POLE_BODY": "### Get Pole Body\n```python\npole = sandbox.get_pole_body()\n```\n- **Returns**: The `b2Body` object representing the pole. Useful for reading internal physics state.",
+        "GET_CART_POSITION": "### Get Cart Position\n```python\nx = sandbox.get_cart_position() -> float\n```\n- **Returns**: The horizontal X-coordinate of the cart's center in meters (m). Center of track is at 10.0m.",
+        "GET_CART_VELOCITY": "### Get Cart Velocity\n```python\nvx = sandbox.get_cart_velocity() -> float\n```\n- **Returns**: The current horizontal velocity of the cart in meters per second (m/s).",
+        "GET_POLE_ANGLE": "### Get Pole Angle\n```python\nangle = sandbox.get_pole_angle() -> float\n```\n- **Returns**: The tilt angle of the pole in radians (rad). `0` is perfectly upright, `pi` is hanging down. Range: [-pi, pi]. Subject to noise and delay.",
+        "GET_POLE_ANGULAR_VELOCITY": "### Get Pole Angular Velocity\n```python\nomega = sandbox.get_pole_angular_velocity() -> float\n```\n- **Returns**: The angular velocity of the pole in radians per second (rad/s). Subject to noise and delay.",
+        "GET_WORLD": "### Get Physics World\n```python\nworld = sandbox.world\n```\n- **Returns**: The `b2World` object. Access `world.gravity.y` to check environmental gravity.",
+        "TRACK_CENTER_X": "### Track Center X\n- `sandbox.TRACK_CENTER_X`: float. The target X-coordinate (10.0m) for centering the cart.",
+        "SAFE_HALF_RANGE": "### Safe Half Range\n- `sandbox.SAFE_HALF_RANGE`: float. The maximum distance (8.5m) the cart can deviate from `TRACK_CENTER_X` before failing."
     },
     "C_02": {
         "APPLY_THRUST": "### Apply Thrust\n```python\nsandbox.apply_thrust(f1, f2)\n```\n- `f1`: Main engine thrust (vertical).\n- `f2`: Steering torque.\n- **Function**: Primary propulsion and orientation control for the lander.",
@@ -21,7 +21,8 @@
         "GET_LANDER_SIZE": "### Get Lander Size\n```python\nhalf_width, half_height = sandbox.get_lander_size()\n```\n- **Returns**: Half-dimensions of the lander's collision box.",
         "GET_REMAINING_FUEL": "### Get Remaining Fuel\n```python\nfuel = sandbox.get_remaining_fuel()\n```\n- **Returns**: The remaining impulse budget (N\u00b7s) for thrust.",
         "GET_THRUST_DELAY": "### Get Thrust Delay\n- `sandbox._thrust_delay_steps`: The current latency in actuator response.",
-        "GET_GRAVITY_MUTATION": "### Get Gravity Mutation\n- `sandbox._gravity_mutation`: Information about any scheduled changes to gravity during flight."
+        "GET_GRAVITY_MUTATION": "### Get Gravity Mutation\n- `sandbox._gravity_mutation`: Information about any scheduled changes to gravity during flight.",
+        "GET_WORLD": "### Get Physics World\n```python\nworld = sandbox.world\n```\n- **Returns**: The `b2World` object. Access `world.gravity.y` to check environmental gravity."
     },
     "C_03": {
         "APPLY_SEEKER_FORCE": "### Apply Seeker Force\n```python\nsandbox.apply_seeker_force(fx, fy)\n```\n- `fx, fy`: Force vector components (Newtons).\n- **Function**: Primary control input for maneuvering the seeker.",
@@ -35,7 +36,8 @@
         "GET_TARGET_POSITION": "### Get Target Position\n```python\npos = sandbox.get_target_position()\n```\n- **Returns**: `(x, y)` coordinates of the target (may be delayed).",
         "GET_TERRAIN_OBSTACLES": "### Get Terrain Obstacles\n```python\nobstacles = sandbox.get_terrain_obstacles()\n```\n- **Returns**: A list of current obstacles.",
         "GET_LINEAR_DAMPING": "### Get Linear Damping\n- `agent_body.linearDamping`: The coefficient of environmental resistance to translation.",
-        "GET_ANGULAR_DAMPING": "### Get Angular Damping\n- `agent_body.angularDamping`: The coefficient of environmental resistance to rotation."
+        "GET_ANGULAR_DAMPING": "### Get Angular Damping\n- `agent_body.angularDamping`: The coefficient of environmental resistance to rotation.",
+        "GET_WORLD": "### Get Physics World\n```python\nworld = sandbox.world\n```\n- **Returns**: The `b2World` object. Access `world.gravity.y` to check environmental gravity."
     },
     "C_04": {
         "APPLY_AGENT_FORCE": "### Apply Agent Force\n```python\nsandbox.apply_agent_force(fx, fy)\n```\n- `fx, fy`: Force components (Newtons).\n- **Function**: Standard movement control for the bot.",
@@ -44,7 +46,8 @@
         "GET_WHISKER_READINGS": "### Get Whisker Readings\n```python\nfront, left, right = sandbox.get_whisker_readings()\n```\n- **Returns**: Proximity readings from three sensors. Lower values mean obstacles are closer.",
         "GET_MOMENTUM_DRAIN_DAMPING": "### Get Momentum Drain Damping\n- `sandbox._momentum_drain_damping`: The coefficient of kinetic energy loss in the maze.",
         "GET_WHISKER_DELAY": "### Get Whisker Delay\n- `sandbox._whisker_delay_steps`: The latency in obstacle detection feedback.",
-        "GET_BACKWARD_STEPS_REQUIRED": "### Get Backward Steps Required\n- `sandbox._backward_steps_required`: The count of consecutive slow-backward steps needed to unlock passage."
+        "GET_BACKWARD_STEPS_REQUIRED": "### Get Backward Steps Required\n- `sandbox._backward_steps_required`: The count of consecutive slow-backward steps needed to unlock passage.",
+        "GET_LINEAR_DAMPING": "### Get Linear Damping\n- `agent_body.linearDamping`: The coefficient of environmental resistance to translation."
     },
     "C_05": {
         "APPLY_AGENT_FORCE": "### Apply Agent Force\n```python\nsandbox.apply_agent_force(fx, fy)\n```\n- `fx, fy`: Force components (Newtons).\n- **Function**: Standard movement control for the bot.",

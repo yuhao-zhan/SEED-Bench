@@ -14,67 +14,64 @@ class S01Renderer(Renderer):
     """S-01: The Bridge task specific renderer"""
     
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
-        self.set_camera_offset(camera_offset_x)
-        self.clear((30, 30, 30))  # Dark background
-        
-        # Draw static terrain (cliffs, water)
-        for body in sandbox.world.bodies:
-            if body.type == staticBody:
-                # Check if it's water (sensor) or terrain
-                is_water = False
-                for fixture in body.fixtures:
-                    if hasattr(fixture, 'isSensor') and fixture.isSensor:
-                        is_water = True
-                        break
+        # Enforce 16:9 aspect ratio
+        if self.simulator.screen_width != 800 or self.simulator.screen_height != 450:
+            self.simulator.screen_width = 800
+            self.simulator.screen_height = 450
+            if self.simulator.can_display:
+                import pygame
+                # Recreate surface to match new dimensions
+                self.simulator.screen = pygame.Surface((800, 450))
                 
-                if is_water:
-                    # Water - use blue
-                    self.draw_body(body,
-                                 dynamic_color=(100, 150, 240),
-                                 static_color=(50, 100, 200),  # Blue water
-                                 outline_color=(100, 150, 255),
-                                 outline_width=2)
-                else:
-                    # Cliffs - use brown/rock color
-                    self.draw_body(body,
-                                 dynamic_color=(100, 150, 240),
-                                 static_color=(150, 100, 50),  # Brown cliffs
-                                 outline_color=(200, 150, 100),
-                                 outline_width=2)
+        # Panoramic Camera Viewport for S-01 (Bridge)
+        # We need to cover x from 0 to 45 (to see both cliffs and target at x=30+)
+        # And y from 0 to 20
+        # For a width of 45m across 800 pixels, ppm should be around 800/45 ~ 17.7
+        self.simulator.ppm = 15.0
         
-        # Draw dynamic objects (bridge structure and vehicle)
+        # Center the camera
+        # Let's say we want x=20 to be the center of the screen
+        center_x_world = 20.0
+        center_y_world = 10.0
+        
+        cam_x = center_x_world * self.simulator.ppm - self.simulator.screen_width / 2
+        cam_y = self.simulator.screen_height / 2 - center_y_world * self.simulator.ppm
+        
+        self.set_camera_offset(cam_x, cam_y)
+        self.clear((0, 0, 0))  # Pure Black background
+        
+        # Updated Academic Color palette
+        ENV_COLOR = (230, 194, 41)       # #E6C229 (Goldenrod Yellow)
+        ENV_OUTLINE = (180, 144, 0)      # Darker Goldenrod
+        AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
+        AGENT_OUTLINE = (26, 125, 30)    # Darker Green
+        RED = (255, 0, 0)
+        
+        # Draw all bodies
         for body in sandbox.world.bodies:
-            if body.type == dynamicBody:
-                # Check if it's vehicle or bridge structure
-                is_vehicle = False
-                if hasattr(sandbox, '_terrain_bodies'):
-                    for key, value in sandbox._terrain_bodies.items():
-                        if 'vehicle' in key and body == value:
-                            is_vehicle = True
-                            break
-                
-                if is_vehicle:
-                    # Vehicle - use red
-                    self.draw_body(body,
-                                 dynamic_color=(255, 100, 100),  # Red vehicle
-                                 static_color=(150, 100, 50),
-                                 outline_color=(255, 150, 150),
-                                 outline_width=3)
-                else:
-                    # Bridge structure - use green
-                    self.draw_body(body,
-                                 dynamic_color=(100, 200, 100),  # Green bridge
-                                 static_color=(150, 100, 50),
-                                 outline_color=(50, 150, 50),
-                                 outline_width=2)
+            # Determine if it's environment or agent-created
+            is_environment = False
+            if hasattr(sandbox, '_terrain_bodies'):
+                if body in sandbox._terrain_bodies.values():
+                    is_environment = True
+            
+            if is_environment:
+                self.draw_body(body,
+                             dynamic_color=ENV_COLOR,
+                             static_color=ENV_COLOR,
+                             outline_color=ENV_OUTLINE,
+                             outline_width=2)
+            else:
+                self.draw_body(body,
+                             dynamic_color=AGENT_COLOR,
+                             static_color=AGENT_COLOR,
+                             outline_color=AGENT_OUTLINE,
+                             outline_width=2)
         
         # Draw target line (red)
-        target_screen_x = int((target_x * self.simulator.ppm) - camera_offset_x)
-        if 0 <= target_screen_x <= self.simulator.screen_width:
-            # Draw a red target line from ground to top
-            self.draw_line(target_x, 0, target_x, 20, (255, 0, 0), 3)
+        self.draw_line(target_x, 0, target_x, 20, RED, 3)
         
-        # Draw build zone outline (yellow, semi-transparent)
+        # Draw build zone outline
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):
             x_min = sandbox.BUILD_ZONE_X_MIN
             x_max = sandbox.BUILD_ZONE_X_MAX
@@ -82,7 +79,7 @@ class S01Renderer(Renderer):
             y_max = sandbox.BUILD_ZONE_Y_MAX
             
             # Draw rectangle outline
-            self.draw_line(x_min, y_min, x_max, y_min, (255, 255, 0), 1)
-            self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
-            self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
-            self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)
+            self.draw_line(x_min, y_min, x_max, y_min, ENV_COLOR, 1)
+            self.draw_line(x_max, y_min, x_max, y_max, ENV_COLOR, 1)
+            self.draw_line(x_max, y_max, x_min, y_max, ENV_COLOR, 1)
+            self.draw_line(x_min, y_max, x_min, y_min, ENV_COLOR, 1)

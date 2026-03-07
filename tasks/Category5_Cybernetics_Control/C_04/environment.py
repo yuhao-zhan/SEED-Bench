@@ -44,7 +44,7 @@ ACTIVATION_X_MAX = 8.0
 SLIP_FRICTION = 0.03
 # Exit barrier
 EXIT_BARRIER_X_LO, EXIT_BARRIER_X_HI = 17.0, 18.5
-EXIT_BARRIER_FORCE = 120.0
+EXIT_BARRIER_FORCE = 1000.0
 # One-way: past x=10.2 cannot go back
 ONEWAY_X = 10.2
 ONEWAY_FORCE_RIGHT = 100.0
@@ -153,23 +153,28 @@ class Sandbox:
 
     def _create_maze(self, terrain_config: dict):
         """Maze: outer walls, three obstacles (up, middle-slit, down). No visible trigger markers."""
+        ceiling_friction = float(terrain_config.get("ceiling_friction", 0.5))
+        floor_friction = float(terrain_config.get("floor_friction", 0.5))
+        wall_friction = float(terrain_config.get("wall_friction", 0.5))
+        
         walls = [
-            (10.0, 0.25, 10.0, 0.25),
-            (10.0, 2.75, 10.0, 0.25),
-            (0.25, 1.5, 0.25, 1.5),
-            (19.75, 0.625, 0.25, 0.625),
-            (19.75, 2.225, 0.25, 0.775),
-            (5.0, 0.625, 0.2, 0.625),
-            (9.0, 0.5, 0.2, 0.5),
-            (9.0, 2.3, 0.2, 0.7),
-            (14.0, 2.225, 0.2, 0.775),
+            # cx, cy, hw, hh, friction
+            (10.0, 0.25, 10.0, 0.25, floor_friction), # floor
+            (10.0, 2.75, 10.0, 0.25, ceiling_friction), # ceiling
+            (0.25, 1.5, 0.25, 1.5, wall_friction),
+            (19.75, 0.625, 0.25, 0.625, wall_friction),
+            (19.75, 2.225, 0.25, 0.775, wall_friction),
+            (5.0, 0.625, 0.2, 0.625, wall_friction),
+            (9.0, 0.5, 0.2, 0.5, wall_friction),
+            (9.0, 2.3, 0.2, 0.7, wall_friction),
+            (14.0, 2.225, 0.2, 0.775, wall_friction),
         ]
-        for cx, cy, hw, hh in walls:
+        for cx, cy, hw, hh, fr in walls:
             body = self._world.CreateStaticBody(
                 position=(cx, cy),
                 fixtures=Box2D.b2FixtureDef(
                     shape=polygonShape(box=(hw, hh)),
-                    friction=0.5,
+                    friction=fr,
                     restitution=0.0,
                 ),
             )
@@ -301,6 +306,15 @@ class Sandbox:
                     * math.sin(step * self._wind_oscillation_omega)
                 )
                 agent.ApplyForceToCenter((0, wind_y), True)
+                
+            # Shear flow
+            shear_grad = float(self._physics_config.get("shear_wind_gradient", 0.0))
+            shear_xmin = float(self._physics_config.get("shear_wind_x_min", 10.0))
+            shear_xmax = float(self._physics_config.get("shear_wind_x_max", 15.0))
+            if shear_grad != 0.0 and shear_xmin <= x <= shear_xmax:
+                wind_x = shear_grad * (y - 1.5)
+                agent.ApplyForceToCenter((wind_x, 0), True)
+
 
             # Exit barrier: until behavioral condition met (no spatial triggers)
             if EXIT_BARRIER_X_LO <= x <= EXIT_BARRIER_X_HI and not self._behavioral_unlock:

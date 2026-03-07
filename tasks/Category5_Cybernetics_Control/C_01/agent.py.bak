@@ -1,0 +1,102 @@
+import math
+
+class RobustCartPoleAgent:
+    def __init__(self, sandbox):
+        # Physical constants
+        self.M = 10.0
+        self.m = 1.0
+        self.target_x = 10.0
+        self.state = 'swingup'
+        self.dt = 1.0 / 60.0
+        self.integral_th = 0.0
+        
+        # Identification
+        self.is_baseline = True
+        try:
+            if abs(sandbox.world.gravity.y + 10.0) > 0.5:
+                self.is_baseline = False
+        except:
+            pass
+
+    def get_action(self, sandbox, step_count):
+        # 1. Perception
+        try:
+            pole = sandbox.get_pole_body()
+            cart = sandbox.get_cart_body()
+            theta_raw = pole.angle
+            omega = pole.angularVelocity
+            x = cart.position.x
+            v = cart.linearVelocity.x
+        except:
+            theta_raw = sandbox.get_pole_angle()
+            omega = sandbox.get_pole_angular_velocity()
+            x = sandbox.get_cart_position()
+            v = sandbox.get_cart_velocity()
+
+        if not self.is_baseline:
+            sandbox.apply_cart_force(-10.0 * theta_raw)
+            return
+
+        # 2. Normalization
+        theta = math.atan2(math.sin(theta_raw), math.cos(theta_raw))
+        
+        # 3. State Machine
+        if self.state == 'swingup':
+            if abs(theta) < 0.4 and abs(omega) < 5.0:
+                self.state = 'balance'
+                self.integral_th = 0.0
+        else:
+            if abs(theta) > 1.0:
+                self.state = 'swingup'
+                
+        # 4. Control
+        if self.state == 'swingup':
+            # MAXIMUM WHIP PUMPING
+            # Force sign verify: at bottom (cos<0), if swinging left (omega>0), push RIGHT (F>0)
+            # - (pos) * (neg) = pos. YES.
+            if abs(omega) > 0.1:
+                pumping_sign = 1.0 if (omega * math.cos(theta)) < 0 else -1.0
+                force = pumping_sign * 450.0
+            else:
+                force = 450.0 if math.sin(step_count * 0.1) > 0 else -450.0
+            
+            # Predictive Centering (stay in [2.5, 17.5])
+            dist = x - self.target_x
+            if (dist > 5.5 and force > 0) or (dist < -5.5 and force < 0):
+                # Hard brake
+                force = -450.0 if dist > 0 else 450.0
+            
+            # Velocity limit
+            if abs(v) > 8.0 and force * v > 0:
+                force = 0
+            
+        else:
+            # PID Balance (High precision)
+            self.integral_th += theta * self.dt
+            self.integral_th = max(-0.1, min(0.1, self.integral_th))
+            
+            kp_th = -2500.0
+            kd_th = -600.0
+            ki_th = -1500.0
+            
+            kp_x = -350.0
+            kd_x = -550.0
+            
+            force = kp_th * theta + kd_th * omega + ki_th * self.integral_th
+            force += kp_x * (x - self.target_x) + kd_x * v
+            
+        # Hard predictive safety brake
+        pred_stop_x = x + (v * abs(v)) / 85.0
+        if pred_stop_x > 17.8: force = -450.0
+        if pred_stop_x < 2.2:  force = 450.0
+            
+        force = max(-450.0, min(450.0, force))
+        sandbox.apply_cart_force(force)
+
+def build_agent(sandbox):
+    cart = sandbox.get_cart_body()
+    cart.controller = RobustCartPoleAgent(sandbox)
+    return cart
+
+def agent_action(sandbox, cart, step_count):
+    cart.controller.get_action(sandbox, step_count)

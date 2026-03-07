@@ -18,14 +18,12 @@ def update_task_description_for_visible_changes(base_description: str, target_te
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update success criteria for visible changes."""
-    criteria = base_success_criteria
-    target_fuel = target_terrain_config.get("min_fuel_remaining_at_landing")
-    
-    if target_fuel is not None and target_fuel != 450.0:
-        pattern = r"(Efficiency\*\*: Land with at least )(\d+\.?\d*)( N·s of impulse budget remaining.)"
-        criteria = re.sub(pattern, f"\\g<1>{target_fuel:.0f} N·s of impulse budget remaining (originally 450 N·s).", criteria)
-    return criteria
+    """
+    Update success criteria for visible changes.
+    In this task, safety margins (fuel) are discovery-based (INVISIBLE), 
+    so we do not modify the prompt with exact values.
+    """
+    return base_success_criteria
 
 
 def get_c02_curriculum_stages() -> List[Dict[str, Any]]:
@@ -68,7 +66,7 @@ While the following variables **MIGHT** have changed from the initial environmen
             "mutation_description": "Total fuel reduced, min fuel remaining at landing increased.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "min_fuel_remaining_at_landing": 420.0,
+                "min_fuel_remaining_at_landing": 500.0, # Increased from baseline 450
             },
             "physics_config": {
                 "total_fuel_impulse": 3800.0,
@@ -77,10 +75,10 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-3",
             "title": "Gravity spike and fuel scarcity",
-            "mutation_description": "Gravity mutation at step 200 plus reduced fuel budget.",
+            "mutation_description": "Gravity mutation at step 200 plus significantly reduced fuel margin.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "min_fuel_remaining_at_landing": 400.0,
+                "min_fuel_remaining_at_landing": 550.0, # Increased from baseline 450
             },
             "physics_config": {
                 "gravity_mutation": {"at_step": 200, "gravity_after": (0, -15.5)},

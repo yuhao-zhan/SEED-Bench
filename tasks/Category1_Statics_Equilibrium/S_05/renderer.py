@@ -14,27 +14,54 @@ class S05Renderer(Renderer):
     
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
         """Render entire scene"""
-        self.set_camera_offset(camera_offset_x)
-        self.clear((30, 30, 30))
+        # Enforce 16:9 aspect ratio
+        if self.simulator.screen_width != 800 or self.simulator.screen_height != 450:
+            self.simulator.screen_width = 800
+            self.simulator.screen_height = 450
+            if self.simulator.can_display:
+                import pygame
+                self.simulator.screen = pygame.Surface((800, 450))
+                
+        # Panoramic Camera Viewport
+        self.simulator.ppm = 20.0
+        sw = self.simulator.screen_width
+        sh = self.simulator.screen_height
         
-        # Access core from terrain_bodies
-        core_body = sandbox._terrain_bodies.get("core")
-        floor_body = sandbox._terrain_bodies.get("floor")
+        center_x_world = 10.0
+        center_y_world = 6.0
+        
+        cam_x = center_x_world * self.simulator.ppm - sw / 2
+        cam_y = sh / 2 - center_y_world * self.simulator.ppm
+        self.set_camera_offset(cam_x, cam_y)
+        self.clear((0, 0, 0))  # Pure Black background
+        
+        # Updated Academic Color palette
+        ENV_COLOR = (230, 194, 41)       # #E6C229 (Goldenrod Yellow)
+        ENV_OUTLINE = (180, 144, 0)      # Darker Goldenrod
+        AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
+        AGENT_OUTLINE = (26, 125, 30)    # Darker Green
+        RED = (255, 0, 0)
         
         # Draw all bodies
         for body in sandbox.world.bodies:
-            if body == floor_body:
-                self.draw_body(body, static_color=(150, 100, 50), outline_color=(200, 150, 100), outline_width=2)
-            elif body == core_body:
-                # Core - red
-                self.draw_body(body, dynamic_color=(255, 0, 0), outline_color=(255, 100, 100), outline_width=3)
-            elif body.type == dynamicBody:
-                # Check if it's a meteor (part of sandbox._meteors)
+            # Determine if it's environment or agent-created
+            is_environment = False
+            if hasattr(sandbox, '_terrain_bodies'):
+                if body in sandbox._terrain_bodies.values():
+                    is_environment = True
+            if hasattr(sandbox, '_meteors'):
                 if body in sandbox._meteors:
-                    self.draw_body(body, dynamic_color=(200, 100, 50), outline_color=(255, 150, 100), outline_width=2)
-                else:
-                    # Structure - green
-                    self.draw_body(body, dynamic_color=(100, 200, 100), outline_color=(50, 150, 50), outline_width=2)
+                    is_environment = True
+            
+            if is_environment:
+                self.draw_body(body,
+                             dynamic_color=ENV_COLOR,
+                             static_color=ENV_COLOR,
+                             outline_color=ENV_OUTLINE,
+                             outline_width=2)
             else:
-                # Other static bodies
-                self.draw_body(body, static_color=(100, 100, 100), outline_color=(150, 150, 150), outline_width=1)
+                self.draw_body(body,
+                             dynamic_color=AGENT_COLOR,
+                             static_color=AGENT_COLOR,
+                             outline_color=AGENT_OUTLINE,
+                             outline_width=2)

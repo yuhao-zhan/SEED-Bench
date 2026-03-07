@@ -13,37 +13,38 @@ class F06Renderer(Renderer):
     """F-06: The Pipeline task specific renderer"""
 
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
-        self.set_camera_offset(camera_offset_x)
-        self.clear((30, 30, 30))  # Dark background consistent with other categories
+        # Enforce 16:9 aspect ratio and 1280x720 resolution
+        if self.simulator.screen_width != 1280 or self.simulator.screen_height != 720:
+            self.simulator.screen_width = 1280
+            self.simulator.screen_height = 720
+            if self.simulator.can_display:
+                import pygame
+                self.simulator.screen = pygame.Surface((1280, 720))
+
+        # Panoramic viewport: fix PPM and offset to see the entire relevant area
+        # 1280 / 28 = 45.7 PPM captures the full 26m width with margin
+        self.simulator.ppm = 45
+        # Center camera on x=13 (middle of 26m floor)
+        # 640 = 13 * 45 - offset_x => offset_x = 585 - 640 = -55
+        self.set_camera_offset(-55, 0)
+
+        self.clear((0, 0, 0))  # Background: Pure Black
+
+        # Academic Colors
+        COLOR_ENVIRONMENT = (230, 194, 41)   # #E6C229: Goldenrod Yellow
+        COLOR_STRUCTURE = (76, 175, 80)      # #4CAF50: Material Green
+        COLOR_FLUID = (100, 160, 220)        # Professional Blue
+        COLOR_PIT = (200, 80, 80)            # Muted Red for danger zones
 
         for body in sandbox.world.bodies:
             if body.type == staticBody:
-                is_source = sandbox._terrain_bodies.get("source") == body
-                is_target = sandbox._terrain_bodies.get("target") == body
-                if is_source:
-                    self.draw_body(
-                        body,
-                        dynamic_color=(80, 140, 180),
-                        static_color=(60, 120, 160),
-                        outline_color=(100, 160, 200),
-                        outline_width=2,
-                    )
-                elif is_target:
-                    self.draw_body(
-                        body,
-                        dynamic_color=(80, 160, 120),
-                        static_color=(60, 140, 100),
-                        outline_color=(100, 180, 140),
-                        outline_width=2,
-                    )
-                else:
-                    self.draw_body(
-                        body,
-                        dynamic_color=(100, 150, 240),
-                        static_color=(95, 90, 80),
-                        outline_color=(140, 130, 110),
-                        outline_width=2,
-                    )
+                self.draw_body(
+                    body,
+                    dynamic_color=COLOR_ENVIRONMENT,
+                    static_color=COLOR_ENVIRONMENT,
+                    outline_color=(140, 130, 110),
+                    outline_width=2,
+                )
 
         if hasattr(sandbox, "_fluid_particles"):
             default_radius = getattr(sandbox, "_PARTICLE_RADIUS", 0.10)
@@ -55,14 +56,14 @@ class F06Renderer(Renderer):
                         if hasattr(f.shape, "radius"):
                             r = f.shape.radius
                             break
-                    self.draw_circle(px, py, r, (100, 160, 220), outline_color=(130, 190, 255), outline_width=1)
+                    self.draw_circle(px, py, r, COLOR_FLUID, outline_color=(130, 190, 255), outline_width=1)
 
         for body in sandbox._bodies:
             if body.active:
                 self.draw_body(
                     body,
-                    dynamic_color=(100, 200, 100),  # Green dynamic objects
-                    static_color=(100, 200, 100),
+                    dynamic_color=COLOR_STRUCTURE,
+                    static_color=COLOR_STRUCTURE,
                     outline_color=(50, 150, 50),
                     outline_width=2,
                 )
@@ -72,43 +73,33 @@ class F06Renderer(Renderer):
             x_max = sandbox.BUILD_ZONE_X_MAX
             y_min = sandbox.BUILD_ZONE_Y_MIN
             y_max = sandbox.BUILD_ZONE_Y_MAX
-            self.draw_line(x_min, y_min, x_max, y_min, (255, 255, 0), 1)
-            self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
-            self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
-            self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)
-        # Pit 1 (loss)
-        if hasattr(sandbox, "PIT_X_MIN"):
-            px1, px2 = sandbox.PIT_X_MIN, sandbox.PIT_X_MAX
-            py1, py2 = sandbox.PIT_Y_MIN, sandbox.PIT_Y_MAX
-            self.draw_line(px1, py1, px2, py1, (180, 50, 50), 2)
-            self.draw_line(px2, py1, px2, py2, (180, 50, 50), 2)
-            self.draw_line(px2, py2, px1, py2, (180, 50, 50), 2)
-            self.draw_line(px1, py2, px1, py1, (180, 50, 50), 2)
-        # Pit 2 (loss)
-        if hasattr(sandbox, "PIT2_X_MIN"):
-            qx1, qx2 = sandbox.PIT2_X_MIN, sandbox.PIT2_X_MAX
-            qy1, qy2 = sandbox.PIT2_Y_MIN, sandbox.PIT2_Y_MAX
-            self.draw_line(qx1, qy1, qx2, qy1, (160, 40, 40), 2)
-            self.draw_line(qx2, qy1, qx2, qy2, (160, 40, 40), 2)
-            self.draw_line(qx2, qy2, qx1, qy2, (160, 40, 40), 2)
-            self.draw_line(qx1, qy2, qx1, qy1, (160, 40, 40), 2)
-        # Pit 3 (loss)
-        if hasattr(sandbox, "PIT3_X_MIN"):
-            rx1, rx2 = sandbox.PIT3_X_MIN, sandbox.PIT3_X_MAX
-            ry1, ry2 = sandbox.PIT3_Y_MIN, sandbox.PIT3_Y_MAX
-            self.draw_line(rx1, ry1, rx2, ry1, (200, 60, 60), 2)
-            self.draw_line(rx2, ry1, rx2, ry2, (200, 60, 60), 2)
-            self.draw_line(rx2, ry2, rx1, ry2, (200, 60, 60), 2)
-            self.draw_line(rx1, ry2, rx1, ry1, (200, 60, 60), 2)
-        # Headwind threshold (blue dotted line)
+            self.draw_line(x_min, y_min, x_max, y_min, COLOR_ENVIRONMENT, 1)
+            self.draw_line(x_max, y_min, x_max, y_max, COLOR_ENVIRONMENT, 1)
+            self.draw_line(x_max, y_max, x_min, y_max, COLOR_ENVIRONMENT, 1)
+            self.draw_line(x_min, y_max, x_min, y_min, COLOR_ENVIRONMENT, 1)
+
+        # Pits (Loss zones)
+        for pit_attr in ["PIT", "PIT2", "PIT3"]:
+            if hasattr(sandbox, f"{pit_attr}_X_MIN"):
+                px1 = getattr(sandbox, f"{pit_attr}_X_MIN")
+                px2 = getattr(sandbox, f"{pit_attr}_X_MAX")
+                py1 = getattr(sandbox, f"{pit_attr}_Y_MIN")
+                py2 = getattr(sandbox, f"{pit_attr}_Y_MAX")
+                self.draw_line(px1, py1, px2, py1, COLOR_PIT, 2)
+                self.draw_line(px2, py1, px2, py2, COLOR_PIT, 2)
+                self.draw_line(px2, py2, px1, py2, COLOR_PIT, 2)
+                self.draw_line(px1, py2, px1, py1, COLOR_PIT, 2)
+
+        # Headwind threshold (Academic Blue-Grey)
         if hasattr(sandbox, "HEADWIND_Y_THRESHOLD"):
             y_thresh = sandbox.HEADWIND_Y_THRESHOLD
-            self.draw_line(0, y_thresh, 26, y_thresh, (100, 100, 255), 1)
-        # Gravity well (purple rectangle)
+            self.draw_line(0, y_thresh, 26, y_thresh, (100, 130, 180), 1)
+
+        # Gravity well (Muted Purple)
         if hasattr(sandbox, "GRAVWELL_X_MIN"):
             gx1, gx2 = sandbox.GRAVWELL_X_MIN, sandbox.GRAVWELL_X_MAX
             gy1, gy2 = sandbox.GRAVWELL_Y_MIN, sandbox.GRAVWELL_Y_MAX
-            self.draw_line(gx1, gy1, gx2, gy1, (180, 100, 255), 1)
-            self.draw_line(gx2, gy1, gx2, gy2, (180, 100, 255), 1)
-            self.draw_line(gx2, gy2, gx1, gy2, (180, 100, 255), 1)
-            self.draw_line(gx1, gy2, gx1, gy1, (180, 100, 255), 1)
+            self.draw_line(gx1, gy1, gx2, gy1, (150, 120, 180), 1)
+            self.draw_line(gx2, gy1, gx2, gy2, (150, 120, 180), 1)
+            self.draw_line(gx2, gy2, gx1, gy2, (150, 120, 180), 1)
+            self.draw_line(gx1, gy2, gx1, gy1, (150, 120, 180), 1)

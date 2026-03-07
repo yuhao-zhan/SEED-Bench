@@ -1,12 +1,10 @@
 """
 C-04: The Escaper task curriculum stages (mutations).
 
-Mutation dimensions: maze complexity (slip friction), sensor blind zones, sensor delay,
-momentum drain, gravity, damping, unlock conditions (backward steps, speed threshold).
-All mutations use non-visible physical parameters; agent must infer from feedback.
-
-Stage order: Initial (baseline) < Stage-1 < Stage-2 < Stage-3 < Stage-4 (difficulty ascending).
-Stage-1/2: single parameter change each. Stage-3/4: multiple parameters.
+Mutation dimensions:
+- Surface traction (ceiling_friction): critical threshold change breaking baseline unlock.
+- Shear atmospheric disturbances (shear_wind_gradient): non-linear obstacle requiring momentum slingshot.
+- Delay and other parameters for combined difficulty.
 """
 
 from __future__ import annotations
@@ -15,103 +13,92 @@ from typing import Any, Dict, List
 
 
 def update_task_description_for_visible_changes(base_description: str, target_physics_config: Dict[str, Any], base_physics_config: Dict[str, Any]) -> str:
-    """Update task description for visible changes in behavioral conditions."""
-    description = base_description
-    
-    # Update steps requirement if changed
-    target_steps = target_physics_config.get("backward_steps_required")
-    if target_steps is not None and target_steps != 25:
-        pattern = r"(\d+)( consecutive steps)"
-        description = re.sub(pattern, f"{target_steps}\\2 (originally 25)", description)
-        
-    # Update speed threshold if changed
-    target_speed = target_physics_config.get("backward_speed_max")
-    if target_speed is not None and target_speed != 1.0:
-        pattern = r"(speed < )(\d+\.?\d*)"
-        description = re.sub(pattern, f"\\1{target_speed:.1f} (originally 1.0)", description)
-        
-    return description
-
+    return base_description
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update success criteria for visible changes."""
     return base_success_criteria
 
-
 def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
-    """
-    Returns ordered stage configs for C-04: The Escaper mutated tasks.
-    Original solution and env use BACKWARD_STEPS_REQUIRED=25.
-    """
-    task_description_suffix = """
+    # DYNAMIC GENERATION OF SUFFIX
+    # We must extract the UNION of all physical variables mutated across Stages 1-4.
+    # Stage 1: ceiling_friction
+    # Stage 2: shear_wind_gradient
+    # Stage 3: ceiling_friction, shear_wind_gradient, whisker_delay_steps
+    # Stage 4: ceiling_friction, shear_wind_gradient, whisker_delay_steps, gravity, current_force_back, momentum_drain_damping
+    
+    # Let's map these to descriptive bullet points
+    anomalies = {
+        "ceiling_friction": "- **Surface traction loss**: Upper boundary surfaces may exhibit near-zero friction, rendering them useless for physical bracing.",
+        "shear_wind_gradient": "- **Shear atmospheric flow**: Intense lateral winds that vary dramatically by altitude may create impenetrable aerodynamic barriers at certain heights.",
+        "whisker_delay_steps": "- **Proximity sensing latency**: Obstacle detection (whisker) sensor feedback may suffer significant signal delay.",
+        "gravity": "- **Gravitational acceleration**: The vertical force field may be amplified, affecting buoyancy and vertical maneuvering.",
+        "current_force_back": "- **Environmental flow**: Unidirectional currents opposing forward progress may be drastically stronger.",
+        "momentum_drain_damping": "- **Energy dissipation**: Damping zones may exhibit extreme kinetic energy drain, altering speed-control dynamics."
+    }
+    
+    # We dynamically create the bullet list from the union
+    union_vars = ["ceiling_friction", "shear_wind_gradient", "whisker_delay_steps", "gravity", "current_force_back", "momentum_drain_damping"]
+    bullet_points = "\n".join([anomalies[v] for v in union_vars])
+    
+    task_description_suffix = f"""
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Proximity sensing latency**: Latency in obstacle detection (whisker) sensor feedback may be present.
-- **Surface traction**: Variations in friction affecting movement precision and stability may occur.
-- **Energy dissipation**: Environmental resistance causing loss of kinetic energy may vary.
-- **Sensor blind zones**: Regions where sensor coverage is unavailable or unreliable may exist.
-- **Gravitational acceleration**: Alterations in the vertical force field affecting motion and buoyancy may be present.
-- **Translational resistance**: Resistance to movement through the medium (linear damping) may have changed.
-- **Environmental flow**: Constant external forces (e.g., currents) opposing progress in specific directions may vary.
-- **Atmospheric disturbances**: Static and oscillating external forces (e.g., wind) affecting stability may be present.
+{bullet_points}
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where the agent gets stuck or drifts) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
+
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Sensor Delay",
-            "mutation_description": "Whisker sensors return readings with 8-step delay; obstacle avoidance and timing break.",
+            "title": "Frictionless Ceiling",
+            "mutation_description": "Ceiling friction reduced to 0. Baseline fails because it cannot generate friction to unlock.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "whisker_delay_steps": 8,
+                "ceiling_friction": 0.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
-            "title": "Stricter Unlock Condition",
-            "mutation_description": "Behavioral unlock requires more consecutive backward-slow steps and lower max speed; agent's 25-step unlock fails.",
+            "title": "Shear Wind Barrier",
+            "mutation_description": "Strong shear wind makes the lower path impossible to traverse directly. Requires momentum slingshot via the upper path.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {},
+            "terrain_config": {
+                "ceiling_friction": 0.0,
+            },
             "physics_config": {
-                "backward_steps_required": 40,
-                "backward_speed_max": 0.6,
+                "shear_wind_gradient": 120.0,
             },
         },
         {
             "stage_id": "Stage-3",
-            "title": "Sensor Delay + Stronger Momentum Drain + Slip Zone",
-            "mutation_description": "Sensor delay (6 steps), stronger momentum drain, and higher slip friction; navigation and passage through zones harder.",
+            "title": "Frictionless Ceiling + Shear Wind + Sensor Delay",
+            "mutation_description": "Combines Stage 1 and 2, and adds a 10-step sensor delay, making navigation blind and requiring precise internal state estimation.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "whisker_delay_steps": 6,
-                "slip_friction": 0.18,
+                "ceiling_friction": 0.0,
+                "whisker_delay_steps": 10,
             },
             "physics_config": {
-                "momentum_drain_damping": 20.0,
+                "shear_wind_gradient": 120.0,
             },
         },
         {
             "stage_id": "Stage-4",
-            "title": "Combined Perturbations",
-            "mutation_description": "Gravity, damping, stricter unlock, stronger momentum drain, current, and front sensor blind zone in obstacle region.",
+            "title": "Extreme Conflicting Constraints",
+            "mutation_description": "Heavy gravity pulls agent down (harder to slingshot), strong backward current, heavy momentum drain, frictionless ceiling, and shear wind.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "whisker_delay_steps": 5,
-                "whisker_blind_front_x_lo": 4.5,
-                "whisker_blind_front_x_hi": 6.5,
+                "ceiling_friction": 0.0,
+                "whisker_delay_steps": 12,
             },
             "physics_config": {
-                "gravity": (0, -13),
-                "linear_damping": 0.7,
-                "backward_steps_required": 38,
-                "backward_speed_max": 2.2,
-                "momentum_drain_damping": 22.0,
-                "current_force_back": 32.0,
-                "wind_base_down": 12.0,
-                "wind_oscillation_amp": 14.0,
+                "shear_wind_gradient": 120.0,
+                "gravity": (0, -15),
+                "current_force_back": 30.0,
+                "momentum_drain_damping": 20.0,
             },
         },
     ]

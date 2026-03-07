@@ -14,72 +14,69 @@ class D01Renderer(Renderer):
     """D-01: The Launcher task renderer."""
 
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
-        # Camera: show launch area and target; target_x can be center of target zone
-        self.set_camera_offset(camera_offset_x, 0)
-        self.clear((30, 30, 30))
+        # Enforce 16:9 aspect ratio
+        if self.simulator.screen_width != 800 or self.simulator.screen_height != 450:
+            self.simulator.screen_width = 800
+            self.simulator.screen_height = 450
+            if self.simulator.can_display:
+                import pygame
+                self.simulator.screen = pygame.Surface((800, 450))
 
-        # Draw static terrain (ground)
-        for body in sandbox.world.bodies:
-            if body.type == staticBody:
-                self.draw_body(
-                    body,
-                    dynamic_color=(100, 150, 240),
-                    static_color=(150, 100, 50),
-                    outline_color=(200, 150, 100),
-                    outline_width=2,
-                )
+        # Panoramic Camera Viewport
+        # D-01 ground is 0 to 60. Target at 40-45. Launch at 5-15.
+        self.simulator.ppm = 11.0
+        center_x_world = 30.0
+        center_y_world = 12.0
+        
+        cam_x = center_x_world * self.simulator.ppm - self.simulator.screen_width / 2
+        cam_y = self.simulator.screen_height / 2 - center_y_world * self.simulator.ppm
+        self.set_camera_offset(cam_x, cam_y)
+        
+        self.clear((0, 0, 0))  # Pure Black
 
-        # Draw dynamic bodies: projectile vs launcher (agent-built beams)
-        projectile_body = (
-            sandbox._terrain_bodies.get("projectile")
-            if hasattr(sandbox, "_terrain_bodies") else None
-        )
+        # Academic Color Palette
+        ENV_COLOR = (230, 194, 41)       # #E6C229 (Goldenrod Yellow)
+        ENV_OUTLINE = (180, 144, 0)      # Darker Goldenrod
+        AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
+        AGENT_OUTLINE = (26, 125, 30)    # Darker Green
+
+        # Draw all bodies
+        projectile_body = sandbox.get_projectile()
         for body in sandbox.world.bodies:
-            if body.type != dynamicBody:
-                continue
-            if body == projectile_body:
-                self.draw_body(
-                    body,
-                    dynamic_color=(255, 180, 80),   # Orange projectile
-                    static_color=(150, 100, 50),
-                    outline_color=(255, 220, 140),
-                    outline_width=3,
-                )
-            elif body in sandbox._bodies:
-                self.draw_body(
-                    body,
-                    dynamic_color=(100, 200, 100),   # Green launcher
-                    static_color=(150, 100, 50),
-                    outline_color=(50, 150, 50),
-                    outline_width=2,
-                )
+            is_environment = False
+            if hasattr(sandbox, "_terrain_bodies") and body in sandbox._terrain_bodies.values():
+                is_environment = True
+            elif body == projectile_body:
+                is_environment = True
+            
+            if is_environment:
+                self.draw_body(body,
+                             dynamic_color=ENV_COLOR,
+                             static_color=ENV_COLOR,
+                             outline_color=ENV_OUTLINE,
+                             outline_width=2)
             else:
-                self.draw_body(
-                    body,
-                    dynamic_color=(100, 150, 240),
-                    static_color=(150, 100, 50),
-                    outline_color=(100, 150, 255),
-                    outline_width=2,
-                )
+                self.draw_body(body,
+                             dynamic_color=AGENT_COLOR,
+                             static_color=AGENT_COLOR,
+                             outline_color=AGENT_OUTLINE,
+                             outline_width=2)
 
-        # Target zone: vertical band (rectangle outline)
+        # Target zone outline
         if hasattr(sandbox, "_target_x_min"):
-            x_min = sandbox._target_x_min
-            x_max = sandbox._target_x_max
-            y_min = sandbox._target_y_min
-            y_max = sandbox._target_y_max
-            self.draw_line(x_min, y_min, x_max, y_min, (255, 80, 80), 2)
-            self.draw_line(x_max, y_min, x_max, y_max, (255, 80, 80), 2)
-            self.draw_line(x_max, y_max, x_min, y_max, (255, 80, 80), 2)
-            self.draw_line(x_min, y_max, x_min, y_min, (255, 80, 80), 2)
+            x_min, x_max = sandbox._target_x_min, sandbox._target_x_max
+            y_min, y_max = sandbox._target_y_min, sandbox._target_y_max
+            self.draw_line(x_min, y_min, x_max, y_min, ENV_COLOR, 2)
+            self.draw_line(x_max, y_min, x_max, y_max, ENV_COLOR, 2)
+            self.draw_line(x_max, y_max, x_min, y_max, ENV_COLOR, 2)
+            self.draw_line(x_min, y_max, x_min, y_min, ENV_COLOR, 2)
 
-        # Build zone outline (yellow)
+        # Build zone outline
         if hasattr(sandbox, "BUILD_ZONE_X_MIN"):
-            x_min = sandbox.BUILD_ZONE_X_MIN
-            x_max = sandbox.BUILD_ZONE_X_MAX
-            y_min = sandbox.BUILD_ZONE_Y_MIN
-            y_max = sandbox.BUILD_ZONE_Y_MAX
-            self.draw_line(x_min, y_min, x_max, y_min, (255, 255, 0), 1)
-            self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
-            self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
-            self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)
+            x_min, x_max = sandbox.BUILD_ZONE_X_MIN, sandbox.BUILD_ZONE_X_MAX
+            y_min, y_max = sandbox.BUILD_ZONE_Y_MIN, sandbox.BUILD_ZONE_Y_MAX
+            self.draw_line(x_min, y_min, x_max, y_min, ENV_COLOR, 1)
+            self.draw_line(x_max, y_min, x_max, y_max, ENV_COLOR, 1)
+            self.draw_line(x_max, y_max, x_min, y_max, ENV_COLOR, 1)
+            self.draw_line(x_min, y_max, x_min, y_min, ENV_COLOR, 1)
+

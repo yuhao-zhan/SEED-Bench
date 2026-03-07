@@ -12,8 +12,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
 from main import TaskRunner
 
 
+import random
+
 def test_c01_agent(env_overrides=None):
     """Test C_01 agent and save GIF on success."""
+    random.seed(42)
     task_name = "Category5_Cybernetics_Control.C_01"
     label = " (mutated)" if env_overrides else ""
 

@@ -14,45 +14,58 @@ class S03Renderer(Renderer):
 
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
         """Render entire scene. Adjust camera to see the full structure."""
-        ppm = self.simulator.ppm
+        # Enforce 16:9 aspect ratio
+        if self.simulator.screen_width != 800 or self.simulator.screen_height != 450:
+            self.simulator.screen_width = 800
+            self.simulator.screen_height = 450
+            if self.simulator.can_display:
+                import pygame
+                self.simulator.screen = pygame.Surface((800, 450))
+                
+        # Panoramic Camera Viewport
+        self.simulator.ppm = 9.0
         sw = self.simulator.screen_width
         sh = self.simulator.screen_height
         
-        # Determine structure bounds to center camera
-        min_x, max_x = 0, 12
-        min_y, max_y = 0, 10
+        # Fixed center to cover x=[-5, 20] and y=[-20, 30]
+        center_x = 7.5
+        center_y = 5.0
         
-        bodies = list(sandbox.world.bodies)
-        if bodies:
-            xs = [b.position.x for b in bodies]
-            ys = [b.position.y for b in bodies]
-            min_x, max_x = min(xs), max(xs)
-            min_y, max_y = min(ys), max(ys)
-            
-        center_x = (min_x + max_x) / 2
-        center_y = (min_y + max_y) / 2
-        
-        # Increase ppm if the structure is very large? 
-        # Actually Renderer usually handles ppm. Let's just adjust camera.
-        
-        cam_x = center_x * ppm - sw / 2
-        cam_y = sh / 2 - center_y * ppm
+        cam_x = center_x * self.simulator.ppm - sw / 2
+        cam_y = sh / 2 - center_y * self.simulator.ppm
         self.set_camera_offset(cam_x, cam_y)
-        self.clear((20, 20, 20))
+        self.clear((0, 0, 0))  # Pure Black background
         
-        # Draw wall and structure
+        # Updated Academic Color palette
+        ENV_COLOR = (230, 194, 41)       # #E6C229 (Goldenrod Yellow)
+        ENV_OUTLINE = (180, 144, 0)      # Darker Goldenrod
+        AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
+        AGENT_OUTLINE = (26, 125, 30)    # Darker Green
+        RED = (255, 0, 0)
+        
+        # Draw all bodies
         for body in sandbox.world.bodies:
-            color = (100, 100, 100) # static
-            if body.type == dynamicBody:
-                if body in getattr(sandbox, '_load_bodies', []):
-                    color = (255, 50, 50) # loads
-                else:
-                    color = (100, 200, 100) # structure
+            is_environment = False
+            if hasattr(sandbox, '_terrain_bodies'):
+                if body in sandbox._terrain_bodies.values():
+                    is_environment = True
+            if hasattr(sandbox, '_load_bodies'):
+                if body in sandbox._load_bodies:
+                    is_environment = True
+            
+            if is_environment:
+                self.draw_body(body,
+                             dynamic_color=ENV_COLOR,
+                             static_color=ENV_COLOR,
+                             outline_color=ENV_OUTLINE,
+                             outline_width=2)
             else:
-                color = (150, 100, 50) # wall
-                
-            self.draw_body(body, dynamic_color=color, static_color=color, outline_color=(200, 200, 200), outline_width=1)
+                self.draw_body(body,
+                             dynamic_color=AGENT_COLOR,
+                             static_color=AGENT_COLOR,
+                             outline_color=AGENT_OUTLINE,
+                             outline_width=2)
         
-        # Draw target reach line
+        # Draw target reach line (Red)
         target_reach = sandbox._terrain_config.get("target_reach", 12.0)
-        self.draw_line(target_reach, -20, target_reach, 30, (255, 255, 0), 2)
+        self.draw_line(target_reach, -20, target_reach, 30, RED, 2)

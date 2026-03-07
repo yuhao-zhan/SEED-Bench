@@ -73,8 +73,8 @@ def get_improvement_suggestions(
             suggestions.append("- Cart left the allowed zone. During swing-up, keep the cart within the safe zone; use get_cart_position() and a position-restoring term.")
             suggestions.append(f"- Last cart position was x={cart_x:.2f} m (track center at {center:.1f} m).")
         elif not balance_achieved:
-            suggestions.append("- The pole never reached the upright region. The pole starts hanging down; you must inject energy by moving the cart in phase with the swing (e.g. apply force in the direction that increases the pole's energy toward the upright).")
-            suggestions.append("- Consider a two-phase strategy: first a swing-up phase (e.g. energy-based or bang-bang) to bring the pole near vertical, then switch to a balancing controller when angle is small.")
+            suggestions.append("- The pole never reached the upright region. If the pole starts hanging down, you must inject energy by moving the cart in phase with the swing. If it starts upright, ensure your balance controller catches it immediately.")
+            suggestions.append("- For swing-up: consider a two-phase strategy. First, an energy-based or bang-bang phase to bring the pole near vertical, then switch to a stabilizing (e.g., PD) controller when the angle is small.")
         else:
             suggestions.append("- Reach the upright region and hold; keep the cart within the safe zone. Use feedback (balance_achieved, pole angle) to refine swing-up and balance logic.")
 

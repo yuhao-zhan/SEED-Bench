@@ -65,6 +65,7 @@ class Evaluator:
             failure_reason = (
                 f"Pole left upright region after achieving balance: |angle|={math.degrees(abs(pole_angle_true)):.1f}°"
             )
+            print(f"CRITICAL EVAL: Step {step_count} - {failure_reason}")
 
         # Cart safe zone: always enforced
         dist_from_center = abs(cart_x - self.track_center_x)
@@ -74,12 +75,15 @@ class Evaluator:
                 f"Cart left safe zone: position x={cart_x:.2f}m, "
                 f"limit ±{self.safe_half_range:.1f}m from center"
             )
+            print(f"CRITICAL EVAL: Step {step_count} - {failure_reason}")
 
         success = (
             (step_count >= max_steps - 1)
             and self._balance_achieved
             and not failed
         )
+
+        print(f"DEBUG EVAL: Step {step_count}/{max_steps}, balance_achieved={self._balance_achieved}, failed={failed}, success={success}")
 
         if success and not failed:
             score = 100.0

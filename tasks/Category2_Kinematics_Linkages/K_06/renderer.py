@@ -1,26 +1,29 @@
 """
 K-06: The Wiper task rendering module
-正面视角 (front view): 面对玻璃，雨刮杆左右大幅度摆动“刷”玻璃，红点=待清扫粒子。
+Standardized for professional academic aesthetics.
+正面视角 (front view): 面对玻璃，雨刮杆左右大幅度摆动“刷”玻璃。
 """
 import sys
 import os
 import math
-import json
-import time
 import pygame
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from common.renderer import Renderer
-from Box2D.b2 import dynamicBody, staticBody
+from Box2D.b2 import dynamicBody, staticBody, revoluteJoint
 
-DEBUG_LOG = "/home/test/test1709/THUNLP/.cursor/debug.log"
-_render_call_count = 0
+# Standard Academic Palette
+COLOR_BG = (0, 0, 0)
+COLOR_ENV = (230, 194, 41)    # Goldenrod Yellow (#E6C229)
+COLOR_AGENT = (76, 175, 80)  # Material Green (#4CAF50)
+COLOR_TEMPLATE = (90, 90, 90)
+COLOR_JOINT = (255, 220, 100)
+COLOR_GLASS = (40, 45, 55)    # Muted dark blue-gray for glass transparency feel
+COLOR_GLASS_OUTLINE = (180, 200, 220)
+
 
 class K06Renderer(Renderer):
-    """
-    K-06 正面视角：面对玻璃，雨刮杆绕中心左右大幅度摆动（明显“刷”的感觉），
-    红点=玻璃上的粒子，扫走后画到两侧收纳区。
-    """
+    """K-06: The Wiper — standardized front-view mechanism."""
 
     PIVOT_X = 6.0
     PIVOT_Y = 2.08
@@ -34,15 +37,26 @@ class K06Renderer(Renderer):
     BIN_RIGHT_X = 11.7
     BIN_Y_OFFSET = 0.3
 
+    def __init__(self, simulator):
+        super().__init__(simulator)
+        # Enforce 16:9 aspect ratio
+        if simulator.can_display:
+            target_h = 600
+            target_w = int(target_h * 16 / 9)
+            if simulator.screen_width != target_w or simulator.screen_height != target_h:
+                simulator.screen_width = target_w
+                simulator.screen_height = target_h
+                simulator.screen = pygame.Surface((target_w, target_h))
+
     def _on_glass(self, sandbox, particle):
-        """与 evaluator 一致：仍在玻璃上 = 0.5<=x<=11.5 且 |y - glass_y| < 0.5"""
+        """Check if particle is on glass."""
         glass_y = getattr(sandbox, '_glass_y', 2.0)
         x, y = particle.position.x, particle.position.y
         return (self.GLASS_X_MIN <= x <= self.GLASS_X_MAX and
                 abs(y - glass_y) < 0.5)
 
     def _to_screen(self, px, py):
-        """正面视角：物理 (x, y) → 屏幕坐标，y 向上为屏幕向上"""
+        """Front view coordinate transformation."""
         w = self.simulator.screen_width
         h = self.simulator.screen_height
         sx, sy = self.SCALE_X, self.SCALE_Y
@@ -55,25 +69,22 @@ class K06Renderer(Renderer):
         if not self.simulator.can_display:
             return
 
-        w = self.simulator.screen_width
-        h = self.simulator.screen_height
+        self.clear(COLOR_BG)
 
-        self.simulator.screen.fill((30, 30, 30))
-
-        # 1) 玻璃 - 正面看是一块明显的矩形面板（像挡风玻璃），不是细条
+        # 1) Glass Panel (Environmental Baseline)
         gx0, gx1 = self.GLASS_X_MIN, self.GLASS_X_MAX
         gy = self.GLASS_Y
-        glass_half_height = 0.7   # 视觉上玻璃面板高度 ±0.7，整块约 1.4 高，像一块真正的玻璃
+        glass_half_height = 0.7
         pts_glass = [
             self._to_screen(gx0, gy - glass_half_height),
             self._to_screen(gx1, gy - glass_half_height),
             self._to_screen(gx1, gy + glass_half_height),
             self._to_screen(gx0, gy + glass_half_height),
         ]
-        pygame.draw.polygon(self.simulator.screen, (100, 115, 140), pts_glass)
-        pygame.draw.polygon(self.simulator.screen, (180, 200, 220), pts_glass, 3)
+        pygame.draw.polygon(self.simulator.screen, COLOR_GLASS, pts_glass)
+        pygame.draw.polygon(self.simulator.screen, COLOR_ENV, pts_glass, 2)
 
-        # 2) 粒子：在玻璃上 = 红点；已扫走 = 两侧收纳区
+        # 2) Particles (Goldenrod Yellow as environmental markers)
         if hasattr(sandbox, '_particles'):
             left_bin_count = 0
             right_bin_count = 0
@@ -81,38 +92,27 @@ class K06Renderer(Renderer):
                 px, py = particle.position.x, particle.position.y
                 if self._on_glass(sandbox, particle):
                     pos = self._to_screen(px, py)
-                    pygame.draw.circle(
-                        self.simulator.screen, (255, 100, 100), pos,
-                        self.PARTICLE_RADIUS_PX,
-                    )
-                    pygame.draw.circle(
-                        self.simulator.screen, (255, 180, 180), pos,
-                        self.PARTICLE_RADIUS_PX, 2,
-                    )
+                    # Use Goldenrod for targets to be cleaned
+                    pygame.draw.circle(self.simulator.screen, COLOR_ENV, pos, self.PARTICLE_RADIUS_PX)
+                    pygame.draw.circle(self.simulator.screen, (255, 255, 255), pos, self.PARTICLE_RADIUS_PX, 1)
                 else:
+                    # Collected particles
                     r_small = 6
                     if px < self.GLASS_X_MIN:
                         left_bin_count += 1
                         by = self.GLASS_Y + self.BIN_Y_OFFSET * (left_bin_count % 3 - 1)
                         pos = self._to_screen(self.BIN_LEFT_X, by)
-                        color = (120, 80, 70)
                     else:
                         right_bin_count += 1
                         by = self.GLASS_Y + self.BIN_Y_OFFSET * (right_bin_count % 3 - 1)
                         pos = self._to_screen(self.BIN_RIGHT_X, by)
-                        color = (120, 80, 70)
-                    pygame.draw.circle(self.simulator.screen, color, pos, r_small)
-                    pygame.draw.circle(self.simulator.screen, (200, 150, 100), pos, r_small, 1)
+                    pygame.draw.circle(self.simulator.screen, (50, 50, 50), pos, r_small)
+                    pygame.draw.circle(self.simulator.screen, COLOR_ENV, pos, r_small, 1)
 
-        # 3) 雨刮杆 - 正面视角下用真实角度画整根杆，大幅度左右“刷”非常明显
-        global _render_call_count
-        _render_call_count += 1
-        
-        # Robustly find a motor-driven joint to determine wiper angle
+        # 3) Wiper Arm (Material Green)
         joint = getattr(sandbox, '_wiper_motor_joint', None)
         if joint is None and hasattr(sandbox, '_joints'):
             from Box2D.b2 import revoluteJoint
-            # Prefer joints in _wiper_joints if they exist
             search_list = getattr(sandbox, '_wiper_joints', sandbox._joints)
             for j in search_list:
                 if isinstance(j, revoluteJoint) and getattr(j, 'motorEnabled', False):
@@ -124,24 +124,18 @@ class K06Renderer(Renderer):
                 angle = joint.angle
             except Exception:
                 angle = joint.bodyB.angle
+            
             n_bodies = len(sandbox._bodies)
             half_len = 3.0 if n_bodies <= 4 else self.BAR_HALF_LEN
-            # 杆端点：绕 pivot (6, 2.08) 旋转，用真实物理坐标
             dx = half_len * math.cos(angle)
             dy = half_len * math.sin(angle)
             p1 = self._to_screen(self.PIVOT_X - dx, self.PIVOT_Y - dy)
             p2 = self._to_screen(self.PIVOT_X + dx, self.PIVOT_Y + dy)
-            # #region agent log
-            if _render_call_count % 200 == 1:
-                try:
-                    with open(DEBUG_LOG, "a") as f:
-                        f.write(json.dumps({"timestamp": int(time.time() * 1000), "location": "K_06/renderer.py:render", "message": "bar draw sample", "data": {"render_call": _render_call_count, "angle": angle, "p1": p1, "p2": p2}, "hypothesisId": "H2_H4"}) + "\n")
-                except Exception:
-                    pass
-            # #endregion
-            pygame.draw.line(self.simulator.screen, (80, 220, 80), p1, p2, 10)
-            pygame.draw.line(self.simulator.screen, (40, 160, 40), p1, p2, 6)
+            
+            pygame.draw.line(self.simulator.screen, COLOR_AGENT, p1, p2, 8)
+            pygame.draw.line(self.simulator.screen, (100, 220, 100), p1, p2, 2)
 
+        # Pivot point
         pivot_pos = self._to_screen(self.PIVOT_X, self.PIVOT_Y)
-        pygame.draw.circle(self.simulator.screen, (180, 120, 40), pivot_pos, 10)
-        pygame.draw.circle(self.simulator.screen, (220, 180, 100), pivot_pos, 10, 2)
+        pygame.draw.circle(self.simulator.screen, COLOR_JOINT, pivot_pos, 8)
+        pygame.draw.circle(self.simulator.screen, (255, 255, 255), pivot_pos, 8, 1)

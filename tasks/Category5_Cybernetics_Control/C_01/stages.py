@@ -2,7 +2,7 @@
 C-01: The Cart-Pole task curriculum stages (mutations).
 
 Mutation dimensions: pole length/mass, gravity, sensor delay, actuator rate limit, damping.
-The solver agent is NOT told the exact parameter changes; it must infer from feedback.
+The solver agent is NOT told the exact numeric physics changes; it must infer from feedback.
 Stages ordered by difficulty: Stage-1 (easiest, one param) -> Stage-4 (hardest, multiple params).
 """
 
@@ -14,16 +14,39 @@ import re
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description for visible changes."""
     description = base_description
-    target_length = target_terrain_config.get("pole_length")
-    target_mass = target_terrain_config.get("pole_mass")
+    
+    # 1. Update Initial State (Baseline is Upright, Mutants are Hanging)
+    # The presence of any config (or specifically terrain_config) triggered hanging start in environment.py
+    # We explicitly state this visible change.
+    description = description.replace(
+        "- **Pole**: Initially upright (angle = 0° or 0rad).",
+        "- **Pole**: Initially hanging downward (angle = 180° or π)."
+    )
+    # Update objective to mention swing-up
+    description = description.replace(
+        "Design a control strategy:",
+        "Design a two-phase control strategy:\n1. **Swing-up**: Inject energy into the pole until it reaches the upright region."
+    )
+    description = description.replace(
+        "1. **Balance**:",
+        "2. **Balance**:"
+    )
+    description = description.replace(
+        "2. Observe state",
+        "3. Observe state"
+    )
 
+    # 2. Update Pole Length
+    target_length = target_terrain_config.get("pole_length")
     if target_length is not None and target_length != 2.0:
-        pattern = r"(- \*\*Pole\*\*: Initially hanging downward \(angle = 180° or π\)\. \*\*Length\*\*: )(\d+\.?\d*)(m\.)"
+        pattern = r"(\*\*Length\*\*: )(\d+\.?\d*)(m\.)"
         description = re.sub(pattern, f"\\g<1>{target_length:.1f}m (originally 2.0m).", description)
 
+    # 3. Update Pole Mass
+    target_mass = target_terrain_config.get("pole_mass")
     if target_mass is not None and target_mass != 1.0:
         # Since mass isn't in the base description, we append it to the pole line
-        pattern = r"(- \*\*Pole\*\*: .*?\*\*Length\*\*: .*?m\.)"
+        pattern = r"(- \*\*Pole\*\*: .*?m\.)"
         description = re.sub(pattern, f"\\g<1> **Mass**: {target_mass:.1f}kg (originally 1.0kg).", description)
 
     return description
@@ -31,7 +54,8 @@ def update_task_description_for_visible_changes(base_description: str, target_te
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
-    return base_success_criteria
+    # Mutants require swing-up
+    return base_success_criteria.replace("1. **Stability**:", "1. **Swing-up & Hold**:")
 
 
 def get_c01_curriculum_stages() -> List[Dict[str, Any]]:
@@ -39,7 +63,6 @@ def get_c01_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for C-01: The Cart-Pole task variants.
     Each stage dict: stage_id, title, mutation_description, task_description_suffix,
     terrain_config, physics_config.
-    All mutations are invisible (no exact numeric changes in task_description_suffix).
     """
     task_description_suffix = """
 ## Environmental Anomalies Detected
@@ -48,11 +71,10 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Sensing latency (Orientation)**: Unexpected latency in orientation sensor readings may occur, affecting balance timing.
 - **Sensing latency (Angular Velocity)**: Unexpected latency in angular velocity feedback may occur, leading to delayed control responses.
 - **Gravitational acceleration**: Alterations in the gravitational field may occur, significantly affecting system weight and balance dynamics.
-- **Structural dimensions**: Modifications to the physical length of system components may have occurred, altering the natural frequency.
 - **Joint resistance**: Resistance to rotational motion within the joints (damping) may be altered.
 - **Actuation speed limits**: Constraints on how quickly control forces can be adjusted by the actuator may have changed.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode to infer the hidden constraints and adapt your design.
 """
     return [
         {

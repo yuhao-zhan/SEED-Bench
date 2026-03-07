@@ -456,6 +456,121 @@ def plot_results(tables, models, methods, output_dir):
         plt.close(fig)
 
 
+def plot_task_env_heatmaps(results, models, methods, base_output_dir):
+    """Draws heatmaps for score_avg and pass rate on each task intersecting its env."""
+    if not HAS_MATPLOTLIB:
+        return
+    
+    output_dir = os.path.join(base_output_dir, 'task_env_heatmaps')
+    os.makedirs(output_dir, exist_ok=True)
+    
+    plt.rcParams.update({'font.size': 10, 'figure.dpi': 200})
+
+    for model in models:
+        for method in methods:
+            if method not in results[model]:
+                continue
+            
+            # task_env_data[task][pair] = {'scores': [], 'successes': []}
+            task_env_data = defaultdict(lambda: defaultdict(lambda: {'scores': [], 'successes': []}))
+            
+            for fid, data in results[model][method].items():
+                # fid is task_name/fn
+                if '/' not in fid:
+                    continue
+                task_name, fn = fid.split('/', 1)
+                
+                # Extract pair from fn: all_{source}_to_{target}.json
+                # regex: all_(.+)_to_([^.]+)
+                match = re.match(r'all_(.+)_to_([^.]+)', fn)
+                if not match:
+                    continue
+                
+                source = match.group(1).lower()
+                target = match.group(2).lower()
+                
+                # Clean up names (e.g. stage-1_v2 -> stage-1)
+                if '_' in source and not source.startswith('stage-'): source = source.split('_')[0]
+                if '_' in target and not target.startswith('stage-'): target = target.split('_')[0]
+                
+                pair = f"{source}_to_{target}"
+                
+                task_env_data[task_name][pair]['scores'].append(data.get('best_score', 0.0))
+                task_env_data[task_name][pair]['successes'].append(1.0 if data.get('success', False) else 0.0)
+
+            if not task_env_data:
+                continue
+
+            all_tasks = sorted(task_env_data.keys())
+            
+            all_pairs_set = set()
+            for t in task_env_data:
+                all_pairs_set.update(task_env_data[t].keys())
+            
+            def pair_sort_key(p):
+                def stage_to_val(s):
+                    if s == 'initial': return (0, 0)
+                    m = re.search(r'stage-(\d+)', s)
+                    if m: return (1, int(m.group(1)))
+                    return (2, s)
+                
+                if '_to_' not in p: return (3, p)
+                parts = p.split('_to_', 1)
+                return stage_to_val(parts[0]) + stage_to_val(parts[1])
+            
+            sorted_pairs = sorted(list(all_pairs_set), key=pair_sort_key)
+            
+            model_short = short_model_name(model)
+            method_disp = method_display_name(method)
+            
+            for metric_type in ['score_avg', 'pass_rate']:
+                fig, ax = plt.subplots(figsize=(max(8, len(all_tasks)*0.8), max(6, len(sorted_pairs)*0.8)))
+                
+                grid = []
+                for pair in sorted_pairs:
+                    row = []
+                    for task in all_tasks:
+                        vals_dict = task_env_data[task].get(pair)
+                        if vals_dict:
+                            vals = vals_dict['scores'] if metric_type == 'score_avg' else vals_dict['successes']
+                            avg_val = sum(vals) / len(vals)
+                            if metric_type == 'pass_rate':
+                                avg_val *= 100
+                            row.append(avg_val)
+                        else:
+                            row.append(float('nan'))
+                    grid.append(row)
+                
+                plot_data = [[(v if not math.isnan(v) else 0) for v in row] for row in grid]
+                v_max = 100.0
+                
+                im = ax.imshow(plot_data, cmap='YlGnBu', vmin=0, vmax=v_max)
+                
+                ax.set_xticks(range(len(all_tasks)))
+                ax.set_yticks(range(len(sorted_pairs)))
+                ax.set_xticklabels(all_tasks, rotation=45, ha='right')
+                ax.set_yticklabels(sorted_pairs)
+                
+                for i in range(len(sorted_pairs)):
+                    for j in range(len(all_tasks)):
+                        val = grid[i][j]
+                        if not math.isnan(val):
+                            txt = f'{val:.1f}' if metric_type == 'score_avg' else f'{val:.0f}'
+                            ax.text(j, i, txt, ha='center', va='center', 
+                                    color='white' if val > v_max*0.6 else 'black', fontsize=8)
+
+                metric_label = "Average Score" if metric_type == 'score_avg' else "Pass Rate (%)"
+                ax.set_title(f"{metric_label}: {model_short} - {method_disp}")
+                plt.colorbar(im, ax=ax, label=metric_label)
+                plt.tight_layout()
+                
+                safe_model = model_short.replace('/', '_').replace(' ', '_')
+                safe_method = method_disp.replace('/', '_').replace(' ', '_')
+                filename = f"{safe_model}_{safe_method}_{metric_type}.png"
+                plt.savefig(os.path.join(output_dir, filename))
+                plt.close(fig)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', type=str, default='all')
@@ -539,8 +654,9 @@ def main():
                         print_markdown_table(mn, models, methods, task_tables[mn])
 
     # --- 3. Plots ---
-    plot_dir = os.path.join(RESULTS_DIR, 'plots', args.task)
+    plot_dir = os.path.join(RESULTS_DIR, "plots")
     plot_results(tables, models, methods, plot_dir)
+    plot_task_env_heatmaps(results, models, methods, plot_dir)
     print(f"\nPlots saved to: {plot_dir}")
 
 if __name__ == '__main__':

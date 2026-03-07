@@ -1,46 +1,77 @@
 """
 K-04: The Pusher task rendering module
-Provides task-specific rendering logic
+Standardized for professional academic aesthetics.
 """
 import sys
 import os
+import pygame
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from common.renderer import Renderer
-from Box2D.b2 import dynamicBody, staticBody
+from Box2D.b2 import dynamicBody, staticBody, revoluteJoint
+
+# Standard Academic Palette
+COLOR_BG = (0, 0, 0)
+COLOR_ENV = (230, 194, 41)    # Goldenrod Yellow (#E6C229)
+COLOR_AGENT = (76, 175, 80)  # Material Green (#4CAF50)
+COLOR_TEMPLATE = (90, 90, 90)
+COLOR_JOINT = (255, 220, 100)
+
+RENDER_SCALE = 1.8
 
 
 class K04Renderer(Renderer):
-    """K-04: The Pusher task specific renderer"""
-    
+    """K-04: The Pusher — standardized 2D side-view mechanism."""
+
+    def __init__(self, simulator):
+        super().__init__(simulator)
+        # Enforce 16:9 aspect ratio
+        if simulator.can_display:
+            target_h = 600
+            target_w = int(target_h * 16 / 9)
+            if simulator.screen_width != target_w or simulator.screen_height != target_h:
+                simulator.screen_width = target_w
+                simulator.screen_height = target_h
+                simulator.screen = pygame.Surface((target_w, target_h))
+
+    def world_to_screen(self, world_x, world_y):
+        """Apply scale and camera offset."""
+        ppm = self.simulator.ppm * RENDER_SCALE
+        screen_x = world_x * ppm - self.camera_offset_x
+        screen_y = self.simulator.screen_height - (world_y * ppm) - self.camera_offset_y
+        return (int(screen_x), int(screen_y))
+
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
-        self.set_camera_offset(camera_offset_x)
-        self.clear((30, 30, 30))  # Dark background (match Category1_Statics_Equilibrium)
+        ppm = self.simulator.ppm
+        sw = self.simulator.screen_width
+        sh = self.simulator.screen_height
+        
+        # Center view
+        self.set_camera_offset(camera_offset_x * RENDER_SCALE, -50)
+            
+        self.clear(COLOR_BG)
         
         # Draw static terrain (ground)
         for body in sandbox.world.bodies:
             if body.type == staticBody:
-                # Ground - brown/rock (unified with Category1)
                 self.draw_body(body,
-                             dynamic_color=(100, 150, 240),
-                             static_color=(150, 100, 50),
-                             outline_color=(200, 150, 100),
+                             dynamic_color=COLOR_AGENT,
+                             static_color=COLOR_ENV,
+                             outline_color=COLOR_ENV,
                              outline_width=2)
         
-        # Draw object to push
+        # Draw target object (Goldenrod Yellow)
         if hasattr(sandbox, '_terrain_bodies') and "object" in sandbox._terrain_bodies:
             obj = sandbox._terrain_bodies["object"]
-            # Object - distinct gray (heavy object, visible on dark)
             self.draw_body(obj,
-                         dynamic_color=(180, 180, 180),
-                         static_color=(150, 100, 50),
-                         outline_color=(220, 220, 220),
+                         dynamic_color=COLOR_ENV,
+                         static_color=COLOR_ENV,
+                         outline_color=COLOR_ENV,
                          outline_width=2)
         
         # Draw dynamic objects (pusher structure)
         for body in sandbox.world.bodies:
             if body.type == dynamicBody:
-                # Check if it's template or actual pusher
                 is_template = False
                 if hasattr(sandbox, '_pusher_bodies'):
                     for key, value in sandbox._pusher_bodies.items():
@@ -48,43 +79,65 @@ class K04Renderer(Renderer):
                             is_template = True
                             break
                 
-                # Check if it's the object
+                # Check if it's the target object
                 is_object = False
                 if hasattr(sandbox, '_terrain_bodies') and "object" in sandbox._terrain_bodies:
                     if body == sandbox._terrain_bodies["object"]:
                         is_object = True
                 
                 if is_object:
-                    continue  # Already drawn above
-                elif is_template:
-                    # Template - faded on dark background
                     self.draw_body(body,
-                                 dynamic_color=(90, 90, 90),
-                                 static_color=(150, 100, 50),
-                                 outline_color=(140, 140, 140),
+                                 dynamic_color=COLOR_ENV,
+                                 static_color=COLOR_ENV,
+                                 outline_color=COLOR_ENV,
+                                 outline_width=2)
+                elif is_template:
+                    self.draw_body(body,
+                                 dynamic_color=COLOR_TEMPLATE,
+                                 static_color=COLOR_ENV,
+                                 outline_color=COLOR_TEMPLATE,
                                  outline_width=1)
                 else:
-                    # Pusher structure - green (match Category1 bridge/links style)
                     self.draw_body(body,
-                                 dynamic_color=(100, 200, 100),
-                                 static_color=(150, 100, 50),
-                                 outline_color=(50, 150, 50),
+                                 dynamic_color=COLOR_AGENT,
+                                 static_color=COLOR_ENV,
+                                 outline_color=COLOR_AGENT,
                                  outline_width=2)
         
-        # Draw target line (red) if target_x is provided
+        # Joints: one small marker per unique anchor
+        if hasattr(sandbox, '_joints'):
+            seen = set()
+            for joint in sandbox._joints:
+                if not isinstance(joint, revoluteJoint) or not joint.bodyA or not joint.bodyB:
+                    continue
+                try:
+                    if hasattr(joint, 'localAnchorA'):
+                        local_anchor = joint.localAnchorA
+                    elif hasattr(joint, 'anchorA'):
+                        local_anchor = joint.anchorA
+                    else:
+                        continue
+                    world_anchor = joint.bodyA.GetWorldPoint(local_anchor)
+                    key = (round(world_anchor.x, 3), round(world_anchor.y, 3))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    anchor_screen = self.world_to_screen(world_anchor.x, world_anchor.y)
+                    pygame.draw.circle(self.simulator.screen, COLOR_JOINT, anchor_screen, 4)
+                except Exception:
+                    pass
+
+        # Target line (Goldenrod Yellow)
         if target_x and target_x > 0:
-            # Draw a red target line vertically at target position
-            self.draw_line(target_x, 1.0, target_x, 8.0, (255, 0, 0), 3)
+            self.draw_line(target_x, 1.0, target_x, 8.0, COLOR_ENV, 3)
         
-        # Draw build zone outline (yellow, semi-transparent)
+        # Build zone (Goldenrod Yellow)
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):
             x_min = sandbox.BUILD_ZONE_X_MIN
             x_max = sandbox.BUILD_ZONE_X_MAX
             y_min = sandbox.BUILD_ZONE_Y_MIN
             y_max = sandbox.BUILD_ZONE_Y_MAX
-            
-            # Draw rectangle outline
-            self.draw_line(x_min, y_min, x_max, y_min, (255, 255, 0), 1)
-            self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
-            self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
-            self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)
+            self.draw_line(x_min, y_min, x_max, y_min, COLOR_ENV, 1)
+            self.draw_line(x_max, y_min, x_max, y_max, COLOR_ENV, 1)
+            self.draw_line(x_max, y_max, x_min, y_max, COLOR_ENV, 1)
+            self.draw_line(x_min, y_max, x_min, y_min, COLOR_ENV, 1)

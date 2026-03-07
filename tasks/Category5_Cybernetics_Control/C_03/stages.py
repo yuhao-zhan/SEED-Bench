@@ -20,7 +20,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     target_v = target_terrain_config.get("rendezvous_rel_speed")
     
     if target_dist is not None and target_dist != 6.0:
-        pattern = r"(getting close \(< )(\d+\.?\d*)(m\))"
+        pattern = r"(getting close \(<)(\d+\.?\d*)(m\))"
         description = re.sub(pattern, f"\\g<1>{target_dist:.1f}m (originally < 6.0m))", description)
     if target_v is not None and target_v != 1.8:
         pattern = r"(matching velocity \(rel speed < )(\d+\.?\d*)( m/s\))"

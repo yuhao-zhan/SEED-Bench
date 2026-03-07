@@ -14,7 +14,10 @@ def main():
         code = f.read()
 
     # Fixed seed for reproducible reference solution run (evaluation uses random seeds)
-    env_overrides = {"terrain_config": {"target_rng_seed": 123}}
+    env_overrides = {
+        "terrain_config": {"target_rng_seed": 123},
+        "physics_config": {}
+    }
     verifier = CodeVerifier(task_name=task_name, max_steps=max_steps, env_overrides=env_overrides)
     gif_path = os.path.join(os.path.dirname(__file__), "reference_solution_success.gif")
     success, score, metrics, error = verifier.verify_code(

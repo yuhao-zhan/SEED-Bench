@@ -13,8 +13,26 @@ class F02Renderer(Renderer):
     """F-02: The Amphibian task specific renderer"""
 
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
-        self.set_camera_offset(camera_offset_x)
-        self.clear((30, 30, 30))  # Dark background consistent with other categories
+        # Enforce 16:9 aspect ratio and 1280x720 resolution
+        if self.simulator.screen_width != 1280 or self.simulator.screen_height != 720:
+            self.simulator.screen_width = 1280
+            self.simulator.screen_height = 720
+            if self.simulator.can_display:
+                import pygame
+                self.simulator.screen = pygame.Surface((1280, 720))
+
+        # Panoramic viewport: fix PPM and offset to see the entire relevant area
+        # 1280 / 35 = 36.5 PPM captures the full 35m width
+        self.simulator.ppm = 35
+        self.set_camera_offset(0, 0)
+        
+        self.clear((0, 0, 0))  # Background: Pure Black
+
+        # Academic Colors
+        COLOR_ENVIRONMENT = (230, 194, 41)   # #E6C229: Goldenrod Yellow
+        COLOR_STRUCTURE = (76, 175, 80)      # #4CAF50: Material Green
+        COLOR_WATER = (70, 130, 180)         # Professional Steel Blue
+        COLOR_WATER_OUTLINE = (100, 160, 220)
 
         for body in sandbox.world.bodies:
             if body.type == staticBody:
@@ -26,16 +44,16 @@ class F02Renderer(Renderer):
                 if is_water:
                     self.draw_body(
                         body,
-                        dynamic_color=(80, 140, 200),
-                        static_color=(60, 120, 180),
-                        outline_color=(100, 160, 220),
+                        dynamic_color=COLOR_WATER,
+                        static_color=COLOR_WATER,
+                        outline_color=COLOR_WATER_OUTLINE,
                         outline_width=2,
                     )
                 else:
                     self.draw_body(
                         body,
-                        dynamic_color=(100, 150, 240),
-                        static_color=(100, 90, 70),
+                        dynamic_color=COLOR_ENVIRONMENT,
+                        static_color=COLOR_ENVIRONMENT,
                         outline_color=(160, 140, 110),
                         outline_width=2,
                     )
@@ -44,22 +62,22 @@ class F02Renderer(Renderer):
             if body.active:
                 self.draw_body(
                     body,
-                    dynamic_color=(100, 200, 100),  # Green dynamic objects
-                    static_color=(100, 200, 100),
+                    dynamic_color=COLOR_STRUCTURE,
+                    static_color=COLOR_STRUCTURE,
                     outline_color=(50, 150, 50),
                     outline_width=2,
                 )
 
         if hasattr(sandbox, "TARGET_X"):
             tx = sandbox.TARGET_X
-            self.draw_line(tx, 0, tx, 8, (255, 200, 80), 3)
+            self.draw_line(tx, 0, tx, 8, COLOR_ENVIRONMENT, 3)
 
         if hasattr(sandbox, "BUILD_ZONE_X_MIN"):
             x_min = sandbox.BUILD_ZONE_X_MIN
             x_max = sandbox.BUILD_ZONE_X_MAX
             y_min = sandbox.BUILD_ZONE_Y_MIN
             y_max = sandbox.BUILD_ZONE_Y_MAX
-            self.draw_line(x_min, y_min, x_max, y_min, (255, 255, 0), 1)
-            self.draw_line(x_max, y_min, x_max, y_max, (255, 255, 0), 1)
-            self.draw_line(x_max, y_max, x_min, y_max, (255, 255, 0), 1)
-            self.draw_line(x_min, y_max, x_min, y_min, (255, 255, 0), 1)
+            self.draw_line(x_min, y_min, x_max, y_min, COLOR_ENVIRONMENT, 1)
+            self.draw_line(x_max, y_min, x_max, y_max, COLOR_ENVIRONMENT, 1)
+            self.draw_line(x_max, y_max, x_min, y_max, COLOR_ENVIRONMENT, 1)
+            self.draw_line(x_min, y_max, x_min, y_min, COLOR_ENVIRONMENT, 1)

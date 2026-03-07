@@ -1,0 +1,369 @@
+============================================================
+Baseline (no env override)
+============================================================
+
+=== Task Information ===
+Task: C-04: The Escaper
+Description: Escape the maze using whisker sensors
+=======================
+
+UNLOCK: step=88, x=7.67, y=2.24, vx=0.29, vy=0.00, speed=0.29, timer=1
+UNLOCK: step=89, x=7.68, y=2.24, vx=0.22, vy=0.00, speed=0.22, timer=2
+UNLOCK: step=90, x=7.68, y=2.24, vx=0.15, vy=0.00, speed=0.15, timer=3
+UNLOCK: step=91, x=7.68, y=2.24, vx=0.09, vy=0.00, speed=0.09, timer=4
+UNLOCK: step=92, x=7.68, y=2.24, vx=0.02, vy=0.00, speed=0.02, timer=5
+UNLOCK: step=93, x=7.68, y=2.24, vx=-0.03, vy=0.00, speed=0.03, timer=6
+UNLOCK: step=94, x=7.68, y=2.24, vx=-0.09, vy=0.00, speed=0.09, timer=7
+UNLOCK: step=95, x=7.68, y=2.24, vx=-0.15, vy=0.00, speed=0.15, timer=8
+UNLOCK: step=96, x=7.67, y=2.24, vx=-0.21, vy=0.00, speed=0.21, timer=9
+UNLOCK: step=97, x=7.67, y=2.24, vx=-0.27, vy=0.00, speed=0.27, timer=10
+UNLOCK: step=98, x=7.66, y=2.24, vx=-0.33, vy=0.00, speed=0.33, timer=11
+UNLOCK: step=99, x=7.66, y=2.24, vx=-0.39, vy=0.00, speed=0.39, timer=12
+UNLOCK: step=100, x=7.65, y=2.24, vx=-0.45, vy=0.00, speed=0.45, timer=13
+UNLOCK: step=101, x=7.64, y=2.24, vx=-0.50, vy=0.00, speed=0.50, timer=14
+UNLOCK: step=102, x=7.63, y=2.24, vx=-0.55, vy=0.00, speed=0.55, timer=15
+UNLOCK: step=103, x=7.62, y=2.24, vx=-0.61, vy=0.00, speed=0.61, timer=16
+UNLOCK: step=104, x=7.61, y=2.24, vx=-0.65, vy=0.00, speed=0.65, timer=17
+UNLOCK: step=105, x=7.60, y=2.24, vx=-0.70, vy=0.00, speed=0.70, timer=18
+UNLOCK: step=106, x=7.59, y=2.24, vx=-0.75, vy=0.00, speed=0.75, timer=19
+UNLOCK: step=107, x=7.57, y=2.24, vx=-0.79, vy=0.00, speed=0.79, timer=20
+UNLOCK: step=108, x=7.56, y=2.24, vx=-0.84, vy=0.00, speed=0.84, timer=21
+UNLOCK: step=109, x=7.54, y=2.24, vx=-0.88, vy=0.00, speed=0.88, timer=22
+UNLOCK: step=110, x=7.53, y=2.24, vx=-0.92, vy=0.00, speed=0.92, timer=23
+UNLOCK: step=111, x=7.51, y=2.24, vx=-0.96, vy=0.00, speed=0.96, timer=24
+UNLOCK: step=112, x=7.50, y=2.24, vx=-1.00, vy=0.00, speed=1.00, timer=25
+UNLOCK: step=113, x=7.48, y=2.24, vx=-1.03, vy=0.00, speed=1.03, timer=26
+UNLOCK: step=114, x=7.46, y=2.24, vx=-1.07, vy=0.00, speed=1.07, timer=27
+UNLOCK: step=115, x=7.44, y=2.24, vx=-1.11, vy=0.00, speed=1.11, timer=28
+UNLOCK: step=116, x=7.42, y=2.24, vx=-1.14, vy=0.00, speed=1.14, timer=29
+UNLOCK: step=117, x=7.40, y=2.24, vx=-1.17, vy=0.00, speed=1.17, timer=30
+UNLOCK: step=118, x=7.38, y=2.24, vx=-1.20, vy=0.00, speed=1.20, timer=31
+UNLOCK: step=119, x=7.36, y=2.24, vx=-1.23, vy=0.00, speed=1.23, timer=32
+UNLOCK: step=120, x=7.34, y=2.24, vx=-1.26, vy=0.00, speed=1.26, timer=33
+UNLOCK: step=121, x=7.32, y=2.24, vx=-1.29, vy=0.00, speed=1.29, timer=34
+UNLOCK: step=122, x=7.30, y=2.24, vx=-1.32, vy=0.00, speed=1.32, timer=35
+UNLOCK: step=123, x=7.28, y=2.24, vx=-1.35, vy=0.00, speed=1.35, timer=36
+UNLOCK: step=124, x=7.25, y=2.24, vx=-1.37, vy=0.00, speed=1.37, timer=37
+UNLOCK: step=125, x=7.23, y=2.24, vx=-1.40, vy=0.00, speed=1.40, timer=38
+UNLOCK: step=126, x=7.21, y=2.24, vx=-1.42, vy=0.00, speed=1.42, timer=39
+UNLOCK: step=127, x=7.18, y=2.24, vx=-1.45, vy=0.00, speed=1.45, timer=40
+UNLOCK: step=128, x=7.16, y=2.24, vx=-1.47, vy=0.00, speed=1.47, timer=41
+UNLOCK: step=129, x=7.13, y=2.24, vx=-1.49, vy=0.00, speed=1.49, timer=42
+UNLOCK: step=130, x=7.11, y=2.24, vx=-1.51, vy=0.00, speed=1.51, timer=43
+UNLOCK: step=131, x=7.08, y=2.24, vx=-1.53, vy=0.00, speed=1.53, timer=44
+UNLOCK: step=132, x=7.06, y=2.24, vx=-1.55, vy=0.00, speed=1.55, timer=45
+UNLOCK: step=133, x=7.03, y=2.24, vx=-1.57, vy=0.00, speed=1.57, timer=46
+UNLOCK: step=134, x=7.00, y=2.24, vx=-1.59, vy=0.00, speed=1.59, timer=47
+UNLOCK: step=135, x=6.98, y=2.24, vx=-1.61, vy=0.00, speed=1.61, timer=48
+UNLOCK: step=136, x=6.95, y=2.24, vx=-1.67, vy=0.00, speed=1.67, timer=49
+UNLOCK: step=137, x=6.92, y=2.24, vx=-1.73, vy=0.00, speed=1.73, timer=50
+UNLOCK: step=138, x=6.89, y=2.24, vx=-1.79, vy=0.00, speed=1.79, timer=51
+UNLOCK: step=139, x=6.86, y=2.24, vx=-1.85, vy=0.00, speed=1.85, timer=52
+UNLOCK: step=140, x=6.83, y=2.24, vx=-1.91, vy=0.00, speed=1.91, timer=53
+UNLOCK: step=141, x=6.80, y=2.24, vx=-1.97, vy=0.00, speed=1.97, timer=54
+UNLOCK: step=142, x=6.76, y=2.24, vx=-2.03, vy=0.00, speed=2.03, timer=55
+UNLOCK: step=143, x=6.73, y=2.24, vx=-2.08, vy=0.00, speed=2.08, timer=56
+UNLOCK: step=144, x=6.69, y=2.24, vx=-2.14, vy=0.00, speed=2.14, timer=57
+UNLOCK: step=145, x=6.65, y=2.24, vx=-2.20, vy=0.00, speed=2.20, timer=58
+UNLOCK: step=146, x=6.62, y=2.24, vx=-2.26, vy=0.00, speed=2.26, timer=59
+UNLOCK: step=147, x=6.58, y=2.24, vx=-2.32, vy=0.00, speed=2.32, timer=60
+UNLOCK: step=148, x=6.54, y=2.24, vx=-2.37, vy=0.00, speed=2.37, timer=61
+
+🎉 Success! Agent completed task!
+
+============================================================
+Simulation ended, total steps: 395
+============================================================
+
+📊 Evaluation Results:
+  Final score: 100.0/100
+  ✅ Task successful!
+============================================================
+
+Score: 100.00  Success: True  Failed: False
+
+============================================================
+Mutated: Stage-1 — Frictionless Ceiling
+============================================================
+
+=== Task Information ===
+Task: C-04: The Escaper
+Description: Escape the maze using whisker sensors
+=======================
+
+UNLOCK: step=87, x=7.75, y=2.24, vx=0.34, vy=0.00, speed=0.34, timer=1
+UNLOCK: step=88, x=7.75, y=2.24, vx=0.22, vy=0.00, speed=0.22, timer=2
+UNLOCK: step=89, x=7.75, y=2.24, vx=0.11, vy=0.00, speed=0.11, timer=3
+UNLOCK: step=90, x=7.75, y=2.24, vx=0.00, vy=0.00, speed=0.00, timer=4
+UNLOCK: step=91, x=7.75, y=2.24, vx=-0.10, vy=0.00, speed=0.10, timer=5
+UNLOCK: step=92, x=7.75, y=2.24, vx=-0.20, vy=0.00, speed=0.20, timer=6
+UNLOCK: step=93, x=7.74, y=2.24, vx=-0.29, vy=0.00, speed=0.29, timer=7
+UNLOCK: step=94, x=7.73, y=2.24, vx=-0.38, vy=0.00, speed=0.38, timer=8
+UNLOCK: step=95, x=7.73, y=2.24, vx=-0.47, vy=0.00, speed=0.47, timer=9
+UNLOCK: step=96, x=7.72, y=2.24, vx=-0.55, vy=0.00, speed=0.55, timer=10
+UNLOCK: step=97, x=7.71, y=2.24, vx=-0.63, vy=0.00, speed=0.63, timer=11
+UNLOCK: step=98, x=7.70, y=2.24, vx=-0.70, vy=0.00, speed=0.70, timer=12
+UNLOCK: step=99, x=7.68, y=2.24, vx=-0.78, vy=0.00, speed=0.78, timer=13
+UNLOCK: step=100, x=7.67, y=2.24, vx=-0.84, vy=0.00, speed=0.84, timer=14
+UNLOCK: step=101, x=7.65, y=2.24, vx=-0.91, vy=0.00, speed=0.91, timer=15
+UNLOCK: step=102, x=7.64, y=2.24, vx=-0.97, vy=0.00, speed=0.97, timer=16
+UNLOCK: step=103, x=7.62, y=2.24, vx=-1.03, vy=0.00, speed=1.03, timer=17
+UNLOCK: step=104, x=7.60, y=2.24, vx=-1.09, vy=0.00, speed=1.09, timer=18
+UNLOCK: step=105, x=7.58, y=2.24, vx=-1.14, vy=0.00, speed=1.14, timer=19
+UNLOCK: step=106, x=7.56, y=2.24, vx=-1.19, vy=0.00, speed=1.19, timer=20
+UNLOCK: step=107, x=7.54, y=2.24, vx=-1.24, vy=0.00, speed=1.24, timer=21
+UNLOCK: step=108, x=7.52, y=2.24, vx=-1.29, vy=0.00, speed=1.29, timer=22
+UNLOCK: step=109, x=7.50, y=2.24, vx=-1.33, vy=0.00, speed=1.33, timer=23
+UNLOCK: step=110, x=7.48, y=2.24, vx=-1.38, vy=0.00, speed=1.38, timer=24
+UNLOCK: step=111, x=7.45, y=2.24, vx=-1.42, vy=0.00, speed=1.42, timer=25
+UNLOCK: step=112, x=7.43, y=2.24, vx=-1.46, vy=0.00, speed=1.46, timer=26
+UNLOCK: step=113, x=7.40, y=2.24, vx=-1.50, vy=0.00, speed=1.50, timer=27
+UNLOCK: step=114, x=7.38, y=2.24, vx=-1.53, vy=0.00, speed=1.53, timer=28
+UNLOCK: step=115, x=7.35, y=2.24, vx=-1.57, vy=0.00, speed=1.57, timer=29
+UNLOCK: step=116, x=7.32, y=2.24, vx=-1.60, vy=0.00, speed=1.60, timer=30
+UNLOCK: step=117, x=7.30, y=2.24, vx=-1.63, vy=0.00, speed=1.63, timer=31
+UNLOCK: step=118, x=7.27, y=2.24, vx=-1.66, vy=0.00, speed=1.66, timer=32
+UNLOCK: step=119, x=7.24, y=2.24, vx=-1.69, vy=0.00, speed=1.69, timer=33
+UNLOCK: step=120, x=7.21, y=2.24, vx=-1.71, vy=0.00, speed=1.71, timer=34
+UNLOCK: step=121, x=7.18, y=2.24, vx=-1.74, vy=0.00, speed=1.74, timer=35
+UNLOCK: step=122, x=7.15, y=2.24, vx=-1.77, vy=0.00, speed=1.77, timer=36
+UNLOCK: step=123, x=7.12, y=2.24, vx=-1.79, vy=0.00, speed=1.79, timer=37
+UNLOCK: step=124, x=7.09, y=2.24, vx=-1.81, vy=0.00, speed=1.81, timer=38
+UNLOCK: step=125, x=7.06, y=2.24, vx=-1.83, vy=0.00, speed=1.83, timer=39
+UNLOCK: step=126, x=7.03, y=2.24, vx=-1.85, vy=0.00, speed=1.85, timer=40
+UNLOCK: step=127, x=7.00, y=2.24, vx=-1.87, vy=0.00, speed=1.87, timer=41
+UNLOCK: step=128, x=6.97, y=2.24, vx=-1.89, vy=0.00, speed=1.89, timer=42
+UNLOCK: step=129, x=6.94, y=2.24, vx=-1.99, vy=0.00, speed=1.99, timer=43
+UNLOCK: step=130, x=6.90, y=2.24, vx=-2.08, vy=0.00, speed=2.08, timer=44
+UNLOCK: step=131, x=6.87, y=2.24, vx=-2.17, vy=0.00, speed=2.17, timer=45
+UNLOCK: step=132, x=6.83, y=2.24, vx=-2.26, vy=0.00, speed=2.26, timer=46
+UNLOCK: step=133, x=6.79, y=2.24, vx=-2.35, vy=0.00, speed=2.35, timer=47
+UNLOCK: step=134, x=6.75, y=2.24, vx=-2.45, vy=0.00, speed=2.45, timer=48
+UNLOCK: step=135, x=6.71, y=2.24, vx=-2.54, vy=0.00, speed=2.54, timer=49
+UNLOCK: step=136, x=6.66, y=2.24, vx=-2.63, vy=0.00, speed=2.63, timer=50
+UNLOCK: step=137, x=6.62, y=2.24, vx=-2.72, vy=0.00, speed=2.72, timer=51
+UNLOCK: step=138, x=6.57, y=2.24, vx=-2.81, vy=0.00, speed=2.81, timer=52
+UNLOCK: step=139, x=6.52, y=2.24, vx=-2.89, vy=0.00, speed=2.89, timer=53
+UNLOCK: step=140, x=6.47, y=2.24, vx=-2.98, vy=0.00, speed=2.98, timer=54
+UNLOCK: step=141, x=6.42, y=2.24, vx=-3.07, vy=0.00, speed=3.07, timer=55
+UNLOCK: step=142, x=6.37, y=2.24, vx=-3.16, vy=0.00, speed=3.16, timer=56
+UNLOCK: step=143, x=6.31, y=2.24, vx=-3.25, vy=0.00, speed=3.25, timer=57
+UNLOCK: step=144, x=6.26, y=2.24, vx=-3.33, vy=0.00, speed=3.33, timer=58
+UNLOCK: step=145, x=6.20, y=2.24, vx=-3.42, vy=0.00, speed=3.42, timer=59
+UNLOCK: step=146, x=6.14, y=2.24, vx=-3.50, vy=0.00, speed=3.50, timer=60
+UNLOCK: step=147, x=6.08, y=2.24, vx=-3.59, vy=0.00, speed=3.59, timer=61
+
+🎉 Success! Agent completed task!
+
+============================================================
+Simulation ended, total steps: 451
+============================================================
+
+📊 Evaluation Results:
+  Final score: 100.0/100
+  ✅ Task successful!
+============================================================
+
+Score: 100.0  Success: True
+
+============================================================
+Mutated: Stage-2 — Shear Wind Barrier
+============================================================
+
+=== Task Information ===
+Task: C-04: The Escaper
+Description: Escape the maze using whisker sensors
+=======================
+
+UNLOCK: step=87, x=7.75, y=2.24, vx=0.34, vy=0.00, speed=0.34, timer=1
+UNLOCK: step=88, x=7.75, y=2.24, vx=0.22, vy=0.00, speed=0.22, timer=2
+UNLOCK: step=89, x=7.75, y=2.24, vx=0.11, vy=0.00, speed=0.11, timer=3
+UNLOCK: step=90, x=7.75, y=2.24, vx=0.00, vy=0.00, speed=0.00, timer=4
+UNLOCK: step=91, x=7.75, y=2.24, vx=-0.10, vy=0.00, speed=0.10, timer=5
+UNLOCK: step=92, x=7.75, y=2.24, vx=-0.20, vy=0.00, speed=0.20, timer=6
+UNLOCK: step=93, x=7.74, y=2.24, vx=-0.29, vy=0.00, speed=0.29, timer=7
+UNLOCK: step=94, x=7.73, y=2.24, vx=-0.38, vy=0.00, speed=0.38, timer=8
+UNLOCK: step=95, x=7.73, y=2.24, vx=-0.47, vy=0.00, speed=0.47, timer=9
+UNLOCK: step=96, x=7.72, y=2.24, vx=-0.55, vy=0.00, speed=0.55, timer=10
+UNLOCK: step=97, x=7.71, y=2.24, vx=-0.63, vy=0.00, speed=0.63, timer=11
+UNLOCK: step=98, x=7.70, y=2.24, vx=-0.70, vy=0.00, speed=0.70, timer=12
+UNLOCK: step=99, x=7.68, y=2.24, vx=-0.78, vy=0.00, speed=0.78, timer=13
+UNLOCK: step=100, x=7.67, y=2.24, vx=-0.84, vy=0.00, speed=0.84, timer=14
+UNLOCK: step=101, x=7.65, y=2.24, vx=-0.91, vy=0.00, speed=0.91, timer=15
+UNLOCK: step=102, x=7.64, y=2.24, vx=-0.97, vy=0.00, speed=0.97, timer=16
+UNLOCK: step=103, x=7.62, y=2.24, vx=-1.03, vy=0.00, speed=1.03, timer=17
+UNLOCK: step=104, x=7.60, y=2.24, vx=-1.09, vy=0.00, speed=1.09, timer=18
+UNLOCK: step=105, x=7.58, y=2.24, vx=-1.14, vy=0.00, speed=1.14, timer=19
+UNLOCK: step=106, x=7.56, y=2.24, vx=-1.19, vy=0.00, speed=1.19, timer=20
+UNLOCK: step=107, x=7.54, y=2.24, vx=-1.24, vy=0.00, speed=1.24, timer=21
+UNLOCK: step=108, x=7.52, y=2.24, vx=-1.29, vy=0.00, speed=1.29, timer=22
+UNLOCK: step=109, x=7.50, y=2.24, vx=-1.33, vy=0.00, speed=1.33, timer=23
+UNLOCK: step=110, x=7.48, y=2.24, vx=-1.38, vy=0.00, speed=1.38, timer=24
+UNLOCK: step=111, x=7.45, y=2.24, vx=-1.42, vy=0.00, speed=1.42, timer=25
+UNLOCK: step=112, x=7.43, y=2.24, vx=-1.46, vy=0.00, speed=1.46, timer=26
+UNLOCK: step=113, x=7.40, y=2.24, vx=-1.50, vy=0.00, speed=1.50, timer=27
+UNLOCK: step=114, x=7.38, y=2.24, vx=-1.53, vy=0.00, speed=1.53, timer=28
+UNLOCK: step=115, x=7.35, y=2.24, vx=-1.57, vy=0.00, speed=1.57, timer=29
+UNLOCK: step=116, x=7.32, y=2.24, vx=-1.60, vy=0.00, speed=1.60, timer=30
+UNLOCK: step=117, x=7.30, y=2.24, vx=-1.63, vy=0.00, speed=1.63, timer=31
+UNLOCK: step=118, x=7.27, y=2.24, vx=-1.66, vy=0.00, speed=1.66, timer=32
+UNLOCK: step=119, x=7.24, y=2.24, vx=-1.69, vy=0.00, speed=1.69, timer=33
+UNLOCK: step=120, x=7.21, y=2.24, vx=-1.71, vy=0.00, speed=1.71, timer=34
+UNLOCK: step=121, x=7.18, y=2.24, vx=-1.74, vy=0.00, speed=1.74, timer=35
+UNLOCK: step=122, x=7.15, y=2.24, vx=-1.77, vy=0.00, speed=1.77, timer=36
+UNLOCK: step=123, x=7.12, y=2.24, vx=-1.79, vy=0.00, speed=1.79, timer=37
+UNLOCK: step=124, x=7.09, y=2.24, vx=-1.81, vy=0.00, speed=1.81, timer=38
+UNLOCK: step=125, x=7.06, y=2.24, vx=-1.83, vy=0.00, speed=1.83, timer=39
+UNLOCK: step=126, x=7.03, y=2.24, vx=-1.85, vy=0.00, speed=1.85, timer=40
+UNLOCK: step=127, x=7.00, y=2.24, vx=-1.87, vy=0.00, speed=1.87, timer=41
+UNLOCK: step=128, x=6.97, y=2.24, vx=-1.89, vy=0.00, speed=1.89, timer=42
+UNLOCK: step=129, x=6.94, y=2.24, vx=-1.99, vy=0.00, speed=1.99, timer=43
+UNLOCK: step=130, x=6.90, y=2.24, vx=-2.08, vy=0.00, speed=2.08, timer=44
+UNLOCK: step=131, x=6.87, y=2.24, vx=-2.17, vy=0.00, speed=2.17, timer=45
+UNLOCK: step=132, x=6.83, y=2.24, vx=-2.26, vy=0.00, speed=2.26, timer=46
+UNLOCK: step=133, x=6.79, y=2.24, vx=-2.35, vy=0.00, speed=2.35, timer=47
+UNLOCK: step=134, x=6.75, y=2.24, vx=-2.45, vy=0.00, speed=2.45, timer=48
+UNLOCK: step=135, x=6.71, y=2.24, vx=-2.54, vy=0.00, speed=2.54, timer=49
+UNLOCK: step=136, x=6.66, y=2.24, vx=-2.63, vy=0.00, speed=2.63, timer=50
+UNLOCK: step=137, x=6.62, y=2.24, vx=-2.72, vy=0.00, speed=2.72, timer=51
+UNLOCK: step=138, x=6.57, y=2.24, vx=-2.81, vy=0.00, speed=2.81, timer=52
+UNLOCK: step=139, x=6.52, y=2.24, vx=-2.89, vy=0.00, speed=2.89, timer=53
+UNLOCK: step=140, x=6.47, y=2.24, vx=-2.98, vy=0.00, speed=2.98, timer=54
+UNLOCK: step=141, x=6.42, y=2.24, vx=-3.07, vy=0.00, speed=3.07, timer=55
+UNLOCK: step=142, x=6.37, y=2.24, vx=-3.16, vy=0.00, speed=3.16, timer=56
+UNLOCK: step=143, x=6.31, y=2.24, vx=-3.25, vy=0.00, speed=3.25, timer=57
+UNLOCK: step=144, x=6.26, y=2.24, vx=-3.33, vy=0.00, speed=3.33, timer=58
+UNLOCK: step=145, x=6.20, y=2.24, vx=-3.42, vy=0.00, speed=3.42, timer=59
+UNLOCK: step=146, x=6.14, y=2.24, vx=-3.50, vy=0.00, speed=3.50, timer=60
+UNLOCK: step=147, x=6.08, y=2.24, vx=-3.59, vy=0.00, speed=3.59, timer=61
+
+❌ Failed: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+
+============================================================
+Simulation ended, total steps: 9999
+============================================================
+
+📊 Evaluation Results:
+  Final score: 0.0/100
+  ❌ Task failed: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+============================================================
+
+Score: 0.0  Success: False
+Failure: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+
+============================================================
+Mutated: Stage-3 — Frictionless Ceiling + Shear Wind + Sensor Delay
+============================================================
+
+=== Task Information ===
+Task: C-04: The Escaper
+Description: Escape the maze using whisker sensors
+=======================
+
+UNLOCK: step=87, x=7.75, y=2.24, vx=0.34, vy=0.00, speed=0.34, timer=1
+UNLOCK: step=88, x=7.75, y=2.24, vx=0.22, vy=0.00, speed=0.22, timer=2
+UNLOCK: step=89, x=7.75, y=2.24, vx=0.11, vy=0.00, speed=0.11, timer=3
+UNLOCK: step=90, x=7.75, y=2.24, vx=0.00, vy=0.00, speed=0.00, timer=4
+UNLOCK: step=91, x=7.75, y=2.24, vx=-0.10, vy=0.00, speed=0.10, timer=5
+UNLOCK: step=92, x=7.75, y=2.24, vx=-0.20, vy=0.00, speed=0.20, timer=6
+UNLOCK: step=93, x=7.74, y=2.24, vx=-0.29, vy=0.00, speed=0.29, timer=7
+UNLOCK: step=94, x=7.73, y=2.24, vx=-0.38, vy=0.00, speed=0.38, timer=8
+UNLOCK: step=95, x=7.73, y=2.24, vx=-0.47, vy=0.00, speed=0.47, timer=9
+UNLOCK: step=96, x=7.72, y=2.24, vx=-0.55, vy=0.00, speed=0.55, timer=10
+UNLOCK: step=97, x=7.71, y=2.24, vx=-0.63, vy=0.00, speed=0.63, timer=11
+UNLOCK: step=98, x=7.70, y=2.24, vx=-0.70, vy=0.00, speed=0.70, timer=12
+UNLOCK: step=99, x=7.68, y=2.24, vx=-0.78, vy=0.00, speed=0.78, timer=13
+UNLOCK: step=100, x=7.67, y=2.24, vx=-0.84, vy=0.00, speed=0.84, timer=14
+UNLOCK: step=101, x=7.65, y=2.24, vx=-0.91, vy=0.00, speed=0.91, timer=15
+UNLOCK: step=102, x=7.64, y=2.24, vx=-0.97, vy=0.00, speed=0.97, timer=16
+UNLOCK: step=103, x=7.62, y=2.24, vx=-1.03, vy=0.00, speed=1.03, timer=17
+UNLOCK: step=104, x=7.60, y=2.24, vx=-1.09, vy=0.00, speed=1.09, timer=18
+UNLOCK: step=105, x=7.58, y=2.24, vx=-1.14, vy=0.00, speed=1.14, timer=19
+UNLOCK: step=106, x=7.56, y=2.24, vx=-1.19, vy=0.00, speed=1.19, timer=20
+UNLOCK: step=107, x=7.54, y=2.24, vx=-1.24, vy=0.00, speed=1.24, timer=21
+UNLOCK: step=108, x=7.52, y=2.24, vx=-1.29, vy=0.00, speed=1.29, timer=22
+UNLOCK: step=109, x=7.50, y=2.24, vx=-1.33, vy=0.00, speed=1.33, timer=23
+UNLOCK: step=110, x=7.48, y=2.24, vx=-1.38, vy=0.00, speed=1.38, timer=24
+UNLOCK: step=111, x=7.45, y=2.24, vx=-1.42, vy=0.00, speed=1.42, timer=25
+UNLOCK: step=112, x=7.43, y=2.24, vx=-1.46, vy=0.00, speed=1.46, timer=26
+UNLOCK: step=113, x=7.40, y=2.24, vx=-1.50, vy=0.00, speed=1.50, timer=27
+UNLOCK: step=114, x=7.38, y=2.24, vx=-1.53, vy=0.00, speed=1.53, timer=28
+UNLOCK: step=115, x=7.35, y=2.24, vx=-1.57, vy=0.00, speed=1.57, timer=29
+UNLOCK: step=116, x=7.32, y=2.24, vx=-1.60, vy=0.00, speed=1.60, timer=30
+UNLOCK: step=117, x=7.30, y=2.24, vx=-1.63, vy=0.00, speed=1.63, timer=31
+UNLOCK: step=118, x=7.27, y=2.24, vx=-1.66, vy=0.00, speed=1.66, timer=32
+UNLOCK: step=119, x=7.24, y=2.24, vx=-1.69, vy=0.00, speed=1.69, timer=33
+UNLOCK: step=120, x=7.21, y=2.24, vx=-1.71, vy=0.00, speed=1.71, timer=34
+UNLOCK: step=121, x=7.18, y=2.24, vx=-1.74, vy=0.00, speed=1.74, timer=35
+UNLOCK: step=122, x=7.15, y=2.24, vx=-1.77, vy=0.00, speed=1.77, timer=36
+UNLOCK: step=123, x=7.12, y=2.24, vx=-1.79, vy=0.00, speed=1.79, timer=37
+UNLOCK: step=124, x=7.09, y=2.24, vx=-1.81, vy=0.00, speed=1.81, timer=38
+UNLOCK: step=125, x=7.06, y=2.24, vx=-1.83, vy=0.00, speed=1.83, timer=39
+UNLOCK: step=126, x=7.03, y=2.24, vx=-1.85, vy=0.00, speed=1.85, timer=40
+UNLOCK: step=127, x=7.00, y=2.24, vx=-1.87, vy=0.00, speed=1.87, timer=41
+UNLOCK: step=128, x=6.97, y=2.24, vx=-1.89, vy=0.00, speed=1.89, timer=42
+UNLOCK: step=129, x=6.94, y=2.24, vx=-1.99, vy=0.00, speed=1.99, timer=43
+UNLOCK: step=130, x=6.90, y=2.24, vx=-2.08, vy=0.00, speed=2.08, timer=44
+UNLOCK: step=131, x=6.87, y=2.24, vx=-2.17, vy=0.00, speed=2.17, timer=45
+UNLOCK: step=132, x=6.83, y=2.24, vx=-2.26, vy=0.00, speed=2.26, timer=46
+UNLOCK: step=133, x=6.79, y=2.24, vx=-2.35, vy=0.00, speed=2.35, timer=47
+UNLOCK: step=134, x=6.75, y=2.24, vx=-2.45, vy=0.00, speed=2.45, timer=48
+UNLOCK: step=135, x=6.71, y=2.24, vx=-2.54, vy=0.00, speed=2.54, timer=49
+UNLOCK: step=136, x=6.66, y=2.24, vx=-2.63, vy=0.00, speed=2.63, timer=50
+UNLOCK: step=137, x=6.62, y=2.24, vx=-2.72, vy=0.00, speed=2.72, timer=51
+UNLOCK: step=138, x=6.57, y=2.24, vx=-2.81, vy=0.00, speed=2.81, timer=52
+UNLOCK: step=139, x=6.52, y=2.24, vx=-2.89, vy=0.00, speed=2.89, timer=53
+UNLOCK: step=140, x=6.47, y=2.24, vx=-2.98, vy=0.00, speed=2.98, timer=54
+UNLOCK: step=141, x=6.42, y=2.24, vx=-3.07, vy=0.00, speed=3.07, timer=55
+UNLOCK: step=142, x=6.37, y=2.24, vx=-3.16, vy=0.00, speed=3.16, timer=56
+UNLOCK: step=143, x=6.31, y=2.24, vx=-3.25, vy=0.00, speed=3.25, timer=57
+UNLOCK: step=144, x=6.26, y=2.24, vx=-3.33, vy=0.00, speed=3.33, timer=58
+UNLOCK: step=145, x=6.20, y=2.24, vx=-3.42, vy=0.00, speed=3.42, timer=59
+UNLOCK: step=146, x=6.14, y=2.24, vx=-3.50, vy=0.00, speed=3.50, timer=60
+UNLOCK: step=147, x=6.08, y=2.24, vx=-3.59, vy=0.00, speed=3.59, timer=61
+
+❌ Failed: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+
+============================================================
+Simulation ended, total steps: 9999
+============================================================
+
+📊 Evaluation Results:
+  Final score: 0.0/100
+  ❌ Task failed: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+============================================================
+
+Score: 0.0  Success: False
+Failure: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+
+============================================================
+Mutated: Stage-4 — Extreme Conflicting Constraints
+============================================================
+
+=== Task Information ===
+Task: C-04: The Escaper
+Description: Escape the maze using whisker sensors
+=======================
+
+
+❌ Failed: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+
+============================================================
+Simulation ended, total steps: 9999
+============================================================
+
+📊 Evaluation Results:
+  Final score: 0.0/100
+  ❌ Task failed: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+============================================================
+
+Score: 0.0  Success: False
+Failure: Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+
+============================================================
+Summary: reference solution on mutated tasks
+============================================================
+  Stage-1: PASS (score=100.0) 
+  Stage-2: FAIL (score=0.0) Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+  Stage-3: FAIL (score=0.0) Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps
+  Stage-4: FAIL (score=0.0) Timeout: did not hold in exit zone (x >= 18.0, y in [1.25, 1.45]) for 60 consecutive steps

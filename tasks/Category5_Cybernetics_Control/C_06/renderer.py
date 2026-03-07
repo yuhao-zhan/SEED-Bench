@@ -3,6 +3,7 @@ C-06: The Governor task rendering module
 """
 import sys
 import os
+import pygame
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
 from common.renderer import Renderer
@@ -12,15 +13,29 @@ from Box2D.b2 import dynamicBody, staticBody
 class C06Renderer(Renderer):
     """C-06: The Governor. Draws anchor and wheel."""
 
-    def render(self, sandbox, agent_body, target_x, camera_offset_x):
-        self.set_camera_offset(camera_offset_x, 0)
-        self.clear((30, 30, 30))
+    def __init__(self, simulator):
+        super().__init__(simulator)
+        # Enforce 16:9 aspect ratio and panoramic viewport
+        # Area of interest is centered at (5, 5) with a 10m width.
+        # Screen width 800px => ppm = 80
+        self.simulator.ppm = 80.0
+        self.simulator.screen_height = int(self.simulator.screen_width * 9 / 16)
+        if self.simulator.can_display:
+            # Re-create surface to match new aspect ratio
+            self.simulator.screen = pygame.Surface((self.simulator.screen_width, self.simulator.screen_height))
 
-        anchor = (
-            sandbox._terrain_bodies.get("anchor")
-            if hasattr(sandbox, "_terrain_bodies")
-            else None
-        )
+    def render(self, sandbox, agent_body, target_x, camera_offset_x):
+        # Panoramic Viewport: x in [0, 10], y centered at 5.0
+        # offset_x = 0 (for x=0 at screen_x=0)
+        # offset_y = -175 (for y=5 at screen_y=225)
+        self.set_camera_offset(0, -175)
+        self.clear((0, 0, 0))  # Pure Black Background
+
+        # Academic Palette
+        ENVIRONMENT_COLOR = (230, 194, 41)  # #E6C229 (Goldenrod Yellow)
+        AGENT_COLOR = (76, 175, 80)        # #4CAF50 (Material Green)
+        OUTLINE_COLOR = (255, 255, 255)
+
         wheel = (
             sandbox._terrain_bodies.get("wheel")
             if hasattr(sandbox, "_terrain_bodies")
@@ -29,27 +44,35 @@ class C06Renderer(Renderer):
 
         for body in sandbox.world.bodies:
             if body.type == staticBody:
+                # Environmental Baseline (Anchor)
                 self.draw_body(
                     body,
-                    dynamic_color=(100, 150, 240),
-                    static_color=(100, 100, 100),
-                    outline_color=(180, 180, 180),
+                    dynamic_color=ENVIRONMENT_COLOR,
+                    static_color=ENVIRONMENT_COLOR,
+                    outline_color=OUTLINE_COLOR,
+                    outline_width=2,
+                )
+            elif body == wheel:
+                # Agent-Created Structure
+                self.draw_body(
+                    body,
+                    dynamic_color=AGENT_COLOR,
+                    static_color=AGENT_COLOR,
+                    outline_color=OUTLINE_COLOR,
                     outline_width=2,
                 )
             elif body.type == dynamicBody:
-                if body == wheel:
-                    self.draw_body(
-                        body,
-                        dynamic_color=(255, 180, 80),
-                        static_color=(150, 100, 50),
-                        outline_color=(255, 220, 140),
-                        outline_width=3,
-                    )
-                else:
-                    self.draw_body(
-                        body,
-                        dynamic_color=(100, 200, 100),  # Green dynamic objects
-                        static_color=(150, 100, 50),
-                        outline_color=(50, 150, 50),
-                        outline_width=2,
-                    )
+                # Any other dynamic objects are also considered agent-related
+                self.draw_body(
+                    body,
+                    dynamic_color=AGENT_COLOR,
+                    static_color=AGENT_COLOR,
+                    outline_color=OUTLINE_COLOR,
+                    outline_width=2,
+                )
+        
+        # Draw target speed indicator (Environmental baseline info)
+        if hasattr(sandbox, "get_target_speed"):
+            target_speed = sandbox.get_target_speed()
+            # Draw a small indicator of target speed (optional but helpful)
+            pass
