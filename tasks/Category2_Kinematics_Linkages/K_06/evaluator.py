@@ -53,10 +53,9 @@ class Evaluator:
             failed = True
             failure_reason = f"Wiper failed: too many particles remaining ({remaining_count}/{initial_count}). Only {removal_ratio*100:.1f}% removed (need {self.min_removal_ratio*100:.0f}%)"
             
-        # Success if reached target removal and survived minimum time
         success = removal_ratio >= self.min_removal_ratio and step_count >= self.min_simulation_steps
         
-        done = failed or is_end
+        done = failed or success or is_end
         
         if success and not failed:
             score = 100.0

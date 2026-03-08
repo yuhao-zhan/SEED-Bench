@@ -55,25 +55,42 @@ class Sandbox:
         self._wind_period_steps = int(terrain_config.get("wind_period_steps", 90))
         self._wind_x_left = 12.0
         self._wind_x_right = 22.0
-        self._deep_channel_x_left = 16.5
-        self._deep_channel_x_right = 19.5
-        self._deep_channel_buoyancy_scale = 0.35
+        self._deep_channel_x_left = float(terrain_config.get("deep_channel_x_left", 16.5))
+        self._deep_channel_x_right = float(terrain_config.get("deep_channel_x_right", 19.5))
+        self._deep_channel_buoyancy_scale = float(terrain_config.get("deep_channel_buoyancy_scale", 0.35))
 
     def _create_terrain(self, terrain_config: dict):
         """
-        Create terrain: continuous floor, water zone (sensor for drawing and buoyancy region).
-        Left bank: x < 10. Water: x in [10, 24], y in [0, 2]. Right bank: x > 24.
+        Create terrain: split floor into left bank, right bank, and a deep pit for the water.
         """
-        floor_length = 35.0
         floor_height = 0.3
-        floor = self._world.CreateStaticBody(
-            position=(floor_length / 2, -floor_height / 2),
+        # Left bank floor
+        lb_width = 10.0
+        lb_floor = self._world.CreateStaticBody(
+            position=(lb_width / 2, -floor_height / 2),
             fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(floor_length / 2, floor_height / 2)),
+                shape=polygonShape(box=(lb_width / 2, floor_height / 2)),
                 friction=0.6,
             ),
         )
-        self._terrain_bodies["floor"] = floor
+        self._terrain_bodies["floor"] = lb_floor
+        # Right bank floor
+        rb_width = 30.0 # Extended from 11.0 to ensure vehicle has plenty of room to stop
+        self._world.CreateStaticBody(
+            position=(24.0 + rb_width / 2, -floor_height / 2),
+            fixtures=Box2D.b2FixtureDef(
+                shape=polygonShape(box=(rb_width / 2, floor_height / 2)),
+                friction=0.6,
+            ),
+        )
+        # Optional: A very deep floor in the water zone to prevent infinite fall but still allow sinking check
+        self._world.CreateStaticBody(
+            position=(17.0, -10.0),
+            fixtures=Box2D.b2FixtureDef(
+                shape=polygonShape(box=(7.0, 0.5)),
+                friction=0.0,
+            ),
+        )
 
         water_width = 14.0
         water_center_x = 17.0
@@ -110,6 +127,7 @@ class Sandbox:
 
         # Propulsion cooldown: each body can only apply thrust every N steps (paddle stroke)
         self._thrust_cooldown_steps = int(terrain_config.get("thrust_cooldown_steps", 3))
+        self._max_joint_force = float(terrain_config.get("max_joint_force", float('inf')))
         self._last_thrust_step = {}  # body id -> last step that applied thrust
         self._current_step = 0  # set by main loop before agent_action for cooldown
 
@@ -237,10 +255,33 @@ class Sandbox:
                     phase = 2.0 * math.pi * self._step_count / self._wind_period_steps
                     f_wind_y = self._wind_amplitude * math.sin(phase)
                     body.ApplyForceToCenter((0, f_wind_y), wake=True)
-                # Headwind burst: extra opposing force in mid-water (x 15-19)
+        # Headwind burst: extra opposing force in mid-water (x 15-19)
                 if self._headwind_burst_x_left <= x <= self._headwind_burst_x_right:
                     f_headwind = -self._headwind_burst_per_kg * body.mass
                     body.ApplyForceToCenter((f_headwind, 0), wake=True)
+        
+        # Check joints for breakage if max_joint_force is set
+        if self._max_joint_force < float('inf'):
+            for j in list(self._joints):
+                if not j.active:
+                    continue
+                try:
+                    # Get reaction force magnitude. Box2D can return negative or high values if step is very small.
+                    # We use a 1/time_step inverse.
+                    force = j.GetReactionForce(1.0/time_step).length
+                    if force > self._max_joint_force:
+                        self._world.DestroyJoint(j)
+                        # The evaluator checks len(self._joints), so we must NOT remove it from the list
+                        # to keep its position, but the evaluator should check j.active? 
+                        # Wait, the evaluator check is:
+                        # current_joint_count = len(self.environment._joints)
+                        # if current_joint_count < self.initial_joint_count:
+                        # self.structure_broken = True
+                        # So I MUST remove it from the list.
+                        self._joints.remove(j)
+                except:
+                    pass
+        
         self._world.Step(time_step, 10, 10)
         for body in self._bodies:
             if not body.active:

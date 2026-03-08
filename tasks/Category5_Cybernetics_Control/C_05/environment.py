@@ -75,6 +75,10 @@ class Sandbox:
         self._recent_a_for_b = int(physics_config.get("recent_a_for_b", RECENT_A_FOR_B))
         self._recent_b_for_c = int(physics_config.get("recent_b_for_c", RECENT_B_FOR_C))
 
+        # New mutation parameters
+        self._repulsion_tangential_mag = float(physics_config.get("repulsion_tangential_mag", 0.0))
+        self._force_limit_inside = float(physics_config.get("force_limit_inside", 1000.0))
+
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
         self._joints = []
@@ -95,6 +99,11 @@ class Sandbox:
         self._agent_mass = float(terrain_config.get("agent_mass", 3.0))
         self._spawn_x = float(terrain_config.get("spawn_x", 0.5))
         self._spawn_y = float(terrain_config.get("spawn_y", 1.95))
+
+        # Friction overrides
+        self._ground_friction = float(terrain_config.get("ground_friction", 0.5))
+        self._ramp_friction = float(terrain_config.get("ramp_friction", 0.12))
+        self._platform_friction = float(terrain_config.get("platform_friction", 0.45))
 
         self._step_count = 0
         self._barrier_remove_at_step = None  # barrier opens at this step (set when A triggers)
@@ -119,7 +128,7 @@ class Sandbox:
             position=(2.0, ground_y - h),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(2.0, h)),
-                friction=0.5,
+                friction=self._ground_friction,
                 restitution=0.0,
             ),
         )
@@ -131,7 +140,7 @@ class Sandbox:
             position=(4.75, 2.75),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(vertices=ramp1_verts),
-                friction=0.12,
+                friction=self._ramp_friction,
                 restitution=0.0,
             ),
         )
@@ -143,7 +152,7 @@ class Sandbox:
             position=(5.5, 3.25),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(0.5, platform_hh)),
-                friction=0.45,
+                friction=self._platform_friction,
                 restitution=0.0,
             ),
         )
@@ -154,7 +163,7 @@ class Sandbox:
             position=(6.5, 2.75),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(vertices=ramp2_verts),
-                friction=0.12,
+                friction=self._ramp_friction,
                 restitution=0.0,
             ),
         )
@@ -165,12 +174,13 @@ class Sandbox:
             position=(9.5, ground_y - h),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(2.5, h)),
-                friction=0.5,
+                friction=self._ground_friction,
                 restitution=0.0,
             ),
         )
 
         self._ground_y_top = ground_y
+
 
     def _create_barrier(self):
         """Barrier at x=BARRIER_X blocking passage; removed when A is triggered."""
@@ -266,6 +276,12 @@ class Sandbox:
             self._zone_contact_steps[current_zone] = 0
             return
 
+        # Progress resets if applying too much force while in zone
+        applied_f_mag = math.sqrt(self._force_x**2 + self._force_y**2)
+        if applied_f_mag > float(self._force_limit_inside):
+            self._zone_contact_steps[current_zone] = 0
+            return
+
         # Temporal chain: B only counts if agent was in A within last recent_a_for_b steps
         if current_zone == "B":
             if self._step_count - self._last_step_in_A > int(self._recent_a_for_b):
@@ -288,28 +304,40 @@ class Sandbox:
                 self._schedule_barrier_removal()
 
     def _repulsion_force(self, x, y):
-        """Repulsion from B until A triggered, from C until B triggered."""
+        """Repulsion from B until A triggered, from C until B triggered. Supports tangential force."""
         fx, fy = 0.0, 0.0
-        bx, by = self._zone_center("B")
-        cx, cy = self._zone_center("C")
-        dist_b = math.sqrt((x - bx) ** 2 + (y - by) ** 2)
-        dist_c = math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+        
+        rep_mag = float(self._repulsion_mag)
+        rep_range = float(self._repulsion_range)
+        t_mag = float(self._repulsion_tangential_mag)
 
-        if dist_b < float(self._repulsion_range) and "A" not in self._triggered_order:
-            if dist_b > 1e-6:
-                strength = float(self._repulsion_mag) * (1.0 - dist_b / float(self._repulsion_range))
-                ux = (x - bx) / dist_b
-                uy = (y - by) / dist_b
+        # Zone B repulsion
+        if "A" not in self._triggered_order:
+            bx, by = self._zone_center("B")
+            dist = math.sqrt((x - bx) ** 2 + (y - by) ** 2)
+            if dist < rep_range and dist > 1e-6:
+                strength = rep_mag * (1.0 - dist / rep_range)
+                ux, uy = (x - bx) / dist, (y - by) / dist
                 fx += strength * ux
                 fy += strength * uy
+                if t_mag != 0:
+                    t_strength = t_mag * (1.0 - dist / rep_range)
+                    fx += t_strength * (-uy)
+                    fy += t_strength * ux
 
-        if dist_c < float(self._repulsion_range) and "B" not in self._triggered_order:
-            if dist_c > 1e-6:
-                strength = float(self._repulsion_mag) * (1.0 - dist_c / float(self._repulsion_range))
-                ux = (x - cx) / dist_c
-                uy = (y - cy) / dist_c
+        # Zone C repulsion
+        if "B" not in self._triggered_order:
+            cx, cy = self._zone_center("C")
+            dist = math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+            if dist < rep_range and dist > 1e-6:
+                strength = rep_mag * (1.0 - dist / rep_range)
+                ux, uy = (x - cx) / dist, (y - cy) / dist
                 fx += strength * ux
                 fy += strength * uy
+                if t_mag != 0:
+                    t_strength = t_mag * (1.0 - dist / rep_range)
+                    fx += t_strength * (-uy)
+                    fy += t_strength * ux
 
         return (fx, fy)
 

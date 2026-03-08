@@ -2,15 +2,14 @@
 C-02: The Lander task curriculum stages (mutations).
 
 All mutations use invisible physics parameters (gravity mutation, fuel limits,
-damping, thrust delay, wind). The solver agent is NOT told exact values;
-it must infer from feedback.
-Stages ordered by difficulty: Stage-1 (single param) -> Stage-4 (multiple params).
+damping, thrust delay, wind, impact tolerance, corridor constraints).
+The solver agent is NOT told exact values; it must infer from feedback.
+Stages ordered by difficulty: Stage-1 -> Stage-4.
 """
 
 from __future__ import annotations
 
 from typing import Any, Dict, List
-import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update task description for visible changes."""
@@ -18,88 +17,87 @@ def update_task_description_for_visible_changes(base_description: str, target_te
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """
-    Update success criteria for visible changes.
-    In this task, safety margins (fuel) are discovery-based (INVISIBLE), 
-    so we do not modify the prompt with exact values.
-    """
+    """Update success criteria for visible changes."""
     return base_success_criteria
 
 
 def get_c02_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for C-02: The Lander task variants.
-    Each stage: stage_id, title, mutation_description, task_description_suffix,
-    terrain_config, physics_config.
     """
+    # UNION of all physical variables modified across all stages
     task_description_suffix = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Dynamic gravitational shifts**: Sudden shifts in gravitational acceleration may occur during the mission.
-- **Resource availability**: The total fuel or energy available for the descent may be altered.
-- **Operational safety margins**: Requirements for remaining resources at task completion may be adjusted.
-- **Actuation latency**: Delay in engine or actuator response to control commands may have changed.
-- **Atmospheric disturbances**: Continuous horizontal forces acting on the vehicle during flight may vary.
-- **Transient turbulence**: Intermittent high-intensity environmental disturbances (gusts) may be present.
-- **Disturbance frequency**: The likelihood of encountering environmental turbulence may have changed.
+While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Structural Integrity Threshold**: The maximum safe impact velocity at touchdown may be significantly reduced.
+ - **Actuation Latency**: The time delay between issuing a control command and the engine's physical response may have increased.
+ - **Flight Corridor Constraints**: Atmospheric "ceilings" or upper no-fly zones may be present, creating a narrow gap for passage.
+ - **Dynamic Gravitational Shifts**: The local gravity may suddenly increase or shift during flight.
+ - **Resource Availability**: The total fuel impulse available for the mission may be restricted.
+ - **Operational Safety Margins**: The minimum required fuel that must remain after landing may be higher.
+ - **Atmospheric Disturbances**: Continuous horizontal wind forces and high-intensity gusts may be more severe.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the vehicle deviates or crashes) to infer the hidden constraints and adapt your design.
+Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Gravity spike",
-            "mutation_description": "Gravity suddenly increases from 10 to 16 m/s² at step 180.",
+            "title": "Fragile Touchdown",
+            "mutation_description": "Structural integrity is compromised: max safe vertical speed reduced from 2.0 to 0.15 m/s.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {},
-            "physics_config": {
-                "gravity_mutation": {
-                    "at_step": 180,
-                    "gravity_after": (0, -16.0),
-                },
+            "terrain_config": {
+                "max_safe_vertical_speed": 0.15,
             },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
-            "title": "Fuel scarcity",
-            "mutation_description": "Total fuel reduced, min fuel remaining at landing increased.",
+            "title": "Severe Actuation Delay",
+            "mutation_description": "Control system lag: thrust delay increased from 3 to 12 simulation steps.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {
-                "min_fuel_remaining_at_landing": 500.0, # Increased from baseline 450
-            },
+            "terrain_config": {},
             "physics_config": {
-                "total_fuel_impulse": 3800.0,
+                "thrust_delay_steps": 12,
             },
         },
         {
             "stage_id": "Stage-3",
-            "title": "Gravity spike and fuel scarcity",
-            "mutation_description": "Gravity mutation at step 200 plus significantly reduced fuel margin.",
+            "title": "The Squeeze",
+            "mutation_description": "Extremely narrow corridor (6.0-7.2m) combined with reduced fuel and a gravity spike at step 150.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "min_fuel_remaining_at_landing": 550.0, # Increased from baseline 450
+                "min_fuel_remaining_at_landing": 550.0,
             },
             "physics_config": {
-                "gravity_mutation": {"at_step": 200, "gravity_after": (0, -15.5)},
-                "total_fuel_impulse": 4000.0,
+                "barrier_y_bottom": 7.2,
+                "total_fuel_impulse": 3800.0,
+                "gravity_mutation": {
+                    "at_step": 150,
+                    "gravity_after": (0, -18.0),
+                },
             },
         },
         {
             "stage_id": "Stage-4",
-            "title": "Hostile environment",
-            "mutation_description": "Gravity mutation, limited fuel, longer thrust delay, stronger wind.",
+            "title": "The Perfect Storm",
+            "mutation_description": "Extreme combination: narrow corridor, high latency, low fuel, strong wind, and fragile touchdown.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "min_fuel_remaining_at_landing": 450.0,
+                "max_safe_vertical_speed": 0.8,
+                "min_fuel_remaining_at_landing": 500.0,
             },
             "physics_config": {
-                "gravity_mutation": {"at_step": 150, "gravity_after": (0, -17.0)},
-                "total_fuel_impulse": 3600.0,
-                "thrust_delay_steps": 6,
-                "wind_amplitude": 48.0,
-                "gust_amplitude": 75.0,
-                "gust_prob": 0.08,
+                "barrier_y_bottom": 9.0,
+                "thrust_delay_steps": 8,
+                "total_fuel_impulse": 3400.0,
+                "wind_amplitude": 60.0,
+                "gust_amplitude": 85.0,
+                "gust_prob": 0.12,
+                "gravity_mutation": {
+                    "at_step": 150,
+                    "gravity_after": (0, -16.5),
+                },
             },
         },
     ]

@@ -85,18 +85,5 @@ Motors must lift much heavier effective weight; weak chassis may collapse.
             "terrain_config": {},
             "physics_config": {"gravity": [0, -30.0]},
         },
-        {
-            "stage_id": "Stage-5",
-            "title": "The Gap",
-            "mutation_description": "Terrain has a gap. Falling implies failure; must bridge/jump.",
-            "task_description_suffix": """
-## Environmental Warning
-Seismic activity has created a fracture in the terrain.
-There is a wide gap ahead; falling into it implies failure.
-You must bridge it or jump it.
-""",
-            "terrain_config": {"gap": {"x_start": 18, "x_end": 20, "depth": -10}},
-            "physics_config": {},
-        },
     ]
 

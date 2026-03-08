@@ -195,8 +195,8 @@ class DaVinciSandbox:
                 # print(f"Torque exceeded: {net_torque} > {self._max_joint_torque}")
                 pivot = self._terrain_bodies.get("pivot")
                 for j in list(self._joints):
-                    # Only destroy WeldJoints (rigid). RevoluteJoints (pivot) are the task foundation.
-                    if isinstance(j, Box2D.b2WeldJoint) and (j.bodyA == pivot or j.bodyB == pivot):
+                    # Destroy any joint connected to the pivot if torque limit is exceeded
+                    if (isinstance(j, Box2D.b2WeldJoint) or isinstance(j, Box2D.b2RevoluteJoint)) and (j.bodyA == pivot or j.bodyB == pivot):
                         try:
                             self._world.DestroyJoint(j)
                             self._joints.remove(j)

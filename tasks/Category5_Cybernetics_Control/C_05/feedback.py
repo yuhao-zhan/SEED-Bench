@@ -59,7 +59,14 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         metric_parts.append(
             f"- Cooldown remaining: {metrics['cooldown_remaining']} steps until next zone can accept"
         )
-    metric_parts.append("- Zone centers: A=(2, 2) m, B≈(5, 3.2) m, C=(8, 2) m")
+    
+    # Dynamics zone centers if available
+    zones = metrics.get("env_zones") # Usually passed in diagnostics if we extend it
+    if zones:
+        zone_str = ", ".join([f"{n}=({c[0]:.1f}, {c[1]:.1f}) m" for n, c in zones.items()])
+        metric_parts.append(f"- Zone centers: {zone_str}")
+    else:
+        metric_parts.append("- Zone centers: A=(2, 2) m, B≈(5, 3.2) m, C=(8, 2) m")
 
     return metric_parts
 
@@ -140,6 +147,10 @@ def get_improvement_suggestions(
     if metrics.get("env_flag_strong_repulsion"):
         suggestions.append(
             "- Disturbance hint: There is strong repulsion near targets or gusting forces. Approach zones slowly and aim for low speed when entering; use small corrective forces to stay centered."
+        )
+    if metrics.get("env_flag_sensitive_trigger"):
+        suggestions.append(
+            "- Sensitivity hint: The triggering mechanism is extremely sensitive in this region. If you apply too much force while inside the zone, the activation progress will reset. Try to maintain position with minimal thrust."
         )
     # If stay requirement increased, advise holding longer
     env_trig_steps = metrics.get("env_trigger_stay_steps")

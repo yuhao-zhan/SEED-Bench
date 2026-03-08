@@ -46,13 +46,13 @@ def get_s06_curriculum_stages() -> List[Dict[str, Any]]:
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Table Friction: The surface of the table may have altered grip levels, affecting the stability of the anchor blocks.
- - Build Access Zone: Construction may be constrained to specific regions, requiring different cantilever extensions.
- - Table Inclination: The foundation may be tilted, introducing lateral gravitational components that cause sliding.
- - Atmospheric Wind: Lateral forces may be present, affecting the structure's balance.
- - Seismic Activity: The ground may oscillate, testing the dynamic stability and structural integrity of your design.
- - Vertical Clearance: Overhead barriers may alter the available height for your structure, requiring adapted horizontal designs.
- - Gravitational Intensity: The downward pull may differ from standard, altering the stress on contact points and balancing requirements.
+ - Atmospheric Wind: Lateral forces may exert pressure on the structure, potentially causing sliding or toppling.
+ - Seismic Activity: The foundation may exhibit high-frequency oscillations, testing the dynamic stability of the assembly.
+ - Vertical Clearance: Low-hanging barriers may restrict the height of your construction, forcing horizontal complexity and wedging strategies.
+ - Gravitational Intensity: The magnitude of the downward pull may be significantly higher, increasing structural stress and friction requirements.
+ - Table Inclination: The support surface may be tilted, introducing parallel gravitational components that encourage sliding towards or away from the edge.
+ - Surface Friction: The table's grip may be altered, making standard anchoring techniques ineffective.
+ - Build Access Zone: The region where blocks can be initialized may be further restricted, requiring greater cantilever extensions.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -60,58 +60,66 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
     return [
         {
             "stage_id": "Stage-1",
-            "title": "The Slick Anchor",
-            "mutation_description": "Extremely low table friction (0.05) and tight spawn zone (x < -1.2). Reach 0.8m.",
+            "title": "The Gale-Force Anchor",
+            "mutation_description": "Severe lateral wind force (-100.0) pushing away from the target. Requires significant mass to anchor the structure.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "table_friction": 0.05,
-                "spawn_zone": [-10.0, -1.2],
-                "target_overhang": 0.8,
+                "target_overhang": 1.0,
+                "spawn_zone": [-10.0, -1.0],
             },
-            "physics_config": {},
+            "physics_config": {
+                "wind_force": -100.0,
+            },
         },
         {
             "stage_id": "Stage-2",
-            "title": "The Inclined Gale",
-            "mutation_description": "Table tilted downwards (-10 degrees) + Tight spawn zone (x < -0.8). Reach 1.2m.",
+            "title": "The Resonating Ledge",
+            "mutation_description": "Seismic oscillations combined with lateral wind. Tests stability against multi-directional forces.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "table_angle": -10.0,
-                "spawn_zone": [-10.0, -0.8],
                 "target_overhang": 1.2,
+                "spawn_zone": [-10.0, -0.8],
+                "oscillate": True,
+                "osc_amplitude": 0.05,
+                "osc_frequency": 5.0,
             },
-            "physics_config": {},
+            "physics_config": {
+                "wind_force": -40.0,
+            },
         },
         {
             "stage_id": "Stage-3",
-            "title": "The Gale Force Extension",
-            "mutation_description": "Constant wind (20.0) + Tight spawn zone (x < -0.5). Reach 1.5m.",
+            "title": "The Titan's Narrow Gale",
+            "mutation_description": "Increased gravity (2.5x) and severe wind, restricted by a low ceiling (0.5m). Limits vertical stacking for anchoring.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "spawn_zone": [-10.0, -0.5],
                 "target_overhang": 1.5,
+                "spawn_zone": [-10.0, -0.5],
+                "ceiling_y": 0.5,
             },
             "physics_config": {
-                "wind_force": 20.0,
+                "gravity": (0, -25.0),
+                "wind_force": -100.0,
             },
         },
         {
             "stage_id": "Stage-4",
-            "title": "The Titan's Overhang",
-            "mutation_description": "Extreme Gravity (60.0) + Strong Wind (30.0) + Slick Table (0.02) + Low Ceiling (0.5m) + Tight Spawn (x < -0.2). Reach 1.8m.",
+            "title": "The Tilted Seismic Void",
+            "mutation_description": "Extreme Gravity (5x), Table Tilt (-5 degrees), Slick Surface (0.2 friction), and Seismic Activity.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "table_friction": 0.02,
-                "spawn_zone": [-10.0, -0.2],
-                "ceiling_y": 0.5,
                 "target_overhang": 1.8,
+                "spawn_zone": [-10.0, -0.2],
+                "ceiling_y": 2.0,
+                "table_angle": -5.0,
+                "table_friction": 0.2,
                 "oscillate": True,
                 "osc_amplitude": 0.02,
-                "osc_frequency": 1.0,
+                "osc_frequency": 3.0,
             },
             "physics_config": {
-                "gravity": (0, -60.0),
-                "wind_force": 30.0,
+                "gravity": (0, -50.0),
+                "wind_force": 20.0,
             },
         },
     ]

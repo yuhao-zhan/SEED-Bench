@@ -30,7 +30,7 @@ from evaluation.feedback import format_feedback
 from evaluation.solver_interface import SolverInterface
 from evaluation.verifier import CodeVerifier
 from evaluation.evaluate import TaskEvaluator
-from evaluation.utils import get_model_identifier, load_log_file, is_cuda_oom
+from evaluation.utils import get_model_identifier, load_log_file, is_cuda_oom, get_max_steps_for_task
 
 
 def find_latest_log_file(task_name: str, model_type: str, model_name: str, method: str,
@@ -239,6 +239,10 @@ def run_mutation_sequence(base_task_name: str, model_type: str, model_name: str,
     if method == 'reasoning_bank' and reasoning_bank_k is None:
         reasoning_bank_k = 2
     
+    # If using default max_steps, override with task-specific limit
+    if max_steps == 10000:
+        max_steps = get_max_steps_for_task(base_task_name)
+
     sequence_results = []
     raw_best_code = None          # The raw (base task) best code — never changes across mutations
     completed_indices = set()     # Track which mutation indices are already processed
@@ -608,6 +612,10 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                              genome_best_lora_path: Optional[str] = None,
                              solver_override: Optional[Any] = None,
                              save_gif: bool = True) -> Dict[str, Any]:
+    # If using default max_steps, override with task-specific limit
+    if max_steps == 10000:
+        max_steps = get_max_steps_for_task(base_task_name)
+
     # Science-CodeEvolve: run CodeEvolve for mutated task with base best_code as initial (same idea as baseline: env mutation only)
     if method == 'science_codeevolve':
         from methods.Inference_time_search.science_codeevolve_method import run_single_task

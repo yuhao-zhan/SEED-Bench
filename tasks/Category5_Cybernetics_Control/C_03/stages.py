@@ -1,7 +1,7 @@
 """
 C-03: The Seeker task curriculum stages (mutations).
 
-Five tasks in total: baseline (no mutation) + Stage-1 through Stage-4, difficulty ascending.
+Four mutated tasks in total: Stage-1 through Stage-4, difficulty ascending.
 Mutated tasks change invisible physical parameters (target speed, ground friction, damping, impulse budget).
 Do NOT reveal exact parameter values in task_description_suffix; agent must infer from feedback.
 - Stage-1 / Stage-2: single parameter change each (hard enough that reference solution fails).

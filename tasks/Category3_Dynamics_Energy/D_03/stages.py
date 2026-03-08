@@ -1,7 +1,7 @@
 """
 D-03: Phase-Locked Gate curriculum stages (mutations).
 
-Stage order: Initial (baseline) < Stage-1 < Stage-2 < Stage-3 < Stage-4 (difficulty ascending).
+Stage order: Stage-1 < Stage-2 < Stage-3 < Stage-4 (difficulty ascending).
 All mutations use non-visible physical parameters (impulse strength, damping, gravity);
 do NOT expose exact values in the task prompt — the agent must infer from feedback.
 """

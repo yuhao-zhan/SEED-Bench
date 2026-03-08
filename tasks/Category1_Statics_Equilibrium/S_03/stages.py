@@ -59,102 +59,93 @@ def get_s03_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Terrain Geometry & Obstructions**: Static obstructions may alter available construction paths, requiring navigation through different corridors.
  - **Target Reach Distance**: The required horizontal extension from the anchor wall may have been adjusted.
- - **Payload Dynamics & Impact Forces**: Payloads may be applied as static forces or dropped from height, introducing dynamic impacts.
- - **Gravitational Acceleration**: Local gravity may be altered, affecting structural weight, sag, and load-bearing capacity.
- - **Anchor & Joint Strength**: The capacity of wall anchors to withstand force and torque may vary, potentially exhibiting spatial gradients in strength.
- - **Atmospheric Conditions**: Constant or periodic oscillatory wind forces may exert lateral or vertical pressure on the structure.
  - **Structural Mass Budget**: The total allowed mass for your cantilever design may be adjusted to specific limits.
- - **Wall Anchor Zoning**: Certain vertical regions of the wall may be unsuitable for anchoring or forbidden for structural use.
+ - **Internal Joint Fragility**: The internal structural joints connecting beams may be highly brittle, shattering if internal forces or torques exceed a low threshold.
+ - **Spatial Force Fields**: An invisible spatial anomaly might exert strong repulsive or attractive forces on any structure entering its radius.
+ - **Wall Anchor Zoning**: Large continuous vertical sections of the wall may be strictly forbidden for anchoring, forcing construction from extreme high or low points.
+ - **Obstacle Blockades**: Massive static structures might block direct horizontal paths, demanding complex geometries to navigate around them.
+ - **Payload Dynamics**: Payloads may be dropped dynamically, testing resilience to impact shocks.
+ - **Atmospheric Wind**: Sustained or oscillatory wind forces may induce lateral swaying or vertical bouncing.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where an anchor breaks or how the structure sags) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
     return [
         {
             "stage_id": "Stage-1",
-            "title": "The Slalom Tunnel",
-            "mutation_description": "Multiple obstacles creating a narrow winding path. Single variable: environment geometry.",
+            "title": "The Brittle Connections",
+            "mutation_description": "Single Variable: Extreme internal joint fragility.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "obstacle_active": True,
-                "obstacle_rects": [
-                    [5.0, 0.0, 7.0, 6.0],   # Lower block
-                    [10.0, 8.0, 12.0, 20.0], # Upper block
-                    [15.0, 0.0, 17.0, 4.0],  # Lower block
-                ],
                 "target_reach": 25.0, 
                 "load_mass": 800.0, 
                 "max_structure_mass": 8000.0,
+                "max_internal_force": 200000.0,
+                "max_internal_torque": 200000.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
-            "title": "Impact Resilience",
-            "mutation_description": "Dropped loads + increased gravity. Hidden mechanic: loads are dynamic impacts.",
+            "title": "The Magnetic Anomaly",
+            "mutation_description": "Single Variable: Strong spatial repulsion field forcing a detour.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "load_type": "dropped",
-                "drop_height": 10.0,
                 "target_reach": 25.0,
                 "load_mass": 1000.0,
                 "max_structure_mass": 8000.0,
             },
             "physics_config": {
-                "gravity": (0, -15.0),
-            },
-        },
-        {
-            "stage_id": "Stage-3",
-            "title": "The Weak Foundation",
-            "mutation_description": "Anchor strength gradient + constant wind + high gravity.",
-            "task_description_suffix": UNIFORM_SUFFIX,
-            "terrain_config": {
-                "target_reach": 28.0,
-                "anchor_strength_map": [
-                    (0.0, 1.0, 1.0, 1.0),   # Strong zone
-                    (1.0, 4.0, 0.2, 0.1),   # Weak zone
-                    (4.0, 5.0, 1.0, 1.0),   # Strong zone
-                ],
-                "load_mass": 1200.0,
-                "max_structure_mass": 10000.0,
-            },
-            "physics_config": {
-                "gravity": (0, -18.0),
-                "wind": {
-                    "force": (500.0, 0), # Lateral wind pushing right
-                    "oscillatory": False
+                "spatial_force": {
+                    "center": (12.5, 5.0),
+                    "magnitude": 60000.0,
+                    "radius": 10.0,
+                    "type": "repulsion"
                 }
             },
         },
         {
-            "stage_id": "Stage-4",
-            "title": "The Perfect Storm",
-            "mutation_description": "Oscillatory wind + Extreme Reach + Fragmented Wall + Dropped Loads.",
+            "stage_id": "Stage-3",
+            "title": "The Blockaded Wall",
+            "mutation_description": "Multi-variable: Wall forbidden zone + Massive Obstacle. Forces extreme low construction.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
+                "target_reach": 28.0,
+                "load_mass": 1200.0,
+                "max_structure_mass": 10000.0,
+                "forbidden_anchor_y": [-5.0, 15.0],
                 "obstacle_active": True,
                 "obstacle_rects": [
-                    [10.0, -5.0, 12.0, 5.0],
-                    [20.0, 5.0, 22.0, 15.0],
+                    [5.0, 5.0, 30.0, 25.0],
                 ],
-                "load_type": "dropped",
-                "drop_height": 12.0,
-                "forbidden_anchor_y": [1.0, 4.0],
-                "anchor_strength_map": [
-                    (0.0, 1.0, 0.5, 0.3),
-                    (4.0, 5.0, 0.5, 0.3),
-                ],
-                "target_reach": 35.0, 
-                "load_mass": 1500.0, 
+            },
+            "physics_config": {},
+        },
+        {
+            "stage_id": "Stage-4",
+            "title": "The Perfect Storm",
+            "mutation_description": "Multi-variable: Fragile joints + Repulsion Field + Forbidden Wall + Dropped Loads + Oscillatory Wind.",
+            "task_description_suffix": UNIFORM_SUFFIX,
+            "terrain_config": {
+                "target_reach": 35.0,
+                "load_mass": 1500.0,
                 "max_structure_mass": 15000.0,
+                "max_internal_force": 1000000.0,
+                "max_internal_torque": 1000000.0,
+                "forbidden_anchor_y": [0.0, 10.0],
+                "load_type": "dropped",
+                "drop_height": 8.0,
             },
             "physics_config": {
-                "gravity": (0, -20.0), 
+                "spatial_force": {
+                    "center": (15.0, 8.0),
+                    "magnitude": 40000.0,
+                    "radius": 12.0,
+                    "type": "repulsion"
+                },
                 "wind": {
-                    "force": (0, 1000.0), # Vertical oscillatory wind
+                    "force": (0, 800.0),
                     "oscillatory": True,
                     "frequency": 0.5
                 }

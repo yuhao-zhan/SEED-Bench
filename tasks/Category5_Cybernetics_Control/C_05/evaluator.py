@@ -64,8 +64,8 @@ class Evaluator:
             progress = len(triggered) / 3.0 * 80.0 if self._required_order else 0.0
             score = progress
 
-        # Physical metrics for feedback: distance to next zone, speed, progress (B is elevated)
-        zone_centers = {"A": (2.0, 2.0), "B": (4.95, 3.2), "C": (8.0, 2.0)}
+        # Physical metrics for feedback: distance to next zone, speed, progress
+        zone_centers = {name: (cx, cy) for name, (cx, cy, hw, hh) in self.terrain_bounds.get("zones", {}).items()}
         distance_to_next = None
         if next_req and next_req in zone_centers:
             tx, ty = zone_centers[next_req]
@@ -112,17 +112,21 @@ class Evaluator:
                     "env_recent_b_for_c": getattr(env, "_recent_b_for_c", None),
                     "env_wind_amp": getattr(env, "_wind_amp", None),
                     "env_wind_period": getattr(env, "_wind_period", None),
+                    "env_force_limit_inside": getattr(env, "_force_limit_inside", None),
+                    "env_zones": {name: (cx, cy) for name, (cx, cy, hw, hh) in self.terrain_bounds.get("zones", {}).items()},
                 }
             )
 
-            # Add a few convenience flags to help feedback formulation
+            # Updated flags to match overhauled high-difficulty stages
             try:
                 if metrics.get("env_recent_a_for_b") is not None:
-                    metrics["env_flag_tight_a_to_b"] = metrics["env_recent_a_for_b"] < 80
+                    metrics["env_flag_tight_a_to_b"] = metrics["env_recent_a_for_b"] < 100
                 if metrics.get("env_barrier_delay_steps") is not None:
-                    metrics["env_flag_long_barrier_delay"] = metrics["env_barrier_delay_steps"] > 100
+                    metrics["env_flag_long_barrier_delay"] = metrics["env_barrier_delay_steps"] > 150
                 if metrics.get("env_repulsion_mag") is not None:
-                    metrics["env_flag_strong_repulsion"] = metrics["env_repulsion_mag"] > 30.0
+                    metrics["env_flag_strong_repulsion"] = metrics["env_repulsion_mag"] > 40.0
+                if metrics.get("env_force_limit_inside") is not None:
+                    metrics["env_flag_sensitive_trigger"] = metrics["env_force_limit_inside"] < 100.0
             except Exception:
                 pass
 

@@ -125,6 +125,24 @@ class DaVinciSandbox:
             for body in self._bodies:
                 body.ApplyForceToCenter(force_vec, True)
 
+        spatial_force = self._physics_config.get("spatial_force", None)
+        if spatial_force:
+            cx, cy = spatial_force.get("center", (0,0))
+            mag = spatial_force.get("magnitude", 0.0)
+            radius = spatial_force.get("radius", 10.0)
+            is_repulsion = spatial_force.get("type", "repulsion") == "repulsion"
+            for body in self._bodies:
+                bx, by = body.position
+                dx, dy = bx - cx, by - cy
+                dist = math.sqrt(dx**2 + dy**2)
+                if dist < radius and dist > 0.1:
+                    f = mag * (1.0 - dist / radius)
+                    if not is_repulsion:
+                        f = -f
+                    fx = f * (dx / dist)
+                    fy = f * (dy / dist)
+                    body.ApplyForceToCenter((fx, fy), True)
+
         if self._simulation_time >= self._load_attach_time and not self._load_1_active:
             self._handle_load(1)
             self._load_1_active = True
@@ -137,12 +155,12 @@ class DaVinciSandbox:
         joints_to_remove = []
         for joint in self._joints:
             try:
-                # Structural joints have extreme strength
-                max_f = self._terrain_config.get("max_anchor_force", 100000000.0)
-                max_t = self._terrain_config.get("max_anchor_torque", 100000000.0)
-                
                 is_wall_joint = joint.bodyA == self._terrain_bodies["wall"] or joint.bodyB == self._terrain_bodies["wall"]
+                
                 if is_wall_joint:
+                    max_f = self._terrain_config.get("max_anchor_force", 100000000.0)
+                    max_t = self._terrain_config.get("max_anchor_torque", 100000000.0)
+                    
                     # Correct anchor access for b2WeldJoint
                     anchor = joint.anchorA if hasattr(joint, 'anchorA') else joint.GetAnchorA()
                     strength_map = self._terrain_config.get("anchor_strength_map", None)
@@ -152,6 +170,9 @@ class DaVinciSandbox:
                                 max_f *= f_mult
                                 max_t *= t_mult
                                 break
+                else:
+                    max_f = self._terrain_config.get("max_internal_force", 100000000.0)
+                    max_t = self._terrain_config.get("max_internal_torque", 100000000.0)
                 
                 # Correct ReactionForce/Torque access (frequency based)
                 force = joint.GetReactionForce(1.0/time_step)

@@ -52,14 +52,6 @@ While the following variables **MIGHT** have changed from the initial environmen
 """
     return [
         {
-            "stage_id": "baseline",
-            "title": "K-03 baseline",
-            "mutation_description": "Default values. Same as initial task.",
-            "task_description_suffix": "",
-            "terrain_config": {},
-            "physics_config": {},
-        },
-        {
             "stage_id": "Stage-1",
             "title": "Slippery Object",
             "mutation_description": "Object surface friction reduced from 0.6 to 0.09.",

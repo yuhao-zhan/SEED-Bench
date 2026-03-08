@@ -26,7 +26,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_c06_curriculum_stages() -> List[Dict[str, Any]]:
     """Returns ordered stage configs for C-06: The Governor task variants.
 
-    Order: Stage-0 baseline (reference), Stage-1..Stage-4 increasing difficulty.
+    Order: Stage-1..Stage-4 increasing difficulty.
     """
     task_description_suffix = """
 ## Environmental Anomalies Detected
@@ -45,14 +45,6 @@ While the following variables **MIGHT** have changed from the initial environmen
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the system stalls or oscillates) to infer the hidden constraints and adapt your control design.
 """
     return [
-        {
-            "stage_id": "Stage-0",
-            "title": "C-06 Reference",
-            "mutation_description": "Reference environment (baseline).",
-            "task_description_suffix": task_description_suffix,
-            "terrain_config": {},
-            "physics_config": {},
-        },
         {
             "stage_id": "Stage-1",
             "title": "Increased Measurement Delay",

@@ -12,7 +12,8 @@ class S02Sandbox:
         self._physics_config = physics_config or {}
         
         # Physics world
-        self._world = world(gravity=(0, -10.0), doSleep=True)
+        gravity = self._physics_config.get("gravity", (0, -10.0))
+        self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
         self._joints = []
         self._springs = []

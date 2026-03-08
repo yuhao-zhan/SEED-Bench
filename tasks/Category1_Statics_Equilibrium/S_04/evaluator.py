@@ -91,7 +91,7 @@ class Evaluator:
             failure_reason = "Failed to catch load at (3,0)"
         elif catch_ok and angle_deviation > self.max_angle_deviation and current_time > 2.0:
             failed = True
-            failure_reason = f"Beam angle {angle_deviation * 180 / math.pi:.1f}° exceeds ±10° limit"
+            failure_reason = f"Beam angle {angle_deviation * 180 / math.pi:.1f}° exceeds ±{self.max_angle_deviation * 180 / math.pi:.1f}° limit"
         
         # Calculate score
         if success and not failed:

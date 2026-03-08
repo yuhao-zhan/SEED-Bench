@@ -52,11 +52,14 @@ def _verify_pair_safe(args):
     task_name, source, target, ref_source, env_j = args
     try:
         from evaluation.verifier import CodeVerifier
+        from evaluation.utils import get_max_steps_for_task
         env_overrides = {
             "terrain_config": env_j.get("terrain_config", {}),
             "physics_config": env_j.get("physics_config", {}),
         }
-        verifier = CodeVerifier(task_name, env_overrides=env_overrides)
+        # Use task-specific max_steps for pre-verification
+        max_steps = get_max_steps_for_task(task_name)
+        verifier = CodeVerifier(task_name, max_steps=max_steps, env_overrides=env_overrides)
         success, _, _, _ = verifier.verify_code(ref_source, headless=True)
         verifier.cleanup()
         return (task_name, source, target, success)

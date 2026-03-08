@@ -124,6 +124,7 @@ class Evaluator:
             "max_structure_mass": self.MAX_STRUCTURE_MASS,
             "structure_broken": self.structure_broken,
             "joint_count": len(self.environment._joints),
+            "thrust_cooldown_steps": getattr(self.environment, '_thrust_cooldown_steps', 3),
         }
 
     def _check_design_constraints(self):

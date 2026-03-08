@@ -1,98 +1,117 @@
 """
 F-02: The Amphibian task curriculum stages (mutations).
-
-Mutated tasks vary invisible physical parameters: liquid density, water drag,
-opposing current, headwind burst, gravity, damping. The solver is NOT told
-exact values; it must infer from environment feedback.
-Stage-1/2: single parameter change each (moderate difficulty).
-Stage-3/4: multiple parameter changes (hard).
-Ordered by difficulty ascending.
+Extreme difficulty to ensure naive solutions fail.
 """
 from __future__ import annotations
-
 from typing import Any, Dict, List
-
+import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update task description for visible changes."""
-    return base_description
-
+    description = base_description
+    
+    # Update thrust cooldown if it's considered a visible change
+    default_cooldown = 3
+    target_cooldown = int(target_terrain_config.get("thrust_cooldown_steps", default_cooldown))
+    base_cooldown = int(base_terrain_config.get("thrust_cooldown_steps", default_cooldown))
+    
+    if target_cooldown != base_cooldown:
+        cooldown_pattern = r"(- \*\*Propulsion\*\*: Use `apply_force\(\)` for paddling\. \*\*Cooldown\*\*: Each component has a )(\d+)(-step cooldown between thrusts\.)"
+        if re.search(cooldown_pattern, description):
+            description = re.sub(
+                cooldown_pattern,
+                f"\\g<1>{target_cooldown}\\g<3> (originally {base_cooldown}-step in the source environment)",
+                description
+            )
+            
+    return description
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update success criteria for visible changes."""
-    return base_success_criteria
-
+    criteria = base_success_criteria
+    
+    # Update mass budget if it's considered a visible change
+    default_mass = 600.0
+    target_mass = float(target_terrain_config.get("max_structure_mass", default_mass))
+    base_mass = float(base_terrain_config.get("max_structure_mass", default_mass))
+    
+    if target_mass != base_mass:
+        mass_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+)( kg\.)"
+        if re.search(mass_pattern, criteria):
+            criteria = re.sub(
+                mass_pattern,
+                f"\\g<1>{target_mass:.0f}\\g<3> (originally <= {base_mass:.0f} kg in the source environment)",
+                criteria
+            )
+            
+    return criteria
 
 def get_f02_curriculum_stages() -> List[Dict[str, Any]]:
-    """
-    Returns ordered stage configs for F-02 mutated tasks.
-    Each stage: terrain_config + physics_config (invisible params).
-    Original solution (9-paddle raft, lift over pillars) should fail in all mutated stages.
-    """
-    task_description_suffix = """
+    UNIFORM_SUFFIX = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Thrust Cooldown**: The minimum time required between propulsion strokes may have changed, affecting the frequency and consistency of forward thrust.
-- **Opposing Current**: The magnitude of the water's flow against the direction of travel may be altered, resisting forward progress.
-- **Liquid Density**: The mass per unit volume of the surrounding fluid may be adjusted, determining the buoyancy and flotation depth of the vehicle.
-- **Fluid Drag**: The resistance encountered by bodies moving through the water may vary, impacting velocity and energy efficiency.
-- **Wind Intensity**: The strength of atmospheric forces acting on the structure above the waterline may have changed.
-- **Ambient Damping**: The rate at which the vehicle's linear and angular momentum are dissipated by the environment may be altered.
-- **Gravity**: The acceleration due to the local gravitational field may differ from standard, influencing the effective weight and displacement of the vessel.
+- **Joint Strength**: The maximum force a structural connection can withstand before failing may be limited.
+- **Opposing Current**: The magnitude of the water's flow against the direction of travel may be altered.
+- **Deep Channel Buoyancy**: The buoyancy provided by the fluid in the central channel may be significantly reduced.
+- **Liquid Density**: The mass per unit volume of the fluid may be adjusted.
+- **Gravity**: The acceleration due to the local gravitational field may differ.
+- **Headwind Burst**: A localized, intense air resistance in the middle of the crossing.
+- **Thrust Cooldown**: The minimum time required between propulsion strokes.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode to infer the hidden constraints and adapt your design.
 """
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Slower Paddle Rhythm",
-            "mutation_description": "Thrust cooldown increased; each body can thrust only every 6 steps. 9 bodies give ~1.5 thrust/step avg.",
-            "task_description_suffix": task_description_suffix,
+            "title": "Fragile Infrastructure",
+            "mutation_description": "Extremely fragile joints and sudden headwind.",
+            "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "thrust_cooldown_steps": 6,  # Default 3 -> 9 bodies give ~1.5 thrust/step
+                "max_joint_force": 350.0, 
+                "headwind_burst_per_kg": 25.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
-            "title": "Strong Opposing Current",
-            "mutation_description": "Opposing current force per kg increased ~2.5x. Vehicle cannot make headway with nominal thrust.",
-            "task_description_suffix": task_description_suffix,
+            "title": "Tsunami Current",
+            "mutation_description": "Unstoppable current and high gravity.",
+            "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "current_per_kg": 14.0,  # Default 5.5 -> ~2.5x opposing force
+                "current_per_kg": 600.0, 
             },
-            "physics_config": {},
+            "physics_config": {
+                "gravity": (0, -200.0),
+            },
         },
         {
             "stage_id": "Stage-3",
-            "title": "Dense and Viscous",
-            "mutation_description": "Low liquid density (weak buoyancy) + high water drag. Both buoyancy and propulsion severely affected.",
-            "task_description_suffix": task_description_suffix,
+            "title": "The Void",
+            "mutation_description": "Zero buoyancy + high gravity + opposing current.",
+            "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "liquid_density": 350.0,
-                "water_drag_coef": 400.0,
-                "current_per_kg": 11.0,
-                "headwind_burst_per_kg": 1.7,  # Default 0.8
+                "max_joint_force": 800.0,
+                "current_per_kg": 150.0, 
+                "deep_channel_buoyancy_scale": 0.0,
             },
-            "physics_config": {},
+            "physics_config": {
+                "gravity": (0, -180.0),
+            },
         },
         {
             "stage_id": "Stage-4",
-            "title": "Hostile Crossing",
-            "mutation_description": "Weak buoyancy + high drag + strong current + strong headwind + thrust cooldown increased. Full hostile environment.",
-            "task_description_suffix": task_description_suffix,
+            "title": "Abyssal Storm",
+            "mutation_description": "Total hostile environment.",
+            "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "liquid_density": 400.0,
-                "water_drag_coef": 280.0,
-                "current_per_kg": 11.0,  # Default 5.5
-                "headwind_burst_per_kg": 2.0,  # Default 0.8
-                "thrust_cooldown_steps": 4,  # Default 3 -> 9 bodies give 2 thrust/step avg
+                "max_joint_force": 300.0,
+                "current_per_kg": 800.0, 
+                "liquid_density": 500.0,
+                "headwind_burst_per_kg": 80.0,
+                "thrust_cooldown_steps": 10, 
+                "deep_channel_buoyancy_scale": 0.0,
             },
             "physics_config": {
-                "linear_damping": 1.2,
-                "angular_damping": 1.2,
-                "gravity": (0, -14.0),  # Stronger gravity -> sink easier
+                "gravity": (0, -300.0),
             },
         },
     ]

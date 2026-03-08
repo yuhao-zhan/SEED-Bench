@@ -76,6 +76,7 @@ from evaluation.utils import (
     get_model_identifier, get_gif_path,
     get_gif_base_dir, get_evaluation_results_dir,
     run_is_complete, is_cuda_oom, clean_special_tags,
+    get_max_steps_for_task
 )
 
 
@@ -415,7 +416,11 @@ def evaluate_single_task(task_name, args):
         print(f"✅ Task {task_name}{pair_label}: Already complete. Skipping.")
         return 0
 
-    max_steps = 150000 if task_name == 'category_2_06' else args.max_steps
+    # Determine task-specific max_steps
+    if args.max_steps == 10000: # If at default, use task-specific default
+        max_steps = get_max_steps_for_task(task_name)
+    else:
+        max_steps = args.max_steps
 
     # Execute evaluation
     try:

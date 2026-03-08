@@ -36,7 +36,8 @@ class TaskRunner:
             env_overrides: Optional dict with terrain_config and/or physics_config for the environment
         """
         if max_steps is None:
-            max_steps = 10000
+            from evaluation.utils import get_max_steps_for_task
+            max_steps = get_max_steps_for_task(self.task_name)
         
         # Initialize simulator (D_03: higher PPM so objects draw larger in GIF)
         from common.simulator import PPM

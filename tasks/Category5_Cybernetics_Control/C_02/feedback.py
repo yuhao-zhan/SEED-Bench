@@ -154,14 +154,14 @@ def get_improvement_suggestions(
                     "- You may need to **predict** where the valid zone will be at your expected touchdown time "
                     "and steer the lander to that position (trajectory prediction + moving target)."
                 )
-            elif "forbidden zone" in fr or "obstacle" in fr:
+            elif "forbidden zone" in fr or "obstacle" in fr or "ceiling" in fr:
                 suggestions.append(
-                    "- There is a **no-fly zone** between start and the landing area. "
-                    "You must **go around** it: climb above a safe height first, then move to the landing side, then descend."
+                    "- There is a restricted **no-fly region** (or a narrow corridor) between the start and the landing area. "
+                    "You must identify the safe passage height through trial and environmental feedback."
                 )
                 suggestions.append(
-                    "- Do not fly directly toward the landing zone at low altitude; that path enters the obstacle. "
-                    "Use a multi-phase trajectory: (1) climb, (2) cross above/around the obstacle, (3) descend and land."
+                    "- Use a multi-phase trajectory: (1) align with the passage, (2) traverse the restricted x-range at a stable altitude, "
+                    "(3) then proceed to descent and landing. If you hit a ceiling, try flying lower; if you hit an obstacle, try flying higher."
                 )
             elif "insufficient fuel" in fr or "fuel remaining" in fr:
                 suggestions.append(

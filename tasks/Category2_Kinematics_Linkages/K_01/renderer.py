@@ -66,6 +66,18 @@ class K01Renderer(Renderer):
                              outline_color=COLOR_ENV,
                              outline_width=2)
         
+        # Draw ground markers for visual motion reference
+        ppm = self.simulator.ppm * RENDER_SCALE
+        ground_y = 1.0 # From environment.py
+        for x in range(0, 101, 2): # Every 2 meters
+            marker_start = self.world_to_screen(x, ground_y)
+            marker_end = self.world_to_screen(x, ground_y - 0.2)
+            pygame.draw.line(self.simulator.screen, COLOR_ENV, marker_start, marker_end, 2)
+            # Draw a longer marker every 10m
+            if x % 10 == 0:
+                marker_end_long = self.world_to_screen(x, ground_y - 0.5)
+                pygame.draw.line(self.simulator.screen, COLOR_ENV, marker_start, marker_end_long, 4)
+        
         # Identify walker components
         torso_body = agent_body
         leg_bodies = set()
@@ -125,9 +137,15 @@ class K01Renderer(Renderer):
                 except Exception:
                     pass
 
-        # Target line (Goldenrod Yellow as per environmental baseline)
-        if target_x and target_x > 0:
-            self.draw_line(target_x, 1.0, target_x, 10.0, COLOR_ENV, 3)
+        # Target line (Red for high visibility)
+        COLOR_TARGET = (255, 0, 0)
+        # The target distance is 15m from start (10m), so target_x is 25.0
+        display_target_x = 25.0 
+        
+        self.draw_line(display_target_x, 1.0, display_target_x, 10.0, COLOR_TARGET, 5)
+        # Since draw_text is not available, we can draw a small 'X' or flag with lines
+        self.draw_line(display_target_x - 0.5, 10.5, display_target_x + 0.5, 9.5, COLOR_TARGET, 3)
+        self.draw_line(display_target_x - 0.5, 9.5, display_target_x + 0.5, 10.5, COLOR_TARGET, 3)
         
         # Build zone (Goldenrod Yellow)
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):

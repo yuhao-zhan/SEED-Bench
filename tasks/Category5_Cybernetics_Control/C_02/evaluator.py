@@ -47,9 +47,17 @@ class Evaluator:
 
         if getattr(self.environment, "get_barrier_hit", lambda: False)():
             x, y = self.environment.get_lander_position()
+            barrier_y_top = self.terrain_bounds.get("barrier_y_top", 6.0)
+            barrier_y_bottom = self.terrain_bounds.get("barrier_y_bottom", 20.0)
+            
+            if y > barrier_y_bottom - 0.5: # Margin for box size
+                reason = "Entered forbidden zone (atmospheric ceiling): you must fly lower within this region."
+            else:
+                reason = "Entered forbidden zone (obstacle): you must fly higher within this region."
+                
             return True, 0.0, {
                 "failed": True,
-                "failure_reason": "Entered forbidden zone (obstacle): you must go around it, e.g. above it",
+                "failure_reason": reason,
                 "success": False,
                 "lander_x": x,
                 "lander_y": y,

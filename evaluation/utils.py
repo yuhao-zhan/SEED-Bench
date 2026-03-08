@@ -94,6 +94,31 @@ def run_is_complete(task_name: str, model_type: str, model_name: str, method: st
     return False
 
 
+def get_max_steps_for_task(task_name: str) -> int:
+    """
+    Returns the task-specific maximum simulation steps.
+    Centralizes discrepancies between default (10,000) and reference test scripts.
+    """
+    # Mapping of task names to their required max_steps based on reference tests
+    TASK_MAX_STEPS = {
+        'category_1_03': 15000,
+        'category_1_04': 20000,
+        'category_1_05': 20000,
+        'category_1_06': 15000,
+        'category_2_01': 90000,
+        'category_2_02': 20000,
+        'category_2_03': 20000,
+        'category_2_04': 60000,
+        'category_2_05': 60000,
+        'category_2_06': 150000,
+        'category_3_03': 20000,
+        'category_3_04': 15000,
+        'category_3_06': 15000,
+        'category_5_05': 12000,
+    }
+    return TASK_MAX_STEPS.get(task_name.lower(), 10000)
+
+
 def collect_incomplete_runs(
     task_list: list,
     model_type: str,

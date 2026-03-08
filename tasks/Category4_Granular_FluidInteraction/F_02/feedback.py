@@ -58,25 +58,30 @@ def get_improvement_suggestions(
     failure_reason: str = None, error: str = None,
 ) -> List[str]:
     suggestions = []
+    max_mass = metrics.get('max_structure_mass', 600)
+    cooldown = metrics.get('thrust_cooldown_steps', 3)
+    
     if error:
         error_lower = error.lower()
         if "structure mass" in error_lower and "exceeds" in error_lower:
-            suggestions.append(f"- Reduce vehicle mass to be within {metrics.get('max_structure_mass', 600):.0f} kg")
+            suggestions.append(f"- Reduce vehicle mass to be within {max_mass:.0f} kg")
         elif "build zone" in error_lower:
             suggestions.append("- Place all beams within build zone x=[2, 8], y=[0, 4]")
     elif failed:
         if failure_reason and "design constraint" in failure_reason.lower():
             if "structure mass" in failure_reason.lower():
-                suggestions.append(f"- Keep total mass below {metrics.get('max_structure_mass', 600):.0f} kg")
+                suggestions.append(f"- Keep total mass below {max_mass:.0f} kg")
             if "build zone" in failure_reason.lower():
                 suggestions.append("- Ensure all beams are inside build zone on the left bank")
         elif failure_reason and "sank" in failure_reason.lower():
             suggestions.append("- Improve buoyancy: use a wider or longer hull so the vehicle floats")
             suggestions.append("- Avoid heavy concentrated mass that pulls the vehicle under")
         elif failure_reason and ("reach right bank" in failure_reason.lower() or "reach shore" in failure_reason.lower()):
-            suggestions.append("- Water has strong current, quadratic drag, and a **headwind burst** (x≈15–19). Each body has a **3-step cooldown** (can only thrust every 3 steps): use **9 paddles** (9 bodies) so 3 thrust each step. Pass step_count: apply_force(body, fx, fy, step_count=step_count).")
+            # Dynamic suggestion based on current cooldown
+            n_paddles = cooldown * 3
+            suggestions.append(f"- Water has strong current, drag, and headwind burst. Each body has a **{cooldown}-step cooldown**: to maintain constant thrust, use at least **{n_paddles} bodies/paddles**. Pass step_count: apply_force(body, fx, fy, step_count=step_count).")
             suggestions.append("- **Three pillars** in the water block the path (x≈14, 17, 20). Apply **lift** (positive fy) when front_x is in [11.5–16] and [16–22] to rise over them; otherwise you collide and get stuck.")
-            suggestions.append("- Keep total mass under 600 kg; lighter vehicles need less thrust. Balance with stability in wind (wide, low hull).")
+            suggestions.append(f"- Keep total mass under {max_mass:.0f} kg; lighter vehicles need less thrust. Balance with stability in wind.")
         elif failure_reason and "structure integrity" in failure_reason.lower():
             suggestions.append("- Strengthen joints; water and motion can stress the structure")
     elif not success:

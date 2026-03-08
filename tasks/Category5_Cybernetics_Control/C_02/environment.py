@@ -39,6 +39,7 @@ PLATFORM_HALF_WIDTH = 2.0
 BARRIER_X_LEFT = 10.5
 BARRIER_X_RIGHT = 13.5
 BARRIER_Y_TOP = 6.0
+BARRIER_Y_BOTTOM = 20.0 # Default: very high so it doesn't affect anything
 
 
 class Sandbox:
@@ -103,6 +104,7 @@ class Sandbox:
         self._barrier_x_left = float(physics_config.get("barrier_x_left", BARRIER_X_LEFT))
         self._barrier_x_right = float(physics_config.get("barrier_x_right", BARRIER_X_RIGHT))
         self._barrier_y_top = float(physics_config.get("barrier_y_top", BARRIER_Y_TOP))
+        self._barrier_y_bottom = float(physics_config.get("barrier_y_bottom", BARRIER_Y_BOTTOM))
         # Gravity mutation: {"at_step": N, "gravity_after": (gx, gy)} — applied once when step reaches N
         self._gravity_mutation = physics_config.get("gravity_mutation")
 
@@ -243,14 +245,12 @@ class Sandbox:
                 self._world.gravity = gravity_after
                 self._gravity_mutation = None
 
-        # Barrier (no-fly zone): entering below BARRIER_Y_TOP with x in [L,R] = fail
+        # Barrier (no-fly zone): entering below BARRIER_Y_TOP or above BARRIER_Y_BOTTOM with x in [L,R] = fail
         if lander is not None and not self._barrier_hit:
             lx, ly = lander.position.x, lander.position.y
-            if (
-                self._barrier_x_left <= lx <= self._barrier_x_right
-                and ly < self._barrier_y_top
-            ):
-                self._barrier_hit = True
+            if self._barrier_x_left <= lx <= self._barrier_x_right:
+                if ly < self._barrier_y_top or ly > self._barrier_y_bottom:
+                    self._barrier_hit = True
 
     def get_barrier_hit(self):
         """True if lander ever entered the no-fly barrier (obstacle)."""
@@ -267,9 +267,11 @@ class Sandbox:
             "max_landing_angle": self._max_landing_angle,
             "total_fuel_impulse": self._total_fuel,
             "time_step": self._time_step,
+            "thrust_delay_steps": self._thrust_delay_steps,
             "barrier_x_left": self._barrier_x_left,
             "barrier_x_right": self._barrier_x_right,
             "barrier_y_top": self._barrier_y_top,
+            "barrier_y_bottom": self._barrier_y_bottom,
             "min_fuel_remaining_at_landing": self._min_fuel_remaining_at_landing,
         }
 

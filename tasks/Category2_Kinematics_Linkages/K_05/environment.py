@@ -87,6 +87,7 @@ class Sandbox:
         ground_length = 20.0  # Ground surface
         ground_height = 1.0
         
+        
         ground = self._world.CreateStaticBody(
             position=(ground_length / 2, ground_height / 2),
             fixtures=Box2D.b2FixtureDef(
@@ -96,6 +97,37 @@ class Sandbox:
         )
         self._terrain_bodies["ground"] = ground
         self._ground_y = ground_height  # Ground top surface at y = 1.0m
+
+        # Add ceiling if configured
+        ceiling_config = terrain_config.get("ceiling_gap", None)
+        if ceiling_config:
+            c_y = ceiling_config.get("y", 6.0)
+            c_x_min = ceiling_config.get("x_min", 3.0)
+            c_x_max = ceiling_config.get("x_max", 5.0)
+            thickness = 0.5
+            
+            # Left ceiling
+            left_width = c_x_min
+            if left_width > 0:
+                self._world.CreateStaticBody(
+                    position=(left_width / 2, c_y + thickness / 2),
+                    fixtures=Box2D.b2FixtureDef(
+                        shape=polygonShape(box=(left_width / 2, thickness / 2)),
+                        friction=ground_friction,
+                    ),
+                )
+            
+            # Right ceiling
+            right_width = ground_length - c_x_max
+            if right_width > 0:
+                self._world.CreateStaticBody(
+                    position=(c_x_max + right_width / 2, c_y + thickness / 2),
+                    fixtures=Box2D.b2FixtureDef(
+                        shape=polygonShape(box=(right_width / 2, thickness / 2)),
+                        friction=ground_friction,
+                    ),
+                )
+
 
     def _create_object(self, terrain_config: dict):
         """
@@ -212,7 +244,7 @@ class Sandbox:
             raise ValueError("add_joint: body_a cannot be None. You must provide a valid body object (e.g., from add_beam).")
         
         if body_b is None:
-            raise ValueError("add_joint: body_b cannot be None. You must provide a valid body object.")
+            body_b = self._terrain_bodies.get("ground")
         
         anchor_x, anchor_y = anchor_point[0], anchor_point[1]
         
@@ -325,7 +357,37 @@ class Sandbox:
 
     def step(self, time_step):
         """Physics step"""
+        # Apply wind force to all dynamic bodies
+        wind_force = self._physics_config.get("wind_force", (0.0, 0.0))
+        if wind_force != (0.0, 0.0):
+            for body in self._bodies:
+                if body.type == Box2D.b2_dynamicBody:
+                    body.ApplyForceToCenter(wind_force, True)
+            if self._object_to_lift:
+                self._object_to_lift.ApplyForceToCenter(wind_force, True)
+                
         self._world.Step(time_step, 10, 10)
+        
+        # Check fragile joints
+        max_joint_force = self._physics_config.get("max_joint_force", float('inf'))
+        if max_joint_force < float('inf'):
+            joints_to_destroy = []
+            inv_dt = 1.0 / time_step if time_step > 0 else 0.0
+            for joint in self._joints:
+                # b2Joint.GetReactionForce(inv_dt) returns b2Vec2
+                force = joint.GetReactionForce(inv_dt)
+                force_mag = (force.x**2 + force.y**2)**0.5
+                if force_mag > max_joint_force:
+                    joints_to_destroy.append(joint)
+            
+            for joint in joints_to_destroy:
+                if joint in self._joints:
+                    self._joints.remove(joint)
+                    try:
+                        self._world.DestroyJoint(joint)
+                    except Exception:
+                        pass
+
     
     def get_terrain_bounds(self):
         """Get terrain bounds (for evaluation)"""
@@ -391,3 +453,7 @@ class Sandbox:
             collideConnected=False
         )
         self._joints.append(joint)
+
+    def get_target_x(self):
+        """Get target height (y-axis) for renderer and evaluator."""
+        return self.target_object_y

@@ -52,15 +52,14 @@ class Evaluator:
         if not environment:
             raise ValueError("Evaluator requires environment instance")
         
-        env_class = type(environment)
         try:
-            self.MAX_STRUCTURE_MASS = env_class.MAX_STRUCTURE_MASS
-            self.BUILD_ZONE_X_MIN = env_class.BUILD_ZONE_X_MIN
-            self.BUILD_ZONE_X_MAX = env_class.BUILD_ZONE_X_MAX
-            self.BUILD_ZONE_Y_MIN = env_class.BUILD_ZONE_Y_MIN
-            self.BUILD_ZONE_Y_MAX = env_class.BUILD_ZONE_Y_MAX
-        except AttributeError as e:
-            raise AttributeError(f"Environment class {env_class.__name__} missing required constant: {e}")
+            self.MAX_STRUCTURE_MASS = getattr(environment, 'MAX_STRUCTURE_MASS', 60.0)
+            self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', 0.0)
+            self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', 8.0)
+            self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', 1.0)
+            self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', 12.0)
+        except Exception as e:
+            raise AttributeError(f"Environment missing required constants: {e}")
         
         self.design_constraints_checked = False
         

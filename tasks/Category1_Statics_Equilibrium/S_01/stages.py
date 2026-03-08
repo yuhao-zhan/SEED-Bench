@@ -65,50 +65,52 @@ def get_s01_curriculum_stages() -> List[Dict[str, Any]]:
     
     UNIFORM_SUFFIX = """
 ## Environmental Anomalies Detected
-Sensors indicate that this region exhibits non-standard physical properties. 
+Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Gravitational acceleration**: Vertical loads on the structure may be significantly different.
-- **Atmospheric conditions**: Potential lateral forces (e.g., wind) may act on the vehicle and structure.
-- **Structural integrity limits**: Critical force and torque thresholds for joints and anchors may have changed.
-- **Resource availability**: The maximum allowed structure mass may differ from standard limits.
-- **Terrain geometry**: The distance between cliffs or target location may have been adjusted.
+ - **Joint torque resilience** (`joint_max_torque`): The maximum torque structural joints can withstand before failing.
+ - **Anchor torque resilience** (`anchor_max_torque`): The maximum torque cliff anchors can withstand before breaking.
+ - **Mass limit** (`max_structure_mass`): The total allowed mass budget for your structure.
+ - **Gravitational acceleration** (`gravity`): The strength and direction of the vertical gravitational force.
+ - **Atmospheric wind** (`wind_force`): Constant lateral forces acting on all bodies in the environment.
+ - **Terrain gap width** (`gap_width`): The horizontal distance between the starting cliff and the destination cliff.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how the vehicle deviates) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Fragile Anchor Points",
-            "mutation_description": "Cliff anchors are weak (max_force: 15.0, max_torque: 50.0).",
+            "title": "Brittle Material",
+            "mutation_description": "Joints cannot withstand torque (max_torque: 0.1) and must act purely as pivots.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "anchor_max_force": 15.0,
-                "anchor_max_torque": 50.0,
+                "joint_max_torque": 0.1,
+                "anchor_max_torque": 0.1,
             },
         },
         {
             "stage_id": "Stage-2",
-            "title": "Low Torque Resilience",
-            "mutation_description": "Joints have low torque resistance (max_torque: 30.0).",
+            "title": "Fragile Joints",
+            "mutation_description": "Structural joints are very weak (max_force: 8.0, max_torque: 15.0).",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "joint_max_torque": 30.0,
+                "joint_max_force": 8.0,
+                "joint_max_torque": 15.0,
             },
         },
         {
             "stage_id": "Stage-3",
             "title": "The Stormy Gorge",
-            "mutation_description": "High gravity (-15), horizontal wind (-5N), and reduced mass limit (1000kg).",
+            "mutation_description": "Extreme gravity (-20.0), horizontal wind (-10N), and reduced mass limit (1500kg).",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "max_structure_mass": 1000.0,
+                "max_structure_mass": 1500.0,
             },
             "physics_config": {
-                "gravity": (0, -15.0),
-                "wind_force": (-5.0, 0.0),
+                "gravity": (0, -20.0),
+                "wind_force": (-10.0, 0.0),
             },
         },
         {

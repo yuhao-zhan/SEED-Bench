@@ -37,7 +37,6 @@ While the following variables MIGHT have changed from the initial environment, N
  - **Bombardment Intensity & Frequency**: More boulders may fall, and they may fall more frequently.
  - **Material Elasticity (Restitution)**: The elasticity of falling boulders may change, altering how they ricochet off surfaces.
  - **Atmospheric Turbulence (Wind)**: A lateral force may be acting on all structures and debris, potentially causing drift or collapse.
- - **Surface Friction**: The ground friction may be altered, affecting the stability of unanchored structures on the terrain.
  - **Structural Integrity (Joint Strength)**: Anchors and connections may have limited load-bearing capacity and can snap under excessive force or torque.
  - **Core Fragility**: The central object may have an extremely low tolerance for impact forces, requiring near-perfect isolation.
  - **Resource Scarcity (Mass Budget)**: The total mass of materials allowed for construction may be significantly restricted.
@@ -66,31 +65,26 @@ def get_s05_curriculum_stages() -> List[Dict[str, Any]]:
         },
         {
             "stage_id": "Stage-2",
-            "title": "The Elastic Hurricane",
-            "mutation_description": "Strong wind (50.0), perfectly bouncy boulders (1.0), and zero ground friction. Joint torque is fragile (5000Nm).",
+            "title": "The Weightless Restraint",
+            "mutation_description": "Extreme mass limitation (1.5kg) forces structural minimalism. The heavy standard concrete structures will be instantly rejected by the environment.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "wind_force": 50.0,
-                "meteor_restitution": 1.0,
-                "floor_friction": 0.0,
-                "max_joint_torque": 5000.0,
-                "max_core_force": 50.0,
+                "max_structure_mass": 1.5,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "The Fragile Resonance",
-            "mutation_description": "Absolute core fragility (0.01N), 50 meteors, and high gravity (-50.0). Requires perfect isolation.",
+            "title": "The Aerodynamic Fragility",
+            "mutation_description": "Strong lateral wind (-50.0) combined with fragile joints (500N). Massive standard structures will snap their own anchors due to wind drag. Requires a minimalist, lightweight aerodynamic frame.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "max_core_force": 0.01,
-                "meteor_spawn_interval": 10,
-                "meteor_count": 50,
+                "wind_force": -50.0,
+                "max_joint_force": 500.0,
+                "max_joint_torque": 500.0,
+                "meteor_count": 30,
             },
-            "physics_config": {
-                "gravity": (0, -50.0),
-            },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-4",

@@ -56,7 +56,7 @@ class Evaluator:
         success = distance_traveled >= self.target_distance and step_count >= self.min_simulation_steps
         
         is_end = (step_count >= max_steps - 1)
-        done = failed or is_end
+        done = failed or success or is_end
         
         if success and not failed:
             score = 100.0
