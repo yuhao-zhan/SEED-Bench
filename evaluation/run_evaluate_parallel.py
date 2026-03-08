@@ -15,14 +15,61 @@ from tqdm import tqdm
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import fcntl
+
+def _safe_init_sdl():
+    """Use a TRUE global file lock to ensure sequential initialization across subprocesses"""
+    lock_file = "/tmp/seed_bench_sdl_init.lock"
+    with open(lock_file, 'w') as f:
+        try:
+            # Acquire exclusive lock (blocks until available)
+            fcntl.flock(f, fcntl.LOCK_EX)
+            
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+            os.environ["SDL_AUDIODRIVER"] = "dummy"
+            os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+            if "DISPLAY" in os.environ:
+                del os.environ["DISPLAY"]
+            
+            # Short delay to let the OS/Driver settle
+            time.sleep(0.5)
+            
+        finally:
+            # Release lock
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+# GLOBAL INITIALIZATION for stability
+_safe_init_sdl()
+
 def resolve_task_list(task_spec: str):
     from evaluation.evaluate import resolve_task_list as _resolve
     return _resolve(task_spec)
 
+import concurrent.futures
+
+def _verify_pair_safe(args):
+    """Worker function for parallel pre-verification of cross-mutation pairs"""
+    task_name, source, target, ref_source, env_j = args
+    try:
+        from evaluation.verifier import CodeVerifier
+        env_overrides = {
+            "terrain_config": env_j.get("terrain_config", {}),
+            "physics_config": env_j.get("physics_config", {}),
+        }
+        verifier = CodeVerifier(task_name, env_overrides=env_overrides)
+        success, _, _, _ = verifier.verify_code(ref_source, headless=True)
+        verifier.cleanup()
+        return (task_name, source, target, success)
+    except:
+        return (task_name, source, target, False)
+
 def collect_work_items(task_list, model_type, model_name, method, context):
-    from evaluation.evaluate_cross_mutated import get_all_stages
+    from evaluation.evaluate_cross_mutated import get_all_stages, get_reference_solution
     from evaluation.utils import run_is_complete
+    
     work_items = []
+    candidates = []
+    
     for task_name in task_list:
         if not task_name.startswith('category_'):
             if not run_is_complete(task_name, model_type, model_name, method, context):
@@ -30,19 +77,33 @@ def collect_work_items(task_list, model_type, model_name, method, context):
             continue
         try:
             all_envs = get_all_stages(task_name)
-            from evaluation.evaluate_cross_mutated import get_reference_solution
             for i, env_i in enumerate(all_envs):
                 source = env_i["stage_id"]
                 try:
-                    get_reference_solution(task_name, source)
+                    ref_source = get_reference_solution(task_name, source)
                 except: continue
                 for j, env_j in enumerate(all_envs):
                     if i == j: continue
                     target = env_j["stage_id"]
+                    
                     pair_name = f"{source}_to_{target}"
                     if not run_is_complete(task_name, model_type, model_name, method, context, mutated_task_name=pair_name):
-                        work_items.append((task_name, source, target))
+                        candidates.append((task_name, source, target, ref_source, env_j))
         except: pass
+
+    if candidates:
+        print(f"🧪 Pre-verifying {len(candidates)} cross-mutation pairs to filter out easy cases...")
+        # Use a safe number of workers to avoid overwhelming the system
+        num_workers = min(len(candidates), os.cpu_count() or 4)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as executor:
+            results = list(tqdm(executor.map(_verify_pair_safe, candidates), total=len(candidates), desc="Pre-check"))
+            for task_name, source, target, success in results:
+                if not success:
+                    work_items.append((task_name, source, target))
+                else:
+                    # We don't add to work_items, so it's effectively skipped
+                    pass
+                    
     return work_items
 
 def _run_single_task_resilient(cmd, env, task_name, pair_label, worker_pbar, print_lock, max_retries=5):

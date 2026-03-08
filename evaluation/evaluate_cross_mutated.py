@@ -295,7 +295,7 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
                 evaluator._setup_gif_directory()
 
                 report = run_single_pair(evaluator, ref_code, base_task_name, pair_name)
-                if not report.get('skipped'):
+                if not report.get("skipped"):
                     evaluator.save_report(report, output_dir=output_dir)
 
                 results.append({
