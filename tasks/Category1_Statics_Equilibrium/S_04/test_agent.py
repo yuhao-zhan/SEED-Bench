@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for S_03 cantilever task agent
+Test script for S_04 balancer task agent
 Runs the simulation and saves GIF when successful
 """
 import os
@@ -12,12 +12,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 from main import TaskRunner
 
 
-def test_s03_agent():
-    """Test S_03 agent and save GIF on success"""
-    task_name = "Category1_Statics_Equilibrium.S_03"
+def test_s04_agent():
+    """Test S_04 agent and save GIF on success"""
+    task_name = "Category1_Statics_Equilibrium.S_04"
     
     print("="*60)
-    print("Testing S-03: The Cantilever Task")
+    print("Testing S-04: The Balancer Task")
     print("="*60)
     
     try:
@@ -30,15 +30,14 @@ def test_s03_agent():
         
         # Create GIF path in task directory
         task_dir = os.path.dirname(__file__)
-        gif_path = os.path.join(task_dir, 'cantilever_success.gif')
+        gif_path = os.path.join(task_dir, 'reference_solution_success.gif')
         
         print(f"\nRunning simulation...")
         print(f"GIF will be saved to: {gif_path}")
-        print(f"Max steps: 15000 (need time for load attachment at t=5s and 10s hold)\n")
+        print(f"Max steps: 1000\n")
         
-        # Run simulation (need enough steps: 5s load attach + 10s hold = 15s = 900 steps at 60fps)
-        # Use 15000 steps to be safe
-        result = runner.run(headless=True, max_steps=15000, save_gif=True)
+        # Run simulation
+        result = runner.run(headless=True, max_steps=1000, save_gif=True)
         
         if result:
             score, metrics = result
@@ -63,4 +62,4 @@ def test_s03_agent():
 
 
 if __name__ == "__main__":
-    test_s03_agent()
+    test_s04_agent()

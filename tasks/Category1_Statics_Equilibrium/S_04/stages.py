@@ -17,6 +17,8 @@ While the following variables MIGHT have changed from the initial environment, N
  - Dynamic Loading (Dropped Load): The target mass may be dropped from a significant height rather than being static. This requires your structure to be resilient enough to absorb the kinetic energy of the impact without destabilizing.
  - Spatial Obstructions: Static or moving structural barriers may block standard paths. You must design your beams to navigate around these "no-build" zones while maintaining perfect equilibrium.
  - Gravitational Fluctuations: Local gravity may be significantly higher than Earth-standard, magnifying the weight of the load and your own components, thereby reducing the margin for error in your balance calculations.
+ - Precision Thresholds: The allowable angle for "balance" is severely restricted. Your design must achieve near-perfect static equilibrium to succeed.
+ - Mass Variations: The target load mass may vary significantly, requiring precise counterweight calculations based on the lever principle.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -55,6 +57,11 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
             "Successfully catch or connect to the heavy load at x=3.0.",
             "Successfully catch the falling load and prevent it from touching the ground."
         )
+    
+    max_angle = target_terrain_config.get("max_angle_deviation_deg", 10.0)
+    if max_angle != 10.0:
+        criteria = criteria.replace("within ±10 degrees", f"within ±{max_angle:.1f} degrees")
+        
     return criteria
 
 
@@ -63,33 +70,32 @@ def get_s04_curriculum_stages() -> List[Dict[str, Any]]:
     return [
         {
             "stage_id": "Stage-1",
-            "title": "The Precision Fulcrum",
-            "mutation_description": "The pivot joint is brittle. Mathematical balance is required.",
+            "title": "The Glass Pivot",
+            "mutation_description": "The pivot joint is extremely brittle. Perfect mathematical balance is required.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "force_pivot_joint": True,
                 "fragile_joints": True, 
                 "max_joint_torque": 500.0, 
-                "load_mass": 200.0,
-                "max_angle_deviation_deg": 20.0,
+                "load_mass": 250.0,
+                "max_angle_deviation_deg": 5.0,
             },
             "physics_config": {
+                "gravity": (0, -10.0),
                 "angular_damping": 10.0,
             },
         },
         {
             "stage_id": "Stage-2",
-            "title": "The Gale Force Equilibrium",
-            "mutation_description": "Massive wind creates overwhelming torque on a fragile pivot.",
+            "title": "The Low-Friction Gale",
+            "mutation_description": "Massive wind creates overwhelming torque, requiring 2D center-of-mass adjustment.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "force_pivot_joint": True,
                 "wind_active": True,
-                "wind_force_multiplier": 150.0, # Increased significantly
+                "wind_force_multiplier": 100.0,
                 "load_mass": 200.0,
-                "fragile_joints": True,
-                "max_joint_torque": 100.0, # Lowered significantly
-                "max_angle_deviation_deg": 20.0,
+                "max_angle_deviation_deg": 5.0,
             },
             "physics_config": {
                 "angular_damping": 20.0,
@@ -97,47 +103,48 @@ def get_s04_curriculum_stages() -> List[Dict[str, Any]]:
         },
         {
             "stage_id": "Stage-3",
-            "title": "The Obstructed Fulcrum",
-            "mutation_description": "A fragile pivot combined with massive static obstacles.",
+            "title": "The Corridors of Equilibrium",
+            "mutation_description": "Higher gravity and a complex obstacle labyrinth test spatial reasoning.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "force_pivot_joint": True,
-                "fragile_joints": True, 
-                "max_joint_torque": 1000.0, 
                 "obstacle_active": True,
                 "obstacles": [
-                    [0.5, -1.0, 2.5, 1.5],
-                    [-2.5, 0.5, -0.5, 3.5]
+                    [0.5, 0.5, 2.5, 1.5], 
+                    [-2.5, -1.5, -0.5, -0.5],
+                    [-0.5, 2.0, 0.5, 4.0],
                 ],
-                "load_mass": 200.0,
-                "max_angle_deviation_deg": 20.0,
+                "load_mass": 300.0,
+                "max_angle_deviation_deg": 5.0,
             },
             "physics_config": {
+                "gravity": (0, -20.0),
                 "angular_damping": 20.0,
             },
         },
         {
             "stage_id": "Stage-4",
-            "title": "The Atmospheric Reentry",
-            "mutation_description": "Extremely high gravity, moving obstacles, and a dropped heavy load.",
+            "title": "The Perfect Storm",
+            "mutation_description": "Extreme 3G gravity, wind, moving obstacles, and a dropped load on a fragile pivot.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "force_pivot_joint": False, 
                 "obstacle_active": True,
                 "moving_obstacle": True,
-                "obstacle_rect": [-1.0, 2.0, 1.0, 3.0],
-                "obstacle_amplitude": 2.5,
-                "obstacle_frequency": 0.4,
-                "wind_active": False,
+                "obstacle_rect": [-1.0, 2.5, 1.0, 3.5],
+                "obstacle_amplitude": 3.0,
+                "obstacle_frequency": 0.5,
+                "wind_active": True,
+                "wind_force_multiplier": 10.0,
                 "drop_load": True,
                 "load_mass": 400.0,
                 "fragile_joints": True,
                 "max_joint_torque": 100000.0, 
-                "max_angle_deviation_deg": 45.0,
+                "max_angle_deviation_deg": 20.0,
             },
             "physics_config": {
                 "gravity": (0, -30.0),
-                "angular_damping": 10.0,
+                "angular_damping": 20.0,
             },
         },
     ]

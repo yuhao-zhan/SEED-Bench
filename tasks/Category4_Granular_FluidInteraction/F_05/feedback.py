@@ -70,13 +70,13 @@ def get_improvement_suggestions(
         if "structure mass" in error_lower and "exceeds" in error_lower:
             suggestions.append(f"- Reduce structure mass to be within {metrics.get('max_structure_mass', 60):.0f} kg")
         elif "build zone" in error_lower:
-            suggestions.append("- Place all beams within build zone x=[12, 18], y=[2, 4.5]")
+            suggestions.append(f"- Place all beams within build zone x=[{metrics.get('build_zone_x_min', 12.0):.1f}, {metrics.get('build_zone_x_max', 18.0):.1f}], y=[{metrics.get('build_zone_y_min', 2.0):.1f}, {metrics.get('build_zone_y_max', 4.5):.1f}]")
     elif failed:
         if failure_reason and "design constraint" in failure_reason.lower():
             if "structure mass" in failure_reason.lower():
                 suggestions.append(f"- Keep total mass below {metrics.get('max_structure_mass', 60):.0f} kg")
             if "build zone" in failure_reason.lower():
-                suggestions.append("- Ensure all beams are inside the build zone on/around the boat")
+                suggestions.append(f"- Ensure all beams are inside the build zone x=[{metrics.get('build_zone_x_min', 12.0):.1f}, {metrics.get('build_zone_x_max', 18.0):.1f}], y=[{metrics.get('build_zone_y_min', 2.0):.1f}, {metrics.get('build_zone_y_max', 4.5):.1f}]")
         elif failure_reason and "cargo" in failure_reason.lower() and "water" in failure_reason.lower():
             suggestions.append("- Add rails or ties to secure cargo so it cannot roll or slide off the boat")
             suggestions.append("- Lower the center of gravity and widen the base to improve stability (metacentric height)")

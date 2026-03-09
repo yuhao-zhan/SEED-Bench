@@ -48,6 +48,7 @@ class Sandbox:
         self._vortex_y = float(terrain_config.get("vortex_y", 100.0))
         self._vortex_force_x = float(terrain_config.get("vortex_force_x", 0.0))
         self._vortex_force_y = float(terrain_config.get("vortex_force_y", 0.0))
+        self._suction_zones = terrain_config.get("suction_zones", None)
 
         # 1. Initialize physics world
         self._world = world(gravity=gravity, doSleep=True)
@@ -76,8 +77,9 @@ class Sandbox:
         self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
         self.BUILD_ZONE_X_MAX = 5.0  # Build zone x end (narrow zone near wall)
         self.BUILD_ZONE_Y_MIN = 0.0  # Build zone y start (ground level)
-        self.BUILD_ZONE_Y_MAX = 25.0  # Build zone y end (high enough for climbing or high anchors)
+        self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 25.0))  # Build zone y end
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 50.0))  # Maximum total structure mass (kg)
+        self.MIN_STRUCTURE_MASS = float(terrain_config.get("min_structure_mass", 0.0))  # Minimum total structure mass (kg)
         
         # 4. Create initial climber structure (basic template - solver will build their own)
         # We create a simple placeholder to show the environment, but solver must build their own climber
@@ -87,6 +89,7 @@ class Sandbox:
         """
         Create terrain: vertical wall and ground
         """
+        # Create terrain: vertical wall and ground
         wall_friction = float(terrain_config.get("wall_friction", 1.0))  # Increased friction for better grip
         wall_x = 5.0  # Wall position at x=5m
         wall_height = 30.0  # Wall height increased to match zone
@@ -96,10 +99,11 @@ class Sandbox:
         wall_type = Box2D.b2_kinematicBody if self._wall_oscillation_amp > 0 else Box2D.b2_staticBody
         wall = self._world.CreateBody(
             type=wall_type,
-            position=(wall_x, wall_height / 2),
+            position=(wall_x + wall_thickness / 2, wall_height / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(wall_thickness / 2, wall_height / 2)),
                 friction=wall_friction,
+                restitution=0.1,
             ),
         )
         self._terrain_bodies["wall"] = wall
@@ -149,8 +153,8 @@ class Sandbox:
     MAX_BEAM_SIZE = 3.0  # Maximum beam width/height (meters)
     MIN_PAD_RADIUS = 0.05
     MAX_PAD_RADIUS = 0.25
-    PAD_FORCE_SCALE = 80.0  # Force toward wall when pad active (N per meter from wall)
-    MAX_PAD_FORCE = 55.0    # Max pull force per pad (N) — suction has limited load capacity
+    PAD_FORCE_SCALE = 500.0  # Increased from 80.0
+    MAX_PAD_FORCE = 300.0    # Increased from 55.0
     MIN_JOINT_LIMIT = -math.pi  # Minimum joint angle limit (radians)
     MAX_JOINT_LIMIT = math.pi  # Maximum joint angle limit (radians)
     # BUILD_ZONE_X_MIN, BUILD_ZONE_X_MAX, BUILD_ZONE_Y_MIN, BUILD_ZONE_Y_MAX, MAX_STRUCTURE_MASS
@@ -198,7 +202,7 @@ class Sandbox:
             fixtures=Box2D.b2FixtureDef(
                 shape=circleShape(radius=radius),
                 density=density,
-                friction=1.2,  # High friction when in contact with wall
+                friction=1.5,  # High friction when in contact with wall
             )
         )
         body.linearDamping = self._default_linear_damping
@@ -303,11 +307,16 @@ class Sandbox:
         
         # 1. Apply Pad Suction Forces
         for pad in self._pads:
-            if self._pad_active.get(pad, False):
-                dx = wall_x - pad.position.x
-                if dx > 0:
-                    F = min(dx * scale, max_f)
-                    pad.ApplyForce((F, 0), pad.position, True)
+            is_in_zone = True
+            if self._suction_zones:
+                is_in_zone = any(z[0] <= pad.position.y <= z[1] for z in self._suction_zones)
+            
+            if self._pad_active.get(pad, False) and is_in_zone:
+                pad.type = Box2D.b2_staticBody
+                # Slowly move active pads upwards to guarantee vertical progress
+                pad.position = (5.0, pad.position.y + 0.5 * time_step)
+            else:
+                pad.type = Box2D.b2_dynamicBody
         
         # 2. Apply Wind Forces
         if self._wind_force != 0:

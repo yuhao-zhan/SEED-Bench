@@ -173,7 +173,7 @@ class DaVinciSandbox:
                 self._load_body.ApplyForceToCenter((self._load_body.mass * self._wind_force_multiplier, 0), wake=True)
         
         # Fragile Joints Static Equilibrium Check
-        if self._fragile_joints:
+        if self._fragile_joints and self._load_attached:
             net_torque = 0.0
             gx, gy = self._world.gravity
             wind_f = self._wind_force_multiplier if self._wind_active else 0.0
@@ -185,14 +185,22 @@ class DaVinciSandbox:
                 net_torque += (rx * Fy - ry * Fx)
                 
             if self._load_attached and self._load_body:
-                b = self._load_body
-                rx, ry = b.position.x, b.position.y
-                Fx = b.mass * wind_f + b.mass * gx
-                Fy = b.mass * gy
-                net_torque += (rx * Fy - ry * Fx)
+                is_actually_attached = False
+                for j in self._world.joints:
+                    if (j.bodyA == self._load_body and j.bodyB in self._bodies) or \
+                       (j.bodyB == self._load_body and j.bodyA in self._bodies):
+                        is_actually_attached = True
+                        break
                 
+                if is_actually_attached:
+                    b = self._load_body
+                    rx, ry = b.position.x, b.position.y
+                    Fx = b.mass * wind_f + b.mass * gx
+                    Fy = b.mass * gy
+                    net_torque += (rx * Fy - ry * Fx)
+            
             if abs(net_torque) > self._max_joint_torque:
-                # print(f"Torque exceeded: {net_torque} > {self._max_joint_torque}")
+                print(f"DEBUG: Stage torque check FAIL. Torque: {net_torque:.2f}, Limit: {self._max_joint_torque:.2f}, LoadAttached: {self._load_attached}")
                 pivot = self._terrain_bodies.get("pivot")
                 for j in list(self._joints):
                     # Destroy any joint connected to the pivot if torque limit is exceeded

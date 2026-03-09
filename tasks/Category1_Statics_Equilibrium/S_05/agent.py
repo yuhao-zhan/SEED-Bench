@@ -1,6 +1,7 @@
 import math
 
 def build_agent(sandbox):
+    # Initial reference solution for the base task
     col_l = sandbox.add_beam(8.0, 2.0, 0.4, 4.0, angle=0, density=10.0)
     col_r = sandbox.add_beam(12.0, 2.0, 0.4, 4.0, angle=0, density=10.0)
     sandbox.add_joint(col_l, None, (8.0, 0.0), type='rigid')
@@ -14,64 +15,93 @@ def agent_action(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_1(sandbox):
-    xs = [6.5, 7.0, 7.5, 8.0, 8.5, 11.5, 12.0, 12.5, 13.0, 13.5]
+    # Stage-1: The Gale Force (wind: -100.0, max_joint_force: 1000.0)
+    # Solution: Ultra-lightweight structure to minimize wind drag (mass-proportional in this env).
+    p_density = 0.01
+    xs = [7.5, 12.5]
     pillars = []
     for x in xs:
-        p = sandbox.add_beam(x, 2.0, 0.2, 4.0, angle=0, density=5.0)
+        p = sandbox.add_beam(x, 2.0, 0.1, 4.0, angle=0, density=p_density)
         sandbox.add_joint(p, None, (x, 0.0), type='rigid')
         pillars.append(p)
-    slope_l = sandbox.add_beam(8.5, 6.0, 5.5, 0.4, angle=-math.pi/3, density=5.0)
-    for p in pillars[:5]:
-        sandbox.add_joint(p, slope_l, (p.position.x, 4.0), type='rigid')
-    slope_r = sandbox.add_beam(11.5, 6.0, 5.5, 0.4, angle=math.pi/3, density=5.0)
-    for p in pillars[5:]:
-        sandbox.add_joint(p, slope_r, (p.position.x, 4.0), type='rigid')
-    sandbox.add_joint(slope_l, slope_r, (10.0, 7.3), type='rigid')
-    wall_l = sandbox.add_beam(8.6, 1.5, 0.1, 3.0, angle=0, density=2.0)
-    wall_r = sandbox.add_beam(11.4, 1.5, 0.1, 3.0, angle=0, density=2.0)
-    sandbox.add_joint(pillars[4], wall_l, (8.5, 1.5), type='rigid')
-    sandbox.add_joint(pillars[5], wall_r, (11.5, 1.5), type='rigid')
+    
+    # Sloped roof to deflect meteors with minimal mass
+    roof_l = sandbox.add_beam(8.5, 4.8, 3.5, 0.1, angle=-math.pi/6, density=p_density)
+    roof_r = sandbox.add_beam(11.5, 4.8, 3.5, 0.1, angle=math.pi/6, density=p_density)
+    sandbox.add_joint(pillars[0], roof_l, (7.5, 4.0), type='rigid')
+    sandbox.add_joint(pillars[1], roof_r, (12.5, 4.0), type='rigid')
+    sandbox.add_joint(roof_l, roof_r, (10.0, 5.5), type='rigid')
+    
     return pillars[0]
 
-def agent_action_stage_1(sandbox, agent_body, step_count):
-    pass
-
 def build_agent_stage_2(sandbox):
-    leg_l = sandbox.add_beam(8.0, 3.0, 0.1, 6.5, angle=-0.5, density=0.1)
-    leg_r = sandbox.add_beam(12.0, 3.0, 0.1, 6.5, angle=0.5, density=0.1)
-    sandbox.add_joint(leg_l, None, (8.0, 0.0), type='rigid')
-    sandbox.add_joint(leg_r, None, (12.0, 0.0), type='rigid')
-    sandbox.add_joint(leg_l, leg_r, (10.0, 6.0), type='rigid')
-    return leg_l
+    # Stage-2: The Kinetic Ricochet (restitution: 1.0, count: 100, core: 5.0)
+    col_l = sandbox.add_beam(7.0, 2.0, 0.3, 4.0, angle=0, density=10.0)
+    col_r = sandbox.add_beam(13.0, 2.0, 0.3, 4.0, angle=0, density=10.0)
+    sandbox.add_joint(col_l, None, (7.0, 0.0), type='rigid')
+    sandbox.add_joint(col_r, None, (13.0, 0.0), type='rigid')
+    
+    roof_l = sandbox.add_beam(8.5, 5.0, 5.0, 0.3, angle=-math.pi/6, density=10.0)
+    roof_r = sandbox.add_beam(11.5, 5.0, 5.0, 0.3, angle=math.pi/6, density=10.0)
+    sandbox.add_joint(col_l, roof_l, (7.0, 4.0), type='rigid')
+    sandbox.add_joint(col_r, roof_r, (13.0, 4.0), type='rigid')
+    sandbox.add_joint(roof_l, roof_r, (10.0, 5.8), type='rigid')
+    
+    # Side walls are CRITICAL here
+    side_l = sandbox.add_beam(8.5, 1.2, 0.1, 2.4, angle=0, density=5.0)
+    side_r = sandbox.add_beam(11.5, 1.2, 0.1, 2.4, angle=0, density=5.0)
+    sandbox.add_joint(side_l, None, (8.5, 0.0), type='rigid')
+    sandbox.add_joint(side_r, None, (11.5, 0.0), type='rigid')
+    
+    return col_l
 
 def agent_action_stage_2(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_3(sandbox):
-    leg_l = sandbox.add_beam(8.0, 3.0, 0.1, 6.5, angle=-0.5, density=0.1)
-    leg_r = sandbox.add_beam(12.0, 3.0, 0.1, 6.5, angle=0.5, density=0.1)
-    sandbox.add_joint(leg_l, None, (8.0, 0.0), type='rigid')
-    sandbox.add_joint(leg_r, None, (12.0, 0.0), type='rigid')
-    sandbox.add_joint(leg_l, leg_r, (10.0, 6.0), type='rigid')
-    return leg_l
+    # Stage-3: The Gravitational Constraint (gravity: -60.0, mass: 2.0kg)
+    density = 0.01
+    xs = [7.5, 12.5]
+    pillars = []
+    for x in xs:
+        p = sandbox.add_beam(x, 2.0, 0.1, 4.0, angle=0, density=density)
+        sandbox.add_joint(p, None, (x, 0.0), type='rigid')
+        pillars.append(p)
+    
+    roof_l = sandbox.add_beam(8.5, 4.8, 3.0, 0.1, angle=-math.pi/6, density=density)
+    roof_r = sandbox.add_beam(11.5, 4.8, 3.0, 0.1, angle=math.pi/6, density=density)
+    sandbox.add_joint(pillars[0], roof_l, (7.5, 4.0), type='rigid')
+    sandbox.add_joint(pillars[1], roof_r, (12.5, 4.0), type='rigid')
+    sandbox.add_joint(roof_l, roof_r, (10.0, 5.5), type='rigid')
+
+    return pillars[0]
 
 def agent_action_stage_3(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_4(sandbox):
-    xs = [7.2, 7.8, 8.4, 9.0, 11.0, 11.6, 12.2, 12.8]
-    pillars = []
-    for x in xs:
-        p = sandbox.add_beam(x, 2.0, 0.15, 4.0, angle=0, density=1.0)
-        sandbox.add_joint(p, None, (x, 0.0), type='rigid')
-        pillars.append(p)
-    roof = sandbox.add_beam(10.0, 4.1, 8.0, 0.2, angle=0, density=1.0)
-    for p in pillars: sandbox.add_joint(p, roof, (p.position.x, 4.0), type='rigid')
-    slope_l = sandbox.add_beam(8.5, 5.2, 4.0, 0.2, angle=-math.pi/4, density=1.0)
-    sandbox.add_joint(pillars[3], slope_l, (9.0, 4.0), type='rigid')
-    slope_r = sandbox.add_beam(11.5, 5.2, 4.0, 0.2, angle=math.pi/4, density=1.0)
-    sandbox.add_joint(pillars[4], slope_r, (11.0, 4.0), type='rigid')
-    return pillars[0]
+    # Stage-4: The Celestial Infernal (wind, fragile core, gravity, mass)
+    density = 0.01
+    col_l = sandbox.add_beam(7.5, 2.0, 0.1, 4.0, angle=-0.2, density=density)
+    col_r = sandbox.add_beam(12.5, 2.0, 0.1, 4.0, angle=0.2, density=density)
+    sandbox.add_joint(col_l, None, (7.5, 0.0), type='rigid')
+    sandbox.add_joint(col_r, None, (12.5, 0.0), type='rigid')
+    
+    roof_l = sandbox.add_beam(8.5, 4.5, 3.0, 0.1, angle=-math.pi/4, density=density)
+    roof_r = sandbox.add_beam(11.5, 4.5, 3.0, 0.1, angle=math.pi/4, density=density)
+    sandbox.add_joint(col_l, roof_l, (7.5, 4.0), type='rigid')
+    sandbox.add_joint(col_r, roof_r, (12.5, 4.0), type='rigid')
+    sandbox.add_joint(roof_l, roof_r, (10.0, 5.5), type='rigid')
+    
+    wall_l = sandbox.add_beam(8.6, 1.0, 0.1, 2.0, angle=0, density=density)
+    wall_r = sandbox.add_beam(11.4, 1.0, 0.1, 2.0, angle=0, density=density)
+    sandbox.add_joint(wall_l, None, (8.6, 0.0), type='rigid')
+    sandbox.add_joint(wall_r, None, (11.4, 0.0), type='rigid')
+    
+    return col_l
 
 def agent_action_stage_4(sandbox, agent_body, step_count):
+    pass
+
+def agent_action_stage_1(sandbox, agent_body, step_count):
     pass

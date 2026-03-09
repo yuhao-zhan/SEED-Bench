@@ -54,6 +54,7 @@ class Evaluator:
         
         self.max_recorded_torque = 0.0
         self.torque_limit_recorded = 0.0
+        self.external_force_y = 0.0
         
         self.design_constraints_checked = False
         self.reach_satisfied_initially = False
@@ -76,8 +77,38 @@ class Evaluator:
                 self.reach_satisfied_initially = True
         
         # Track min tip height across all structure bodies
+        total_ext_force_y = 0.0
         for body in self.environment._bodies:
             self.min_tip_y = min(self.min_tip_y, body.position.y)
+            
+            # Sum up external forces for discovery feedback
+            # Spatial force
+            spatial_force = self.environment._physics_config.get("spatial_force", None)
+            if spatial_force:
+                cx, cy = spatial_force.get("center", (0,0))
+                mag = spatial_force.get("magnitude", 0.0)
+                radius = spatial_force.get("radius", 10.0)
+                is_repulsion = spatial_force.get("type", "repulsion") == "repulsion"
+                bx, by = body.position
+                dx, dy = bx - cx, by - cy
+                dist = math.sqrt(dx**2 + dy**2)
+                if dist < radius and dist > 0.1:
+                    f = mag * (1.0 - dist / radius)
+                    if not is_repulsion: f = -f
+                    fy = f * (dy / dist)
+                    total_ext_force_y += fy
+            
+            # Wind force
+            wind_config = self.environment._physics_config.get("wind", None)
+            if wind_config:
+                force_vec = wind_config.get("force", (0, 0))
+                if wind_config.get("oscillatory", False):
+                    freq = wind_config.get("frequency", 1.0)
+                    phase = math.sin(self.environment._simulation_time * 2 * math.pi * freq)
+                    force_vec = (force_vec[0] * phase, force_vec[1] * phase)
+                total_ext_force_y += force_vec[1]
+
+        self.external_force_y = total_ext_force_y / len(self.environment._bodies) if self.environment._bodies else 0.0
 
         # Record max torque usage (using fixed 60Hz frequency for consistency)
         for joint in self.environment._joints:
@@ -168,6 +199,7 @@ class Evaluator:
             'min_tip_y': self.min_tip_y,
             'min_tip_height': self.min_tip_height_limit,
             'tip_sagged': self.min_tip_y < self.min_tip_height_limit,
+            'external_force_y': self.external_force_y,
             'structure_mass': current_mass,
             'max_structure_mass': self.MAX_STRUCTURE_MASS,
             'max_anchor_torque': self.max_recorded_torque,

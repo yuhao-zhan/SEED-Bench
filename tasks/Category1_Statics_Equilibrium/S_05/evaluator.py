@@ -21,7 +21,13 @@ class Evaluator:
         # Simulation phase tracking
         meteor_count = terrain_bounds.get("meteor_count", 12)
         interval = terrain_bounds.get("meteor_spawn_interval", 30)
-        fall_time = 6.0 # seconds for last meteor
+        
+        # Robustly calculate minimum steps based on gravity and meteor spawn height
+        gravity_y = abs(environment.world.gravity.y) if environment else 10.0
+        spawn_height = 15.0
+        # t = sqrt(2h/g) + buffer
+        fall_time = math.sqrt(2 * spawn_height / max(gravity_y, 0.1)) + 5.0
+        
         self.min_steps = (meteor_count * interval) + int(fall_time / TIME_STEP)
         
         self.design_constraints_checked = False
@@ -89,6 +95,7 @@ class Evaluator:
             'success_criteria': {
                 'protection': f'Core receives < {self.max_core_force}N force',
                 'stability': 'Shelter does not collapse',
-                'height_limit': f'No beam above y={self.MAX_STRUCTURE_HEIGHT}m'
+                'height_limit': f'No beam above y={self.MAX_STRUCTURE_HEIGHT}m',
+                'mass_limit': f'Structure mass < {self.terrain_bounds.get("max_structure_mass", 300.0)}kg'
             }
         }

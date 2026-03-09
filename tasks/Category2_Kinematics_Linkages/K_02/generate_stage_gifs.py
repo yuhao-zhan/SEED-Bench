@@ -1,65 +1,54 @@
-
 import os
 import sys
-import importlib.util
-import re
 
-# Add scripts directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+# Add project root to sys.path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from evaluation.verifier import CodeVerifier
+from tasks.Category2_Kinematics_Linkages.K_02.stages import get_stage_config
+import tasks.Category2_Kinematics_Linkages.K_02.agent as agent_mod
 
-# Load stages from stages.py
-stages_path = os.path.join(os.path.dirname(__file__), 'stages.py')
-spec = importlib.util.spec_from_file_location("stages", stages_path)
-stages_mod = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(stages_mod)
-stages = stages_mod.get_k02_curriculum_stages()
+def run_stage_verification():
+    """
+    Verify each stage with its specialized reference solution.
+    """
+    total_passed = 0
+    
+    for i in range(1, 5):
+        print(f"Generating GIF for Stage-{i}...")
+        
+        # Override the build_agent and agent_action in agent_mod
+        agent_mod.build_agent = getattr(agent_mod, f"build_agent_stage_{i}")
+        agent_mod.agent_action = getattr(agent_mod, f"agent_action_stage_{i}")
+        
+        terrain_config, physics_config, task_desc = get_stage_config(i)
+        
+        env_overrides = {
+            "terrain_config": terrain_config,
+            "physics_config": physics_config
+        }
+        
+        verifier = CodeVerifier(
+            task_name="Category2_Kinematics_Linkages/K_02",
+            max_steps=10000, # Give plenty of time to climb
+            env_overrides=env_overrides
+        )
+        
+        success, score, metrics = verifier.verify(
+            agent_mod.build_agent,
+            agent_mod.agent_action,
+            gif_name=f"stage_{i}_solution_success.gif"
+        )
+        
+        print(f"Result for Stage-{i}: Success={success}, Score={score}")
+        if not success:
+            print(f"Error: {metrics.get('error')}")
+            print(f"Metrics: {metrics}")
+        else:
+            total_passed += 1
+        print("-" * 50)
 
-def get_stage_code(stage_num):
-    agent_path = os.path.join(os.path.dirname(__file__), 'agent.py')
-    with open(agent_path, 'r') as f:
-        code = f.read()
-    
-    # Append the renames at the end
-    rename_code = f"\n\nprint('REDEFINING build_agent to stage {stage_num}')\nbuild_agent = build_agent_stage_{stage_num}\nagent_action = agent_action_stage_{stage_num}\n"
-    return code + rename_code
+    print(f"Total passed: {total_passed}/4")
 
-passed = 0
-for stage in stages:
-    stage_id = stage['stage_id']
-    num = stage_id.split("-")[1]
-    gif_path = os.path.join(os.path.dirname(__file__), f'stage_{num}_solution_success.gif')
-    
-    print(f"Generating GIF for {stage_id}...")
-    
-    env_overrides = {
-        "terrain_config": stage.get("terrain_config", {}),
-        "physics_config": stage.get("physics_config", {}),
-    }
-    
-    verifier = CodeVerifier(
-        task_name="Category2_Kinematics_Linkages/K_02",
-        max_steps=1000, # Just enough to pass
-        env_overrides=env_overrides
-    )
-    
-    code = get_stage_code(num)
-    
-    success, score, metrics, error = verifier.verify_code(
-        code=code,
-        headless=True,
-        save_gif_path=gif_path
-    )
-    
-    print(f"Result for {stage_id}: Success={success}, Score={score}")
-    if success:
-        passed += 1
-    else:
-        print(f"Error: {error}")
-        print(f"Metrics: {metrics}")
-    print("-" * 50)
-
-print(f"Total passed: {passed}/{len(stages)}")
-if passed < len(stages):
-    sys.exit(1)
+if __name__ == "__main__":
+    run_stage_verification()

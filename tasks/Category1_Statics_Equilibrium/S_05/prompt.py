@@ -38,8 +38,8 @@ Design a shelter structure that:
 ## Constraints (must satisfy)
 - **Keep-Out Zone**: You cannot build any structural components within 1.3m of the core center (10.0, 1.0).
 - **Height Limit**: No part of the shelter may extend above y=7.5m.
-- **Mass Budget**: Total structure mass must remain within the allowed limit.
-- **Structural Integrity**: The shelter must remain standing throughout the bombardment.
+- **Mass Budget**: Total structure mass must be less than 300 kg.
+- **Structural Integrity**: The shelter must remain standing throughout the bombardment. Joints and anchors have finite load-bearing capacity and may fail under extreme stress.
 """,
     
     'success_criteria': """
@@ -49,7 +49,7 @@ Design a shelter structure that:
 
 ## Design Constraints
 - **Keep-Out Zone**: Beam center distance to (10.0, 1.0) must be >= 1.3m.
-- **Mass Budget**: Structure mass must comply with the environment's mass limit.
+- **Mass Budget**: < 300 kg.
 - **Height Limit**: No part of the shelter may extend above y=7.5m.
 - **APIs**: Use only the primitives documented below.
 """,

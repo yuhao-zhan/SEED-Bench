@@ -19,22 +19,21 @@ if 'S_03' in _api_data and 'API_INTRO' in _api_data['S_03']:
 
 TASK_PROMPT = {
     'task_description': """
-Construct a horizontal cantilever structure anchored ONLY to the left wall. 
-The structure must extend as far right as possible and support multiple heavy vertical payloads.
+Construct a horizontal cantilever structure anchored ONLY to the left wall at x=0. 
+The structure must extend horizontally to reach the target distance and support multiple heavy vertical payloads applied at different times (e.g., at t=5s and t=15s).
 
 ## Task Environment
-- **Wall**: A vertical static surface at x=0. You may use a maximum of 2 anchor points on this wall. Note that some sections of the wall may be unsuitable for anchoring or exhibit varying structural strength.
-- **Payloads**: Multiple significant weights will be applied to your structure at different times (e.g., at t=5s and t=15s). Payloads may be attached directly or dropped from height as dynamic impacts.
-- **Atmosphere**: The environment may exhibit high gravity or lateral wind forces that test structural stiffness.
-- **Obstacles**: Static obstructions may be present, requiring your structure to navigate through specific clearances.
+- **Wall**: A vertical static surface at x=0. You may use a maximum of 2 anchor points on this wall.
+- **Payloads**: Payloads will be applied to your structure to test its load-bearing capacity and stability.
+- **Atmosphere**: The environment exhibits physical properties that will test the structural integrity of your design.
+- **Obstacles**: The build zone may contain static obstructions that your structure must navigate.
 
 ## Task Objective
 Design a robust cantilever structure that can:
 1. Extend horizontally from the wall to reach the target distance.
 - **Goal**: Reach x >= 12.0m.
-2. Support all applied payloads (stationary or dynamic) for 10 seconds each without collapsing.
-3. Manage internal stresses so that the wall anchors do not exceed their structural strength.
-4. **Stiffness**: Maintain vertical stability. Excessive sag will result in failure.
+2. Support all applied payloads for 10 seconds each without collapsing or excessive sagging.
+3. Manage internal stresses so that the wall anchors and structural joints remain intact.
 - **Mass Limit**: < 15,000 kg.
 """,
     
@@ -42,14 +41,13 @@ Design a robust cantilever structure that can:
 ## Success Criteria
 1. **Reach**: Structure reaches the required horizontal distance (Tip reaches x >= 12.0m).
 2. **Load Bearing**: Successfully supports all payloads for the 10s test duration.
-3. **Anchor Integrity**: All wall anchors remain intact (no breakage due to excessive force/torque).
+3. **Anchor Integrity**: All wall anchors and joints remain intact.
 4. **Stability**: The structure does not sag below the allowed vertical threshold.
 
 ## Design Constraints
 - **Mass Budget**: < 15,000 kg.
 - **Anchor Limit**: Maximum 2 anchor points on the wall.
-- **Strength Limits**: Wall joints have finite capacity; excessive torque will cause them to snap.
-- **Geometry**: The structure must reach the target and provide suitable nodes for payload attachment.
+- **Strength Limits**: Joints and anchors have finite capacity; exceeding these limits will cause failure.
 - **APIs**: Use only the primitives documented below.
 """,
     

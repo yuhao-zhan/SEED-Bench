@@ -42,17 +42,17 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 
 def get_s06_curriculum_stages() -> List[Dict[str, Any]]:
     # Define the uniform suffix based on the union of all mutated variables
+    # Only INVISIBLE variables are listed here. VISIBLE variables (Overhang, Spawn Zone, Ceiling) 
+    # are explicitly updated in the main prompt body.
     UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Atmospheric Wind: Lateral forces may exert pressure on the structure, potentially causing sliding or toppling.
- - Seismic Activity: The foundation may exhibit high-frequency oscillations, testing the dynamic stability of the assembly.
- - Vertical Clearance: Low-hanging barriers may restrict the height of your construction, forcing horizontal complexity and wedging strategies.
- - Gravitational Intensity: The magnitude of the downward pull may be significantly higher, increasing structural stress and friction requirements.
- - Table Inclination: The support surface may be tilted, introducing parallel gravitational components that encourage sliding towards or away from the edge.
- - Surface Friction: The table's grip may be altered, making standard anchoring techniques ineffective.
- - Build Access Zone: The region where blocks can be initialized may be further restricted, requiring greater cantilever extensions.
+ - Surface Friction: The table's grip may be severely compromised, making standard anchoring techniques ineffective and causing the structure to slide under minimal load.
+ - Atmospheric Wind: Powerful lateral forces may exert constant pressure on the structure, pushing it away from or towards the edge.
+ - Seismic Activity: The foundation may exhibit high-frequency oscillations, testing the dynamic stability and structural integrity of your assembly.
+ - Gravitational Intensity: The magnitude of the downward pull may be significantly higher, increasing structural stress and magnifying the effects of any imbalance.
+ - Table Inclination: The support surface may be tilted, introducing parallel gravitational components that encourage sliding and complicate the center of mass calculation.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -60,66 +60,62 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
     return [
         {
             "stage_id": "Stage-1",
-            "title": "The Gale-Force Anchor",
-            "mutation_description": "Severe lateral wind force (-100.0) pushing away from the target. Requires significant mass to anchor the structure.",
-            "task_description_suffix": UNIFORM_SUFFIX,
-            "terrain_config": {
-                "target_overhang": 1.0,
-                "spawn_zone": [-10.0, -1.0],
-            },
-            "physics_config": {
-                "wind_force": -100.0,
-            },
-        },
-        {
-            "stage_id": "Stage-2",
-            "title": "The Resonating Ledge",
-            "mutation_description": "Seismic oscillations combined with lateral wind. Tests stability against multi-directional forces.",
+            "title": "The Slick Threshold",
+            "mutation_description": "Extremely low table friction (0.05). Requires precise balancing and high mass to prevent sliding even without external forces.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "target_overhang": 1.2,
                 "spawn_zone": [-10.0, -0.8],
-                "oscillate": True,
-                "osc_amplitude": 0.05,
-                "osc_frequency": 5.0,
+                "table_friction": 0.05,
             },
             "physics_config": {
-                "wind_force": -40.0,
+                "gravity": (0, -10.0),
             },
         },
         {
-            "stage_id": "Stage-3",
-            "title": "The Titan's Narrow Gale",
-            "mutation_description": "Increased gravity (2.5x) and severe wind, restricted by a low ceiling (0.5m). Limits vertical stacking for anchoring.",
+            "stage_id": "Stage-2",
+            "title": "The Heavy Gale",
+            "mutation_description": "Powerful lateral wind force (-400.0) pushing away from the edge. Requires significant mass and friction to anchor the base.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "target_overhang": 1.5,
                 "spawn_zone": [-10.0, -0.5],
-                "ceiling_y": 0.5,
             },
             "physics_config": {
-                "gravity": (0, -25.0),
-                "wind_force": -100.0,
+                "wind_force": -400.0,
             },
         },
         {
-            "stage_id": "Stage-4",
-            "title": "The Tilted Seismic Void",
-            "mutation_description": "Extreme Gravity (5x), Table Tilt (-5 degrees), Slick Surface (0.2 friction), and Seismic Activity.",
+            "stage_id": "Stage-3",
+            "title": "The Shaking Ceiling",
+            "mutation_description": "Low vertical clearance (0.8m) combined with seismic oscillations and wind. Prevents vertical anchoring and tests dynamic stability.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "target_overhang": 1.8,
                 "spawn_zone": [-10.0, -0.2],
-                "ceiling_y": 2.0,
-                "table_angle": -5.0,
-                "table_friction": 0.2,
+                "ceiling_y": 0.8,
                 "oscillate": True,
                 "osc_amplitude": 0.02,
                 "osc_frequency": 3.0,
             },
             "physics_config": {
+                "wind_force": -100.0,
+            },
+        },
+        {
+            "stage_id": "Stage-4",
+            "title": "The Tilted Titan",
+            "mutation_description": "Multi-variable challenge: High Gravity (5x), Tilted Slick Surface (-5 deg, 0.05 friction), and Extreme Lateral Wind (-800.0).",
+            "task_description_suffix": UNIFORM_SUFFIX,
+            "terrain_config": {
+                "target_overhang": 1.8,
+                "spawn_zone": [-10.0, 0.0],
+                "table_angle": -5.0,
+                "table_friction": 0.05,
+            },
+            "physics_config": {
                 "gravity": (0, -50.0),
-                "wind_force": 20.0,
+                "wind_force": -800.0,
             },
         },
     ]

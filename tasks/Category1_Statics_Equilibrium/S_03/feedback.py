@@ -42,6 +42,13 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             if metrics.get('tip_sagged'):
                 metric_parts.append(f"⚠️ **Structural Sag**: FAILED (dropped below {metrics['min_tip_height']}m)")
     
+    # External Forces Discovery
+    # (These help discovery of invisible anomalies)
+    if 'external_force_y' in metrics:
+        if abs(metrics['external_force_y']) > 100.0:
+            direction = "Upward" if metrics['external_force_y'] > 0 else "Downward"
+            metric_parts.append(f"**External vertical forces detected**: {direction}")
+
     # Anchor status
     if 'anchor_broken' in metrics:
         metric_parts.append(f"**Anchor status**: {'BROKEN' if metrics['anchor_broken'] else 'INTACT'}")
@@ -84,12 +91,19 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     
     if error:
         suggestions.append("- Review the error message for specific constraint violations.")
+        if "forbidden" in error.lower():
+            suggestions.append("- Your wall anchor y-coordinate is in a restricted zone. Experiment with higher or lower placement.")
         suggestions.append("- Ensure wall anchors are within allowed build zones and not in forbidden regions.")
     
     elif failed:
         if "sagged" in failure_reason.lower() or "reach" in failure_reason.lower():
-            suggestions.append("- Structure is too flexible or failing to hold its shape under high gravity.")
-            suggestions.append("- Use **pre-cambering**: angle your beams slightly upward during construction to counteract gravity-induced sag.")
+            if metrics.get('external_force_y', 0) < -1000.0:
+                suggestions.append("- Severe downward forces detected in the region. Try building above or below this spatial anomaly.")
+            elif metrics.get('external_force_y', 0) > 1000.0:
+                 suggestions.append("- Significant upward forces detected. Use this to your advantage to counteract gravity.")
+            
+            suggestions.append("- Structure is too flexible or failing to hold its shape.")
+            suggestions.append("- Use **pre-cambering**: angle your beams slightly upward during construction to counteract sag.")
             suggestions.append("- Increase triangulation density and beam thickness, especially near the wall anchors.")
             
         if "torque" in failure_reason.lower() or "integrity" in failure_reason.lower() or "anchor" in failure_reason.lower():
@@ -98,7 +112,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
             suggestions.append("- Connect diagonal supports from the wall to multiple points along the span to distribute moment forces.")
             
         if "hold" in failure_reason.lower() or "load" in failure_reason.lower():
-            suggestions.append("- Dynamic impacts require a stiffer, more robust truss. Redundant bracing can absorb impact energy.")
+            suggestions.append("- Sudden load impacts require a stiffer, more robust truss. Redundant bracing can absorb impact energy.")
             suggestions.append("- Ensure the structure remains horizontal enough for the payload to stay attached during the test duration.")
 
     return suggestions

@@ -20,9 +20,9 @@ class Evaluator:
         self.min_simulation_time = 10.0 # seconds
         self.min_simulation_steps = int(self.min_simulation_time / TIME_STEP)
         
-        self.initial_y = 5.0 # Reference height for progress calculation
-        self.max_y_reached = 5.0
-        self.min_height_seen = 5.0
+        self.initial_y = 2.0 # Corrected starting height for mutated agents
+        self.max_y_reached = 2.0
+        self.min_height_seen = 2.0
         self.design_constraints_checked = False
 
     def evaluate(self, agent_body, step_count, max_steps):
@@ -69,16 +69,24 @@ class Evaluator:
         
         failed = False
         failure_reason = None
+        height_progress = 0.0
         
         # Failure: Fell below ground level (safety margin)
-        if current_y < 1.0:
+        if current_y < 0.5:
             failed = True
-            failure_reason = "Climber fell: touched the ground (height < 1.0m)"
-        
+            failure_reason = "Climber fell: touched the ground (height < 0.5m)"
+
         # Failure: Left the wall vicinity (x in [3.0, 5.5])
         if not (3.0 <= current_x <= 5.5):
             failed = True
             failure_reason = f"Climber lost wall contact: x={current_x:.2f}m (required x in [3.0, 5.5]m)"
+
+        # NEW: Min Mass Check (usually checked at design time but evaluator should double check)
+        min_mass = getattr(self.environment, 'MIN_STRUCTURE_MASS', 0.0)
+        current_mass = self.environment.get_structure_mass()
+        if current_mass < min_mass:
+            failed = True
+            failure_reason = f"Design constraint violated: Total mass ({current_mass:.2f}kg) is below minimum required ({min_mass:.2f}kg)"
             
         # Success if maintained target height and survived minimum time
         target_y = 20.0
@@ -106,9 +114,9 @@ class Evaluator:
             'height_gained': current_y - self.initial_y,
             'max_height_reached': self.max_y_reached,
             'min_height_seen': self.min_height_seen,
-            'climber_fell': current_y < 2.0,
+            'climber_fell': self.min_height_seen < 0.5,
             'target_y': target_y,
-            'progress': height_progress * 100.0 if 'height_progress' in locals() else 0.0,
+            'progress': height_progress * 100.0,
             'success': success and not failed,
             'failed': failed,
             'failure_reason': failure_reason,

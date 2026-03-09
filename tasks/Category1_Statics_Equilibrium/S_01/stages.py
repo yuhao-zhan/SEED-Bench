@@ -11,11 +11,17 @@ import re
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     description = base_description
     default_gap_width = 15.0
+    default_max_structure_mass = 2000.0
     target_gap_width = target_terrain_config.get("gap_width", default_gap_width)
     base_gap_width = base_terrain_config.get("gap_width", default_gap_width)
     target_right_cliff_start = 10.0 + target_gap_width
     base_right_cliff_start = 10.0 + base_gap_width
+    
+    target_max_mass = target_terrain_config.get("max_structure_mass", default_max_structure_mass)
+    base_max_mass = base_terrain_config.get("max_structure_mass", default_max_structure_mass)
+
     if target_gap_width != base_gap_width:
+        # Update Right Cliff description
         right_cliff_pattern = r"(- \*\*Right Cliff\*\*: Starts at x=)(\d+\.?\d*)m(, y=[\d.]+m\.)?"
         if re.search(right_cliff_pattern, description):
             description = re.sub(
@@ -23,6 +29,37 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                 lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}m (originally x={base_right_cliff_start:.1f}m in the source environment){m.group(3) if m.group(3) else '.'}",
                 description
             )
+        
+        # Update Build Zone description
+        build_zone_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[10, )(\d+\.?\d*)(\], y=\[5, 15\].)"
+        if re.search(build_zone_pattern, description):
+            description = re.sub(
+                build_zone_pattern,
+                lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}{m.group(3)} (originally x=[10, {base_right_cliff_start:.1f}] in the source environment)",
+                description
+            )
+            
+        # Update Target description
+        base_target_x = base_right_cliff_start + 5.0
+        target_x = target_right_cliff_start + 5.0
+        target_desc_pattern = r"(- \*\*Target\*\*: The vehicle must fully cross the gap and reach at least x=)(\d+\.?\d*)m( on the right side.)"
+        if re.search(target_desc_pattern, description):
+            description = re.sub(
+                target_desc_pattern,
+                lambda m: f"{m.group(1)}{target_x:.1f}m (originally x={base_target_x:.1f}m in the source environment){m.group(3)}",
+                description
+            )
+
+    if target_max_mass != base_max_mass:
+        # Update Mass Budget in constraints
+        mass_desc_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*) kg\."
+        if re.search(mass_desc_pattern, description):
+            description = re.sub(
+                mass_desc_pattern,
+                f"\\g<1>{target_max_mass:.0f} kg (originally < {base_max_mass:.0f} kg in the source environment).",
+                description
+            )
+
     return description
 
 
@@ -69,9 +106,11 @@ Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
  - **Joint torque resilience** (`joint_max_torque`): The maximum torque structural joints can withstand before failing.
  - **Anchor torque resilience** (`anchor_max_torque`): The maximum torque cliff anchors can withstand before breaking.
+ - **Joint force resilience** (`joint_max_force`): The maximum linear force structural joints can withstand before failing.
+ - **Anchor force resilience** (`anchor_max_force`): The maximum linear force cliff anchors can withstand before breaking.
  - **Mass limit** (`max_structure_mass`): The total allowed mass budget for your structure.
  - **Gravitational acceleration** (`gravity`): The strength and direction of the vertical gravitational force.
- - **Atmospheric wind** (`wind_force`): Constant lateral forces acting on all bodies in the environment.
+ - **Atmospheric wind** (`wind_force`): Constant lateral and vertical forces acting on all bodies in the environment.
  - **Terrain gap width** (`gap_width`): The horizontal distance between the starting cliff and the destination cliff.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
@@ -102,28 +141,36 @@ While the following variables **MIGHT** have changed from the initial environmen
         },
         {
             "stage_id": "Stage-3",
-            "title": "The Stormy Gorge",
-            "mutation_description": "Extreme gravity (-20.0), horizontal wind (-10N), and reduced mass limit (1500kg).",
+            "title": "The Vortex Gorge",
+            "mutation_description": "Extreme gravity (-22.0), horizontal wind (-20.0), and wider gap (20m) with fragile joints and anchors.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "max_structure_mass": 1500.0,
+                "gap_width": 20.0,
+                "max_structure_mass": 1200.0,
             },
             "physics_config": {
-                "gravity": (0, -20.0),
-                "wind_force": (-10.0, 0.0),
+                "gravity": (0, -22.0),
+                "wind_force": (-20.0, -5.0),
+                "joint_max_force": 20.0,
+                "anchor_max_force": 30.0,
+                "joint_max_torque": 40.0,
             },
         },
         {
             "stage_id": "Stage-4",
             "title": "Abyssal Crossing",
-            "mutation_description": "Gap 25m, Gravity -20, Low mass limit (1000kg).",
+            "mutation_description": "25m Gap, Gravity -25, Severe wind, and high mass budget for a robust structure.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "gap_width": 25.0,
-                "max_structure_mass": 1000.0,
+                "max_structure_mass": 1500.0,
             },
             "physics_config": {
-                "gravity": (0, -20.0),
+                "gravity": (0, -25.0),
+                "wind_force": (-35.0, -10.0),
+                "joint_max_force": 40.0,
+                "anchor_max_force": 60.0,
+                "joint_max_torque": 50.0,
             },
         },
     ]

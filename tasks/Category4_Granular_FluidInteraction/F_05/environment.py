@@ -38,11 +38,11 @@ class Sandbox:
         self.WATER_SURFACE_Y = 2.0
         self.CARGO_WATER_Y = float(terrain_config.get("cargo_water_y", 1.98))  # Extreme: cargo lost if y < 1.98m
         self.BOAT_MAX_ANGLE_RAD = math.radians(float(terrain_config.get("max_capsize_angle_deg", 18.0)))  # Extreme: 18°
-        self.BUILD_ZONE_X_MIN = 12.0
-        self.BUILD_ZONE_X_MAX = 18.0
-        self.BUILD_ZONE_Y_MIN = 2.0
-        self.BUILD_ZONE_Y_MAX = 4.5
-        self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 60.0))  # Extreme budget: 60 kg
+        self.BUILD_ZONE_X_MIN = float(terrain_config.get("build_zone_x_min", 12.0))
+        self.BUILD_ZONE_X_MAX = float(terrain_config.get("build_zone_x_max", 18.0))
+        self.BUILD_ZONE_Y_MIN = float(terrain_config.get("build_zone_y_min", 2.0))
+        self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 4.5))
+        self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 60.0))
         # Multi-mode waves (primary + secondary + gusts)
         wave_amplitude = float(terrain_config.get("wave_amplitude", 10.0))
         wave_freq = float(terrain_config.get("wave_frequency", 0.5))
@@ -68,6 +68,11 @@ class Sandbox:
         self._lateral_impulse_interval = int(terrain_config.get("lateral_impulse_interval_steps", 200))
 
         self._create_terrain(terrain_config)
+        
+        # New mechanics: fragile joints and slippery deck
+        self.DECK_FRICTION = float(terrain_config.get("deck_friction", 0.5))
+        self.JOINT_MAX_FORCE = float(terrain_config.get("joint_max_force", float('inf')))
+
         self._create_boat(terrain_config)
         self._create_cargo(terrain_config)
 
@@ -130,7 +135,7 @@ class Sandbox:
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(boat_width / 2, boat_height / 2)),
                 density=80.0,
-                friction=0.5,
+                friction=self.DECK_FRICTION,
             ),
         )
         hull.linearDamping = self._default_linear_damping
@@ -274,6 +279,24 @@ class Sandbox:
                     c.ApplyForceToCenter((0, buoyancy), wake=True)
         self._sim_time += time_step
         self._world.Step(time_step, 10, 10)
+
+        # Break joints if force/torque exceeds limit (fragile anchor points)
+        if self.JOINT_MAX_FORCE < float('inf'):
+            broken_joints = []
+            for j in list(self._joints):
+                try:
+                    # Get reaction force/torque at the end of the step
+                    force = j.GetReactionForce(1.0 / time_step).length
+                    torque = abs(j.GetReactionTorque(1.0 / time_step))
+                    # Threshold for torque is scaled
+                    if force > self.JOINT_MAX_FORCE or torque > self.JOINT_MAX_FORCE * 0.4:
+                        broken_joints.append(j)
+                except Exception:
+                    continue
+            for j in broken_joints:
+                if j in self._joints:
+                    self._world.DestroyJoint(j)
+                    self._joints.remove(j)
 
     def get_terrain_bounds(self):
         """Get terrain bounds for evaluation and rendering."""

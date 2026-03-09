@@ -141,6 +141,10 @@ class Evaluator:
             "failure_reason": failure_reason,
             "structure_mass": self.environment.get_structure_mass(),
             "max_structure_mass": self.MAX_STRUCTURE_MASS,
+            "build_zone_x_min": self.BUILD_ZONE_X_MIN,
+            "build_zone_x_max": self.BUILD_ZONE_X_MAX,
+            "build_zone_y_min": self.BUILD_ZONE_Y_MIN,
+            "build_zone_y_max": self.BUILD_ZONE_Y_MAX,
             "structure_broken": self.structure_broken,
             "joint_count": len(self.environment._joints),
         }

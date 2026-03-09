@@ -59,14 +59,14 @@ def get_s03_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Target Reach Distance**: The required horizontal extension from the anchor wall may have been adjusted.
- - **Structural Mass Budget**: The total allowed mass for your cantilever design may be adjusted to specific limits.
- - **Internal Joint Fragility**: The internal structural joints connecting beams may be highly brittle, shattering if internal forces or torques exceed a low threshold.
- - **Spatial Force Fields**: An invisible spatial anomaly might exert strong repulsive or attractive forces on any structure entering its radius.
- - **Wall Anchor Zoning**: Large continuous vertical sections of the wall may be strictly forbidden for anchoring, forcing construction from extreme high or low points.
- - **Obstacle Blockades**: Massive static structures might block direct horizontal paths, demanding complex geometries to navigate around them.
- - **Payload Dynamics**: Payloads may be dropped dynamically, testing resilience to impact shocks.
- - **Atmospheric Wind**: Sustained or oscillatory wind forces may induce lateral swaying or vertical bouncing.
+ - **Operational Range**: The required horizontal extension (Target Reach) from the anchor wall may be significantly increased.
+ - **Structural Load Capacity**: The target load mass and the total structural mass budget may have been adjusted to more demanding levels.
+ - **Joint Integrity Thresholds**: Internal connections may be brittle, with specific limits on force and torque (Internal Joint Fragility) that, if exceeded, will cause immediate structural failure.
+ - **Localized Force Fields**: Invisible spatial anomalies might exert powerful repulsive or attractive forces on any structure within their radius of influence.
+ - **Anchor Zoning Constraints**: Certain vertical segments of the wall may be restricted (Forbidden Anchor Zones), preventing any joints from being anchored within those height ranges.
+ - **Static Obstructions**: Massive, impenetrable structures might be present in the build zone, necessitating complex geometries to navigate around them.
+ - **Dynamic Load Impacts**: The payload might be dropped from a height rather than being placed statically, introducing severe impulse forces.
+ - **Atmospheric Oscillations**: Variable or oscillatory wind forces may act on the structure, inducing complex dynamic stresses.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -89,18 +89,18 @@ While the following variables MIGHT have changed from the initial environment, N
         {
             "stage_id": "Stage-2",
             "title": "The Magnetic Anomaly",
-            "mutation_description": "Single Variable: Strong spatial repulsion field forcing a detour.",
+            "mutation_description": "Single Variable: Extreme spatial repulsion forcing complex structural compensation.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "target_reach": 25.0,
-                "load_mass": 1000.0,
-                "max_structure_mass": 8000.0,
+                "target_reach": 28.0,
+                "load_mass": 1500.0,
+                "max_structure_mass": 10000.0,
             },
             "physics_config": {
                 "spatial_force": {
-                    "center": (12.5, 5.0),
-                    "magnitude": 60000.0,
-                    "radius": 10.0,
+                    "center": (14.0, 10.0),
+                    "magnitude": 1200000.0,
+                    "radius": 18.0,
                     "type": "repulsion"
                 }
             },
