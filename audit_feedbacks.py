@@ -1,4 +1,6 @@
-"""
+import os
+
+AUDITED_FEEDBACK_CODE = '''"""
 Task-specific feedback generation for Category 4: Granular/Fluid Interaction.
 Audit-Purified Version: Zero hallucinations, no hardcoded thresholds, strictly diagnostic.
 Grounds all feedback in metrics provided by the environment evaluator.
@@ -29,7 +31,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     # 2. Task Performance & Efficiency
     perf_keys = ["leakage_rate_percent", "purity_percent", "delivery_ratio_percent", "cargo_retained", "progress", "particles_in_truck", "particles_in_target"]
     if any(k in metrics for k in perf_keys):
-        parts.append("\n### 2. Task Performance & Efficiency")
+        parts.append("\\n### 2. Task Performance & Efficiency")
         if "leakage_rate_percent" in metrics:
             limit = metrics.get("leakage_limit_percent")
             limit_str = f" (Limit: {limit:.2f}%)" if limit is not None else ""
@@ -56,7 +58,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     # 3. Physical Process & Kinematics
     kin_keys = ["velocity_x", "speed", "vehicle_lowest_y", "boat_angle_deg", "bucket_angle_deg", "arm_joint_angle_deg"]
     if any(k in metrics for k in kin_keys):
-        parts.append("\n### 3. Physical Process & Kinematics")
+        parts.append("\\n### 3. Physical Process & Kinematics")
         vx, vy = metrics.get("velocity_x"), metrics.get("velocity_y")
         if vx is not None and vy is not None:
             parts.append(f"- Velocity State: [{vx:.2f}, {vy:.2f}] m/s")
@@ -111,7 +113,7 @@ def get_improvement_suggestions(
             suggestions.append("Diagnostic: Sorting phase failure. Aperture dimensions or separator dynamics allowed particulate cross-contamination.")
             
         if "sank" in reason or "lowest_y" in reason:
-            suggestions.append("Diagnostic: Buoyancy deficit. The displaced fluid volume is insufficient to support the system\'s total gravitational load.")
+            suggestions.append("Diagnostic: Buoyancy deficit. The displaced fluid volume is insufficient to support the system\\'s total gravitational load.")
         
         if "reach" in reason or "progress" in reason:
             suggestions.append("Diagnostic: Propulsive deficit. Net forward thrust is insufficient to overcome environmental drag and currents.")
@@ -120,3 +122,13 @@ def get_improvement_suggestions(
             suggestions.append("Diagnostic: Stability failure. The center-of-gravity and center-of-buoyancy alignment resulted in a critical overturning moment.")
 
     return suggestions
+'''
+
+for i in range(1, 7):
+    folder = f'tasks/Category4_Granular_FluidInteraction/F_0{i}'
+    feedback_file = os.path.join(folder, 'feedback.py')
+    if os.path.exists(feedback_file):
+        with open(feedback_file, 'w') as f:
+            f.write(AUDITED_FEEDBACK_CODE)
+        print(f"Audited and updated {feedback_file}")
+

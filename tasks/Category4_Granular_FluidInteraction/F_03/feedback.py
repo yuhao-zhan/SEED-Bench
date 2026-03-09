@@ -1,96 +1,122 @@
 """
-Task-specific feedback for F-03: The Excavator.
-Returns process and outcome metrics (bucket position/velocity, particles in hopper).
+Task-specific feedback generation for Category 4: Granular/Fluid Interaction.
+Audit-Purified Version: Zero hallucinations, no hardcoded thresholds, strictly diagnostic.
+Grounds all feedback in metrics provided by the environment evaluator.
 """
 from typing import Dict, Any, List
 
-
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
-    metric_parts = []
+    """
+    Exposes physical metrics from the Evaluator metrics dictionary.
+    """
+    parts = []
 
-    # Primary outcome: collection
-    if "initial_particle_count" in metrics:
-        metric_parts.append(f"**Initial particles**: {metrics['initial_particle_count']}")
-    if "particles_in_truck" in metrics:
-        metric_parts.append(f"**Particles in hopper**: {metrics['particles_in_truck']}")
-    if "min_particles_in_hopper" in metrics:
-        metric_parts.append(f"**Target (min in hopper)**: {metrics['min_particles_in_hopper']}")
-    if "collected_ratio_percent" in metrics:
-        metric_parts.append(f"**Collected ratio**: {metrics['collected_ratio_percent']:.1f}%")
-    if "structure_mass" in metrics:
-        metric_parts.append(f"**Structure mass**: {metrics['structure_mass']:.2f} kg")
-        if "max_structure_mass" in metrics:
-            metric_parts.append(f"**Mass limit**: {metrics['max_structure_mass']:.0f} kg")
-    if "structure_broken" in metrics:
-        metric_parts.append(f"**Structure integrity**: {'BROKEN' if metrics['structure_broken'] else 'INTACT'}")
-    if "joint_count" in metrics:
-        metric_parts.append(f"**Joint count**: {metrics['joint_count']}")
-    if "step_count" in metrics:
-        metric_parts.append(f"**Simulation steps**: {metrics['step_count']}")
+    # 1. Structural Design & Constraints
+    struct_keys = ["structure_mass", "max_structure_mass", "structure_broken", "joint_count", "beam_count", "terrain_joint_count"]
+    if any(k in metrics for k in struct_keys):
+        parts.append("### 1. Structural Design & Constraints")
+        if "structure_mass" in metrics:
+            limit = metrics.get("max_structure_mass")
+            limit_str = f" / {limit:.2f} kg" if limit is not None else ""
+            parts.append(f"- Total Structure Mass: {metrics['structure_mass']:.2f} kg{limit_str}")
+        if "structure_broken" in metrics:
+            parts.append(f"- Structural Integrity: {'FAILED (Joints Snapped)' if metrics['structure_broken'] else 'NOMINAL (Intact)'}")
+        if "joint_count" in metrics:
+            parts.append(f"- Joint Complexity: {metrics['joint_count']} active connections")
+        if "beam_count" in metrics:
+            parts.append(f"- Component Count: {metrics['beam_count']} beams")
 
-    # Physical state: bucket (agent) position and velocity
-    if "agent_x" in metrics or "velocity_x" in metrics:
-        metric_parts.append("\n**Bucket (agent) state**:")
-        if "agent_x" in metrics and "agent_y" in metrics:
-            metric_parts.append(f"- Position: x={metrics['agent_x']:.3f} m, y={metrics['agent_y']:.3f} m")
-        if "velocity_x" in metrics and "velocity_y" in metrics:
-            metric_parts.append(f"- Velocity: vx={metrics['velocity_x']:.3f} m/s, vy={metrics['velocity_y']:.3f} m/s")
-        if "speed" in metrics:
-            metric_parts.append(f"- Speed: {metrics['speed']:.3f} m/s")
-        if "angular_velocity" in metrics:
-            metric_parts.append(f"- Angular velocity: {metrics['angular_velocity']:.3f} rad/s")
-        if "bucket_angle_rad" in metrics:
-            metric_parts.append(f"- Bucket angle: {metrics['bucket_angle_rad']:.3f} rad ({metrics.get('bucket_angle_deg', 0):.1f}°)")
-    # Arm and joint angles (process metrics)
-    if "arm_joint_angle_rad" in metrics or "arm_x" in metrics:
-        metric_parts.append("\n**Arm state**:")
-        if "arm_joint_angle_rad" in metrics:
-            metric_parts.append(f"- Arm joint angle: {metrics['arm_joint_angle_rad']:.3f} rad ({metrics.get('arm_joint_angle_deg', 0):.1f}°)")
-        if "arm_x" in metrics and "arm_y" in metrics:
-            metric_parts.append(f"- Arm position: x={metrics['arm_x']:.3f} m, y={metrics['arm_y']:.3f} m")
-        if "arm_angle_rad" in metrics:
-            metric_parts.append(f"- Arm body angle: {metrics['arm_angle_rad']:.3f} rad")
+    # 2. Task Performance & Efficiency
+    perf_keys = ["leakage_rate_percent", "purity_percent", "delivery_ratio_percent", "cargo_retained", "progress", "particles_in_truck", "particles_in_target"]
+    if any(k in metrics for k in perf_keys):
+        parts.append("\n### 2. Task Performance & Efficiency")
+        if "leakage_rate_percent" in metrics:
+            limit = metrics.get("leakage_limit_percent")
+            limit_str = f" (Limit: {limit:.2f}%)" if limit is not None else ""
+            parts.append(f"- Leakage Rate: {metrics['leakage_rate_percent']:.2f}%{limit_str}")
+        if "purity_percent" in metrics:
+            limit = metrics.get("min_purity_percent")
+            limit_str = f" (Target: {limit:.1f}%)" if limit is not None else ""
+            parts.append(f"- Sorting Purity: {metrics['purity_percent']:.1f}%{limit_str}")
+        if "delivery_ratio_percent" in metrics:
+            limit = metrics.get("min_delivery_ratio_percent")
+            limit_str = f" (Target: {limit:.1f}%)" if limit is not None else ""
+            parts.append(f"- Delivery Efficiency: {metrics['delivery_ratio_percent']:.1f}%{limit_str}")
+        if "cargo_retained" in metrics:
+            total = metrics.get("initial_cargo_count", "N/A")
+            parts.append(f"- Cargo Secured: {metrics['cargo_retained']} / {total}")
+        if "particles_in_truck" in metrics or "particles_in_target" in metrics:
+            count = metrics.get("particles_in_truck") if metrics.get("particles_in_truck") is not None else metrics.get("particles_in_target")
+            target = metrics.get("min_particles_in_hopper")
+            target_str = f" (Target: {target})" if target is not None else ""
+            parts.append(f"- Relocated Particles: {count}{target_str}")
+        if "progress" in metrics and metrics["progress"] is not None:
+            parts.append(f"- Completion Progress: {metrics['progress']:.1f}%")
 
-    excluded = {
-        "initial_particle_count", "particles_in_truck", "collected_ratio", "collected_ratio_percent",
-        "min_particles_in_hopper", "min_collected_ratio", "min_collected_ratio_percent",
-        "structure_mass", "max_structure_mass", "structure_broken", "joint_count", "step_count",
-        "success", "failed", "failure_reason",
-        "agent_x", "agent_y", "velocity_x", "velocity_y", "speed", "angular_velocity",
-        "bucket_angle_rad", "bucket_angle_deg", "arm_joint_angle_rad", "arm_joint_angle_deg",
-        "arm_x", "arm_y", "arm_angle_rad",
-    }
-    other = {k: v for k, v in metrics.items() if k not in excluded}
-    if other:
-        metric_parts.append("\n**Additional metrics**:")
-        for k, v in other.items():
-            metric_parts.append(f"- {k}: {v:.3f}" if isinstance(v, float) else f"- {k}: {v}")
-    return metric_parts
+    # 3. Physical Process & Kinematics
+    kin_keys = ["velocity_x", "speed", "vehicle_lowest_y", "boat_angle_deg", "bucket_angle_deg", "arm_joint_angle_deg"]
+    if any(k in metrics for k in kin_keys):
+        parts.append("\n### 3. Physical Process & Kinematics")
+        vx, vy = metrics.get("velocity_x"), metrics.get("velocity_y")
+        if vx is not None and vy is not None:
+            parts.append(f"- Velocity State: [{vx:.2f}, {vy:.2f}] m/s")
+        if "speed" in metrics and metrics["speed"] is not None:
+            parts.append(f"- Absolute Speed: {metrics['speed']:.2f} m/s")
+        if "vehicle_lowest_y" in metrics and metrics["vehicle_lowest_y"] is not None:
+            parts.append(f"- Elevation (Lowest Point): {metrics['vehicle_lowest_y']:.2f} m")
+        if "boat_angle_deg" in metrics and metrics["boat_angle_deg"] is not None:
+            limit = metrics.get("boat_max_angle_deg")
+            limit_str = f" (Limit: {limit:.1f}°)" if limit is not None else ""
+            parts.append(f"- Tilt/Roll Angle: {metrics['boat_angle_deg']:.1f}°{limit_str}")
+        if "bucket_angle_deg" in metrics or "arm_joint_angle_deg" in metrics:
+            parts.append(f"- Actuator State: Bucket {metrics.get('bucket_angle_deg', 0):.1f}°, Arm {metrics.get('arm_joint_angle_deg', 0):.1f}°")
 
+    return parts
 
 def get_improvement_suggestions(
-    metrics: Dict[str, Any], score: float, success: bool, failed: bool,
-    failure_reason: str = None, error: str = None,
+    metrics: Dict[str, Any],
+    score: float,
+    success: bool,
+    failed: bool,
+    failure_reason: str = None,
+    error: str = None,
 ) -> List[str]:
+    """
+    Actionable diagnostic warnings without giving design spoilers.
+    """
     suggestions = []
-    if error:
-        error_lower = error.lower()
-        if "structure mass" in error_lower and "exceeds" in error_lower:
-            suggestions.append(f"- Reduce structure mass to be within {metrics.get('max_structure_mass', 800):.0f} kg")
-        elif "build zone" in error_lower:
-            suggestions.append("- Place all beams within build zone x=[-4, 2], y=[0, 5]")
+    reason = ((error or "") + " " + (failure_reason or "")).lower()
+
+    if "design constraint" in reason or error:
+        if "mass" in reason:
+            suggestions.append("Diagnostic: Structural mass limit exceeded. Analyze component density and optimize for a higher strength-to-weight ratio.")
+        if "build zone" in reason:
+            suggestions.append("Diagnostic: Geometric boundary violation. Ensure the structural topology is contained within permitted spatial limits.")
+        if "anchor" in reason or "terrain" in reason:
+            suggestions.append("Diagnostic: Invalid boundary anchoring. The system relies on prohibited external grounding points.")
+        if "joint" in reason:
+            suggestions.append("Diagnostic: Topology limit exceeded. The design exceeds the maximum allowed connectivity complexity.")
+
     elif failed:
-        if failure_reason and "design constraint" in failure_reason.lower():
-            if "structure mass" in failure_reason.lower():
-                suggestions.append(f"- Keep total mass below {metrics.get('max_structure_mass', 800):.0f} kg")
-            if "build zone" in failure_reason.lower():
-                suggestions.append("- Ensure all beams are inside the build zone between pit and truck")
-        elif failure_reason and ("deposited" in failure_reason.lower() or "hopper" in failure_reason.lower()):
-            suggestions.append("- Design bucket/scoop to hold material without spilling during rotation")
-            suggestions.append("- Use at least 2 DOF (Arm + Bucket) with revolute joints; control motors to scoop at pit and dump at hopper (x=-5.0, y=3.0)")
-        elif failure_reason and "structure integrity" in failure_reason.lower():
-            suggestions.append("- Strengthen joints; scooping and dumping exert large forces")
-    elif not success:
-        if (metrics.get("particles_in_truck") or 0) < 15:
-            suggestions.append("- Aim to deposit > 15 sand particles into the Hopper within 40 seconds")
+        if metrics.get("structure_broken"):
+            suggestions.append("Diagnostic: Structural integrity failure. Stress concentrations at connections exceeded the joint break threshold under environmental load.")
+        
+        if "leakage" in reason:
+            suggestions.append("Diagnostic: Containment failure. Evaluate geometric coverage and potential seepage paths caused by hydrostatic pressure.")
+        
+        if "delivery" in reason or "deposited" in reason or "particles" in reason:
+            suggestions.append("Diagnostic: Insufficient momentum transfer. The kinematic sequence failed to relocate material to the target region efficiently.")
+        
+        if "purity" in reason:
+            suggestions.append("Diagnostic: Sorting phase failure. Aperture dimensions or separator dynamics allowed particulate cross-contamination.")
+            
+        if "sank" in reason or "lowest_y" in reason:
+            suggestions.append("Diagnostic: Buoyancy deficit. The displaced fluid volume is insufficient to support the system\'s total gravitational load.")
+        
+        if "reach" in reason or "progress" in reason:
+            suggestions.append("Diagnostic: Propulsive deficit. Net forward thrust is insufficient to overcome environmental drag and currents.")
+        
+        if "capsize" in reason or "angle" in reason:
+            suggestions.append("Diagnostic: Stability failure. The center-of-gravity and center-of-buoyancy alignment resulted in a critical overturning moment.")
+
     return suggestions

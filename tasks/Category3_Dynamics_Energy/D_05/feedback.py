@@ -1,41 +1,42 @@
 """
-Task-specific feedback for D-05: The Hammer
+Audited task-specific feedback for D-05: The Hammer
 """
 from typing import Dict, Any, List
 
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Format task-specific metrics for D-05: The Hammer.
-    Exposes metrics directly from the evaluator.
+    Expose high-resolution physical metrics strictly from evaluator.py.
     """
     parts = []
 
     if "shell_broken" in metrics:
-        parts.append(f"**Target Breach**: {'Yes' if metrics['shell_broken'] else 'No'}")
+        parts.append(f"**Target Shell Status**: {'Broken' if metrics['shell_broken'] else 'Intact'}")
     
-    if "shell_break_force" in metrics:
-        parts.append(f"**Target Threshold**: {metrics['shell_break_force']:.0f} N")
+    if "hammer_x" in metrics and "hammer_y" in metrics:
+        parts.append(f"**Hammer Position**: (x: {metrics['hammer_x']:.2f} m, y: {metrics['hammer_y']:.2f} m)")
+
+    if "speed" in metrics:
+        parts.append(f"**Impact Speed**: {metrics['speed']:.2f} m/s")
 
     if "kinetic_energy" in metrics:
-        parts.append(f"**Impact Kinetic Energy**: {metrics['kinetic_energy']:.2f} J")
-    
-    if "speed" in metrics:
-        parts.append(f"**Hammer Speed**: {metrics['speed']:.3f} m/s")
+        parts.append(f"**Hammer Kinetic Energy**: {metrics['kinetic_energy']:.2f} J")
 
-    if "hammer_x" in metrics and "hammer_y" in metrics:
-        parts.append(f"**Hammer Position**: ({metrics['hammer_x']:.2f}, {metrics['hammer_y']:.2f}) m")
+    # Obstacle Collision Status
+    obs = []
+    if metrics.get("hammer_hit_pendulum"): obs.append("Pendulum")
+    if metrics.get("hammer_hit_gate") or metrics.get("hammer_hit_gate2"): obs.append("Gate")
+    if metrics.get("hammer_hit_wall"): obs.append("Central Wall")
+    if metrics.get("hammer_hit_slot_wall"): obs.append("Slot Barrier")
+    if metrics.get("hammer_hit_slot_bar"): obs.append("Slot Bar")
+    
+    if obs:
+        parts.append(f"**Collision Detected**: {', '.join(obs)}")
 
     if "structure_mass" in metrics:
         mass = metrics["structure_mass"]
-        limit = metrics.get("max_structure_mass", 0.0)
-        parts.append(f"**System Mass**: {mass:.2f} kg (Limit: {limit:.1f} kg)")
-
-    # Report collisions detected by evaluator
-    if metrics.get("hammer_hit_wall"): parts.append("**Obstacle collision**: Static wall")
-    if metrics.get("hammer_hit_pendulum"): parts.append("**Obstacle collision**: Pendulum")
-    if metrics.get("hammer_hit_slot_wall"): parts.append("**Obstacle collision**: Slot boundary")
-    if metrics.get("hammer_hit_slot_bar"): parts.append("**Obstacle collision**: Slot bar")
+        limit = metrics.get("max_structure_mass", float('inf'))
+        parts.append(f"**Structure Mass**: {mass:.2f} kg / {limit:.1f} kg")
 
     return parts
 
@@ -49,30 +50,37 @@ def get_improvement_suggestions(
     error: str = None,
 ) -> List[str]:
     """
-    Generate diagnostic warnings for D-05: The Hammer.
+    Audited diagnostic feedback. No hardcoded thresholds or design spoilers.
     """
     suggestions = []
-    
     msg = (error or failure_reason or "").lower()
 
-    # 1. Structural Failures
+    # 1. Impact Force Diagnostics
+    if not success and metrics.get("shell_broken") == False and "hit" not in msg:
+        suggestions.append("- **Impact Energy Deficit**: The hammer failed to break the shell. Analyze the kinetic energy or instantaneous force at impact.")
+        ke = metrics.get("kinetic_energy", 0.0)
+        break_force = metrics.get("shell_break_force")
+        if break_force is not None and ke > 0 and ke < break_force:
+            suggestions.append("- **Momentum Inefficiency**: The impact magnitude appears insufficient relative to the shell's durability.")
+
+    # 2. Timing & Obstacle Diagnostics
+    if "pendulum" in msg:
+        suggestions.append("- **Aperture-Timing Conflict**: The hammer collided with a pendulum. Analyze the period of oscillation.")
+    
+    if "gate" in msg:
+        suggestions.append("- **Synchronization Error**: The gates were not open during transit. Precisely time the launch relative to the gate cycles.")
+
+    if "wall" in msg:
+        suggestions.append("- **Spatial Obstruction**: The direct path to the shell is blocked. Analyze the vertical trajectory requirements.")
+
+    if "slot" in msg:
+        suggestions.append("- **Trajectory Precision Error**: The hammer head failed to thread the narrow vertical gap.")
+
+    # 3. Structural/Design Constraints
     if "mass" in msg:
-        suggestions.append("- **Mass Constraint**: The hammer exceeds the structural limit. Analyze the mass distribution between arm and head.")
+        suggestions.append("- **Mass Limit Violation**: The total mass exceeds the design budget.")
+    
     if "build zone" in msg:
-        suggestions.append("- **Spatial Violation**: Components are placed outside the designated fabrication area.")
-
-    # 2. Performance Diagnostics
-    if failed or not success:
-        if any(metrics.get(k) for k in ("hammer_hit_wall", "hammer_hit_slot_wall")):
-            suggestions.append("- **Geometric Obstruction**: The trajectory was blocked by a static barrier. Analyze the swing arc.")
-        
-        if any(metrics.get(k) for k in ("hammer_hit_pendulum", "hammer_hit_slot_bar")):
-            suggestions.append("- **Synchronization Failure**: The hammer collided with a moving obstacle. Analyze timing.")
-
-        elif "shell not broken" in msg:
-            suggestions.append("- **Impact Force Deficiency**: The impact delivered insufficient energy to breach the target. Analyze kinetic energy at contact.")
-            threshold = metrics.get("shell_break_force", 0.0)
-            if threshold > 0:
-                suggestions.append(f"- **Requirement**: The instantaneous force must exceed {threshold:.0f} N.")
+        suggestions.append("- **Spatial Violation**: Components were detected outside the valid construction area.")
 
     return suggestions

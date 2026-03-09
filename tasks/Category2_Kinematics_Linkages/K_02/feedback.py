@@ -6,78 +6,36 @@ from typing import Dict, Any, List
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Format task-specific metrics for K-02: The Climber
-    Args:
-        metrics: Evaluation metrics dictionary
-    Returns:
-        List of formatted metric strings
+    Expose high-resolution physical metrics for K-02: The Climber.
     """
     metric_parts = []
     
-    # Climber position and progress (always show if available)
-    if 'climber_x' in metrics:
-        climber_y = metrics.get('climber_y', 0)
-        metric_parts.append(f"**Climber position**: x={metrics['climber_x']:.2f}m, y={climber_y:.2f}m")
-        if 'target_y' in metrics:
-            metric_parts.append(f"**Target height**: y={metrics['target_y']:.2f}m")
+    if 'climber_y' in metrics:
+        metric_parts.append(f"**Vertical Trajectory**: Current altitude y={metrics['climber_y']:.2f}m")
         if 'height_gained' in metrics:
-            metric_parts.append(f"**Height gained**: {metrics['height_gained']:.2f}m")
+            metric_parts.append(f"- Net Elevation Gain: {metrics['height_gained']:.2f}m")
         if 'max_height_reached' in metrics:
-            metric_parts.append(f"**Max height reached**: {metrics['max_height_reached']:.2f}m")
-        if 'progress' in metrics:
-            metric_parts.append(f"**Progress**: {metrics['progress']:.1f}%")
-    elif 'target_y' in metrics:
-        # At least show target if climber position not available
-        metric_parts.append(f"**Target height**: y={metrics['target_y']:.2f}m")
-    
-    # Structure mass
+            metric_parts.append(f"- Apogee reached: {metrics['max_height_reached']:.2f}m")
+        if 'target_y' in metrics:
+            metric_parts.append(f"- Mission Objective: {metrics['target_y']:.1f}m target height")
+
+    if 'climber_x' in metrics:
+        metric_parts.append(f"**Contact Mechanics**: Horizontal position x={metrics['climber_x']:.2f}m")
+
     if 'structure_mass' in metrics:
-        metric_parts.append(f"**Structure mass**: {metrics['structure_mass']:.2f}kg")
-        if 'max_structure_mass' in metrics:
-            metric_parts.append(f"**Mass limit**: {metrics['max_structure_mass']:.0f}kg")
-    
-    # Height tracking
-    if 'min_height_seen' in metrics:
-        metric_parts.append(f"**Minimum height**: {metrics['min_height_seen']:.2f}m")
-        if 'climber_fell' in metrics:
-            status = "FELL" if metrics['climber_fell'] else "STABLE"
-            metric_parts.append(f"**Climber status**: {status}")
-    
-    # Motion tracking
-    if 'steps_with_motion' in metrics:
-        metric_parts.append(f"**Steps with motion**: {metrics['steps_with_motion']}")
-        if 'min_simulation_steps_required' in metrics:
-            metric_parts.append(f"**Required steps**: {metrics['min_simulation_steps_required']}")
-    
-    # Velocity information
-    if 'velocity_x' in metrics or 'velocity_y' in metrics:
-        metric_parts.append("\n**Velocity Information**:")
-        if 'velocity_x' in metrics:
-            metric_parts.append(f"- Velocity X: {metrics['velocity_x']:.3f} m/s")
-        if 'velocity_y' in metrics:
-            metric_parts.append(f"- Velocity Y: {metrics['velocity_y']:.3f} m/s")
-        if 'speed' in metrics:
-            metric_parts.append(f"- Speed: {metrics['speed']:.3f} m/s")
-        if 'angular_velocity' in metrics:
-            metric_parts.append(f"- Angular velocity: {metrics['angular_velocity']:.3f} rad/s")
-    
-    # Simulation steps
+        max_mass = metrics.get('max_structure_mass', float('inf'))
+        metric_parts.append(f"**Structural Profile**: Mass {metrics['structure_mass']:.2f}kg")
+        if max_mass != float('inf'):
+            utilization = (metrics['structure_mass'] / max_mass) * 100
+            metric_parts.append(f"- Payload Budget Utilization: {utilization:.1f}%")
+
     if 'step_count' in metrics:
-        metric_parts.append(f"**Simulation steps**: {metrics['step_count']}")
-    
-    # Add any additional metrics
-    excluded_keys = ['climber_x', 'climber_y', 'target_y', 'height_gained', 'max_height_reached', 'progress', 'structure_mass',
-                    'max_structure_mass', 'min_height_seen', 'climber_fell', 'steps_with_motion',
-                    'min_simulation_steps_required', 'step_count', 'success', 'failed', 'failure_reason']
-    other_metrics = {k: v for k, v in metrics.items() if k not in excluded_keys}
-    if other_metrics:
-        metric_parts.append("\n**Additional Metrics**:")
-        for key, value in other_metrics.items():
-            if isinstance(value, (int, float)):
-                metric_parts.append(f"- {key}: {value:.3f}" if isinstance(value, float) else f"- {key}: {value}")
-            else:
-                metric_parts.append(f"- {key}: {value}")
-    
+        req_steps = metrics.get('min_simulation_steps_required', 0)
+        metric_parts.append(f"**Temporal Analysis**: System active for {metrics['step_count']} steps")
+        if req_steps > 0:
+            survival = min(metrics['step_count'] / req_steps, 1.0) * 100
+            metric_parts.append(f"- Duty Cycle: {survival:.1f}% of required operational time")
+
     return metric_parts
 
 
@@ -85,71 +43,29 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
                                 failed: bool, failure_reason: str = None, 
                                 error: str = None) -> List[str]:
     """
-    Generate task-specific improvement suggestions for K-02: The Climber
-    Args:
-        metrics: Evaluation metrics dictionary
-        score: Score (0-100)
-        success: Whether successful
-        failed: Whether failed
-        failure_reason: Failure reason
-        error: Error message if code execution failed
-    Returns:
-        List of improvement suggestion strings
+    Generate diagnostic physical feedback for K-02: The Climber.
     """
     suggestions = []
     
-    if error:
-        error_lower = error.lower()
-        if "structure mass" in error_lower and "exceeds" in error_lower:
-            max_mass = metrics.get('max_structure_mass', 50.0)
-            suggestions.append(f"- Reduce structure mass to be within {max_mass:.0f}kg limit")
-            suggestions.append("- Use lighter materials (lower density) or optimize beam sizes")
-            suggestions.append("- Consider using fewer or smaller components")
-        elif "build zone" in error_lower:
-            suggestions.append("- Ensure all beams are placed within the build zone")
-            suggestions.append("- Check that climber components are within x=[0, 5], y=[0, 25]")
-        elif "error building" in error_lower:
-            suggestions.append("- Review the error message above to identify the specific constraint violation")
-            suggestions.append("- Ensure all parameters (beam sizes, positions) are within allowed ranges")
-    
-    elif failed:
-        if failure_reason and "design constraint violated" in failure_reason.lower():
-            failure_lower = failure_reason.lower()
-            if "structure mass" in failure_lower:
-                max_mass = metrics.get('max_structure_mass', 50.0)
-                suggestions.append(f"- Reduce structure mass to be within {max_mass:.0f}kg limit")
-                suggestions.append("- Optimize beam sizes and densities to minimize total mass")
-            if "build zone" in failure_lower:
-                suggestions.append("- Ensure all beams are placed within the build zone")
-        elif failure_reason and "fell" in failure_reason.lower():
-            suggestions.append("- Climber is losing contact with the wall or not generating enough friction")
-            suggestions.append("- Increase friction of components that contact the wall")
-            suggestions.append("- Improve compression mechanism to maintain wall contact")
-            suggestions.append("- Adjust motor coordination to maintain upward force against gravity")
-            suggestions.append("- Consider using a gripping mechanism that creates compression forces")
-        elif failure_reason and "did not climb" in failure_reason.lower():
-            suggestions.append("- Motor speeds may be too low or not properly coordinated")
-            suggestions.append("- Check that motors are driving joints in the correct direction for upward motion")
-            suggestions.append("- Ensure climber maintains contact with wall (x position near 5.0m)")
-            suggestions.append("- Consider adjusting motor phase relationships for better climbing gait")
-            suggestions.append("- Verify that linkage mechanisms create proper climbing motion")
+    if error or (failed and failure_reason and "design constraint" in failure_reason.lower()):
+        if "mass" in (error or failure_reason).lower():
+            max_mass = metrics.get('max_structure_mass', 0.0)
+            suggestions.append(f"DIAGNOSTIC: Structural mass ({metrics.get('structure_mass', 0):.2f}kg) exceeds the environmental budget ({max_mass:.1f}kg).")
+            suggestions.append("ADVISORY: Actuator lifting capacity may be overwhelmed by the current system weight.")
+        return suggestions
+
+    if failed:
+        if "lost wall contact" in failure_reason.lower():
+            suggestions.append("DIAGNOSTIC: Loss of horizontal constraint. The system drifted beyond the effective interaction range of the vertical surface.")
+            suggestions.append("ADVISORY: Analyze the net forces. Ensure the linkage maintains a normal force component toward the wall during the ascent.")
+        
+        elif "fell" in failure_reason.lower() or metrics.get('climber_fell', False):
+            suggestions.append("DIAGNOSTIC: Gravitational collapse. The net vertical support force failed to counteract the system weight.")
+            suggestions.append("ADVISORY: Review the adhesion cycle logic; ensure static contact is maintained while other links are in motion.")
+
     elif not success:
-        if 'height_gained' in metrics:
-            if metrics.get('height_gained', 0) < 5.0:
-                suggestions.append("- Climber is not climbing effectively")
-                suggestions.append("- Adjust motor speeds and phase coordination")
-                suggestions.append("- Ensure climber maintains wall contact and sufficient friction")
-            elif metrics.get('height_gained', 0) < 15.0:
-                suggestions.append("- Climber is making progress but needs to climb higher")
-                suggestions.append("- Increase motor speeds or improve climbing efficiency")
-                suggestions.append("- Check that climber maintains upward momentum")
-        
-        if 'climber_fell' in metrics and metrics.get('climber_fell', False):
-            suggestions.append("- Climber is falling - improve wall contact and friction")
-        
-        if 'steps_with_motion' in metrics and 'min_simulation_steps_required' in metrics:
-            if metrics.get('steps_with_motion', 0) < metrics.get('min_simulation_steps_required', 0):
-                suggestions.append("- Climber motion is not sustained long enough")
-                suggestions.append("- Improve stability and continuous upward motion")
-    
+        progress = metrics.get('progress', 0.0)
+        if progress > 0 and progress < 100:
+            suggestions.append(f"DIAGNOSTIC: Functional climb detected but elevation gain is suboptimal ({progress:.1f}% of objective).")
+
     return suggestions

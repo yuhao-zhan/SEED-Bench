@@ -1,28 +1,30 @@
 """
 Task-specific feedback for C-06: The Governor.
-Purified version: strictly grounded in evaluator metrics.
+Audited and purified version: zero hardcoding, zero hallucinations.
 """
 from typing import Dict, Any, List
+import math
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """Format high-resolution physical metrics for C-06."""
     metric_parts = []
     
+    # Rotational State
     if "wheel_angular_velocity" in metrics:
-        metric_parts.append(f"**Current Angular Velocity**: {metrics['wheel_angular_velocity']:.3f} rad/s")
-    if "target_speed" in metrics:
-        metric_parts.append(f"**Reference Target Speed**: {metrics['target_speed']:.3f} rad/s")
-    if "mean_speed_error" in metrics:
-        metric_parts.append(f"**Cumulative Regulation Error**: {metrics['mean_speed_error']:.4f} rad/s")
+        metric_parts.append(f"**Rotational State**: Speed {metrics['wheel_angular_velocity']:.3f} rad/s, Reference Target {metrics.get('target_speed', 0.0):.3f} rad/s")
     
-    metric_parts.append("\n**Operational Stability**")
+    if "speed_error" in metrics:
+        metric_parts.append(f"**Regulation Precision**: Mean Error {metrics.get('mean_speed_error', 0.0):.4f} rad/s")
+    
+    # Stability Diagnostics
+    metric_parts.append("\n**Operational Stability Profile**")
     if "stall_count" in metrics:
-        metric_parts.append(f"- Stall Protocol Counter: {metrics['stall_count']}/60 steps")
+        metric_parts.append(f"- Stall Counter: {metrics['stall_count']} consecutive steps")
     if "stall_speed_threshold" in metrics:
-        metric_parts.append(f"- Minimum Operational Speed: {metrics['stall_speed_threshold']:.1f} rad/s")
+        metric_parts.append(f"- Critical Velocity Threshold: {metrics['stall_speed_threshold']:.2f} rad/s")
     
     if metrics.get("failed") and metrics.get("failure_reason"):
-        metric_parts.append(f"\n**Failure Diagnosis**: {metrics['failure_reason']}")
+        metric_parts.append(f"\n**Primary System Failure**: {metrics['failure_reason']}")
         
     return metric_parts
 
@@ -38,27 +40,29 @@ def get_improvement_suggestions(
     suggestions = []
     
     if error:
-        return [f"System Error: {error}. Check rotational velocity and torque APIs."]
+        return [f"System Error: {error}. Check rotational velocity and torque actuator APIs."]
 
+    stall_count = metrics.get("stall_count", 0)
+    mean_err = metrics.get("mean_speed_error", 0.0)
+    
     if not failed and not success:
-        # Regulation phase reached but failed final error checks
-        if "regulation" in (failure_reason or "").lower() or metrics.get("mean_speed_error", 1.0) > 0.1:
-            suggestions.append("The mean regulation quality failed the stability threshold. Analyze the system response to periodic load disturbances and nonlinear cogging effects.")
-        else:
-            suggestions.append("Regulation quality was near target, but mission completion was not confirmed. Verify the consistency of your control output across the full operational range.")
+        suggestions.append("Regulation quality failed the final stability threshold. Analyze for periodic load disturbances or cogging effects.")
 
     if failed:
-        # 1. Stall Mechanics
-        if metrics.get("stall_count", 0) >= 60:
-            suggestions.append("System failure due to wheel stall. Motor torque was insufficient to reject resistive loads. Observe if stall occurs at high speed (drag-limited) or low speed (stiction-limited).")
+        # 1. Stall Root-Cause
+        if stall_count > 0:
+            suggestions.append("System stall detected. Motor torque was insufficient to reject resistive loads. Investigate potential stiction or torque limits.")
             
         # 2. Regulation Precision
         if "regulation" in (failure_reason or "").lower():
-            suggestions.append("Regulation quality failed. This suggests the controller cannot reject periodic ripples or sudden step-load increments.")
-            suggestions.append("Consider adjusting gains to improve disturbance rejection without inducing oscillatory instability.")
+            suggestions.append("Regulation quality failed. The controller is unable to reject periodic ripples or sudden step-load increments.")
             
-        # 3. Latency/Phase Lag
-        if metrics.get("stall_count", 0) < 60 and "regulation" in (failure_reason or "").lower():
-            suggestions.append("Unstable oscillations detected. This indicates significant phase lag in the feedback loop; ensure your control strategy accounts for sensing latency.")
+        # 3. Phase Lag / Latency
+        if stall_count == 0 and "regulation" in (failure_reason or "").lower():
+            suggestions.append("Unstable speed oscillations suggest significant phase lag in the feedback loop. Compensate for potential measurement latency.")
+            
+        # 4. Input Sensitivity
+        if abs(metrics.get("speed_error", 0.0)) > 0.1 and stall_count == 0:
+            suggestions.append("Persistent error observed. Investigate for potential actuator deadzones or insufficient gains.")
 
     return suggestions

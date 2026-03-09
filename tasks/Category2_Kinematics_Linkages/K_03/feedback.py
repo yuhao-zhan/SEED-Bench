@@ -1,100 +1,45 @@
 """
 Task-specific feedback generation for K-03: The Gripper
 """
-import math
 from typing import Dict, Any, List
 
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Format task-specific metrics for K-03: The Gripper
-    Args:
-        metrics: Evaluation metrics dictionary
-    Returns:
-        List of formatted metric strings
+    Expose high-resolution physical metrics for K-03: The Gripper.
     """
     metric_parts = []
     
-    # Gripper and object position (always show if available)
-    if 'gripper_x' in metrics:
-        gripper_y = metrics.get('gripper_y', 0)
-        metric_parts.append(f"**Gripper position**: x={metrics['gripper_x']:.2f}m, y={gripper_y:.2f}m")
-    if 'object_x' in metrics:
-        object_y = metrics.get('object_y', 0)
-        metric_parts.append(f"**Object position**: x={metrics['object_x']:.2f}m, y={object_y:.2f}m")
-        if 'target_object_y' in metrics:
-            metric_parts.append(f"**Target height**: y={metrics['target_object_y']:.2f}m")
-        if 'height_gained' in metrics:
-            metric_parts.append(f"**Height gained**: {metrics['height_gained']:.2f}m")
-        if 'max_object_y_reached' in metrics:
-            metric_parts.append(f"**Max height reached**: {metrics['max_object_y_reached']:.2f}m")
-        if 'progress' in metrics:
-            metric_parts.append(f"**Progress**: {metrics['progress']:.1f}%")
-    elif 'target_object_y' in metrics:
-        # At least show target if object position not available
-        metric_parts.append(f"**Target height**: y={metrics['target_object_y']:.2f}m")
-    
-    # Structure mass
-    if 'structure_mass' in metrics:
-        metric_parts.append(f"**Structure mass**: {metrics['structure_mass']:.2f}kg")
-        if 'max_structure_mass' in metrics:
-            metric_parts.append(f"**Mass limit**: {metrics['max_structure_mass']:.0f}kg")
-    
-    # Object status and contact (physical grasp)
-    if 'gripper_bodies_touching_object' in metrics:
-        metric_parts.append(f"**Gripper bodies touching object**: {metrics['gripper_bodies_touching_object']}")
+    if 'object_grasped' in metrics:
+        status = "SECURED" if metrics['object_grasped'] else "LOOSE/NONE"
+        metric_parts.append(f"**Grasp State**: {status}")
         if 'object_contact_points' in metrics:
-            metric_parts.append(f"**Object contact points**: {metrics['object_contact_points']}")
-    if 'min_object_y_seen' in metrics:
-        metric_parts.append(f"**Minimum object height**: {metrics['min_object_y_seen']:.2f}m")
-        if 'object_fell' in metrics:
-            status = "FELL" if metrics['object_fell'] else "HELD"
-            metric_parts.append(f"**Object status**: {status}")
-        if 'object_grasped' in metrics:
-            grasped = "YES" if metrics['object_grasped'] else "NO"
-            metric_parts.append(f"**Object grasped**: {grasped}")
-    
-    # Grip tracking
-    if 'steps_with_object_above_target' in metrics:
-        metric_parts.append(f"**Steps with object above target**: {metrics['steps_with_object_above_target']}")
-        if 'min_simulation_steps_required' in metrics:
-            metric_parts.append(f"**Required steps**: {metrics['min_simulation_steps_required']}")
-    
-    # Simulation steps
-    if 'step_count' in metrics:
-        metric_parts.append(f"**Simulation steps**: {metrics['step_count']}")
-    
-    # Physical state information for fine-grained debugging (like S_01)
-    if 'gripper_x' in metrics and 'object_x' in metrics:
-        metric_parts.append("\n**Physical State Information**:")
-        metric_parts.append(f"- Gripper position: ({metrics.get('gripper_x', 0):.3f}, {metrics.get('gripper_y', 0):.3f}) m")
-        metric_parts.append(f"- Object position: ({metrics.get('object_x', 0):.3f}, {metrics.get('object_y', 0):.3f}) m")
-        dx = metrics.get('object_x', 0) - metrics.get('gripper_x', 0)
-        dy = metrics.get('object_y', 0) - metrics.get('gripper_y', 0)
-        dist = math.sqrt(dx*dx + dy*dy)
-        metric_parts.append(f"- Object–gripper distance: {dist:.3f} m")
+            metric_parts.append(f"- Interaction Complexity: {metrics['object_contact_points']} contact points detected")
+        if 'gripper_bodies_touching_object' in metrics:
+            metric_parts.append(f"- Contact Geometry: {metrics['gripper_bodies_touching_object']} gripper links in contact")
+
+    if 'object_y' in metrics:
+        metric_parts.append(f"**Payload Kinematics**: Current altitude y={metrics['object_y']:.2f}m")
         if 'height_gained' in metrics:
-            metric_parts.append(f"- Height gained (object): {metrics['height_gained']:.3f} m")
-        if 'max_object_y_reached' in metrics:
-            metric_parts.append(f"- Max object height reached: {metrics['max_object_y_reached']:.3f} m")
-        if 'min_object_y_seen' in metrics:
-            metric_parts.append(f"- Min object height seen: {metrics['min_object_y_seen']:.3f} m")
-        if 'progress' in metrics:
-            metric_parts.append(f"- Progress toward target: {metrics['progress']:.1f}%")
-    
-    # Add any additional metrics (exclude physical state keys)
-    excluded_keys = ['gripper_x', 'gripper_y', 'object_x', 'object_y', 'target_object_y', 'height_gained', 'max_object_y_reached', 'progress', 'structure_mass',
-                    'max_structure_mass', 'min_object_y_seen', 'object_fell', 'object_grasped', 'object_contact_points', 'gripper_bodies_touching_object',
-                    'steps_with_object_above_target', 'min_simulation_steps_required', 'step_count', 'success', 'failed', 'failure_reason']
-    other_metrics = {k: v for k, v in metrics.items() if k not in excluded_keys}
-    if other_metrics:
-        metric_parts.append("\n**Additional Metrics**:")
-        for key, value in other_metrics.items():
-            if isinstance(value, (int, float)):
-                metric_parts.append(f"- {key}: {value:.3f}" if isinstance(value, float) else f"- {key}: {value}")
-            else:
-                metric_parts.append(f"- {key}: {value}")
-    
+            metric_parts.append(f"- Elevation Δy: {metrics['height_gained']:.2f}m")
+        if 'target_object_y' in metrics:
+            metric_parts.append(f"- Mission Objective: altitude >= {metrics['target_object_y']:.2f}m")
+
+    if 'structure_mass' in metrics:
+        max_mass = metrics.get('max_structure_mass', float('inf'))
+        metric_parts.append(f"**Structural Profile**: Mass {metrics['structure_mass']:.2f}kg")
+        if max_mass != float('inf'):
+            utilization = (metrics['structure_mass'] / max_mass) * 100
+            metric_parts.append(f"- Mass Budget Utilization: {utilization:.1f}%")
+
+    if 'steps_with_object_above_target' in metrics:
+        req_steps = metrics.get('min_simulation_steps_required', 0)
+        held_steps = metrics['steps_with_object_above_target']
+        metric_parts.append(f"**Temporal Performance**: Objective sustained for {held_steps} steps")
+        if req_steps > 0:
+            stability_ratio = min(held_steps / req_steps, 1.0) * 100
+            metric_parts.append(f"- Grip Stability Factor: {stability_ratio:.1f}% of requirement")
+
     return metric_parts
 
 
@@ -102,75 +47,32 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
                                 failed: bool, failure_reason: str = None, 
                                 error: str = None) -> List[str]:
     """
-    Generate task-specific improvement suggestions for K-03: The Gripper
-    Args:
-        metrics: Evaluation metrics dictionary
-        score: Score (0-100)
-        success: Whether successful
-        failed: Whether failed
-        failure_reason: Failure reason
-        error: Error message if code execution failed
-    Returns:
-        List of improvement suggestion strings
+    Generate diagnostic physical feedback for K-03: The Gripper.
     """
     suggestions = []
     
-    if error:
-        error_lower = error.lower()
-        if "structure mass" in error_lower and "exceeds" in error_lower:
-            max_mass = metrics.get('max_structure_mass', 30.0)
-            suggestions.append(f"- Reduce structure mass to be within {max_mass:.0f}kg limit")
-            suggestions.append("- Use lighter materials (lower density) or optimize beam sizes")
-            suggestions.append("- Consider using fewer or smaller components")
-        elif "build zone" in error_lower:
-            suggestions.append("- Ensure all beams are placed within the build zone")
-            suggestions.append("- Check that gripper components are within x=[0, 10], y=[5, 15]")
-        elif "error building" in error_lower:
-            suggestions.append("- Review the error message above to identify the specific constraint violation")
-            suggestions.append("- Ensure all parameters (beam sizes, positions) are within allowed ranges")
-    
-    elif failed:
-        if failure_reason and "design constraint violated" in failure_reason.lower():
-            failure_lower = failure_reason.lower()
-            if "structure mass" in failure_lower:
-                max_mass = metrics.get('max_structure_mass', 30.0)
-                suggestions.append(f"- Reduce structure mass to be within {max_mass:.0f}kg limit")
-                suggestions.append("- Optimize beam sizes and densities to minimize total mass")
-            if "build zone" in failure_lower:
-                suggestions.append("- Ensure all beams are placed within the build zone")
-        elif failure_reason and "fell" in failure_reason.lower():
-            suggestions.append("- Object is slipping from gripper - increase friction of gripper components")
-            suggestions.append("- Improve gripping mechanism to maintain better contact with object")
-            suggestions.append("- Adjust motor coordination to maintain compression force on object")
-            suggestions.append("- Consider using multiple contact points for better grip")
-            suggestions.append("- Ensure gripper fingers/arms maintain contact with object during lifting")
-        elif failure_reason and "not lifted" in failure_reason.lower():
-            suggestions.append("- Gripper may not be making proper contact with object")
-            suggestions.append("- Adjust gripper position and finger/arm angles to grasp object")
-            suggestions.append("- Motor speeds may be too low or not properly coordinated")
-            suggestions.append("- Check that gripper can reach the object (x=5.0m, y=2.0m)")
-            suggestions.append("- Verify that linkage mechanisms create proper gripping motion")
+    if error or (failed and failure_reason and "design constraint" in failure_reason.lower()):
+        if "mass" in (error or failure_reason).lower():
+            max_m = metrics.get('max_structure_mass', 0.0)
+            suggestions.append(f"DIAGNOSTIC: Gripper assembly mass ({metrics.get('structure_mass', 0):.2f}kg) violates environmental limits ({max_m:.1f}kg).")
+            suggestions.append("ADVISORY: Optimize the arm and linkage density to improve actuator efficiency.")
+        return suggestions
+
+    if failed:
+        if "object fell" in failure_reason.lower() or metrics.get('object_fell', False):
+            suggestions.append("DIAGNOSTIC: Static equilibrium loss. The forces between the gripper and object were insufficient to counteract weight.")
+            suggestions.append("ADVISORY: Analyze the contact geometry. Ensure the linkage generates sufficient friction or form-closure to secure the payload.")
+        
+        elif "not lifted" in failure_reason.lower() or metrics.get('height_gained', 0) < 0.1:
+            suggestions.append("DIAGNOSTIC: Insufficient work output. The net lifting force is not overcoming the combined weight of the system and payload.")
+
     elif not success:
-        if 'height_gained' in metrics:
-            if metrics.get('height_gained', 0) < 2.0:
-                suggestions.append("- Object is not being lifted effectively")
-                suggestions.append("- Adjust motor speeds and phase coordination")
-                suggestions.append("- Ensure gripper maintains contact with object")
-            elif metrics.get('height_gained', 0) < 5.0:
-                suggestions.append("- Object is being lifted but needs to reach higher")
-                suggestions.append("- Increase motor speeds or improve lifting efficiency")
-                suggestions.append("- Check that gripper maintains upward force")
+        target_y = metrics.get('target_object_y', 0.0)
+        if metrics.get('max_object_y_reached', 0) >= target_y:
+            suggestions.append("DIAGNOSTIC: Target altitude achieved but stability duration threshold not met.")
+            suggestions.append("ADVISORY: The gripper is functional but exhibits dynamic instability over time.")
         
-        if 'object_fell' in metrics and metrics.get('object_fell', False):
-            suggestions.append("- Object is falling - improve grip and friction")
-        
-        if 'object_grasped' in metrics and not metrics.get('object_grasped', False):
-            suggestions.append("- Gripper is not making contact with object")
-            suggestions.append("- Adjust gripper position and finger configuration")
-        
-        if 'steps_with_object_above_target' in metrics and 'min_simulation_steps_required' in metrics:
-            if metrics.get('steps_with_object_above_target', 0) < metrics.get('min_simulation_steps_required', 0):
-                suggestions.append("- Object grip is not sustained long enough")
-                suggestions.append("- Improve stability and continuous grip")
-    
+        elif metrics.get('object_grasped', False):
+            suggestions.append("DIAGNOSTIC: Object secured but vertical displacement is insufficient to reach the target.")
+
     return suggestions
