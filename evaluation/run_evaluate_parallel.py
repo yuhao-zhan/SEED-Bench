@@ -49,10 +49,16 @@ import concurrent.futures
 
 def _verify_pair_safe(args):
     """Worker function for parallel pre-verification of cross-mutation pairs"""
-    task_name, source, target, ref_source, env_j = args
+    task_name, source, target, ref_source = args
     try:
+        from evaluation.evaluate_cross_mutated import get_all_stages
         from evaluation.verifier import CodeVerifier
         from evaluation.utils import get_max_steps_for_task
+        
+        # Load env_j here to avoid pickling functions
+        all_envs = get_all_stages(task_name)
+        env_j = next(e for e in all_envs if e["stage_id"] == target)
+        
         env_overrides = {
             "terrain_config": env_j.get("terrain_config", {}),
             "physics_config": env_j.get("physics_config", {}),
@@ -91,7 +97,8 @@ def collect_work_items(task_list, model_type, model_name, method, context):
                     
                     pair_name = f"{source}_to_{target}"
                     if not run_is_complete(task_name, model_type, model_name, method, context, mutated_task_name=pair_name):
-                        candidates.append((task_name, source, target, ref_source, env_j))
+                        # Do not pass env_j directly to avoid PicklingError with functions
+                        candidates.append((task_name, source, target, ref_source))
         except: pass
 
     if candidates:
@@ -251,14 +258,27 @@ def main():
     scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     if args.model_type == "local":
-        gpu_ids = [int(x.strip()) for x in args.gpus.split(",")] if args.gpus else list(range(args.num_workers))
-        num_workers = len(gpu_ids)
+        all_gpus = [x.strip() for x in args.gpus.split(",")] if args.gpus else [str(i) for i in range(args.num_workers)]
+        num_workers = args.num_workers
+        
+        # Group GPUs for each worker
+        gpu_groups = []
+        gpus_per_worker = max(1, len(all_gpus) // num_workers)
+        for i in range(num_workers):
+            start = i * gpus_per_worker
+            # Last worker gets all remaining GPUs to ensure none are left out
+            end = (i + 1) * gpus_per_worker if i < num_workers - 1 else len(all_gpus)
+            if start < len(all_gpus):
+                gpu_groups.append(",".join(all_gpus[start:end]))
+        
+        # Adjust num_workers if we have fewer groups than requested
+        num_workers = len(gpu_groups)
         work_chunks = [work_items[i::num_workers] for i in range(num_workers)]
         # We pass model_name as both name and path for simplicity in local mode
         base_argv = [sys.executable, os.path.join(scripts_dir, "evaluation", "evaluate.py"), 
                      "--model-type", "local", "--model-name", args.model_name, 
                      "--max-iterations", str(args.max_iterations), "--method", args.method, "--context", args.context]
-        run_local_workers(gpu_ids, work_chunks, scripts_dir, base_argv, args.max_iterations)
+        run_local_workers(gpu_groups, work_chunks, scripts_dir, base_argv, args.max_iterations)
     else:
         run_api_parallel(work_items, args, scripts_dir)
 
