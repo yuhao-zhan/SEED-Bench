@@ -19,14 +19,15 @@ if 'S_02' in _api_data and 'API_INTRO' in _api_data['S_02']:
 
 TASK_PROMPT = {
     'task_description': """
-Build a tall tower on a narrow foundation that must survive an earthquake and strong wind.
-You may consider structural damping to counteract vibrations.
+    Build a tall tower on a narrow foundation that must survive an earthquake and strong wind.
+    You may consider structural damping to counteract vibrations.
 
-## Task Environment
-- **Foundation**: A static ground area at x=[-2, 2], y=0. Your structure can only contact the ground within this narrow zone.
-- **Earthquake**: After an initial period, the foundation will undergo horizontal oscillations. The foundation itself moves, and your structure must survive the vibrations.
-- **Wind**: Lateral forces are applied to structural components at higher altitudes, simulating wind pressure.
-- **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters.
+    ## Task Environment
+    - **Foundation**: A static ground area at x=[-2, 2], y=0. Your structure can only contact the ground within this narrow zone.
+    - **Earthquake**: After an initial period, the foundation will undergo horizontal oscillations. The foundation itself moves, and your structure must survive the vibrations.
+    - **Wind**: Lateral forces are applied to structural components at various altitudes (starting as low as 5m in some scenarios), simulating wind pressure.
+    - **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters.
+    """,
 
 ## Task Objective
 Design a stable skyscraper structure that can:

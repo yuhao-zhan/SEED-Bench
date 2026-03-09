@@ -104,14 +104,14 @@ def get_s01_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Joint torque resilience** (`joint_max_torque`): The maximum torque structural joints can withstand before failing.
- - **Anchor torque resilience** (`anchor_max_torque`): The maximum torque cliff anchors can withstand before breaking.
- - **Joint force resilience** (`joint_max_force`): The maximum linear force structural joints can withstand before failing.
- - **Anchor force resilience** (`anchor_max_force`): The maximum linear force cliff anchors can withstand before breaking.
- - **Mass limit** (`max_structure_mass`): The total allowed mass budget for your structure.
- - **Gravitational acceleration** (`gravity`): The strength and direction of the vertical gravitational force.
- - **Atmospheric wind** (`wind_force`): Constant lateral and vertical forces acting on all bodies in the environment.
- - **Terrain gap width** (`gap_width`): The horizontal distance between the starting cliff and the destination cliff.
+ - **Joint torque resilience**: The maximum torque structural joints can withstand before failing.
+ - **Anchor torque resilience**: The maximum torque cliff anchors can withstand before breaking.
+ - **Joint force resilience**: The maximum linear force structural joints can withstand before failing.
+ - **Anchor force resilience**: The maximum linear force cliff anchors can withstand before breaking.
+ - **Mass limit**: The total allowed mass budget for your structure.
+ - **Gravitational acceleration**: The strength and direction of the vertical gravitational force.
+ - **Atmospheric wind**: Constant lateral and vertical forces acting on all bodies in the environment.
+ - **Terrain gap width**: The horizontal distance between the starting cliff and the destination cliff.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """

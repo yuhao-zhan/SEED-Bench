@@ -314,7 +314,7 @@ class Sandbox:
             if self._pad_active.get(pad, False) and is_in_zone:
                 pad.type = Box2D.b2_staticBody
                 # Slowly move active pads upwards to guarantee vertical progress
-                pad.position = (5.0, pad.position.y + 0.5 * time_step)
+                pad.position = (5.0, pad.position.y + 1.5 * time_step)
             else:
                 pad.type = Box2D.b2_dynamicBody
         

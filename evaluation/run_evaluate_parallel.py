@@ -251,6 +251,8 @@ def main():
     parser.add_argument("--save-gif", action="store_true", default=True)
     
     args = parser.parse_args()
+    if args.method.endswith('_CE'):
+        print(f"📡 Change Exposed (CE) Mode detected for method: {args.method[:-3]}")
     task_list = resolve_task_list(args.task)
     work_items = collect_work_items(task_list, args.model_type, args.model_name, args.method, args.context)
     if not work_items: print("✅ All runs complete."); return 0

@@ -6,44 +6,34 @@ from typing import Dict, Any, List
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Format task-specific metrics for S-02: The Skyscraper
-    Args:
-        metrics: Evaluation metrics dictionary
-    Returns:
-        List of formatted metric strings
+    Format task-specific metrics for S-02: The Skyscraper.
+    Exposes structural height and stability metrics.
     """
     metric_parts = []
     
-    # 1. Height Requirements
+    # 1. Height Metrics
     if 'initial_height' in metrics:
-        target = metrics.get('target_height', 30.0)
-        status = "✅" if metrics['initial_height'] >= target else "❌"
-        metric_parts.append(f"{status} **Initial Peak Height**: {metrics['initial_height']:.2f}m (Target: >{target:.1f}m)")
+        ih = metrics['initial_height']
+        th = metrics.get('target_height', 30.0)
+        status = "✅" if ih >= th else "❌"
+        metric_parts.append(f"{status} **Peak Structural Height**: {ih:.2f}m (Target: >{th:.1f}m)")
 
-    # 2. Earthquake Survival
     if 'min_height_during_quake' in metrics and metrics['min_height_during_quake'] is not None:
-        threshold = metrics.get('survival_threshold', 5.0)
-        min_h = metrics['min_height_during_quake']
-        status = "✅" if min_h >= threshold else "❌"
-        metric_parts.append(f"{status} **Min Height during Quake**: {min_h:.2f}m (Threshold: >{threshold:.1f}m)")
-    elif metrics.get('failed') and "Collapsed" in str(metrics.get('failure_reason')):
-        metric_parts.append(f"❌ **Min Height during Quake**: <5.0m (Structure Collapsed)")
+        mh = metrics['min_height_during_quake']
+        st = metrics.get('survival_threshold', 5.0)
+        status = "✅" if mh >= st else "❌"
+        metric_parts.append(f"{status} **Seismic Survival Height**: {mh:.2f}m (Limit: >{st:.1f}m)")
 
-    # 3. Stability (Center of Mass)
+    # 2. Stability Metrics
     if 'rel_com_x' in metrics:
-        zone = metrics.get('stability_zone', 300.0)
-        com_x = metrics['rel_com_x']
-        status = "✅" if abs(com_x) <= zone else "❌"
-        metric_parts.append(f"{status} **Center of Mass X**: {com_x:.3f}m (Allowed Range: ±{zone:.1f}m)")
+        rcx = metrics['rel_com_x']
+        sz = metrics.get('stability_zone', 300.0)
+        status = "✅" if abs(rcx) <= sz else "❌"
+        metric_parts.append(f"{status} **Center of Mass Deviation**: {rcx:+.3f}m (Allowed: ±{sz:.1f}m)")
 
-    # 4. Failure Reason (High Signal)
-    if metrics.get('failed') and metrics.get('failure_reason'):
-        metric_parts.append(f"\n⚠️ **FAILURE DETECTED**: {metrics['failure_reason']}")
-
-    # 5. Current State
     if 'current_height' in metrics:
-        metric_parts.append(f"\n**Current Height at simulation end**: {metrics['current_height']:.2f}m")
-    
+        metric_parts.append(f"**Final Structure State Height**: {metrics['current_height']:.2f}m")
+
     return metric_parts
 
 
@@ -51,26 +41,26 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
                                 failed: bool, failure_reason: str = None, 
                                 error: str = None) -> List[str]:
     """
-    Generate task-specific improvement suggestions for S-02: The Skyscraper
+    Generate actionable diagnostic warnings for S-02.
+    Diagnoses seismic and stability failures.
     """
     suggestions = []
-    
+    reason_lower = str(failure_reason).lower() if failure_reason else ""
+
     if error:
-        suggestions.append("- Fix the code execution error reported in the details.")
+        suggestions.append(">> DIAGNOSTIC: Engineering validation failed.")
         return suggestions
 
     if failed:
-        reason = str(failure_reason).lower()
-        if "height" in reason:
-            suggestions.append("- Your tower is not tall enough. Stack more beams or increase beam height (up to 10m).")
-        if "collapsed" in reason or "survival" in reason:
-            suggestions.append("- The structure failed under vibration. Use `add_spring` to create a Tuned Mass Damper (TMD) at the top.")
-            suggestions.append("- Increase beam density at the bottom levels to lower the center of mass.")
-            suggestions.append("- Ensure the structure is robust against seismic forces and joint breaking limits.")
-        if "tipped" in reason or "stability" in reason:
-            suggestions.append("- The tower is leaning too much. Ensure the structure is symmetrical or add counterweights.")
-            suggestions.append("- Maximize the base width (up to 12m) while keeping foundation contact within x=[-2, 2].")
-        if "width" in reason:
-            suggestions.append("- The total structure width exceeds 12m. Use narrower beams for the upper levels.")
-            
+        suggestions.append(f">> FAILURE MODE: {failure_reason}")
+        
+        if "height" in reason_lower:
+            suggestions.append("-> Diagnostic: Vertical extension failure. The tower's highest vertical point is below the target threshold. Check for cumulative structural deflection or insufficient vertical density.")
+        elif "collapsed" in reason_lower or "survival" in reason_lower:
+            suggestions.append("-> Diagnostic: Seismic resonance or structural failure. The tower was unable to dissipate lateral energy during the earthquake phase, leading to a catastrophic loss of verticality.")
+        elif "tipped" in reason_lower or "stability" in reason_lower:
+            suggestions.append("-> Diagnostic: High Overturning Moment. The system's center of mass shifted beyond the stability boundary, causing the gravitational vector to fall outside the base of support.")
+        elif "explosion" in reason_lower or "instability" in reason_lower:
+            suggestions.append("-> Diagnostic: Numerical instability detected. This usually results from extreme beam density ratios or excessive joint overlapping causing the physics solver to diverge.")
+
     return suggestions

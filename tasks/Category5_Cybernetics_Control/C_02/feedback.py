@@ -1,113 +1,43 @@
 """
-Task-specific feedback generation for C-02: The Lander (hard variant)
-Returns rich physical metrics: position, velocity, angle, zone, height, landing outcome.
+Task-specific feedback for C-02: The Lander.
+Purified version: strictly grounded in evaluator metrics.
 """
 from typing import Dict, Any, List
-
+import math
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
-    """
-    Format task-specific metrics for C-02: Box lander with zone and attitude.
-    """
+    """Format high-resolution physical metrics for C-02."""
     metric_parts = []
-
+    
     if "lander_x" in metrics and "lander_y" in metrics:
-        metric_parts.append(
-            f"**Lander position**: x={metrics['lander_x']:.2f} m, y={metrics['lander_y']:.2f} m"
-        )
-    if "zone_x_min" in metrics and "zone_x_max" in metrics:
-        metric_parts.append(
-            f"**Landing zone (x) at this step**: [{metrics['zone_x_min']:.2f}, {metrics['zone_x_max']:.2f}] m"
-        )
-    if "height_above_ground" in metrics:
-        h = metrics["height_above_ground"]
-        metric_parts.append(
-            f"**Height above ground**: {h:.2f} m"
-            + (" (landed)" if h <= 0 else " (in flight)")
-        )
-
+        metric_parts.append(f"**Lander Position**: ({metrics['lander_x']:.2f}, {metrics['lander_y']:.2f})")
     if "lander_vx" in metrics and "lander_vy" in metrics:
-        metric_parts.append(
-            f"**Lander velocity**: vx={metrics['lander_vx']:.2f} m/s, vy={metrics['lander_vy']:.2f} m/s"
-        )
+        metric_parts.append(f"**Lander Velocity**: (vx: {metrics['lander_vx']:.2f}, vy: {metrics['lander_vy']:.2f}) m/s")
     if "lander_angle" in metrics:
-        a = metrics["lander_angle"]
-        a_deg = a * 180 / 3.14159
-        metric_parts.append(f"**Lander angle**: {a:.3f} rad ({a_deg:.1f}°)")
-    if "lander_angular_velocity" in metrics:
-        metric_parts.append(
-            f"**Angular velocity**: {metrics['lander_angular_velocity']:.3f} rad/s"
-        )
-    if "speed" in metrics:
-        metric_parts.append(f"**Speed (magnitude)**: {metrics['speed']:.2f} m/s")
-    if "max_safe_vertical_speed" in metrics:
-        metric_parts.append(
-            f"**Max safe vertical speed at landing**: {metrics['max_safe_vertical_speed']:.1f} m/s"
-        )
-    if "max_landing_angle" in metrics:
-        a_lim = metrics["max_landing_angle"]
-        metric_parts.append(
-            f"**Max landing tilt (upright)**: {a_lim:.2f} rad ({a_lim*180/3.14159:.1f}°)"
-        )
+        metric_parts.append(f"**Orientation**: {math.degrees(metrics['lander_angle']):.2f}° (0° = Upright)")
     if "remaining_fuel" in metrics and metrics["remaining_fuel"] is not None:
-        metric_parts.append(f"**Remaining fuel**: {metrics['remaining_fuel']:.1f} N·s")
-    if "min_fuel_remaining_at_landing" in metrics and metrics["min_fuel_remaining_at_landing"] is not None:
-        metric_parts.append(
-            f"**Min fuel required at landing**: {metrics['min_fuel_remaining_at_landing']:.0f} N·s "
-            "(land with at least this much fuel to pass)"
-        )
-
+        metric_parts.append(f"**Propellant Status**: {metrics['remaining_fuel']:.1f} N·s remaining")
+    
+    metric_parts.append("\n**Touchdown Evaluation**")
     if "landed" in metrics:
-        metric_parts.append(f"**Landed**: {metrics['landed']}")
+        metric_parts.append(f"- Contact Reached: {metrics['landed']}")
     if "landing_vy" in metrics and metrics["landing_vy"] is not None:
-        vy = metrics["landing_vy"]
-        limit = metrics.get("max_safe_vertical_speed", 5.0)
-        metric_parts.append(
-            f"**Landing vertical speed**: {vy:.2f} m/s "
-            f"(limit {limit:.1f} m/s, {'OK' if abs(vy) <= limit else 'EXCEEDED'})"
-        )
-    if "landing_x" in metrics and metrics["landing_x"] is not None:
-        lx = metrics["landing_x"]
-        zmin = metrics.get("zone_x_min", 12.0)
-        zmax = metrics.get("zone_x_max", 18.0)
-        in_zone = zmin <= lx <= zmax
-        ls = metrics.get("landing_step")
-        step_note = f" at step {ls}" if ls is not None else ""
-        metric_parts.append(
-            f"**Landing x**: {lx:.2f} m (valid zone{step_note} [{zmin:.2f}, {zmax:.2f}] m, {'OK' if in_zone else 'OUT OF ZONE'})"
-        )
+        metric_parts.append(f"- Impact Vertical Speed: {abs(metrics['landing_vy']):.2f} m/s")
     if "landing_angle" in metrics and metrics["landing_angle"] is not None:
-        la = metrics["landing_angle"]
-        a_lim = metrics.get("max_landing_angle", 0.25)
-        metric_parts.append(
-            f"**Landing angle**: {la:.3f} rad (limit ±{a_lim:.2f} rad, {'OK' if abs(la) <= a_lim else 'CAPSIZED'})"
-        )
-    if "landing_step" in metrics and metrics["landing_step"] is not None:
-        metric_parts.append(f"**Landing step**: {metrics['landing_step']} (valid zone at this step is time-dependent)")
-
-    if "step_count" in metrics:
-        metric_parts.append(f"**Simulation steps**: {metrics['step_count']}")
-    if "success" in metrics:
-        metric_parts.append(f"**Success**: {metrics['success']}")
-    if "failed" in metrics and metrics["failed"] and metrics.get("failure_reason"):
-        metric_parts.append(f"**Failure reason**: {metrics['failure_reason']}")
-
-    metric_parts.append("\n**Physical State (detail)**")
-    if "lander_x" in metrics and "lander_y" in metrics:
-        metric_parts.append(
-            f"- Position: ({metrics['lander_x']:.3f}, {metrics['lander_y']:.3f}) m"
-        )
-    if "lander_vx" in metrics and "lander_vy" in metrics:
-        metric_parts.append(
-            f"- Velocity: vx={metrics['lander_vx']:.3f} m/s, vy={metrics['lander_vy']:.3f} m/s"
-        )
-    if "lander_angle" in metrics:
-        metric_parts.append(f"- Angle: {metrics['lander_angle']:.3f} rad")
+        metric_parts.append(f"- Final Attitude Deviation: {math.degrees(abs(metrics['landing_angle'])):.2f}°")
+    
+    metric_parts.append("\n**Environmental Bounds**")
+    if "zone_x_min" in metrics and "zone_x_max" in metrics:
+        metric_parts.append(f"- Active Landing Window (x): [{metrics['zone_x_min']:.2f}, {metrics['zone_x_max']:.2f}] m")
+    if "max_safe_vertical_speed" in metrics:
+        metric_parts.append(f"- Landing Speed Tolerance: {metrics['max_safe_vertical_speed']:.2f} m/s")
     if "height_above_ground" in metrics:
-        metric_parts.append(f"- Height above ground: {metrics['height_above_ground']:.3f} m")
-
+        metric_parts.append(f"- Surface Altitude: {metrics['height_above_ground']:.3f} m")
+    
+    if metrics.get("failed") and metrics.get("failure_reason"):
+        metric_parts.append(f"\n**Failure Diagnosis**: {metrics['failure_reason']}")
+        
     return metric_parts
-
 
 def get_improvement_suggestions(
     metrics: Dict[str, Any],
@@ -117,87 +47,42 @@ def get_improvement_suggestions(
     failure_reason: str = None,
     error: str = None,
 ) -> List[str]:
-    """Generate task-specific improvement suggestions for C-02 (hard variant)."""
+    """Generate diagnostic suggestions based on landing and atmospheric mechanics."""
     suggestions = []
-
+    
     if error:
-        error_lower = error.lower()
-        if "apply_thrust" in error_lower or "get_lander" in error_lower:
-            suggestions.append(
-                "- Use only the provided API: get_lander_position(), get_lander_angle(), "
-                "get_lander_angular_velocity(), get_remaining_fuel(), apply_thrust(main_thrust, steering_torque). "
-                "Velocity is not in the API; infer it from position history if needed."
-            )
-        elif "attribute" in error_lower:
-            suggestions.append(
-                "- Check that you are calling methods on the sandbox (environment) object correctly"
-            )
+        return [f"System Error: {error}. Check API usage."]
 
-    elif failed:
-        if failure_reason:
-            fr = failure_reason.lower()
-            if "impact speed" in fr:
-                suggestions.append(
-                    "- Velocity is not directly observable; **estimate vertical velocity from position history** "
-                    "(e.g. (y - y_prev) / (step_delta * dt)) and use that estimate to control descent."
-                )
-                suggestions.append(
-                    "- Reduce vertical speed at touchdown: use main thrust to slow descent; "
-                    "keep craft upright for effective braking. Use your velocity estimate for feedback."
-                )
-            elif "out of landing zone" in fr or "zone" in fr:
-                suggestions.append(
-                    "- The valid landing zone may depend on **when** you touch down (e.g. on step/time). "
-                    "Use feedback: compare landing_step and the reported zone to infer how zone position relates to time."
-                )
-                suggestions.append(
-                    "- You may need to **predict** where the valid zone will be at your expected touchdown time "
-                    "and steer the lander to that position (trajectory prediction + moving target)."
-                )
-            elif "forbidden zone" in fr or "obstacle" in fr or "ceiling" in fr:
-                suggestions.append(
-                    "- There is a restricted **no-fly region** (or a narrow corridor) between the start and the landing area. "
-                    "You must identify the safe passage height through trial and environmental feedback."
-                )
-                suggestions.append(
-                    "- Use a multi-phase trajectory: (1) align with the passage, (2) traverse the restricted x-range at a stable altitude, "
-                    "(3) then proceed to descent and landing. If you hit a ceiling, try flying lower; if you hit an obstacle, try flying higher."
-                )
-            elif "insufficient fuel" in fr or "fuel remaining" in fr:
-                suggestions.append(
-                    "- Success requires landing with **at least a minimum amount of fuel remaining** (fuel-efficient trajectory). "
-                    "Use feedback to see the required minimum and your remaining fuel at landing."
-                )
-                suggestions.append(
-                    "- Reduce thrust when possible: coast during fall, use moderate thrust for climb/cross, "
-                    "and avoid continuous high thrust; plan a trajectory that conserves fuel."
-                )
-            elif "fuel exhausted" in fr.lower():
-                suggestions.append(
-                    "- Fuel is limited; use fuel-efficient descent: fall when high, burn only when close to ground."
-                )
-                suggestions.append("- Check get_remaining_fuel() and avoid continuous high thrust during fall.")
-            elif "capsized" in fr or "angle" in fr:
-                suggestions.append(
-                    "- Land roughly upright: use steering torque to keep angle near zero; "
-                    "excessive tilt at touchdown fails (capsized)."
-                )
-                suggestions.append(
-                    "- PD control on angle: steering_torque = -Kp*angle - Kd*angular_velocity."
-                )
+    if not failed and not success:
+        if not metrics.get("landed", False):
+            suggestions.append("Touchdown was not achieved before the mission deadline. Verify the vertical throttle profile to ensure sufficient proximity to the target surface.")
         else:
-            suggestions.append(
-                "- Soft land within the zone and upright; use get_lander_angle() and steering, "
-                "and main thrust for vertical control; infer limits from feedback."
-            )
+            suggestions.append("The craft landed without critical failure, but mission success criteria were not fully satisfied. Analyze propellant efficiency and zone synchronization.")
 
-    elif not success:
-        suggestions.append(
-            "- Ensure the craft reaches the ground with vertical speed within limit, "
-            "x within zone, and angle within limit; use feedback metrics to tune."
-        )
-        suggestions.append(
-            "- Control attitude (angle) with steering_torque; control position with main thrust and attitude."
-        )
+    if failed:
+        vy = abs(metrics.get("landing_vy", 0.0) if metrics.get("landing_vy") is not None else 0.0)
+        limit_vy = metrics.get("max_safe_vertical_speed", 2.0)
+        
+        # 1. Structural/Impact
+        if metrics.get("landed") and vy > limit_vy:
+            suggestions.append("Structural failure due to high impact velocity. Adjust the descent throttle to account for potential gravity fluctuations or mass budget changes.")
+            
+        # 2. Stability
+        angle_deg = math.degrees(abs(metrics.get("landing_angle", 0.0) if metrics.get("landing_angle") is not None else 0.0))
+        limit_angle = math.degrees(metrics.get("max_landing_angle", 0.175))
+        if metrics.get("landed") and angle_deg > limit_angle:
+            suggestions.append("The craft capsized. Stabilize the attitude during the final approach phase to ensure an upright touchdown.")
+            
+        # 3. Dynamic Zone
+        if metrics.get("landed") and "out of landing zone" in (failure_reason or "").lower():
+            suggestions.append("Touchdown occurred outside the valid window. The landing platform is dynamic; coordinate the vertical descent with the platform's periodic movement.")
+            
+        # 4. Resource Depletion
+        fuel = metrics.get("remaining_fuel", 0)
+        min_fuel = metrics.get("min_fuel_remaining_at_landing", 450.0)
+        if fuel <= 0 and not metrics.get("landed"):
+            suggestions.append("Mission failure due to propellant exhaustion. Optimize the flight path to reduce high-thrust maneuvers against gravity.")
+        elif metrics.get("landed") and fuel < min_fuel:
+            suggestions.append("Mission efficiency requirement failed. A more energy-optimal descent profile is required to meet propellant margins.")
 
     return suggestions

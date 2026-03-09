@@ -206,6 +206,8 @@ class Evaluator:
             'max_anchor_torque_limit': self.torque_limit_recorded,
             'anchor_count': len([j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]]),
             'max_anchor_points': 2,
+            'max_anchors_limit': 2,
+            'reach_tolerance': 1.0,
             'joint_count': len(self.environment._joints),
             'initial_joint_count': self.initial_joint_count,
             'success': success,

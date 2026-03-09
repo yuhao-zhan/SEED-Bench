@@ -109,23 +109,10 @@ class TaskEvaluator:
         self.save_gif = save_gif
         self.base_task_name_for_memory = base_task_name_for_memory
         
-        if method == 'tree_of_thought':
-            self.max_iterations = max_iterations
-            self.n_select_sample = n_select_sample if n_select_sample is not None else 3
-            self.n_generate_sample = n_generate_sample if n_generate_sample is not None else 2
-        else:
-            self.max_iterations = max_iterations
-            self.n_select_sample = None
-            self.n_generate_sample = None
-            
-        if method == 'self_refine':
-            self.max_iterations = min(self.max_iterations, 20)
-        if method == 'self_refine_inner_only':
-            self.max_iterations = 1
-            
         self.max_steps = max_steps
         self.headless = headless
         self.method = method
+        self.base_method = method[:-3] if method.endswith('_CE') else method
         self.context = context
         self.env_overrides = env_overrides
         self.is_mutated_task = is_mutated_task
@@ -162,6 +149,20 @@ class TaskEvaluator:
         self.best_code = None
         self.best_metrics = {}
         
+        if self.base_method == 'tree_of_thought':
+            self.max_iterations = max_iterations
+            self.n_select_sample = n_select_sample if n_select_sample is not None else 3
+            self.n_generate_sample = n_generate_sample if n_generate_sample is not None else 2
+        else:
+            self.max_iterations = max_iterations
+            self.n_select_sample = None
+            self.n_generate_sample = None
+            
+        if self.base_method == 'self_refine':
+            self.max_iterations = min(self.max_iterations, 20)
+        if self.base_method == 'self_refine_inner_only':
+            self.max_iterations = 1
+
         self._setup_gif_directory()
 
     def _setup_gif_directory(self):
@@ -425,7 +426,8 @@ def evaluate_single_task(task_name, args):
     # Execute evaluation
     try:
         is_category_task = task_name.startswith('category_')
-        is_mutation_capable = is_category_task and not args.method in ['alpha_evolve', 'theta_evolve', 'genome', 'seal', 'ragen', 'soar', 'discover']
+        base_method = args.method[:-3] if args.method.endswith('_CE') else args.method
+        is_mutation_capable = is_category_task and not base_method in ['alpha_evolve', 'theta_evolve', 'genome', 'seal', 'ragen', 'soar', 'discover']
         
         if is_mutation_capable:
             from evaluation.evaluate_cross_mutated import run_cross_mutation_evaluation, run_single_pair, get_all_stages, get_reference_solution
@@ -482,7 +484,11 @@ def evaluate_single_task(task_name, args):
                 if update_criteria_func:
                     criteria = update_criteria_func(criteria, target_terrain, base_terrain)
                     
-                suffix = env_j.get("task_description_suffix", "")
+                if args.method.endswith('_CE'):
+                    suffix = f'## Environmental Anomalies Detected\n + "terrain_config": {json.dumps(target_terrain)}, \n"physics_config": {json.dumps(env_j.get("physics_config", {}))}'
+                else:
+                    suffix = env_j.get("task_description_suffix", "")
+                    
                 if suffix:
                     desc += "\n" + suffix
                     
@@ -571,8 +577,7 @@ def main():
     parser.add_argument('--device', type=str, default='auto')
     parser.add_argument('--max-iterations', type=int, default=20)
     parser.add_argument('--max-steps', type=int, default=10000)
-    parser.add_argument('--method', type=str, default='baseline', 
-                       choices=['baseline', 'sys_feedback', 'reflexion', 'textgrad', 'self_refine', 'self_refine_inner_only', 'a_mem_sys', 'memento_nonparametric', 'rememberer', 'expel', 'ace', 'tree_of_thought', 'reasoning_bank', 'absolute_zero', 'absolute_zero_iter', 'science_codeevolve', 'alpha_evolve', 'theta_evolve', 'genome', 'seal', 'ragen', 'soar', 'discover'])
+    parser.add_argument('--method', type=str, default='baseline')
     parser.add_argument('--context', type=str, default='all',
                        choices=['previous', 'all', 'last_3', 'best_score', 'best_score_plus_previous'])
     parser.add_argument('--source-env', type=str, default=None)

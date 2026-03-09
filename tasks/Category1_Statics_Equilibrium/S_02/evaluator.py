@@ -11,7 +11,7 @@ class Evaluator:
         
         self.TARGET_HEIGHT = 30.0
         self.SURVIVAL_THRESHOLD = 5.0 # Lowered to ensure survivability in high-evolution scenarios
-        self.STABILITY_ZONE = 300.0 # Effectively removed as a failure mode, focusing on structural survival
+        self.STABILITY_ZONE = 300.0 # Wide boundary to catch major tipping or physics explosions
         
         self.initial_height = 0.0
         self.min_height_during_quake = float('inf')
@@ -57,6 +57,18 @@ class Evaluator:
         if step_count == 1 and not self.design_constraints_checked:
             if bounds.get("width", 0) > 12.0:
                 failed, reason = True, f"Width {bounds.get('width', 0):.2f}m > 12.0m"
+            
+            # Check for foundation contact violation (must be within x=[-2, 2] at base)
+            for body in self.environment._bodies:
+                for fixture in body.fixtures:
+                    shape = fixture.shape
+                    for vertex in shape.vertices:
+                        world_v = body.GetWorldPoint(vertex)
+                        if world_v.y < 1.01 and abs(world_v.x - foundation_x) > 2.01:
+                            failed, reason = True, f"Foundation contact violation at x={world_v.x:.2f} (Limit: ±2.0m)"
+                            break
+                if failed: break
+            
             self.design_constraints_checked = True
         
         if not failed and step_count >= self.quake_start_step:
@@ -101,7 +113,9 @@ class Evaluator:
             "failure_reason": reason,
             "target_height": self.TARGET_HEIGHT,
             "survival_threshold": self.SURVIVAL_THRESHOLD,
-            "stability_zone": self.STABILITY_ZONE
+            "stability_zone": self.STABILITY_ZONE,
+            "max_width_limit": 12.0,
+            "instability_height_limit": 150.0
         }
 
     def get_task_description(self):

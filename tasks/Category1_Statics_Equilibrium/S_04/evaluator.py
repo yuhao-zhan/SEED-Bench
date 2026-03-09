@@ -152,6 +152,8 @@ class Evaluator:
             'max_angle_seen_deg': self.max_angle_seen * 180 / math.pi,
             'balance_duration': self.balance_duration,
             'target_balance_time': self.balance_time,
+            'max_angle_deviation_deg': self.max_angle_deviation * 180 / math.pi,
+            'ground_y_limit': -10.0,
             'success': success and not failed,
             'failed': failed,
             'failure_reason': failure_reason,

@@ -86,14 +86,14 @@ def agent_action_stage_1(sandbox, agent_body, step_count):
 
 def build_agent_stage_2(sandbox):
     target_reach = 30.0
-    structure_y = 18.0  # Strategic placement for strong upward boost
+    structure_y = 18.0
     WALL_X = 0.0
-    num_segments = 10   # Fewer segments for more stiffness
+    num_segments = 10
     seg_len = target_reach / num_segments
     top_chord = []
     bot_chord = []
-    angle = 0.03       # Slight upward angle
-    depth = 12.0       # Very deep truss
+    angle = 0.03
+    depth = 12.0
     for i in range(num_segments):
         x = WALL_X + (i + 0.5) * seg_len
         ty = structure_y + depth/2 + i * seg_len * math.sin(angle)

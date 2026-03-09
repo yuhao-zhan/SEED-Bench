@@ -62,10 +62,10 @@ def build_agent_stage_3(sandbox):
                                tmd_params=tmd)
 
 def build_agent_stage_4(sandbox):
-    tmd = {'size': (0.8, 0.8), 'density': 400.0, 'stiffness': 15.0, 'damping': 1.0}
-    return build_advanced_tower(sandbox, levels=28, base_w=11.8,
-                               base_density=600.0, top_density=0.1,
-                               taper_rate=0.3, density_taper=0.1,
+    tmd = {'size': (0.4, 0.4), 'density': 20.0, 'stiffness': 40.0, 'damping': 1.0}
+    return build_advanced_tower(sandbox, levels=26, base_w=11.0,
+                               base_density=40.0, top_density=0.1,
+                               taper_rate=1.0, density_taper=0.1,
                                tmd_params=tmd)
 
 def agent_action_stage_1(sandbox, agent_body, step_count): pass

@@ -1,85 +1,124 @@
 """
-K-02: The Climber mutated task stages
-Defines 4 distinct stages with increasing complexity and morphology-forcing constraints.
+K-02: The Climber task curriculum stages (mutations).
+
+All stage definitions live under tasks/Category2_Kinematics_Linkages/K_02 as requested.
+The solver agent is NOT told the exact parameter changes; it must infer from feedback.
 """
 
-# The uniform suffix for all mutated tasks
-UNIFORM_SUFFIX = (
-    "Environmental conditions include Atmospheric Shear, Surface Slickness, "
-    "Seismic Resonance, Geological Instability, and Structural Thresholds. "
-    "Robotic entities must adapt their physical form and control parameters "
-    "to maintain wall adhesion and achieve vertical ascent."
-)
+from __future__ import annotations
 
-def get_stage_config(stage_index: int):
+import math
+from typing import Any, Dict, List
+import re
+
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
-    Returns (terrain_config, physics_config, task_description) for the given stage.
+    Update task description to reflect visible physical changes.
     """
-    if stage_index == 1:
-        # Stage 1: Gauntlet - Restricted build zone
-        terrain_config = {
-            "build_zone_y_max": 5.0, # Forces mobile climbing
-            "target_height": 20.0
-        }
-        physics_config = {}
-        task_desc = (
-            "Gauntlet Phase: Structural clearance is restricted to the base zone (y < 5.0m). "
-            "A static tower is no longer feasible. You must design a mobile climbing mechanism "
-            "capable of independent vertical locomotion to reach the 20m threshold. "
-            f"{UNIFORM_SUFFIX}"
-        )
-        return terrain_config, physics_config, task_desc
+    description = base_description
+    default_y_max = 25.0
+    target_y_max = target_terrain_config.get("build_zone_y_max", default_y_max)
+    base_y_max = base_terrain_config.get("build_zone_y_max", default_y_max)
 
-    elif stage_index == 2:
-        # Stage 2: Gapped Wall - Forces long reach
-        terrain_config = {
-            "build_zone_y_max": 5.0,
-            "target_height": 20.0,
-            "suction_zones": [(0, 5), (10, 15), (20, 25)] # 5m gaps in wall suction
-        }
-        physics_config = {}
-        task_desc = (
-            "Reach Phase: The wall surface is segmented. Suction mechanisms only function "
-            "within specific resonance bands: [0-5m], [10-15m], and [20-25m]. "
-            "Your entity must possess sufficient reach to span these dead zones. "
-            f"{UNIFORM_SUFFIX}"
-        )
-        return terrain_config, physics_config, task_desc
+    if target_y_max != base_y_max:
+        # Update Build Zone description using regex
+        # Matches: - **Build Zone**: x=[0, 5], y=[0, 25].
+        # Matches: - **Build Zone**: All components must stay within x=[0, 5], y=[0, 25].
+        build_zone_pattern = r"(y=\[0, )(\d+\.?\d*)(\])"
+        if re.search(build_zone_pattern, description):
+            description = re.sub(
+                build_zone_pattern,
+                f"\\g<1>{target_y_max:.1f}\\g<3> (originally y=[0, {base_y_max:.1f}] in the source environment)",
+                description
+            )
+        
+        # Also handle the second occurrence if it exists
+        if re.search(build_zone_pattern, description):
+             description = re.sub(
+                build_zone_pattern,
+                f"\\g<1>{target_y_max:.1f}\\g<3> (originally y=[0, {base_y_max:.1f}] in the source environment)",
+                description
+            )
 
-    elif stage_index == 3:
-        # Stage 3: Seismic Heavyweight - Forces high mass
-        terrain_config = {
-            "build_zone_y_max": 5.0,
-            "target_height": 20.0,
-            "wall_oscillation_amp": 0.2,
-            "wall_oscillation_freq": 10.0,
-            "min_structure_mass": 20.0 # Force a heavy design
-        }
-        physics_config = {}
-        task_desc = (
-            "Heavyweight Phase: Seismic Resonance has destabilized the environment. "
-            "Lightweight entities are easily shaken loose. A minimum structural mass of 20kg "
-            "is required for inertial stability against high-frequency wall oscillations. "
-            f"{UNIFORM_SUFFIX}"
-        )
-        return terrain_config, physics_config, task_desc
+    return description
 
-    elif stage_index == 4:
-        # Stage 4: Storm Cell - Tightest build zone + Wind
-        terrain_config = {
-            "build_zone_y_max": 2.0, # Extremely tight
-            "target_height": 20.0,
-            "wind_force": -5.0, # Constant horizontal push
-            "vortex_y": 10.0,
-            "vortex_force_x": 10.0 # Higher altitude vortex
-        }
-        physics_config = {}
-        task_desc = (
-            "Storm Cell: Final environmental threshold. Clearance is extremely restricted (y < 2.0m). "
-            "Atmospheric Shear creates strong lateral forces at ground level and a high-altitude "
-            "vortex above 10m. You must design an ultra-compact, high-torque climber. "
-            f"{UNIFORM_SUFFIX}"
-        )
-        return terrain_config, physics_config, task_desc
 
-    return {}, {}, ""
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """
+    Update success criteria to reflect visible physical changes.
+    """
+    # Success criteria mentions "build zone", but not the specific value in K-02 base prompt.
+    return base_success_criteria
+
+
+def get_k02_curriculum_stages() -> List[Dict[str, Any]]:
+    """
+    Returns ordered stage configs for K-02: The Climber task variants.
+    """
+    task_description_suffix = """
+## Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+- **Atmospheric Shear (Wind)**: Lateral forces may push against your structure at different altitudes.
+- **Surface Slickness (Suction Zones)**: The wall's adhesive properties may only be functional in certain bands.
+- **Seismic Resonance (Oscillation)**: The wall may oscillate at specific frequencies, testing structural stability.
+- **Structural Thresholds (Mass)**: The environment may impose minimum or maximum mass requirements for stability.
+- **Geological Instability (Ground)**: The ground surface may become unstable or vanish over time.
+
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode to infer the hidden constraints and adapt your design.
+"""
+    return [
+        {
+            "stage_id": "Stage-1",
+            "title": "Gauntlet Phase",
+            "mutation_description": "Build zone restricted to y < 5.0m. Ground surface vanishes after 5.0s. Forces mobile climbing.",
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {
+                "build_zone_y_max": 5.0,
+                "target_height": 20.0,
+                "destroy_ground_time": 5.0
+            },
+            "physics_config": {},
+        },
+        {
+            "stage_id": "Stage-2",
+            "title": "Reach Phase",
+            "mutation_description": "2m suction gap at y=18m. Build zone y < 10.0m. Forces long-reach morphology.",
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {
+                "build_zone_y_max": 10.0,
+                "target_height": 20.0,
+                "suction_zones": [(0, 18), (20, 32)]
+            },
+            "physics_config": {},
+        },
+        {
+            "stage_id": "Stage-3",
+            "title": "Heavyweight Phase",
+            "mutation_description": "10Hz seismic oscillation. Boulders falling every 5s. Min mass 20kg. Forces high-mass robust builds.",
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {
+                "build_zone_y_max": 5.0,
+                "target_height": 20.0,
+                "wall_oscillation_amp": 0.2,
+                "wall_oscillation_freq": 10.0,
+                "boulder_interval": 5.0,
+                "min_structure_mass": 20.0
+            },
+            "physics_config": {},
+        },
+        {
+            "stage_id": "Stage-4",
+            "title": "Storm Cell Phase",
+            "mutation_description": "Extremely tight build zone y < 2.0m. Vortex wind forces. Forces ultra-compact designs.",
+            "task_description_suffix": task_description_suffix,
+            "terrain_config": {
+                "build_zone_y_max": 2.0,
+                "target_height": 20.0,
+                "wind_force": -5.0,
+                "vortex_y": 10.0,
+                "vortex_force_x": 10.0
+            },
+            "physics_config": {},
+        },
+    ]

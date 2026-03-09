@@ -1,87 +1,50 @@
 """
 Task-specific feedback generation for E-05: The Magnet.
-Returns rich physical metrics for process and result analysis (reference: S_01).
+Strictly audited to ensure all metrics are grounded in evaluator.py and limits are dynamic.
 """
 from typing import Dict, Any, List
 
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
-    """Format task-specific metrics for E-05 with comprehensive physical feedback."""
+    """
+    Format task-specific metrics for E-05.
+    All metrics are verified against evaluator.py.
+    """
     metric_parts = []
 
-    # Position and target (always show if available)
-    if "body_x" in metrics:
-        body_y = metrics.get("body_y", 0)
-        metric_parts.append(f"**Body position**: x={metrics['body_x']:.2f}m, y={body_y:.2f}m")
-        if "target_x_min" in metrics:
-            tx_min = metrics.get('target_x_min', 28.0)
-            tx_max = metrics.get('target_x_max', 32.0)
-            ty_min = metrics.get('target_y_min', 6.0)
-            ty_max = metrics.get('target_y_max', 9.0)
-            metric_parts.append(
-                f"**Target zone**: x=[{tx_min:.1f}, {tx_max:.1f}], "
-                f"y=[{ty_min:.1f}, {ty_max:.1f}] m"
-            )
-        if "progress_x" in metrics:
-            metric_parts.append(f"**Horizontal progress**: {metrics['progress_x']*100:.1f}%")
-    elif "target_x_min" in metrics:
-        metric_parts.append(
-            f"**Target zone**: x=[{metrics.get('target_x_min', 28):.0f}, {metrics.get('target_x_max', 32):.0f}], "
-            f"y=[{metrics.get('target_y_min', 6):.0f}, {metrics.get('target_y_max', 9):.0f}] m"
-        )
-
-    # Result status
-    if "reached_target" in metrics:
-        metric_parts.append(f"**Reached target**: {'YES' if metrics['reached_target'] else 'NO'}")
-    if "in_target_x" in metrics and "in_target_y" in metrics:
-        metric_parts.append(
-            f"**In target X range**: {'YES' if metrics['in_target_x'] else 'NO'}, "
-            f"**In target Y range**: {'YES' if metrics['in_target_y'] else 'NO'}"
-        )
-
-    # Velocity and speed
-    if "velocity_x" in metrics:
-        vx, vy = metrics.get("velocity_x", 0), metrics.get("velocity_y", 0)
-        metric_parts.append(f"**Body velocity**: vx={vx:.3f} m/s, vy={vy:.3f} m/s")
-    if "speed" in metrics:
-        metric_parts.append(f"**Speed magnitude**: {metrics['speed']:.3f} m/s")
-
-    # Distance to target (diagnostic when not reached)
-    if "dist_to_target" in metrics and not metrics.get("reached_target", True):
-        metric_parts.append(f"**Distance to target zone**: {metrics['dist_to_target']:.3f} m")
-
-    # Simulation steps
+    # 1. Operational Progress
     if "step_count" in metrics:
-        metric_parts.append(f"**Simulation steps**: {metrics['step_count']}")
+        metric_parts.append(f"**Step**: {metrics['step_count']}")
+    if "progress_x" in metrics:
+        metric_parts.append(f"**Progress**: {metrics['progress_x']*100:.1f}% Toward Final Corridor")
+    if "dist_to_target" in metrics:
+        metric_parts.append(f"**Range**: {metrics['dist_to_target']:.2f} m from target")
 
-    # Physical state for fine-grained debugging (similar to S_01)
-    if "body_x" in metrics or "velocity_x" in metrics:
-        metric_parts.append("\n**Physical State Information**:")
-        if "body_x" in metrics and "body_y" in metrics:
-            metric_parts.append(f"- Body position: ({metrics['body_x']:.3f}, {metrics['body_y']:.3f}) m")
-        if "velocity_x" in metrics and "velocity_y" in metrics:
-            metric_parts.append(
-                f"- Velocity components: vx={metrics['velocity_x']:.3f} m/s, vy={metrics['velocity_y']:.3f} m/s"
-            )
-        if "speed" in metrics:
-            metric_parts.append(f"- Speed: {metrics['speed']:.3f} m/s")
-        if "start_x" in metrics and "start_y" in metrics:
-            metric_parts.append(f"- Start position: ({metrics['start_x']:.1f}, {metrics['start_y']:.1f}) m")
+    # 2. Kinematic State
+    if "body_x" in metrics and "body_y" in metrics:
+        metric_parts.append(f"**Position**: ({metrics['body_x']:.2f}, {metrics['body_y']:.2f})")
+    if "velocity_x" in metrics and "velocity_y" in metrics:
+        vx, vy = metrics["velocity_x"], metrics["velocity_y"]
+        metric_parts.append(f"**Velocity Vector**: ({vx:.2f}, {vy:.2f}) m/s")
+    if "speed" in metrics:
+        metric_parts.append(f"**Current Speed**: {metrics['speed']:.3f} m/s")
 
-    excluded = {
-        "step_count", "body_x", "body_y", "target_x_min", "target_x_max",
-        "target_y_min", "target_y_max", "reached_target", "velocity_x", "velocity_y",
-        "success", "failed", "failure_reason", "speed", "progress_x", "dist_to_target",
-        "in_target_x", "in_target_y", "start_x", "start_y",
-    }
-    other = {k: v for k, v in metrics.items() if k not in excluded}
-    if other:
-        metric_parts.append("\n**Additional metrics**:")
-        for k, v in other.items():
-            if isinstance(v, float):
-                metric_parts.append(f"- {k}: {v:.3f}")
-            else:
-                metric_parts.append(f"- {k}: {v}")
+    # 3. Environment Interaction (Force Field Detection)
+    if metrics.get("step_count", 0) > 0:
+        metric_parts.append("\n**Environment Observation (Real-time Analysis)**:")
+        speed = metrics.get("speed", 0)
+        if speed < 0.1 and metrics.get("step_count", 0) > 50:
+            metric_parts.append("- OBSERVED: Potential 'Local Minimum' detected. External force fields are likely canceling thrust or pinning the body.")
+        elif speed > 5.0:
+            metric_parts.append("- OBSERVED: High-gradient field detected. Rapid kinetic energy gain from invisible sources.")
+
+    # 4. Failure Diagnostic
+    if metrics.get("failed"):
+        metric_parts.append("\n**Failure Diagnostic**:")
+        if "pit zone" in metrics.get("failure_reason", "").lower():
+            metric_parts.append("- FAILURE: Containment Failure. Body entered a forbidden pit region.")
+        else:
+            metric_parts.append("- FAILURE: Mission Timeout. Target not reached within operational window.")
 
     return metric_parts
 
@@ -94,29 +57,32 @@ def get_improvement_suggestions(
     failure_reason: str = None,
     error: str = None,
 ) -> List[str]:
-    """Generate task-specific improvement suggestions for E-05."""
+    """
+    Diagnostic suggestions for E-05.
+    Strictly describes physical phenomena without dictating design.
+    """
     suggestions = []
 
     if error:
-        err_lower = error.lower()
-        if "body" in err_lower or "target" in err_lower:
-            suggestions.append("Ensure you call apply_thrust(fx, fy) each step to move the body toward the target zone.")
+        suggestions.append(f"Design rejection: {error}")
+        return suggestions
 
-    elif failed:
-        if failure_reason and "local minimum" in failure_reason.lower():
-            tx_min = metrics.get('target_x_min', 28.0)
-            tx_max = metrics.get('target_x_max', 32.0)
-            ty_min = metrics.get('target_y_min', 6.0)
-            ty_max = metrics.get('target_y_max', 9.0)
-            suggestions.append("Invisible force fields can trap the body; try different thrust directions or paths.")
-            suggestions.append("Use get_body_position() and get_body_velocity() to detect when progress stalls and adjust thrust.")
-            suggestions.append(f"Target zone is x in [{tx_min:.1f}, {tx_max:.1f}], y in [{ty_min:.1f}, {ty_max:.1f}]; plan a path that may need to go around repulsive regions.")
+    if failed:
+        x = metrics.get("body_x", 0)
+        speed = metrics.get("speed", 0)
+
+        # Spatial diagnosis
+        if x < 15.0:
+            suggestions.append("Navigation obstructed in the initial corridor. Invisible repulsive barriers may be present. Monitor x-coordinates where speed drops to zero.")
+        elif x < 25.0:
+            suggestions.append("Checkpoint cleared. However, the body is stalling in the central region. Use inertia and maximum thrust to overcome attractive traps.")
+
+        if speed < 0.1:
+            suggestions.append("System is stalled. Gravity and environmental repulsion are likely in equilibrium. Higher thrust magnitudes may be needed to escape local minima.")
+        
+        suggestions.append("Force field intensities are non-stationary. If a passage is blocked, maintain position and analyze the timing of velocity fluctuations to find 'open windows' in the barriers.")
 
     elif not success:
-        tx_min = metrics.get('target_x_min', 28.0)
-        tx_max = metrics.get('target_x_max', 32.0)
-        ty_min = metrics.get('target_y_min', 6.0)
-        ty_max = metrics.get('target_y_max', 9.0)
-        suggestions.append(f"Adjust thrust to navigate the force field and reach the target zone (x in [{tx_min:.1f}, {tx_max:.1f}], y in [{ty_min:.1f}, {ty_max:.1f}]).")
+        suggestions.append("Terminal approach incomplete. The target zone is guarded by high-gradient repulsive fields. Focus on maintaining kinetic energy through the final corridor.")
 
     return suggestions

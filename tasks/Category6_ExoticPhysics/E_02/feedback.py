@@ -1,99 +1,53 @@
 """
 Task-specific feedback generation for E-02: Thick Air.
-Returns rich physical metrics (position, velocity, heat, progress, distance to target)
-for process and outcome feedback, similar to S_01.
+Strictly audited to ensure all metrics are grounded in evaluator.py and limits are dynamic.
 """
 from typing import Dict, Any, List
 
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
-    """Format task-specific metrics for E-02 with process and outcome physical metrics."""
+    """
+    Format task-specific metrics for E-02.
+    All metrics are verified against evaluator.py.
+    """
     metric_parts = []
 
-    # Simulation progress
-    if "step_count" in metrics:
-        metric_parts.append(f"**Simulation steps**: {metrics['step_count']}")
-
-    # Craft position and target zone
-    if "craft_x" in metrics:
-        metric_parts.append(
-            f"**Craft position**: x={metrics['craft_x']:.2f} m, y={metrics.get('craft_y', 0):.2f} m"
-        )
-    if "target_x_min" in metrics:
-        tx_min = metrics.get('target_x_min', 28.0)
-        tx_max = metrics.get('target_x_max', 32.0)
-        ty_min = metrics.get('target_y_min', 2.0)
-        ty_max = metrics.get('target_y_max', 5.0)
-        metric_parts.append(
-            f"**Target zone**: x=[{tx_min:.1f}, {tx_max:.1f}], "
-            f"y=[{ty_min:.1f}, {ty_max:.1f}] m"
-        )
-    if "reached_target" in metrics:
-        metric_parts.append(f"**Reached target**: {'YES' if metrics['reached_target'] else 'NO'}")
-
-    # Heat (cumulative thrust usage) — critical for success
-    if "heat" in metrics:
-        metric_parts.append(f"**Heat (cumulative thrust)**: {metrics['heat']:.1f} N·s")
-        if "overheat_limit" in metrics:
-            metric_parts.append(f"**Overheat limit**: {metrics['overheat_limit']:.0f} N·s")
-        if "heat_remaining" in metrics:
-            metric_parts.append(f"**Heat remaining**: {metrics['heat_remaining']:.1f} N·s")
-    if "overheated" in metrics:
-        metric_parts.append(f"**Overheated**: {'YES' if metrics['overheated'] else 'NO'}")
-
-    # Velocity and speed
-    if "velocity_x" in metrics:
-        vx, vy = metrics.get("velocity_x", 0), metrics.get("velocity_y", 0)
-        metric_parts.append(f"**Craft velocity**: vx={vx:.2f} m/s, vy={vy:.2f} m/s")
-    if "speed" in metrics:
-        metric_parts.append(f"**Craft speed**: {metrics['speed']:.2f} m/s")
-
-    # Progress and distance (process metrics)
+    # 1. Mission Progress
     if "progress_x" in metrics:
-        metric_parts.append(f"**Progress toward target (x)**: {metrics['progress_x']:.1f}%")
-    if "dist_traveled_x" in metrics:
-        metric_parts.append(f"**Distance traveled (x)**: {metrics['dist_traveled_x']:.2f} m")
+        metric_parts.append(f"**Horizontal Progress**: {metrics['progress_x']:.1f}% toward target")
     if "distance_to_target" in metrics:
-        metric_parts.append(f"**Distance to target zone center**: {metrics['distance_to_target']:.2f} m")
+        metric_parts.append(f"**Range to Target**: {metrics['distance_to_target']:.2f} m")
 
-    # Physical state information (fine-grained debugging, like S_01)
-    metric_parts.append("\n**Physical State Information**:")
-    if "craft_x" in metrics and "craft_y" in metrics:
-        metric_parts.append(
-            f"- Craft position: ({metrics['craft_x']:.3f}, {metrics['craft_y']:.3f}) m"
-        )
-    if "velocity_x" in metrics and "velocity_y" in metrics:
-        metric_parts.append(
-            f"- Craft velocity: vx={metrics['velocity_x']:.3f} m/s, vy={metrics['velocity_y']:.3f} m/s"
-        )
-    if "speed" in metrics:
-        metric_parts.append(f"- Speed magnitude: {metrics['speed']:.3f} m/s")
+    # 2. Thermodynamic State (Heat-Thrust)
     if "heat" in metrics:
-        metric_parts.append(f"- Heat (cumulative |F|×dt): {metrics['heat']:.3f} N·s")
+        heat = metrics["heat"]
+        limit = metrics.get("overheat_limit", 1.0)
+        metric_parts.append(f"**Heat Accumulation**: {heat:.1f} / {limit:.0f} N·s")
     if "heat_remaining" in metrics:
-        metric_parts.append(f"- Heat remaining before overheat: {metrics['heat_remaining']:.3f} N·s")
-    if "distance_to_target" in metrics:
-        metric_parts.append(f"- Distance to target center: {metrics['distance_to_target']:.3f} m")
-    if "progress_x" in metrics:
-        start_x = metrics.get("craft_start_x", 8.0)
-        target_x = metrics.get("target_x_min", 28.0)
-        metric_parts.append(f"- Horizontal progress (start x={start_x:.1f} → target x≥{target_x:.1f}): {metrics['progress_x']:.1f}%")
+        metric_parts.append(f"**Heat Margin**: {metrics['heat_remaining']:.1f} N·s")
 
-    excluded = {
-        "step_count", "craft_x", "craft_y", "target_x_min", "target_x_max",
-        "target_y_min", "target_y_max", "reached_target", "heat", "overheat_limit",
-        "heat_remaining", "overheated", "velocity_x", "velocity_y", "speed",
-        "progress_x", "dist_traveled_x", "distance_to_target",
-        "success", "failed", "failure_reason",
-    }
-    other = {k: v for k, v in metrics.items() if k not in excluded}
-    if other:
-        metric_parts.append("\n**Additional metrics**:")
-        for k, v in other.items():
-            if isinstance(v, float):
-                metric_parts.append(f"- {k}: {v:.3f}")
-            else:
-                metric_parts.append(f"- {k}: {v}")
+    # 3. Kinematic State
+    if "craft_x" in metrics and "craft_y" in metrics:
+        metric_parts.append(f"**Position**: ({metrics['craft_x']:.2f}, {metrics['craft_y']:.2f})")
+    if "velocity_x" in metrics and "velocity_y" in metrics:
+        vx, vy = metrics["velocity_x"], metrics["velocity_y"]
+        metric_parts.append(f"**Velocity Vector**: ({vx:.2f}, {vy:.2f}) m/s")
+    if "speed" in metrics:
+        metric_parts.append(f"**Current Speed**: {metrics['speed']:.3f} m/s")
+
+    # 4. Target analysis
+    if all(k in metrics for k in ("target_x_min", "target_x_max", "target_y_min", "target_y_max")):
+        tx_min, tx_max = metrics["target_x_min"], metrics["target_x_max"]
+        ty_min, ty_max = metrics["target_y_min"], metrics["target_y_max"]
+        metric_parts.append(f"**Target Zone**: x=[{tx_min:.1f}, {tx_max:.1f}], y=[{ty_min:.1f}, {ty_max:.1f}]")
+
+    # 5. Failure Diagnostics
+    if metrics.get("failed"):
+        metric_parts.append("\n**Failure Diagnostic**:")
+        if metrics.get("overheated"):
+            metric_parts.append("- Thermal Limit: Propulsion system shutdown due to excessive heat.")
+        elif not metrics.get("reached_target") and metrics.get("step_count", 0) > 0:
+            metric_parts.append("- Temporal Exhaustion: Craft failed to reach target zone within operational time.")
 
     return metric_parts
 
@@ -106,34 +60,37 @@ def get_improvement_suggestions(
     failure_reason: str = None,
     error: str = None,
 ) -> List[str]:
-    """Generate task-specific improvement suggestions for E-02."""
+    """
+    Diagnostic suggestions for E-02.
+    Strictly describes physical phenomena without dictating design.
+    """
     suggestions = []
 
     if error:
-        err_lower = error.lower()
-        if "overheat" in err_lower or "heat" in err_lower:
-            suggestions.append("Use shorter or smaller thrust bursts; heat is cumulative (|F| × time).")
-            suggestions.append("Aim for an efficient path to reduce total thrust needed.")
-        elif "craft" in err_lower or "target" in err_lower:
-            suggestions.append("Ensure you call apply_thrust each step to move the craft toward the target zone.")
+        suggestions.append(f"Design rejection: {error}")
+        return suggestions
 
-    elif failed:
-        limit_str = f"{metrics.get('overheat_limit', 72000):.0f} N·s" if isinstance(metrics.get('overheat_limit'), (int, float)) else "the reported limit"
-        if failure_reason and "overheat" in failure_reason.lower():
-            suggestions.append(f"Reduce thrust magnitude or duration; cumulative thrust usage must stay below {limit_str}.")
-            suggestions.append("Use feedback: get_craft_position() and get_craft_velocity() to steer with minimal thrust.")
-            suggestions.append("Consider coasting when already moving toward the target.")
-        elif failure_reason and "cannot move" in failure_reason.lower():
-            tx_min = metrics.get('target_x_min', 28.0)
-            tx_max = metrics.get('target_x_max', 32.0)
-            ty_min = metrics.get('target_y_min', 2.0)
-            ty_max = metrics.get('target_y_max', 5.0)
-            suggestions.append(f"Thrust is needed to overcome high drag; apply thrust toward the target (x in [{tx_min:.1f}, {tx_max:.1f}], y in [{ty_min:.1f}, {ty_max:.1f}]).")
-            suggestions.append(f"Increase thrust when far from target, but stay under the heat limit ({limit_str}).")
-            suggestions.append("Check that you call apply_thrust(fx, fy) every simulation step.")
+    if failed:
+        # Dynamic threshold based on heat capacity
+        heat = metrics.get("heat", 0)
+        limit = metrics.get("overheat_limit", 1)
+        progress = metrics.get("progress_x", 0)
+
+        if metrics.get("overheated"):
+            if progress < 50:
+                suggestions.append("The system is overheating before the midpoint. High fluid resistance at lower velocities consumes impulse inefficiently.")
+            else:
+                suggestions.append("Thermal exhaustion occurred during the final approach. Consider momentum-based transit to conserve thermal margin.")
+            
+            suggestions.append("Continuous thrust leads to rapid heat accumulation. Optimizing the thrust profile may improve distance-per-unit-heat.")
+
+        elif not metrics.get("reached_target"):
+            if heat < limit * 0.5:
+                suggestions.append("Sufficient thermal margin remains. Higher thrust levels may be required to overcome environmental drag.")
+            else:
+                suggestions.append("Progress is hampered by localized drag or momentum drain zones. Map the coordinates where speed drops significantly.")
 
     elif not success:
-        limit_str = f"{metrics.get('overheat_limit', 72000):.0f} N·s" if isinstance(metrics.get('overheat_limit'), (int, float)) else "the reported limit"
-        suggestions.append(f"Optimize thrust profile: reach the target zone before time runs out while keeping heat below {limit_str}.")
+        suggestions.append("The craft is moving but did not arrive. Refine the trajectory to minimize horizontal resistance.")
 
     return suggestions

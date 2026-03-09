@@ -143,6 +143,8 @@ class Evaluator:
             'total_kinetic_energy': self.total_kinetic_energy,
             'max_velocity': self.max_velocity,
             'block_count': len(self.environment._bodies),
+            'max_block_count_limit': self.MAX_BLOCK_COUNT,
+            'ceiling_y_limit': self.terrain_bounds.get("ceiling_y", None)
         }
         
         # Calculate Center of Mass

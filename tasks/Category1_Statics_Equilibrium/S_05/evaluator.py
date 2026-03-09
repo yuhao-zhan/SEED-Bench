@@ -81,6 +81,7 @@ class Evaluator:
             'max_core_force': self.max_core_force,
             'structure_mass': structure_mass,
             'max_mass': max_mass,
+            'max_height_limit': self.MAX_STRUCTURE_HEIGHT,
             'min_body_y': min_body_y,
             'success': success,
             'failed': failed,

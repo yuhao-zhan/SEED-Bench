@@ -266,7 +266,12 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
                     criteria = update_criteria_func(criteria, target_terrain, base_terrain)
                 
                 # Add suffix from target environment if it exists
-                suffix = env_j.get("task_description_suffix", "")
+                if method.endswith('_CE'):
+                    import json
+                    suffix = f'## Environmental Anomalies Detected\n + "terrain_config": {json.dumps(target_terrain)}, \n"physics_config": {json.dumps(env_j.get("physics_config", {}))}'
+                else:
+                    suffix = env_j.get("task_description_suffix", "")
+                
                 if suffix:
                     desc += "\n" + suffix
                 

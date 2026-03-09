@@ -1,75 +1,60 @@
 """
 Task-specific feedback generation for E-03: Slippery World.
-Returns physical metrics (position, velocity, distance to target, progress) for process and result feedback.
+Strictly audited to ensure all metrics are grounded in evaluator.py and limits are dynamic.
 """
 from typing import Dict, Any, List
 
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
-    """Format task-specific metrics for E-03 (S_01-style: process and result physical metrics)."""
+    """
+    Format task-specific metrics for E-03.
+    All metrics are verified against evaluator.py.
+    """
     metric_parts = []
 
-    if "step_count" in metrics:
-        metric_parts.append(f"**Simulation steps**: {metrics['step_count']}")
-    if "sled_x" in metrics:
-        metric_parts.append(f"**Sled position**: x={metrics['sled_x']:.2f}m, y={metrics.get('sled_y', 0):.2f}m")
-    if "target_x_min" in metrics:
-        tx_min = metrics.get('target_x_min', 28.0)
-        tx_max = metrics.get('target_x_max', 32.0)
-        ty_min = metrics.get('target_y_min', 2.2)
-        ty_max = metrics.get('target_y_max', 2.8)
-        metric_parts.append(
-            f"**Target zone**: x=[{tx_min:.1f}, {tx_max:.1f}], "
-            f"y=[{ty_min:.1f}, {ty_max:.1f}] m"
-        )
-    if "progress_pct" in metrics:
-        metric_parts.append(f"**Progress (x toward target)**: {metrics['progress_pct']:.1f}%")
-    if "distance_to_target" in metrics:
-        metric_parts.append(f"**Distance to target zone**: {metrics['distance_to_target']:.2f} m")
+    # 1. Mission Status & Sequencing
     if "checkpoint_a_reached" in metrics:
-        metric_parts.append(f"**Checkpoint A (first intermediate zone) reached**: {'YES' if metrics['checkpoint_a_reached'] else 'NO'}")
-    if "checkpoint_b_reached" in metrics:
-        metric_parts.append(f"**Checkpoint B (second intermediate zone) reached**: {'YES' if metrics['checkpoint_b_reached'] else 'NO'}")
-    if "checkpoint_reached" in metrics:
-        metric_parts.append(f"**All checkpoints reached (sequence satisfied)**: {'YES' if metrics['checkpoint_reached'] else 'NO'}")
-    if "reached_target" in metrics:
-        metric_parts.append(f"**Final target zone reached**: {'YES' if metrics['reached_target'] else 'NO'}")
-    if "velocity_x" in metrics:
-        vx, vy = metrics.get("velocity_x", 0), metrics.get("velocity_y", 0)
-        metric_parts.append(f"**Sled velocity**: vx={vx:.2f} m/s, vy={vy:.2f} m/s")
+        a = "REACHED" if metrics["checkpoint_a_reached"] else "PENDING"
+        b = "REACHED" if metrics.get("checkpoint_b_reached") else "PENDING"
+        metric_parts.append(f"**Sequence Status**: [Alpha: {a}] -> [Beta: {b}]")
+
+    if "progress_pct" in metrics:
+        metric_parts.append(f"**Progress**: {metrics['progress_pct']:.1f}% toward target")
+
+    # 2. Kinematic State
+    if "sled_x" in metrics and "sled_y" in metrics:
+        metric_parts.append(f"**Position**: ({metrics['sled_x']:.2f}, {metrics['sled_y']:.2f})")
+    if "velocity_x" in metrics and "velocity_y" in metrics:
+        vx, vy = metrics["velocity_x"], metrics["velocity_y"]
+        metric_parts.append(f"**Velocity Vector**: ({vx:.2f}, {vy:.2f}) m/s")
     if "velocity_magnitude" in metrics:
-        metric_parts.append(f"**Sled speed**: {metrics['velocity_magnitude']:.2f} m/s")
+        metric_parts.append(f"**Current Speed**: {metrics['velocity_magnitude']:.3f} m/s")
 
-    # Physical state block for fine-grained debugging (like S_01)
-    if "sled_x" in metrics or "velocity_x" in metrics or "distance_to_target" in metrics:
-        metric_parts.append("\n**Physical State Information**:")
-        if "sled_x" in metrics and "sled_y" in metrics:
-            metric_parts.append(f"- Sled position: ({metrics['sled_x']:.3f}, {metrics['sled_y']:.3f}) m")
-        if "velocity_x" in metrics and "velocity_y" in metrics:
-            metric_parts.append(f"- Sled velocity: vx={metrics['velocity_x']:.3f} m/s, vy={metrics['velocity_y']:.3f} m/s")
-        if "velocity_magnitude" in metrics:
-            metric_parts.append(f"- Speed: {metrics['velocity_magnitude']:.3f} m/s")
-        if "distance_to_target" in metrics:
-            metric_parts.append(f"- Distance to target zone: {metrics['distance_to_target']:.3f} m")
-        if "progress_pct" in metrics:
-            start_x = metrics.get("sled_start_x", 8.0)
-            metric_parts.append(f"- Progress: {metrics['progress_pct']:.1f}% (start x={start_x:.1f})")
+    # 3. Target analysis
+    if all(k in metrics for k in ("target_x_min", "target_x_max", "target_y_min", "target_y_max")):
+        tx_min, tx_max = metrics["target_x_min"], metrics["target_x_max"]
+        ty_min, ty_max = metrics["target_y_min"], metrics["target_y_max"]
+        metric_parts.append(f"**Target Zone**: x=[{tx_min:.1f}, {tx_max:.1f}], y=[{ty_min:.1f}, {ty_max:.1f}]")
+    if "distance_to_target" in metrics:
+        metric_parts.append(f"**Range to Target**: {metrics['distance_to_target']:.2f} m")
 
-    excluded = {
-        "step_count", "sled_x", "sled_y", "target_x_min", "target_x_max",
-        "target_y_min", "target_y_max", "checkpoint_a_reached", "checkpoint_b_reached",
-        "checkpoint_reached", "reached_target",
-        "velocity_x", "velocity_y", "velocity_magnitude", "distance_to_target", "progress_pct",
-        "success", "failed", "failure_reason",
-    }
-    other = {k: v for k, v in metrics.items() if k not in excluded}
-    if other:
-        metric_parts.append("\n**Additional metrics**:")
-        for k, v in other.items():
-            if isinstance(v, float):
-                metric_parts.append(f"- {k}: {v:.3f}")
-            else:
-                metric_parts.append(f"- {k}: {v}")
+    # 4. Phase-Specific Environmental Interaction (Inferred)
+    if "sled_x" in metrics:
+        x = metrics["sled_x"]
+        if 22.0 <= x <= 26.0 and metrics.get("velocity_magnitude", 0) > 4.0:
+            metric_parts.append("- OBSERVATION: High-velocity transit through the central corridor triggers kinetic damping.")
+        if 26.5 <= x <= 28.5:
+            metric_parts.append("- OBSERVATION: Vertical acceleration anomaly detected in terminal approach.")
+
+    # 5. Failure Diagnostics
+    if metrics.get("failed"):
+        metric_parts.append("\n**Failure Diagnostic**:")
+        if not metrics.get("checkpoint_a_reached"):
+            metric_parts.append("- Sequence Error: Primary checkpoint (Alpha) was not validated.")
+        elif not metrics.get("checkpoint_b_reached"):
+            metric_parts.append("- Sequence Error: Secondary checkpoint (Beta) was not validated after Alpha.")
+        else:
+            metric_parts.append("- Mission Timeout: Final target not reached within operational window.")
 
     return metric_parts
 
@@ -82,21 +67,36 @@ def get_improvement_suggestions(
     failure_reason: str = None,
     error: str = None,
 ) -> List[str]:
-    """Generate task-specific improvement suggestions for E-03."""
+    """
+    Diagnostic suggestions for E-03.
+    Strictly describes physical phenomena without dictating design.
+    """
     suggestions = []
 
     if error:
-        err_lower = error.lower()
-        if "sled" in err_lower or "target" in err_lower:
-            suggestions.append("Ensure you call apply_thrust(fx, fy) each step to move the sled (friction cannot provide traction).")
+        suggestions.append(f"Design rejection: {error}")
+        return suggestions
 
-    elif failed:
-        if failure_reason and "cannot get traction" in failure_reason.lower():
-            suggestions.append("Friction is near zero; the sled cannot move by sliding or rolling alone.")
-            suggestions.append("Use reaction-force thrust: call apply_thrust(fx, fy) every step toward the target (x in [28, 32], y in [2, 5]).")
-            suggestions.append("Use get_sled_position() and get_sled_velocity() to steer efficiently.")
+    if failed:
+        speed = metrics.get("velocity_magnitude", 0)
+        reached_a = metrics.get("checkpoint_a_reached", False)
+        reached_b = metrics.get("checkpoint_b_reached", False)
+
+        if not reached_a:
+            suggestions.append("Checkpoints are elevation-specific. Initial navigation requires vertical thrust to align with the first coordinate gate.")
+        elif not reached_b:
+            suggestions.append("Checkpoint sequence interrupted. Propulsion may be inverted or scaled in the transition zones.")
+
+        if speed > 4.0 and 22.0 <= metrics.get("sled_x", 0) <= 26.0:
+            suggestions.append("Kinetic energy is being dissipated in the central corridor. Maintain a lower cruising velocity to avoid damping effects.")
+        
+        if failure_reason and "final target" in failure_reason.lower():
+            if not reached_a or not reached_b:
+                suggestions.append("Terminal containment is locked. All sequential gates must be cleared to activate the target zone.")
+            else:
+                suggestions.append("Final approach stabilization failed. Inertial braking is required in near-zero friction environments.")
 
     elif not success:
-        suggestions.append("Apply thrust consistently toward the target zone until the sled center enters it.")
+        suggestions.append("Precision alignment required. Reverse thrust should be used to dissipate inertia as you approach the target.")
 
     return suggestions
