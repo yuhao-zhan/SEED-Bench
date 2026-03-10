@@ -28,7 +28,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_mass = base_terrain_config.get("max_structure_mass", 15.0)
     
     if target_mass != base_mass:
-        pattern = r"(total mass below )(\d+\.?\d*)( kg)"
+        pattern = r"(Total structure mass must be less than )(\d+\.?\d*)( kg)"
         description = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally {base_mass:.2f} kg in the source environment)", description)
         
     return description
@@ -43,7 +43,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_mass = base_terrain_config.get("max_structure_mass", 15.0)
     
     if target_mass != base_mass:
-        pattern = r"(Mass Budget\*\*: < )(\d+\.?\d*)( kg)"
+        pattern = r"(\*\*Mass Budget\*\*: < )(\d+\.?\d*)( kg)"
         criteria = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally < {base_mass:.2f} kg in the source environment)", criteria)
         
     return criteria

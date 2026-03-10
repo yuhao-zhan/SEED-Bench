@@ -20,8 +20,7 @@ class Evaluator:
         # Target: object must be physically grasped and lifted
         self.start_object_y = 2.0  # Object starting position
         self.target_object_y = 3.5  # Reach and sustain y>=3.5m (red line)
-        self.target_x = 4.0  # For renderer: draw target line
-        self.min_object_height = 1.9  # Must not fall below this after lifting; run stops at success (80 steps above target)
+        self.target_x = 3.5  # For renderer: draw target line (renamed from 4.0 to match target_y)
         self.min_simulation_time = 1.34  # Sustain height for ~1.34s (80 steps) at/above target
         self.steps_per_eval = 10  # K_03 evaluates every 10 steps; count steps accordingly
         

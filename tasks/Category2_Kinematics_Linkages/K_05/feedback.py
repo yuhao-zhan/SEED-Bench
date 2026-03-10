@@ -10,28 +10,32 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
     metric_parts = []
     
+    # Altitude and Displacement
     if 'object_y' in metrics:
-        metric_parts.append(f"**Payload Kinematics**: Altitude y={metrics['object_y']:.2f}m")
+        metric_parts.append(f"**Payload State**: Altitude y={metrics['object_y']:.2f}m")
         if 'height_gained' in metrics:
-            metric_parts.append(f"- Net Vertical Displacement: {metrics['height_gained']:.2f}m")
+            metric_parts.append(f"- Vertical Displacement: {metrics['height_gained']:.2f}m")
         if 'object_velocity_y' in metrics:
             metric_parts.append(f"- Vertical Velocity: {metrics['object_velocity_y']:.3f} m/s")
 
+    # Structural Integrity
     if 'joint_count' in metrics:
-        status = "CRITICAL FAILURE" if metrics.get('structure_broken', False) else "NOMINAL"
-        metric_parts.append(f"**Structural Health**: {status}")
-        metric_parts.append(f"- Active Kinematic Constraints: {metrics['joint_count']} joints intact")
+        broken = metrics.get('structure_broken', False)
+        status = "CRITICAL FAILURE" if broken else "INTACT"
+        metric_parts.append(f"**Structural Status**: {status}")
+        metric_parts.append(f"- Active Connections: {metrics['joint_count']} joints")
 
+    # Mass Budget
     if 'structure_mass' in metrics:
-        max_m = metrics.get('max_structure_mass', float('inf'))
-        metric_parts.append(f"**Structural Profile**: Integrated Mass {metrics['structure_mass']:.2f}kg")
-        if max_m != float('inf'):
-            utilization = (metrics['structure_mass'] / max_m) * 100
-            metric_parts.append(f"- Mass Budget Utilization: {utilization:.1f}%")
+        max_m = metrics.get('max_structure_mass', 0.0)
+        curr_m = metrics['structure_mass']
+        metric_parts.append(f"**Mass Budget**: {curr_m:.2f}kg / {max_m:.1f}kg")
 
+    # Stability and Duration
     if 'steps_with_object_above_target' in metrics:
-        req = metrics.get('min_simulation_steps_required', 1)
-        metric_parts.append(f"- Sustain Duration: {metrics['steps_with_object_above_target']}/{req} steps at target altitude")
+        req_steps = metrics.get('min_simulation_steps_required', 0)
+        curr_steps = metrics['steps_with_object_above_target']
+        metric_parts.append(f"**Stability Duration**: {curr_steps} steps held (Target: {req_steps})")
 
     return metric_parts
 
@@ -44,26 +48,34 @@ def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: 
     """
     suggestions = []
     
-    if error or (failed and failure_reason and "design constraint" in failure_reason.lower()):
-        if "mass" in (error or failure_reason).lower():
+    # 1. Handle design constraint violations (Build Zone, Mass Budget)
+    if failed and failure_reason and "design constraint" in failure_reason.lower():
+        if "mass" in failure_reason.lower():
             max_m = metrics.get('max_structure_mass', 0.0)
-            suggestions.append(f"DIAGNOSTIC: Structural mass ({metrics.get('structure_mass', 0):.2f}kg) exceeds the environmental threshold ({max_m:.1f}kg).")
+            curr_m = metrics.get('structure_mass', 0.0)
+            suggestions.append(f"DIAGNOSTIC: Structural mass ({curr_m:.2f}kg) exceeds the environment's current threshold of {max_m:.1f}kg.")
+        elif "build zone" in failure_reason.lower():
+            suggestions.append("DIAGNOSTIC: Build zone violation. All structural components must be contained within the specified x and y boundaries.")
         return suggestions
 
-    if failed:
-        if "integrity lost" in failure_reason.lower() or metrics.get('structure_broken', False):
-            suggestions.append("DIAGNOSTIC: Structural yield detected. Internal reaction forces exceeded the failure threshold.")
-            suggestions.append("ADVISORY: Analyze the mechanical advantage. High loads at the start of the stroke may cause extreme joint stress.")
-        
-        elif "not lifted" in failure_reason.lower() or metrics.get('height_gained', 0) < 0.1:
-            suggestions.append("DIAGNOSTIC: Stalling detected. The input motor torque is not overcoming static load.")
+    # 2. Handle structural failures
+    if metrics.get('structure_broken', False):
+        suggestions.append("DIAGNOSTIC: Joint failure detected. The internal reaction forces exceeded the mechanical tolerance of the connectors.")
 
-    elif not success:
+    # 3. Handle kinematic failures (stalling or insufficient height)
+    height_gained = metrics.get('height_gained', 0.0)
+    if failed and ("not lifted" in (failure_reason or "").lower() or height_gained < 0.1):
+        suggestions.append("DIAGNOSTIC: Stalling. The mechanism failed to generate enough vertical lift to significantly displace the object.")
+    
+    # 4. Handle stability failures (reached height but fell/slid)
+    elif not success and not failed:
         progress = metrics.get('progress', 0.0)
         if 0 < progress < 100:
-            suggestions.append(f"DIAGNOSTIC: Functional lift detected but capacity is limited ({progress:.1f}% of target).")
+            suggestions.append(f"DIAGNOSTIC: Insufficient lift height. Target altitude reached {progress:.1f}% of the required displacement.")
         
-        if metrics.get('steps_with_object_above_target', 0) < metrics.get('min_simulation_steps_required', 0) and progress >= 100:
-            suggestions.append("DIAGNOSTIC: Target altitude achieved but dynamic stability is insufficient to sustain the position.")
+        steps_held = metrics.get('steps_with_object_above_target', 0)
+        req_steps = metrics.get('min_simulation_steps_required', 0)
+        if progress >= 100 and steps_held < req_steps:
+            suggestions.append("DIAGNOSTIC: Target altitude reached, but the system failed the stability requirement. The object was not sustained at the target height.")
 
     return suggestions

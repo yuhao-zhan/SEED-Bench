@@ -28,9 +28,10 @@ You cannot use joints or any form of artificial bonding. The structure must rely
 - **Table Height**: The table surface is at y=0.0.
 - **Surface Properties**: Both the table and the blocks provide friction, which you must utilize to stabilize the stack.
 - **Goal**: Reach x >= 0.1m beyond the edge.
-- **Block Dimensions**: width <= 4.0m, height <= 0.4m. Minimum dimension is 0.1m.
+- **Block Dimensions**: width <= 1.0m, height <= 0.2m. Minimum dimension is 0.1m.
 - **Spawn Rule**: Blocks must be initialized within the permitted build access zone (typically x < 0.0, but may be further restricted: x in [-10.0, 0.0]).
-- **Block Count**: You are limited to a maximum of 20 blocks.
+- **Block Count**: You are limited to a maximum of 100 blocks.
+- **Mass Budget**: Total structure mass must be less than 20000.0 units.
 - **Clearance**: Watch out for overhead obstacles (ceilings) in some regions. Current clearance y: 100.0m.
 """,
     
@@ -40,8 +41,9 @@ You cannot use joints or any form of artificial bonding. The structure must rely
 2. **Reach**: The horizontal extent of any part of the stack exceeds the table edge (Tip reaches x > 0.1m).
 
 ## Design Constraints
-- **Primitive Limits**: Max block width = 4.0m, Max block height = 0.4m.
-- **Block Count**: Maximum of 20 blocks.
+- **Primitive Limits**: Max block width = 1.0m, Max block height = 0.2m.
+- **Block Count**: Maximum of 100 blocks.
+- **Mass Budget**: Total mass must be <= 20000.0 units.
 - **Start Zone**: All initial block positions must be within the designated build access zone on the table.
 - **APIs**: Use only the primitives documented below.
 """,

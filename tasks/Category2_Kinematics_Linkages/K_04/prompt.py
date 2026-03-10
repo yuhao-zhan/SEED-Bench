@@ -31,7 +31,7 @@ Design a ground-based pusher vehicle that can move a heavy object across a high-
 
 ## Task Environment
 - **Ground**: A high-friction horizontal surface at y=1.0m.
-- **Heavy Object**: A 50 kg rectangular block at x=8.0m.
+- **Heavy Object**: A rectangular block (approximately 50 kg) at x=8.0m.
 - **Build Zone**: x=[0, 15], y=[1.5, 8]. All structure components must be placed within this zone.
 - **Target**: Push the object to at least x=18.0m (10 meters forward from starting x).
 

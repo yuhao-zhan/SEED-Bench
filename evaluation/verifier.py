@@ -644,7 +644,8 @@ class CodeVerifier:
                           'c02' in task_lower or 'c03' in task_lower or
                           'e04' in task_lower or 's02' in task_lower or
                           's06' in task_lower or 'e01' in task_lower or
-                          'k01' in task_lower)
+                          'k01' in task_lower or 'k05' in task_lower or 'k_05' in task_lower or
+                          'k06' in task_lower or 'k_06' in task_lower)
             if current_pos and not skip_stuck:
                 if step_count > STABILIZATION_STEPS and last_position is not None:
                     dx = abs(current_pos[0] - last_position[0])

@@ -1,68 +1,65 @@
 """
 Task-specific feedback generation for K-06: The Wiper
+Grounded in environment.py, evaluator.py, and stages.py metrics.
 """
 from typing import Dict, Any, List
 
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Expose high-resolution physical metrics for K-06: The Wiper.
+    Expose high-resolution physical metrics for the wiper task.
+    All keys are verified against evaluator.py.
     """
-    metric_parts = []
-    
+    task_metrics = []
+
     if 'cleaning_percentage' in metrics:
-        metric_parts.append(f"**Cleaning Efficiency**: {metrics['cleaning_percentage']:.1f}% particles displaced")
-        if 'particles_removed' in metrics:
-            metric_parts.append(f"- Net Removal: {metrics['particles_removed']} units")
-        if 'residual_percentage' in metrics:
-            metric_parts.append(f"- Residual Payload: {metrics['residual_percentage']:.1f}% remaining")
+        task_metrics.append(f"CLEANING_PROGRESS: {metrics['cleaning_percentage']:.2f}% of particles removed from glass.")
 
-    if 'wiper_x' in metrics:
-        metric_parts.append(f"**Wiper State**: Current position at (x={metrics['wiper_x']:.2f}m, y={metrics['wiper_y']:.2f}m)")
+    if 'residual_percentage' in metrics:
+        task_metrics.append(f"RESIDUAL_LOAD: {metrics['residual_percentage']:.2f}% remains in target area.")
 
-    if 'structure_mass' in metrics:
-        max_m = metrics.get('max_structure_mass', float('inf'))
-        metric_parts.append(f"**Structural Profile**: Mass {metrics['structure_mass']:.2f}kg")
-        if max_m != float('inf'):
-            utilization = (metrics['structure_mass'] / max_m) * 100
-            metric_parts.append(f"- Mass Budget Utilization: {utilization:.1f}%")
+    if 'structure_mass' in metrics and 'max_structure_mass' in metrics:
+        task_metrics.append(f"STRUCTURAL_MASS: {metrics['structure_mass']:.2f} kg (Limit: {metrics['max_structure_mass']:.2f} kg)")
 
     if 'step_count' in metrics:
-        req = metrics.get('min_simulation_steps_required', 1)
-        metric_parts.append(f"**Operational Analysis**: {metrics['step_count']}/{req} steps completed")
+        task_metrics.append(f"SIMULATION_STEPS: {metrics['step_count']}")
 
-    return metric_parts
+    return task_metrics
 
 
-def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: bool, 
-                                failed: bool, failure_reason: str = None, 
-                                error: str = None) -> List[str]:
+def get_improvement_suggestions(metrics: Dict[str, Any]) -> List[str]:
     """
-    Generate diagnostic physical feedback for K-06: The Wiper.
+    Generate diagnostic physical feedback without design spoilers.
+    Uses dynamic thresholds derived from the metrics dictionary.
     """
     suggestions = []
-    
-    if error or (failed and failure_reason and "design constraint" in failure_reason.lower()):
-        if "mass" in (error or failure_reason).lower():
-            max_m = metrics.get('max_structure_mass', 0.0)
-            suggestions.append(f"DIAGNOSTIC: Wiper assembly mass ({metrics.get('structure_mass', 0):.2f}kg) exceeds the environmental threshold ({max_m:.1f}kg).")
-        return suggestions
 
-    if failed:
-        if "particles remaining" in failure_reason.lower():
-            suggestions.append("DIAGNOSTIC: Insufficient clearing coverage. The swept area does not encompass the target particle field.")
-            suggestions.append("ADVISORY: Analyze the range of motion (ROM) of the linkage. Motor amplitude or arm length may be insufficient.")
-        
-        elif metrics.get('step_count', 0) < metrics.get('min_simulation_steps_required', 0):
-            suggestions.append("DIAGNOSTIC: Operational duration threshold not met. The system failed to sustain the wiping cycle.")
+    # 1. Mass Constraint Audit
+    current_mass = metrics.get('structure_mass', 0.0)
+    max_mass = metrics.get('max_structure_mass', 15.0)
+    if current_mass > max_mass:
+        suggestions.append("DIAGNOSTIC: Structural mass exceeds the permitted budget for this environment.")
 
-    elif not success:
-        progress = metrics.get('progress', 0.0)
-        if 0 < progress < 100:
-            suggestions.append(f"DIAGNOSTIC: Functional wiping detected but efficiency is suboptimal ({progress:.1f}% of target).")
-        
-        max_res = metrics.get('max_residual_percent', 0.0)
-        if metrics.get('residual_percentage', 0) > max_res:
-            suggestions.append("DIAGNOSTIC: High residual payload remaining in the target field.")
+    # 2. Coverage and Clearing Audit
+    # Target: residual_percentage must be <= max_residual_percent
+    res_percent = metrics.get('residual_percentage', 100.0)
+    max_res = metrics.get('max_residual_percent', 20.0)
+    if res_percent > max_res:
+        if res_percent > 95.0:
+            suggestions.append("DIAGNOSTIC: The mechanism is failing to displace particles toward the glass boundaries.")
+        else:
+            suggestions.append("DIAGNOSTIC: Coverage is insufficient; significant particle clumps remain in the target field.")
+
+    # 3. Temporal/Operational Audit
+    # Target: step_count must meet min_simulation_steps_required
+    steps = metrics.get('step_count', 0)
+    min_steps = metrics.get('min_simulation_steps_required', 480)
+    if steps < min_steps and not metrics.get('success', False):
+        suggestions.append("DIAGNOSTIC: Simulation terminated before the required operational duration was met.")
+
+    # 4. Mechanical Efficiency (Generic Failure Reason)
+    if metrics.get('failed') and metrics.get('failure_reason'):
+        # Pass through the evaluator's specific failure reason if available
+        suggestions.append(f"DIAGNOSTIC: {metrics['failure_reason']}")
 
     return suggestions

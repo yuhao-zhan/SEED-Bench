@@ -27,31 +27,31 @@ if 'API_INTRO' in task_data:
 
 TASK_PROMPT = {
     'task_description': """
-Design a robotic gripper attached to a gantry that can grasp a heavy object and lift it vertically.
+Design a robotic gripper attached to a gantry that can grasp an object on a platform and lift it vertically.
 
 ## Task Environment
 - **Gantry**: A static support at y=10.0m. Use `get_anchor_for_gripper()` to anchor your base.
-- **Target Object**: A heavy rectangular block (20 kg) at x=5.0m, y=2.0m.
-- **Target Height**: Lift the object so its center reaches at least y=8.0m.
-- **Build Zone**: x=[0, 10], y=[2, 10]. All gripper components must be within this zone.
+- **Target Object**: An object at x=5.0m, y=2.0m (on a platform at y=1.8m).
+- **Target Height**: Lift the object so its center reaches at least y=3.5m.
+- **Build Zone**: x=[0, 10], y=[5, 15]. The gripper base must be anchored to the gantry.
 
 ## Constraints (must satisfy)
-- **Object Hold**: The object must be held above y=8.0m for at least 3.0 seconds.
+- **Object Hold**: The object must be held above y=3.5m for at least 1.34 seconds (approx. 80 steps).
 - **Mass Budget**: Total gripper structure mass must be less than 30 kg.
-- **Build Zone**: All components must stay within x=[0, 10], y=[2, 10].
 - **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters.
 
 ## Instructions
 1. **Anchor**: Weld your gripper base to the gantry anchor.
-2. **Grasp**: Use motor-driven pivot joints to design fingers that can securely hold the object.
-3. **Lift**: Use a motor-driven joint (e.g., slider or rotating arm) to move the gripper vertically.
+2. **Grasp**: Use motor-driven joints to design a mechanism that can securely hold the object.
+3. **Lift**: Use a motor-driven joint (e.g., slider) to move the gripper vertically.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Vertical Lift**: Object reaches y >= 8.0m.
-2. **Sustain**: Object held at target height for >= 3.0 seconds.
-3. **Stability**: Gripper remains intact and within constraints.
+1. **Vertical Lift**: Object reaches y >= 3.5m.
+2. **Sustain**: Object held at target height for >= 1.34 seconds.
+3. **Stability**: Object never falls below y=1.9m after being lifted.
+4. **Integrity**: Gripper remains intact and within constraints.
 
 ## Design Constraints
 - **Mass Budget**: < 30 kg.

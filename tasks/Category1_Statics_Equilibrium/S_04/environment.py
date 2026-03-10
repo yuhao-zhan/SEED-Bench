@@ -13,8 +13,8 @@ class DaVinciSandbox:
     MAX_BEAM_SIZE = 10.0
     MAX_BEAM_WIDTH = 7.0
     MAX_BEAM_HEIGHT = 2.0
-    PIVOT_POSITION = (0.0, 0.0)
-    LOAD_POSITION = (3.0, 0.0)
+    PIVOT_POSITION = (0.0, 5.0)
+    LOAD_POSITION = (3.0, 5.5)
     LOAD_MASS = 200.0
     MAX_ANGLE_DEVIATION = 10.0 * math.pi / 180.0
     BALANCE_TIME = 15.0
@@ -57,7 +57,15 @@ class DaVinciSandbox:
         self._fragile_joints = terrain_config.get("fragile_joints", False)
         self._max_joint_torque = float(terrain_config.get("max_joint_torque", 1000.0))
 
+        self.PIVOT_X = 0.0
+        self.PIVOT_Y = 5.0
+
         self._create_terrain(terrain_config)
+        # Ground (very far down)
+        self.world.CreateStaticBody(
+            position=(0, -50),
+            shapes=polygonShape(box=(100, 1)),
+        )
         self._setup_load(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):
@@ -66,12 +74,12 @@ class DaVinciSandbox:
         
         if pivot_shape == "rounded":
             pivot = self._world.CreateStaticBody(
-                position=(0, 0),
+                position=(self.PIVOT_X, self.PIVOT_Y),
                 fixtures=Box2D.b2FixtureDef(shape=circleShape(radius=0.05), friction=pivot_friction),
             )
         else:
             pivot = self._world.CreateStaticBody(
-                position=(0, 0),
+                position=(self.PIVOT_X, self.PIVOT_Y),
                 fixtures=Box2D.b2FixtureDef(shape=polygonShape(vertices=[(0, 0.05), (-0.05, 0), (0.05, 0)]), friction=pivot_friction),
             )
         self._terrain_bodies["pivot"] = pivot        
@@ -84,31 +92,28 @@ class DaVinciSandbox:
                 
             for i, rect in enumerate(rects):
                 xmin, ymin, xmax, ymax = rect
+                # Offset obstacles relative to pivot height
+                ymin += self.PIVOT_Y
+                ymax += self.PIVOT_Y
                 cx, cy = (xmin + xmax) / 2.0, (ymin + ymax) / 2.0
                 hw, hh = (xmax - xmin) / 2.0, (ymax - ymin) / 2.0
-                if self._moving_obstacle:
-                    obs = self._world.CreateKinematicBody(
-                        position=(cx, cy),
-                        fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(hw, hh)), friction=0.5),
-                    )
-                else:
-                    obs = self._world.CreateStaticBody(
-                        position=(cx, cy),
-                        fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(hw, hh)), friction=0.5),
-                    )
+                obs = self._world.CreateStaticBody(
+                    position=(cx, cy),
+                    fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(hw, hh)), friction=0.5),
+                )
                 self._terrain_bodies[f"obstacle_{i}"] = obs
                 self._obstacles.append(obs)
 
     def _setup_load(self, terrain_config: dict):
         self._load_mass = float(terrain_config.get("load_mass", 200.0))
-        self._load_position = (3.0, 0.0)
+        self._load_position = (3.0, self.PIVOT_Y + 0.5)
         self._load_body = None
         self._load_attached = False
         self._initial_disturbance_applied = False
         self._initial_disturbance = terrain_config.get("initial_disturbance", None)
 
         if self._drop_load:
-            self._load_position = (3.0, 4.0)
+            self._load_position = (3.0, self.PIVOT_Y + 4.0)
             self._load_body = self._world.CreateDynamicBody(
                 position=self._load_position,
                 fixtures=Box2D.b2FixtureDef(
@@ -131,26 +136,17 @@ class DaVinciSandbox:
                 self._load_body.angularVelocity = 0
                 self._load_body.linearVelocity = (0, 0)
                 self._load_body.angle = 0
-            
-            # If there's an explicit disturbance, apply it
-            if self._bodies and self._initial_disturbance:
-                main_beam = self._bodies[0]
-                if "angular_velocity" in self._initial_disturbance:
-                    main_beam.angularVelocity = float(self._initial_disturbance["angular_velocity"])
-                if "linear_velocity" in self._initial_disturbance:
-                    vx = float(self._initial_disturbance["linear_velocity"][0])
-                    vy = float(self._initial_disturbance["linear_velocity"][1])
-                    main_beam.linearVelocity = (vx, vy)
-            
             self._initial_disturbance_applied = True
             
         # Auto-attach load
         if not self._load_attached and not self._drop_load and self._bodies:
+            target_y = self.PIVOT_Y + 0.5
             for body in self._bodies:
-                dist = math.sqrt((body.position.x - 3.0)**2 + (body.position.y - 0.0)**2)
+                # Check distance to catch point (3.0, PIVOT_Y + 0.5)
+                dist = math.sqrt((body.position.x - 3.0)**2 + (body.position.y - target_y)**2)
                 if dist < 0.5:
                     self._load_body = self._world.CreateDynamicBody(
-                        position=(3.0, 0.5),
+                        position=(3.0, target_y),
                         fixtures=Box2D.b2FixtureDef(
                             shape=polygonShape(box=(0.5, 0.5)),
                             density=self._load_mass / (1.0 * 1.0),
@@ -159,7 +155,7 @@ class DaVinciSandbox:
                     self._world.CreateWeldJoint(
                         bodyA=body,
                         bodyB=self._load_body,
-                        anchor=(3.0, 0.0),
+                        anchor=(3.0, self.PIVOT_Y),
                         collideConnected=False
                     )
                     self._load_attached = True
@@ -179,47 +175,29 @@ class DaVinciSandbox:
             wind_f = self._wind_force_multiplier if self._wind_active else 0.0
             
             for b in self._bodies:
-                rx, ry = b.position.x, b.position.y
+                rx, ry = b.position.x - self.PIVOT_X, b.position.y - self.PIVOT_Y
                 Fx = b.mass * wind_f + b.mass * gx
                 Fy = b.mass * gy
                 net_torque += (rx * Fy - ry * Fx)
                 
             if self._load_attached and self._load_body:
-                is_actually_attached = False
-                for j in self._world.joints:
-                    if (j.bodyA == self._load_body and j.bodyB in self._bodies) or \
-                       (j.bodyB == self._load_body and j.bodyA in self._bodies):
-                        is_actually_attached = True
-                        break
-                
-                if is_actually_attached:
-                    b = self._load_body
-                    rx, ry = b.position.x, b.position.y
-                    Fx = b.mass * wind_f + b.mass * gx
-                    Fy = b.mass * gy
-                    net_torque += (rx * Fy - ry * Fx)
+                b = self._load_body
+                rx, ry = b.position.x - self.PIVOT_X, b.position.y - self.PIVOT_Y
+                Fx = b.mass * wind_f + b.mass * gx
+                Fy = b.mass * gy
+                net_torque += (rx * Fy - ry * Fx)
             
             if abs(net_torque) > self._max_joint_torque:
-                print(f"DEBUG: Stage torque check FAIL. Torque: {net_torque:.2f}, Limit: {self._max_joint_torque:.2f}, LoadAttached: {self._load_attached}")
                 pivot = self._terrain_bodies.get("pivot")
                 for j in list(self._joints):
-                    # Destroy any joint connected to the pivot if torque limit is exceeded
-                    if (isinstance(j, Box2D.b2WeldJoint) or isinstance(j, Box2D.b2RevoluteJoint)) and (j.bodyA == pivot or j.bodyB == pivot):
+                    if (isinstance(j, Box2D.b2RevoluteJoint)) and (j.bodyA == pivot or j.bodyB == pivot):
                         try:
                             self._world.DestroyJoint(j)
                             self._joints.remove(j)
-                        except:
-                            pass
+                        except: pass
 
-        self._world.Step(time_step, 60, 60) # High iterations for stability
+        self._world.Step(time_step, 60, 60)
         self._step_timer += time_step
-
-        if self._moving_obstacle and self._obstacles:
-            obstacle = self._obstacles[0]
-            xmin, ymin, xmax, ymax = self._terrain_config.get("obstacle_rect", [0,0,1,1])
-            cx_init, cy_init = (xmin + xmax) / 2.0, (ymin + ymax) / 2.0
-            new_cx = cx_init + self._obstacle_amplitude * math.sin(2 * math.pi * self._obstacle_frequency * self._step_timer)
-            obstacle.position = (new_cx, cy_init)
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0, friction=None):
         width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_WIDTH))
@@ -241,9 +219,9 @@ class DaVinciSandbox:
         if pivot and (body_a == pivot or body_b == pivot):
             other = body_b if body_a == pivot else body_a
             if self._terrain_config.get("force_pivot_joint", False) or type == 'pivot':
-                joint = self._world.CreateRevoluteJoint(bodyA=other, bodyB=pivot, anchor=(0, 0), collideConnected=False)
+                joint = self._world.CreateRevoluteJoint(bodyA=other, bodyB=pivot, anchor=(self.PIVOT_X, self.PIVOT_Y), collideConnected=False)
             else:
-                joint = self._world.CreateWeldJoint(bodyA=other, bodyB=pivot, anchor=(0, 0), collideConnected=False)
+                joint = self._world.CreateWeldJoint(bodyA=other, bodyB=pivot, anchor=(self.PIVOT_X, self.PIVOT_Y), collideConnected=False)
         elif type == 'rigid':
             joint = self._world.CreateWeldJoint(bodyA=body_a, bodyB=body_b, anchor=(anchor_x, anchor_y), collideConnected=False)
         elif type == 'pivot':
@@ -262,7 +240,7 @@ class DaVinciSandbox:
 
     def get_terrain_bounds(self):
         return {
-            "pivot": self.PIVOT_POSITION,
+            "pivot": (self.PIVOT_X, self.PIVOT_Y),
             "load_position": self.LOAD_POSITION,
             "max_angle_deviation": self.MAX_ANGLE_DEVIATION * 180 / math.pi,
             "max_beam_width": self.MAX_BEAM_WIDTH,

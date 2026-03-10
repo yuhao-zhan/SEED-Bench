@@ -1,6 +1,6 @@
 """
 S-06: The Overhang task environment module
-Redesigned for extreme difficulty with dynamic forces and structural constraints.
+Redesigned for fundamental structural complexity and multi-block stacking requirements.
 """
 import Box2D
 from Box2D.b2 import (world, polygonShape, staticBody, dynamicBody, kinematicBody)
@@ -10,9 +10,11 @@ import math
 class DaVinciSandbox:
     """DaVinci Sandbox environment wrapper for S-06: The Overhang"""
 
-    MAX_BLOCK_LENGTH = 4.0 
-    MAX_BLOCK_HEIGHT = 0.4
-    MAX_BLOCK_COUNT = 20
+    # FUNDAMENTAL DIFFICULTY INCREASE: 
+    # Small blocks force multi-block stacking strategies (harmonic series).
+    MAX_BLOCK_LENGTH = 1.0 
+    MAX_BLOCK_HEIGHT = 0.2
+    MAX_BLOCK_COUNT = 100 # INCREASED again to allow for ultra-stable stacks
     START_ZONE_X_MAX = 0.0
 
     def __init__(self, terrain_config=None, physics_config=None):
@@ -55,8 +57,6 @@ class DaVinciSandbox:
         
         # Static or kinematic table
         # Pivot point is (0, 0)
-        # Position of center must be adjusted based on angle to keep edge at 0,0
-        # For simplicity, we just use the previous logic.
         pos = (-10.0, -0.5)
         
         if self._oscillate:

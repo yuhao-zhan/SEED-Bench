@@ -1,6 +1,6 @@
 """
 S-06: The Overhang task evaluation module
-Enhanced for extreme difficulty with specialized constraints and persistence.
+Enhanced for structural complexity and mass constraints.
 """
 import math
 from Box2D.b2 import polygonShape
@@ -40,6 +40,7 @@ class Evaluator:
         self.MAX_BLOCK_COUNT = env_class.MAX_BLOCK_COUNT
         self.START_ZONE_X_MAX = env_class.START_ZONE_X_MAX
         self.SPAWN_ZONE = terrain_bounds.get("spawn_zone", [-10.0, 0.0])
+        self.MAX_TOTAL_MASS = 20000.0  # INCREASED for extreme difficulty support
         
         self.design_constraints_checked = False
         self.persistently_failed = False
@@ -107,6 +108,10 @@ class Evaluator:
             if self.min_y_position < -5.0:
                 self.persistently_failed = True
                 self.persistent_failure_reason = "Structure fell off table"
+            
+            if self.structure_mass > self.MAX_TOTAL_MASS + 0.01:
+                self.persistently_failed = True
+                self.persistent_failure_reason = f"Structure exceeds maximum mass: {self.structure_mass:.2f} > {self.MAX_TOTAL_MASS}"
         
         if "ceiling_y" in self.terrain_bounds:
             cy = self.terrain_bounds["ceiling_y"]
@@ -144,6 +149,7 @@ class Evaluator:
             'max_velocity': self.max_velocity,
             'block_count': len(self.environment._bodies),
             'max_block_count_limit': self.MAX_BLOCK_COUNT,
+            'max_total_mass_limit': self.MAX_TOTAL_MASS,
             'ceiling_y_limit': self.terrain_bounds.get("ceiling_y", None)
         }
         
@@ -164,9 +170,9 @@ class Evaluator:
             violations.append(f"Too many blocks: {len(self.environment._bodies)} > {self.MAX_BLOCK_COUNT}")
         
         for body in self.environment._bodies:
-            # Check restricted spawn zone
+            # Check restricted spawn zone (ONLY for center position)
             if not (self.SPAWN_ZONE[0] - 0.01 <= body.position.x <= self.SPAWN_ZONE[1] + 0.01):
-                violations.append(f"Block at x={body.position.x:.2f} is outside spawn zone [{self.SPAWN_ZONE[0]}, {self.SPAWN_ZONE[1]}]")
+                violations.append(f"Block center at x={body.position.x:.2f} is outside spawn zone [{self.SPAWN_ZONE[0]}, {self.SPAWN_ZONE[1]}]")
             
             for fixture in body.fixtures:
                 shape = fixture.shape
@@ -186,6 +192,7 @@ class Evaluator:
             'target_overhang': self.target_overhang,
             'success_criteria': {
                 'stability': f'Structure stays still for {self.stability_time}s',
-                'overhang': f'Max x position > {self.target_overhang}m'
+                'overhang': f'Max x position > {self.target_overhang}m',
+                'mass': f'Total mass must be <= {self.MAX_TOTAL_MASS} units'
             }
         }

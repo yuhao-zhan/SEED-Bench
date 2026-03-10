@@ -17,7 +17,7 @@ class Evaluator:
         self.environment = environment
         
         self.target_distance = float(terrain_bounds.get("target_distance", 10.0))
-        self.min_simulation_time = 10.0 # seconds (aligned with prompt description)
+        self.min_simulation_time = 12.0 # seconds (aligned with prompt description)
         self.min_simulation_steps = int(self.min_simulation_time / TIME_STEP)
         
         self.initial_object_x = 8.0

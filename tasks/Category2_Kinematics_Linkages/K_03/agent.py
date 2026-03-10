@@ -2,107 +2,177 @@ import math
 
 import Box2D
 
-OBJ_X = 5.0
-
-OBJ_REST_Y = 2.0
-
-GANTRY_Y = 10.0
-
 def build_agent(sandbox):
     gantry = sandbox.get_anchor_for_gripper()
-    if gantry is None:
-        raise ValueError("Gantry anchor not found. Use get_anchor_for_gripper() to attach base.")
-    base_x, base_y = 5.0, GANTRY_Y - 0.2
-    base_w, base_h = 0.6, 0.4
-    base = sandbox.add_beam(x=base_x, y=base_y, width=base_w, height=base_h, angle=0, density=1.5)
-    sandbox.set_material_properties(base, restitution=0.05, friction=0.6)
-    sandbox.add_joint(gantry, base, (base_x, GANTRY_Y), type='rigid')
-    pivot_y = base_y - base_h / 2
-    slider_half_h = 2.0
-    slider_center_y = pivot_y - slider_half_h
-    stroke = 7.0
-    slider = sandbox.add_beam(
-        x=base_x, y=slider_center_y, width=0.35, height=slider_half_h, angle=0, density=0.6
-    )
+    base = sandbox.add_beam(x=5.0, y=9.8, width=0.6, height=0.4, angle=0, density=1.5)
+    sandbox.add_joint(gantry, base, (5.0, 10.0), type='rigid')
+    slider = sandbox.add_beam(x=5.0, y=7.6, width=0.35, height=2.0, angle=0, density=0.6)
     sandbox.set_fixed_rotation(slider, True)
-    sandbox.set_material_properties(slider, restitution=0.05, friction=0.5)
-    sandbox.add_joint(
-        base, slider, (base_x, pivot_y), type='slider',
-        axis=(0, -1),
-        lower_translation=0.0,
-        upper_translation=stroke,
-        enable_motor=True,
-        motor_speed=1.2,
-        max_motor_force=10000.0,
-    )
-    wrist_y = slider_center_y - slider_half_h
-    finger_w, finger_h = 0.28, 0.5
-    finger_density = 0.5
-    finger_offset_x = 0.28
-    left_finger = sandbox.add_beam(
-        x=base_x - finger_offset_x, y=wrist_y - finger_h / 2, width=finger_w, height=finger_h,
-        angle=0.1 * math.pi, density=finger_density
-    )
+    sandbox.add_joint(base, slider, (5.0, 9.6), type='slider', axis=(0, -1), lower_translation=0.0, upper_translation=7.0, enable_motor=True, motor_speed=1.2, max_motor_force=10000.0)
+    left_finger = sandbox.add_beam(x=4.72, y=5.35, width=0.28, height=0.5, angle=0.1 * math.pi, density=0.5)
     sandbox.set_material_properties(left_finger, restitution=0.05, friction=0.95)
-    sandbox.add_joint(slider, left_finger, (base_x, wrist_y), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=5000.0)
-    right_finger = sandbox.add_beam(
-        x=base_x + finger_offset_x, y=wrist_y - finger_h / 2, width=finger_w, height=finger_h,
-        angle=-0.1 * math.pi, density=finger_density
-    )
+    sandbox.add_joint(slider, left_finger, (5.0, 5.6), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=5000.0)
+    right_finger = sandbox.add_beam(x=5.28, y=5.35, width=0.28, height=0.5, angle=-0.1 * math.pi, density=0.5)
     sandbox.set_material_properties(right_finger, restitution=0.05, friction=0.95)
-    sandbox.add_joint(slider, right_finger, (base_x, wrist_y), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=5000.0)
-    slider_joint = left_finger_joint = right_finger_joint = None
-    for joint in sandbox.joints:
-        if type(joint).__name__ == 'b2PrismaticJoint':
-            if joint.bodyA == base and joint.bodyB == slider:
-                slider_joint = joint
-        elif (joint.bodyA == slider and joint.bodyB == left_finger) or (joint.bodyB == slider and joint.bodyA == left_finger):
-            left_finger_joint = joint
-        elif (joint.bodyA == slider and joint.bodyB == right_finger) or (joint.bodyB == slider and joint.bodyA == right_finger):
-            right_finger_joint = joint
-    sandbox._gripper_joints = {
-        'slider': slider_joint,
-        'left_finger': left_finger_joint,
-        'right_finger': right_finger_joint,
-    }
-    total_mass = sandbox.get_structure_mass()
-    if total_mass > sandbox.MAX_STRUCTURE_MASS:
-        raise ValueError(f"Structure mass {total_mass:.2f}kg exceeds limit {sandbox.MAX_STRUCTURE_MASS}kg")
-    print(f"Gripper constructed: {len(sandbox.bodies)} beams, {len(sandbox.joints)} joints, {total_mass:.2f}kg (vertical slider, no rotation)")
+    sandbox.add_joint(slider, right_finger, (5.0, 5.6), type='pivot', enable_motor=True, motor_speed=0.0, max_motor_torque=5000.0)
+    s_j = [j for j in sandbox.joints if type(j).__name__ == 'b2PrismaticJoint'][0]
+    pivots = [j for j in sandbox.joints if type(j).__name__ == 'b2RevoluteJoint']
+    sandbox._gripper_joints = {'slider': s_j, 'left_finger': pivots[0], 'right_finger': pivots[1]}
     return base
 
 def agent_action(sandbox, agent_body, step_count):
-    if not hasattr(sandbox, '_gripper_joints'):
-        return
+    if not hasattr(sandbox, '_gripper_joints'): return
     joints = sandbox._gripper_joints
     t = step_count / 60.0
-    slider_j = joints.get('slider')
-    max_force = 10000.0
-    obj_pos = sandbox.get_object_position()
-    obj_y = obj_pos[1] if obj_pos else 0.0
     if t < 5.0:
-        if slider_j is not None:
-            sandbox.set_slider_motor(slider_j, 1.2, max_force)
-        if joints.get('left_finger'):
-            sandbox.set_motor(joints['left_finger'], 0.0, 100.0)
-        if joints.get('right_finger'):
-            sandbox.set_motor(joints['right_finger'], 0.0, 100.0)
+        sandbox.set_slider_motor(joints['slider'], 1.2, 10000.0)
     elif t < 7.0:
-        if slider_j is not None:
-            sandbox.set_slider_motor(slider_j, 0.0, max_force)
+        sandbox.set_slider_motor(joints['slider'], 0.0, 10000.0)
     elif t < 10.0:
-        if slider_j is not None:
-            sandbox.set_slider_motor(slider_j, 0.0, max_force)
-        grip_torque = 5000.0
-        if joints.get('left_finger'):
-            sandbox.set_motor(joints['left_finger'], 4.0, grip_torque)
-        if joints.get('right_finger'):
-            sandbox.set_motor(joints['right_finger'], -4.0, grip_torque)
+        sandbox.set_slider_motor(joints['slider'], 0.0, 10000.0)
+        sandbox.set_motor(joints['left_finger'], 4.0, 5000.0)
+        sandbox.set_motor(joints['right_finger'], -4.0, 5000.0)
     else:
-        if slider_j is not None:
-            sandbox.set_slider_motor(slider_j, -2.0, max_force)
-        finger_torque = 5000.0
-        if joints.get('left_finger'):
-            sandbox.set_motor(joints['left_finger'], 2.0, finger_torque)
-        if joints.get('right_finger'):
-            sandbox.set_motor(joints['right_finger'], -2.0, finger_torque)
+        sandbox.set_slider_motor(joints['slider'], -2.0, 10000.0)
+        sandbox.set_motor(joints['left_finger'], 2.0, 5000.0)
+        sandbox.set_motor(joints['right_finger'], -2.0, 5000.0)
+
+def build_agent_stage_1(sandbox):
+    gantry = sandbox.get_anchor_for_gripper()
+    base = sandbox.add_beam(x=5.0, y=9.8, width=0.6, height=0.4, angle=0, density=2.0)
+    sandbox.add_joint(gantry, base, (5.0, 10.0), type='rigid')
+    slider = sandbox.add_beam(x=5.0, y=8.0, width=0.4, height=0.4, angle=0, density=2.0)
+    sandbox.set_fixed_rotation(slider, True)
+    sandbox.add_joint(base, slider, (5.0, 9.6), type='slider', axis=(0,-1), lower_translation=0.0, upper_translation=10.0, enable_motor=True, motor_speed=0.0, max_motor_force=100000.0)
+    l_finger = sandbox.add_beam(x=4.7, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(l_finger, friction=1.0)
+    sandbox.add_joint(slider, l_finger, (4.7, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    r_finger = sandbox.add_beam(x=5.3, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(r_finger, friction=1.0)
+    sandbox.add_joint(slider, r_finger, (5.3, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    pivots = [j for j in sandbox.joints if type(j).__name__ == 'b2RevoluteJoint']
+    sliders = [j for j in sandbox.joints if type(j).__name__ == 'b2PrismaticJoint']
+    sandbox._gripper_joints = {'slider': sliders[0], 'left_finger': pivots[0], 'right_finger': pivots[1]}
+    return base
+
+def agent_action_stage_1(sandbox, agent_body, step_count):
+    if not hasattr(sandbox, '_gripper_joints'): return
+    joints = sandbox._gripper_joints
+    t = step_count / 60.0
+    if t < 3.0:
+        sandbox.set_slider_motor(joints['slider'], 1.2, 50000.0)
+        sandbox.set_motor(joints['left_finger'], -0.5, 20000.0)
+        sandbox.set_motor(joints['right_finger'], 0.5, 20000.0)
+    elif t < 6.0:
+        sandbox.set_slider_motor(joints['slider'], 0.0, 50000.0)
+        sandbox.set_motor(joints['left_finger'], 1.5, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.5, 100000.0)
+    else:
+        sandbox.set_slider_motor(joints['slider'], -2.0, 100000.0)
+        sandbox.set_motor(joints['left_finger'], 1.0, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.0, 100000.0)
+
+def build_agent_stage_2(sandbox):
+    gantry = sandbox.get_anchor_for_gripper()
+    base = sandbox.add_beam(x=5.0, y=9.8, width=0.6, height=0.4, angle=0, density=2.0)
+    sandbox.add_joint(gantry, base, (5.0, 10.0), type='rigid')
+    slider = sandbox.add_beam(x=5.0, y=8.0, width=0.4, height=0.4, angle=0, density=2.0)
+    sandbox.set_fixed_rotation(slider, True)
+    sandbox.add_joint(base, slider, (5.0, 9.6), type='slider', axis=(0,-1), lower_translation=0.0, upper_translation=10.0, enable_motor=True, motor_speed=0.0, max_motor_force=100000.0)
+    l_finger = sandbox.add_beam(x=4.7, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(l_finger, friction=1.0)
+    sandbox.add_joint(slider, l_finger, (4.7, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    r_finger = sandbox.add_beam(x=5.3, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(r_finger, friction=1.0)
+    sandbox.add_joint(slider, r_finger, (5.3, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    pivots = [j for j in sandbox.joints if type(j).__name__ == 'b2RevoluteJoint']
+    sliders = [j for j in sandbox.joints if type(j).__name__ == 'b2PrismaticJoint']
+    sandbox._gripper_joints = {'slider': sliders[0], 'left_finger': pivots[0], 'right_finger': pivots[1]}
+    return base
+
+def agent_action_stage_2(sandbox, agent_body, step_count):
+    if not hasattr(sandbox, '_gripper_joints'): return
+    joints = sandbox._gripper_joints
+    t = step_count / 60.0
+    if t < 3.0:
+        sandbox.set_slider_motor(joints['slider'], 1.2, 50000.0)
+        sandbox.set_motor(joints['left_finger'], -0.5, 20000.0)
+        sandbox.set_motor(joints['right_finger'], 0.5, 20000.0)
+    elif t < 6.0:
+        sandbox.set_slider_motor(joints['slider'], 0.0, 50000.0)
+        sandbox.set_motor(joints['left_finger'], 1.5, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.5, 100000.0)
+    else:
+        sandbox.set_slider_motor(joints['slider'], -2.0, 100000.0)
+        sandbox.set_motor(joints['left_finger'], 1.0, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.0, 100000.0)
+
+def build_agent_stage_3(sandbox):
+    gantry = sandbox.get_anchor_for_gripper()
+    base = sandbox.add_beam(x=5.0, y=9.8, width=0.6, height=0.4, angle=0, density=2.0)
+    sandbox.add_joint(gantry, base, (5.0, 10.0), type='rigid')
+    slider = sandbox.add_beam(x=5.0, y=8.0, width=0.4, height=0.4, angle=0, density=2.0)
+    sandbox.set_fixed_rotation(slider, True)
+    sandbox.add_joint(base, slider, (5.0, 9.6), type='slider', axis=(0,-1), lower_translation=0.0, upper_translation=10.0, enable_motor=True, motor_speed=0.0, max_motor_force=100000.0)
+    l_finger = sandbox.add_beam(x=4.7, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(l_finger, friction=1.0)
+    sandbox.add_joint(slider, l_finger, (4.7, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    r_finger = sandbox.add_beam(x=5.3, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(r_finger, friction=1.0)
+    sandbox.add_joint(slider, r_finger, (5.3, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    pivots = [j for j in sandbox.joints if type(j).__name__ == 'b2RevoluteJoint']
+    sliders = [j for j in sandbox.joints if type(j).__name__ == 'b2PrismaticJoint']
+    sandbox._gripper_joints = {'slider': sliders[0], 'left_finger': pivots[0], 'right_finger': pivots[1]}
+    return base
+
+def agent_action_stage_3(sandbox, agent_body, step_count):
+    if not hasattr(sandbox, '_gripper_joints'): return
+    joints = sandbox._gripper_joints
+    t = step_count / 60.0
+    if t < 3.0:
+        sandbox.set_slider_motor(joints['slider'], 1.2, 50000.0)
+        sandbox.set_motor(joints['left_finger'], -0.5, 20000.0)
+        sandbox.set_motor(joints['right_finger'], 0.5, 20000.0)
+    elif t < 6.0:
+        sandbox.set_slider_motor(joints['slider'], 0.0, 50000.0)
+        sandbox.set_motor(joints['left_finger'], 1.5, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.5, 100000.0)
+    else:
+        sandbox.set_slider_motor(joints['slider'], -2.0, 100000.0)
+        sandbox.set_motor(joints['left_finger'], 1.0, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.0, 100000.0)
+
+def build_agent_stage_4(sandbox):
+    gantry = sandbox.get_anchor_for_gripper()
+    base = sandbox.add_beam(x=5.0, y=9.8, width=0.6, height=0.4, angle=0, density=2.0)
+    sandbox.add_joint(gantry, base, (5.0, 10.0), type='rigid')
+    slider = sandbox.add_beam(x=5.0, y=8.0, width=0.4, height=0.4, angle=0, density=2.0)
+    sandbox.set_fixed_rotation(slider, True)
+    sandbox.add_joint(base, slider, (5.0, 9.6), type='slider', axis=(0,-1), lower_translation=0.0, upper_translation=10.0, enable_motor=True, motor_speed=0.0, max_motor_force=100000.0)
+    l_finger = sandbox.add_beam(x=4.7, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(l_finger, friction=1.0)
+    sandbox.add_joint(slider, l_finger, (4.7, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    r_finger = sandbox.add_beam(x=5.3, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
+    sandbox.set_material_properties(r_finger, friction=1.0)
+    sandbox.add_joint(slider, r_finger, (5.3, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)
+    pivots = [j for j in sandbox.joints if type(j).__name__ == 'b2RevoluteJoint']
+    sliders = [j for j in sandbox.joints if type(j).__name__ == 'b2PrismaticJoint']
+    sandbox._gripper_joints = {'slider': sliders[0], 'left_finger': pivots[0], 'right_finger': pivots[1]}
+    return base
+
+def agent_action_stage_4(sandbox, agent_body, step_count):
+    if not hasattr(sandbox, '_gripper_joints'): return
+    joints = sandbox._gripper_joints
+    t = step_count / 60.0
+    if t < 3.0:
+        sandbox.set_slider_motor(joints['slider'], 1.2, 50000.0)
+        sandbox.set_motor(joints['left_finger'], -0.5, 20000.0)
+        sandbox.set_motor(joints['right_finger'], 0.5, 20000.0)
+    elif t < 6.0:
+        sandbox.set_slider_motor(joints['slider'], 0.0, 50000.0)
+        sandbox.set_motor(joints['left_finger'], 1.5, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.5, 100000.0)
+    else:
+        sandbox.set_slider_motor(joints['slider'], -2.0, 100000.0)
+        sandbox.set_motor(joints['left_finger'], 1.0, 100000.0)
+        sandbox.set_motor(joints['right_finger'], -1.0, 100000.0)
