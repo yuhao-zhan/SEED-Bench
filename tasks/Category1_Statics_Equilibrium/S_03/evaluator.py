@@ -54,6 +54,7 @@ class Evaluator:
         
         self.max_recorded_torque = 0.0
         self.torque_limit_recorded = 0.0
+        self.internal_torque_limit_recorded = 0.0
         self.external_force_y = 0.0
         
         self.design_constraints_checked = False
@@ -118,8 +119,9 @@ class Evaluator:
                 self.max_recorded_torque = max(self.max_recorded_torque, torque)
             except: pass
             
-        # Determine current torque limit (simplified to max found in config)
+        # Record both anchor and internal torque limits for accurate feedback (wall vs beam-to-beam joints)
         self.torque_limit_recorded = self.environment._terrain_config.get("max_anchor_torque", 100000000.0)
+        self.internal_torque_limit_recorded = self.environment._terrain_config.get("max_internal_torque", 100000000.0)
 
 
         # Structural integrity check
@@ -204,6 +206,7 @@ class Evaluator:
             'max_structure_mass': self.MAX_STRUCTURE_MASS,
             'max_anchor_torque': self.max_recorded_torque,
             'max_anchor_torque_limit': self.torque_limit_recorded,
+            'max_internal_torque_limit': self.internal_torque_limit_recorded,
             'anchor_count': len([j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]]),
             'max_anchor_points': 2,
             'max_anchors_limit': 2,

@@ -24,11 +24,11 @@ This task tests your ability to manage the Center of Mass and utilize friction e
 You cannot use joints or any form of artificial bonding. The structure must rely entirely on gravity and friction between surfaces.
 
 ## Task Environment
-- **Table**: A horizontal surface extending from x=-10 to x=0. The table edge is at x=0.
+- **Table**: A horizontal surface extending from x=-20 to x=0. The table edge is at x=0.
 - **Table Height**: The table surface is at y=0.0.
 - **Surface Properties**: Both the table and the blocks provide friction, which you must utilize to stabilize the stack.
 - **Goal**: Reach x >= 0.1m beyond the edge.
-- **Block Dimensions**: width <= 1.0m, height <= 0.2m. Minimum dimension is 0.1m.
+- **Block Dimensions**: width <= 1.0m, height <= 0.2m.
 - **Spawn Rule**: Blocks must be initialized within the permitted build access zone (typically x < 0.0, but may be further restricted: x in [-10.0, 0.0]).
 - **Block Count**: You are limited to a maximum of 100 blocks.
 - **Mass Budget**: Total structure mass must be less than 20000.0 units.

@@ -60,6 +60,10 @@ class Sandbox:
         self.BUILD_ZONE_Y_MIN = 2.0  # Build zone y start (above glass)
         self.BUILD_ZONE_Y_MAX = 10.0  # Build zone y end
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 15.0))  # Hard: 15kg limit (was 25)
+        # Optional cap on motor torque (mutations can impose lower limit to invalidate heavy-duty designs)
+        self._max_motor_torque_cap = terrain_config.get("max_motor_torque")
+        if self._max_motor_torque_cap is not None:
+            self._max_motor_torque_cap = float(self._max_motor_torque_cap)
         # Reference test: use 3-segment bar when smooth glass so bar can oscillate
         self._reference_wiper_short_bar = bool(terrain_config.get("reference_short_bar", False))
         
@@ -279,14 +283,17 @@ class Sandbox:
         API: Set motor properties for a revolute joint
         - joint: Joint object (must be a pivot/revolute joint)
         - motor_speed: Target angular velocity (rad/s, positive = counterclockwise)
-        - max_torque: Maximum motor torque (N·m)
+        - max_torque: Maximum motor torque (N·m). May be capped by environment limit if set.
         """
         if not isinstance(joint, Box2D.b2RevoluteJoint):
             raise ValueError("set_motor: joint must be a pivot/revolute joint")
+        torque = float(max_torque)
+        if getattr(self, "_max_motor_torque_cap", None) is not None:
+            torque = min(torque, self._max_motor_torque_cap)
         # PyBox2D uses motorEnabled (not enableMotor)
         joint.motorEnabled = True
         joint.motorSpeed = float(motor_speed)
-        joint.maxMotorTorque = float(max_torque)
+        joint.maxMotorTorque = torque
 
     def get_structure_mass(self):
         """

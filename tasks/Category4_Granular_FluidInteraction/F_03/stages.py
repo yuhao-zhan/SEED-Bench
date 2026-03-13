@@ -18,7 +18,20 @@ def update_task_description_for_visible_changes(
     base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
     """Update task description when stage has visible changes."""
-    return base_description
+    description = base_description
+    
+    # Build zone changes
+    target_bx = target_terrain_config.get("build_zone_x_max", 2.0)
+    base_bx = base_terrain_config.get("build_zone_x_max", 2.0)
+    target_by = target_terrain_config.get("build_zone_y_max", 5.0)
+    base_by = base_terrain_config.get("build_zone_y_max", 5.0)
+    
+    if target_bx != base_bx or target_by != base_by:
+        pattern = r"(- \*\*Build Zone\*\*: Mechanism must be built in x=\[)([^\]]+)(\], y=\[)([^\]]+)(\]\.)"
+        replacement = f"\\g<1>-4.0, {target_bx}\\g<3>0.0, {target_by}\\g<5> (originally x=[-4.0, {base_bx}], y=[0.0, {base_by}] in the source environment)"
+        description = re.sub(pattern, replacement, description)
+        
+    return description
 
 
 def update_success_criteria_for_visible_changes(
@@ -58,6 +71,7 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Transfer Requirement**: The minimum quantity of material that must be successfully relocated to the target zone for mission success may be adjusted.
 - **Internal Pit Drift**: Persistent lateral forces acting within the excavation zone may vary, potentially shifting material or resisting scoop entry.
 - **Volumetric Capacity**: Hidden limits on how much material can be effectively retained and transported during each cycle of operation may be altered.
+- **Build Zone**: The permitted construction volume (x and y bounds within which the mechanism must be built) may be adjusted.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -69,7 +83,7 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "particles": {"friction": 0.05, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
-                "min_particles_in_hopper": 100,
+                "min_particles_in_hopper": 75,
             },
             "physics_config": {},
         },
@@ -79,22 +93,23 @@ While the following variables **MIGHT** have changed from the initial environmen
             "mutation_description": "Gravity increased; arm and scoop feel heavier, torque is insufficient to lift load.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "min_particles_in_hopper": 30,
+                "min_particles_in_hopper": 17,
             },
             "physics_config": {"gravity": (0, -14.0)},
         },
         {
             "stage_id": "Stage-3",
             "title": "Dense atmosphere and slippery grains",
-            "mutation_description": "Higher damping and near-zero friction; grains slide off and mechanism is sluggish.",
+            "mutation_description": "Very high damping and near-zero friction; grains slide off quickly and mechanism is heavily sluggish.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "particles": {"friction": 0.01, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
-                "min_particles_in_hopper": 100,
+                "particles": {"friction": 0.002, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
+                "min_particles_in_hopper": 20,
+                "build_zone_x_max": 5.0,
             },
             "physics_config": {
-                "linear_damping": 0.2,
-                "angular_damping": 0.2,
+                "linear_damping": 0.72,
+                "angular_damping": 0.72,
             },
         },
         {
@@ -104,9 +119,11 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "particles": {"friction": 0.1, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},
-                "min_particles_in_hopper": 100,
-                "pit_drift_force": 1.8,
+                "min_particles_in_hopper": 4,
+                "pit_drift_force": 0.5,
                 "scoop_capacity": 28,
+                "build_zone_x_max": 6.0,
+                "build_zone_y_max": 6.0,
             },
             "physics_config": {
                 "gravity": (0, -15.0),

@@ -65,63 +65,66 @@ def get_f01_curriculum_stages() -> List[Dict[str, Any]]:
     task_description_suffix = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Fluid Density**: The mass per unit volume of the reservoir liquid may be altered, affecting hydrostatic pressure and buoyancy forces.
-- **Joint Break Force**: The structural load threshold at which welds or connections fail may have changed, impacting the overall stability of the containment.
-- **Fluid Height**: The initial fill level of the reservoir may differ from standard, determining the total volume and potential energy of the contained liquid.
-- **Surge Strength**: The magnitude of transient wave impulses or pressure spikes acting against the containment wall may vary.
-- **Leakage Threshold**: The permissible rate of fluid loss through or over the structure may be adjusted, determining the success of the containment mission.
-- **Gravity**: The acceleration due to the local gravitational field may be altered, influencing all weight-based and pressure-based dynamics.
+While the following variables **MIGHT** have changed from the initial environment,
+**NOT ALL** of them will necessarily be mutated in any given task. You must use
+active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Fluid density**: Mass per unit volume of the water particles; affects hydrostatic pressure.
+ - **Joint break force**: The force threshold above which beam-to-beam welds can fail.
+ - **Reservoir fill height**: The vertical fill level of the reservoir; affects pressure at the base.
+ - **Gravitational acceleration**: The strength and direction of the vertical gravitational force.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical
+rules of this specific environment through active interaction and observation.
+Initial standard solutions may require adjustment; analyze structural stresses
+and containment efficiency to deduce the hidden constraints and adapt your design.
 """
     return [
         {
             "stage_id": "Stage-1",
             "title": "Heavier fluid",
-            "mutation_description": "Fluid density increased; higher hydrostatic pressure on dam, more leakage or joint stress.",
+            "mutation_description": "Fluid density increased to 1500 kg/m^3. Higher hydrostatic pressure.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "fluid": {"density": 1850.0},
+                "fluid": {"density": 1500.0},
+                "max_leakage_rate": 0.02, # 2.0%
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
             "title": "Weaker joints",
-            "mutation_description": "Joint break force lowered; welds fail more easily under surge and debris.",
+            "mutation_description": "Joint break force lowered to 35000 N. Structure is more fragile.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "joint_break_force": 22000.0,
+                "joint_break_force": 35000.0,
+                "max_leakage_rate": 0.02, # 2.0%
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "Higher head and heavier fluid",
-            "mutation_description": "Fluid density and fill height increased; joint break force reduced. Multiple stress factors.",
+            "title": "Higher head",
+            "mutation_description": "Fluid height increased to 7.5m. More pressure at base.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "fluid_height": 8.2,
-                "fluid": {"density": 1550.0},
-                "joint_break_force": 26000.0,
+                "fluid_height": 7.5,
+                "fluid": {"density": 1200.0},
+                "max_leakage_rate": 0.02, # 2.0%
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-4",
-            "title": "Extreme environment",
-            "mutation_description": "Stronger gravity, heavier fluid, higher fill, weaker joints, stronger surges, stricter leakage threshold.",
+            "title": "Jovian gravity",
+            "mutation_description": "Gravity increased to -12.0 m/s^2. Density 1100 kg/m^3.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "fluid_height": 7.5,
-                "fluid": {"density": 1250.0},
-                "joint_break_force": 26000.0,
-                "surge_impulses": [0.82, 0.98, 1.15, 1.32, 1.5, 1.62, 1.73, 1.85, 1.95],
-                "max_leakage_rate": 0.0005,  # 0.05% — stricter than baseline 0.1%
+                "fluid": {"density": 1100.0},
+                "joint_break_force": 40000.0,
+                "max_leakage_rate": 0.02, # 2.0%
             },
             "physics_config": {
-                "gravity": (0, -13.0),
+                "gravity": (0, -12.0),
             },
         },
     ]

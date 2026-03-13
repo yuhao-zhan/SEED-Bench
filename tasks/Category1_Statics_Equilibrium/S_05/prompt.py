@@ -23,10 +23,11 @@ Protect a fragile Core (a sensitive circular object at x=10.0, y=1.0) from heavy
 Boulders will spawn above the core, mostly targeting the center, but some will fall from the left and right sides. The core is extremely delicate and will fail if subjected to significant impact forces.
 
 ## Task Environment
-- **Core**: A circular object centered at (10.0, 1.0). It fails if any single impact force exceeds its structural tolerance.
+- **Core**: A circular object centered at (10.0, 1.0). It fails if any single impact force exceeds 150 N (its structural tolerance).
 - **Ground**: A static surface at y=0.0. Your shelter must be supported by the ground outside the designated keep-out zone.
 - **Boulders**: Boulders fall from a high altitude (y=15m). They target the build zone broadly. You must design a structure to deflect or absorb these impacts.
-- **Beam Dimensions**: 0.1 <= width, height <= 10.0 m. 
+- **Beam Dimensions**: 0.1 <= width, height <= 10.0 m.
+- **Joint Limits**: Joints and anchors have maximum linear force 1e12 N and maximum torque 1e12 Nm in the nominal mission; these limits may be restricted in mission variants. 
 
 ## Task Objective
 Design a shelter structure that:
@@ -39,18 +40,19 @@ Design a shelter structure that:
 - **Keep-Out Zone**: You cannot build any structural components within 1.3m of the core center (10.0, 1.0).
 - **Height Limit**: No part of the shelter may extend above y=7.5m.
 - **Mass Budget**: Total structure mass must be less than 300 kg.
-- **Structural Integrity**: The shelter must remain standing throughout the bombardment. Joints and anchors have finite load-bearing capacity and may fail under extreme stress.
+- **Structural Integrity**: The shelter must remain standing throughout the bombardment. Structural collapse is defined as any beam center falling below y=0.3 m. Joints may break if force or torque exceeds their limits.
 """,
     
     'success_criteria': """
 ## Success Criteria
-1. **Protection**: The core survives the entire bombardment without exceeding its impact force threshold.
-2. **Stability**: The shelter does not collapse under its own weight or the weight of the debris.
+1. **Protection**: The core survives the entire bombardment; peak impact force on the core must remain below 150 N.
+2. **Stability**: The shelter does not collapse (no beam center below y=0.3 m) under its own weight or the weight of the debris.
 
 ## Design Constraints
 - **Keep-Out Zone**: Beam center distance to (10.0, 1.0) must be >= 1.3m.
 - **Mass Budget**: < 300 kg.
 - **Height Limit**: No part of the shelter may extend above y=7.5m.
+- **Core Force**: Peak force on core < 150 N.
 - **APIs**: Use only the primitives documented below.
 """,
     

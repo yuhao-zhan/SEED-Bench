@@ -27,6 +27,7 @@ class Sandbox:
         gravity = tuple(physics_config.get("gravity", (0, -14)))
         self._default_linear_damping = float(physics_config.get("linear_damping", 0.0))
         self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
+        self._wind = tuple(physics_config.get("wind", (0, 0)))
 
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
@@ -84,16 +85,17 @@ class Sandbox:
         self._left_platform_end_x = left_end_x
         self._pit_width = pit_width
         self._right_platform_start_x = right_start_x
-        self._pit_bottom_y = -2.0  # Below this = in pit (fail)
+        self._pit_bottom_y = 0.0  # Below this = in pit (fail); aligned with evaluator
 
         # Three slots in pit: each slot = gap between lower red bar and upper red bar (ceiling).
         # Slot dimensions (floor_y, ceiling_y) so trajectory must pass through the gap only.
         # Gap 1.2 m so one parabola from (5,5) can pass (with margin 0.15 + jumper half_h 0.3).
-        SLOT_GAP = 1.2  # m; narrow but passable
         CEILING_HALF_H = 0.3
 
-        # Slot 1: x~17, floor 13.2, ceiling 14.7 (gap 1.5 m so jumper clears physically)
-        b1_cx, b1_floor, b1_ceil = 17.0, 13.2, 14.7
+        # Slot 1: x~17
+        b1_cx = float(terrain_config.get("slot1_x", 17.0))
+        b1_floor = float(terrain_config.get("slot1_floor", 13.2))
+        b1_ceil = float(terrain_config.get("slot1_ceil", 14.7))
         b1_half_h = b1_floor / 2.0
         barrier = self._world.CreateStaticBody(
             position=(b1_cx, b1_half_h),
@@ -117,8 +119,10 @@ class Sandbox:
         self._barrier_y_max = b1_floor
         self._slot1_floor, self._slot1_ceil = b1_floor, b1_ceil
 
-        # Slot 2: x~21, floor 11.3, ceiling 13.3 (floor slightly lower so ref passes at discrete step py~11.78)
-        b2_cx, b2_floor, b2_ceil = 21.0, 11.3, 13.3
+        # Slot 2: x~21
+        b2_cx = float(terrain_config.get("slot2_x", 21.0))
+        b2_floor = float(terrain_config.get("slot2_floor", 11.3))
+        b2_ceil = float(terrain_config.get("slot2_ceil", 13.3))
         b2_half_h = b2_floor / 2.0
         barrier2 = self._world.CreateStaticBody(
             position=(b2_cx, b2_half_h),
@@ -142,8 +146,10 @@ class Sandbox:
         self._barrier2_y_max = b2_floor
         self._slot2_floor, self._slot2_ceil = b2_floor, b2_ceil
 
-        # Slot 3: x~19, floor 12.4, ceiling 14.2 (tall enough for (10,15.9) at discrete step)
-        b3_cx, b3_floor, b3_ceil = 19.0, 12.4, 14.2
+        # Slot 3: x~19
+        b3_cx = float(terrain_config.get("slot3_x", 19.0))
+        b3_floor = float(terrain_config.get("slot3_floor", 12.4))
+        b3_ceil = float(terrain_config.get("slot3_ceil", 14.2))
         b3_half_h = b3_floor / 2.0
         barrier3 = self._world.CreateStaticBody(
             position=(b3_cx, b3_half_h),
@@ -249,6 +255,13 @@ class Sandbox:
 
     def step(self, time_step):
         """Advance physics by one time step."""
+        if self._wind != (0, 0):
+            for body in self._world.bodies:
+                if body.type == Box2D.b2_dynamicBody:
+                    # Treat wind as an acceleration; Force = mass * acceleration
+                    body.ApplyForceToCenter(
+                        (self._wind[0] * body.mass, self._wind[1] * body.mass), True
+                    )
         self._world.Step(time_step, 10, 10)
 
     def get_terrain_bounds(self):

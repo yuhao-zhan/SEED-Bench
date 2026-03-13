@@ -68,6 +68,23 @@ class F02Renderer(Renderer):
                     outline_width=2,
                 )
 
+        # --- NEW HIGH DIFFICULTY VISUALS ---
+        # EMP Zone: Semi-transparent purple/magenta overlay
+        if hasattr(sandbox, "_emp_zone") and sandbox._emp_zone is not None:
+            ex1, ex2 = sandbox._emp_zone
+            self.draw_rect(ex1, 0, ex2 - ex1, 8, (128, 0, 128, 60)) # Purple tint
+            
+        # Corrosive Ceiling: Red hazy line
+        if hasattr(sandbox, "_corrosive_y") and sandbox._corrosive_y < 1000:
+            cy = sandbox._corrosive_y
+            self.draw_line(0, cy, 35, cy, (255, 0, 0, 150), 4) # Red boundary
+            
+        # Whirlpool: Swirling blue/cyan circles or just a region tint
+        if hasattr(sandbox, "_whirlpool") and sandbox._whirlpool is not None:
+            wx = float(sandbox._whirlpool.get("x", 17.0))
+            ww = float(sandbox._whirlpool.get("width", 2.0))
+            self.draw_rect(wx - ww/2.0, 0, ww, 2, (0, 255, 255, 60)) # Cyan tint in water
+
         if hasattr(sandbox, "TARGET_X"):
             tx = sandbox.TARGET_X
             self.draw_line(tx, 0, tx, 8, COLOR_ENVIRONMENT, 3)

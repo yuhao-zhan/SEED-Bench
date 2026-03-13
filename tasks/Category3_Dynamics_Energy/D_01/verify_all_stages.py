@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
+
+from main import TaskRunner
+
+def get_stage_overrides(stage):
+    return {
+        "terrain_config": stage.get("terrain_config", {}) or {},
+        "physics_config": stage.get("physics_config", {}) or {},
+    }
+
+def main():
+    task_name = "Category3_Dynamics_Energy.D_01"
+    task_module = __import__(
+        f"tasks.{task_name}",
+        fromlist=["environment", "evaluator", "agent", "renderer", "stages"],
+    )
+    stages_mod = getattr(task_module, "stages", None)
+    curriculum = getattr(stages_mod, "get_d01_curriculum_stages", None)
+    stages_list = curriculum()
+    runner = TaskRunner(task_name, task_module)
+    max_steps = 6000
+
+    for i, stage in enumerate(stages_list):
+        stage_num = i + 1
+        stage_id = stage.get("stage_id", "?")
+        title = stage.get("title", "?")
+        overrides = get_stage_overrides(stage)
+        
+        print("=" * 60)
+        print(f"Testing {stage_id}: {title}")
+        print("=" * 60)
+        
+        # Monkey-patch agent functions to test stage solutions
+        task_module.agent.build_agent = getattr(task_module.agent, f"build_agent_stage_{stage_num}")
+        task_module.agent.agent_action = getattr(task_module.agent, f"agent_action_stage_{stage_num}")
+        
+        result = runner.run(
+            headless=True,
+            max_steps=max_steps,
+            save_gif=False,
+            env_overrides=overrides
+        )
+        
+        if result:
+            score, metrics = result
+            print(f"Score: {score:.2f}  Success: {metrics.get('success', False)}")
+            if not metrics.get('success', False):
+                print(f"Failure: {metrics.get('failure_reason')}")
+                sys.exit(1)
+        else:
+            print("No result (build_agent may have raised)")
+            sys.exit(1)
+        print()
+
+    print("✅ All mutated stage solutions verified successfully!")
+
+if __name__ == "__main__":
+    main()

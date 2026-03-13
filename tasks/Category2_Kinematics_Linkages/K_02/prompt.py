@@ -32,15 +32,18 @@ Design a 2D climber mechanism that can scale a vertical wall using motor-driven 
 ## Task Environment
 - **Vertical Wall**: A surface on the right side of the build zone.
 - **Build Zone**: x=[0, 5], y=[0, 25]. All structure components must be placed within this zone.
+- **Wall Contact**: During motion, the climber must remain within x=[3.5, 7.5]m to maintain wall contact (evaluation fails otherwise).
 - **Starting Position**: Agent components should be centered around x=4.5m, y=1.5m.
 - **Target**: Move the climber's torso to at least y=20.0m.
 
 ## Constraints (must satisfy)
 - **Adhesion**: Use `add_pad` and `set_pad_active` to stick to the wall.
 - **Motion**: The climber must maintain active upward motion for at least 10.0 seconds.
-- **Mass Budget**: Total structure mass must be less than 50 kg.
+- **Mass Budget**: Total structure mass must be at least 0 kg and less than 50 kg.
 - **Build Zone**: All components must stay within x=[0, 5], y=[0, 25].
 - **Beam Dimensions**: 0.05 <= width, height <= 3.0 meters.
+- **Pad Radius**: 0.05 <= radius <= 0.25 meters (for `add_pad`).
+- **Pivot Joint Limits**: Angle limits for pivot joints are clamped to [-π, π] radians.
 
 ## Instructions
 1. **Design**: Create a climber structure (e.g., using alternating pads and rotating legs).
@@ -54,7 +57,7 @@ Design a 2D climber mechanism that can scale a vertical wall using motor-driven 
 3. **Stability**: Structure remains within build zone and mass limits.
 
 ## Design Constraints
-- **Mass Budget**: < 50 kg.
+- **Mass Budget**: Minimum 0 kg, maximum < 50 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     

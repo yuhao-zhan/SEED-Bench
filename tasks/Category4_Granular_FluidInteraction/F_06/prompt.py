@@ -37,11 +37,12 @@ Design a system (structure and control) that:
     "success_criteria": """
 ## Success Criteria
 1. **Delivery Efficiency**: At least 90% of released particles reach the target zone.
-2. **Resource Management**: Per-step force usage must not exceed the environment's budget.
+2. **Resource Management**: Per-step force usage must not exceed 12000 N per step.
 
 ## Design Constraints
 - **Mass Budget**: Total structure mass <= 380 kg.
-- **Force Budget**: 12000 N per step (nominal).
+- **Force Budget**: 12000 N per step.
+- **Anchoring**: The structure must be anchored to the ground using at least one joint.
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['F_06'].values()),

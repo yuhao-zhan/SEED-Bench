@@ -26,14 +26,14 @@ Design an amphibian vehicle to cross a body of water and reach the target bank.
 - **Target**: Reach the right bank at x >= 26.0m.
 - **Build Zone**: Vehicle must be built on the left bank in x=[2.0, 8.0], y=[0.0, 4.0].
 - **Obstacles**: Three pillars are located in the water at x=14.0, 17.0, and 20.0m.
-- **Environmental Factors**: Strong opposing current, quadratic water drag, and oscillating lateral winds.
+- **Environmental Factors**: Fluid resistance, gravity, and localized atmospheric/liquid forces that may affect stability.
 - **Propulsion**: Use `apply_force()` for paddling. **Cooldown**: Each component has a 3-step cooldown between thrusts.
 
 ## Task Objective
 Design a vehicle that:
 1. Remains buoyant while crossing the water.
-2. Uses effective propulsion (e.g., multiple paddles) to move forward against currents and headwinds.
-3. Can steer or lift over pillars in the path.
+2. Uses effective propulsion (e.g., multiple paddles) to move forward against currents and other environmental resistance.
+3. Can navigate over or through obstacles in the path.
 4. Reaches the target bank.
 """,
     "success_criteria": """

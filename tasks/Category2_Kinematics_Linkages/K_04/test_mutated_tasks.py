@@ -123,7 +123,7 @@ def main():
                 print(f"   Reason: {result['metrics']['failure_reason']}")
             metrics = result.get('metrics', {})
             if metrics.get('distance_pushed') is not None:
-                print(f"   → Distance pushed: {metrics.get('distance_pushed', 0):.2f}m / 8m target")
+                print(f"   → Distance pushed: {metrics.get('distance_pushed', 0):.2f}m / 10m target")
     
     print(f"\nTotal: {len(passed_stages)}/{len(results)} stages passed")
     if len(results) > 0:

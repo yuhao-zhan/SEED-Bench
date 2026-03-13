@@ -36,3 +36,54 @@ def build_agent(sandbox):
 
 def agent_action(sandbox, agent_body, step_count):
     pass
+
+def build_agent_stage_1(sandbox):
+    density = 30.0
+    anchor = sandbox.add_beam(7.1, 5.4, 0.1, 0.1, 0, 1.0)
+    sandbox.add_joint(anchor, None, (7.1, 5.5), type="rigid")
+    y_safe = [0.75, 1.75, 2.75, 3.85]
+    for y in y_safe:
+        b1 = sandbox.add_beam(10.75, y, 0.4, 0.1, 0, density)
+        sandbox.set_damping(b1, 100, 100)
+        b2 = sandbox.add_beam(9.75, y, 0.4, 0.1, 0, density)
+        sandbox.set_damping(b2, 100, 100)
+    return anchor
+
+def build_agent_stage_2(sandbox):
+    return build_agent_stage_1(sandbox)
+
+def build_agent_stage_3(sandbox):
+    density = 10.0
+    anchor = sandbox.add_beam(7.1, 5.4, 0.1, 0.1, 0, 0.1)
+    sandbox.add_joint(anchor, None, (7.1, 5.5), type="rigid")
+    y_safe = [0.75, 1.75, 2.75, 3.85]
+    for y in y_safe:
+        b1 = sandbox.add_beam(10.6, y, 0.1, 0.9, 0, density)
+        sandbox.set_damping(b1, 100, 100)
+        b2 = sandbox.add_beam(7.1, y, 0.1, 0.9, 0, density)
+        sandbox.set_damping(b2, 100, 100)
+    return anchor
+
+def build_agent_stage_4(sandbox):
+    density = 5.0
+    anchor = sandbox.add_beam(7.1, 5.4, 0.1, 0.1, 0, 0.1)
+    sandbox.add_joint(anchor, None, (7.1, 5.5), type="rigid")
+    for y in [0.75, 1.75, 2.75, 3.85]:
+        b = sandbox.add_beam(7.1, y, 0.1, 0.9, 0, density)
+        sandbox.set_damping(b, 100, 100)
+    for x in [7.76, 9.75, 10.75]:
+        b = sandbox.add_beam(x, 0.6, 1.0, 0.2, 0, density)
+        sandbox.set_damping(b, 100, 100)
+    return anchor
+
+def agent_action_stage_1(sandbox, agent_body, step_count):
+    pass
+
+def agent_action_stage_2(sandbox, agent_body, step_count):
+    pass
+
+def agent_action_stage_3(sandbox, agent_body, step_count):
+    pass
+
+def agent_action_stage_4(sandbox, agent_body, step_count):
+    pass

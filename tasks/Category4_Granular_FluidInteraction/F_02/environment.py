@@ -130,6 +130,11 @@ class Sandbox:
         self._max_joint_force = float(terrain_config.get("max_joint_force", float('inf')))
         self._last_thrust_step = {}  # body id -> last step that applied thrust
         self._current_step = 0  # set by main loop before agent_action for cooldown
+        
+        # --- NEW HIGH DIFFICULTY MECHANICS ---
+        self._emp_zone = terrain_config.get("emp_zone", None) # e.g. [14.0, 20.0]
+        self._corrosive_y = float(terrain_config.get("corrosive_y", float('inf')))
+        self._whirlpool = terrain_config.get("whirlpool", None) # e.g. {"x": 17.0, "width": 4.0, "force": 200.0}
 
     # --- Physical constraint constants ---
     MIN_BEAM_SIZE = 0.15
@@ -196,6 +201,11 @@ class Sandbox:
     def apply_force(self, body, force_x, force_y, step_count=None):
         """API: Apply a force to a body (e.g. for paddling). Capped per-body. Cooldown: each body can thrust only every _thrust_cooldown_steps steps (uses step_count or env._current_step)."""
         if body is not None and body.active:
+            # EMP Zone completely disables thrust for this body
+            if getattr(self, '_emp_zone', None) is not None:
+                if self._emp_zone[0] <= body.position.x <= self._emp_zone[1]:
+                    return
+            
             step = step_count if step_count is not None else getattr(self, '_current_step', 0)
             if self._thrust_cooldown_steps > 0:
                 bid = id(body)
@@ -259,6 +269,18 @@ class Sandbox:
                 if self._headwind_burst_x_left <= x <= self._headwind_burst_x_right:
                     f_headwind = -self._headwind_burst_per_kg * body.mass
                     body.ApplyForceToCenter((f_headwind, 0), wake=True)
+            
+            # Corrosive Atmosphere: massive downward crush if flying too high
+            if y > getattr(self, '_corrosive_y', float('inf')):
+                body.ApplyForceToCenter((0, -2000.0 * body.mass), wake=True)
+                
+            # Abyssal Whirlpool: strong localized downward suction
+            if getattr(self, '_whirlpool', None) is not None:
+                wx = float(self._whirlpool.get("x", 17.0))
+                ww = float(self._whirlpool.get("width", 2.0))
+                wf = float(self._whirlpool.get("force", 100.0))
+                if wx - ww/2.0 <= x <= wx + ww/2.0:
+                    body.ApplyForceToCenter((0, -wf * body.mass), wake=True)
         
         # Check joints for breakage if max_joint_force is set
         if self._max_joint_force < float('inf'):

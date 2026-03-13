@@ -1,8 +1,8 @@
 """
 D-02: The Jumper task curriculum stages (mutations).
 
-Mutated tasks vary invisible physical parameters: gravity, take-off ground elasticity,
-linear/angular damping. The solver is NOT told exact values; it must infer from feedback.
+Mutated tasks vary physical parameters: gravity, wind, damping, and slot geometry.
+The solver is NOT told exact values; it must infer from feedback.
 """
 
 from __future__ import annotations
@@ -29,8 +29,9 @@ _D02_SUFFIX = """
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
 - **Gravity**: Variations in the gravitational field may alter the parabolic trajectory and time-of-flight of the jumper.
+- **Atmospheric Wind**: Strong currents may exert forces in various directions, significantly altering the flight path and momentum.
 - **Air Resistance**: Atmospheric drag may be altered, affecting momentum over time and jump range.
-- **Surface Behavior**: The elasticity or restitution of the launch surface may have changed, affecting the initial takeoff impulse.
+- **Terrain Geometry**: The configuration and elevation of obstacle slots may have shifted, requiring a completely different trajectory.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -39,54 +40,56 @@ While the following variables **MIGHT** have changed from the initial environmen
 def get_d02_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Return ordered stage configs for D-02 mutated tasks (difficulty ascending).
-    Stage-1/2: single physical parameter change.
-    Stage-3/4: multiple parameter changes.
-    All changes are invisible (gravity, damping, restitution); prompt only gets generic warning.
+    Stage-1/2: single physical parameter change (innovation).
+    Stage-3/4: multiple parameter changes with conflicting constraints.
     """
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Heavier World",
-            "mutation_description": "Gravity increased; trajectory drops faster, same impulse may hit bars or fall short.",
-            "task_description_suffix": _D02_SUFFIX,
-            "terrain_config": {},
-            "physics_config": {"gravity": (0, -21.0)},
-        },
-        {
-            "stage_id": "Stage-2",
-            "title": "Resistive Air",
-            "mutation_description": "Linear and angular damping increased; jumper loses speed over time.",
+            "title": "Extreme Updraft",
+            "mutation_description": "A powerful upward wind force has been detected; the jumper will fly much higher than usual.",
             "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "linear_damping": 1.8,
-                "angular_damping": 1.8,
+                "wind": (0.0, 35.0),
             },
         },
         {
+            "stage_id": "Stage-2",
+            "title": "Deep Shift",
+            "mutation_description": "Seismic activity has lowered the elevation of all barrier slots; a much lower trajectory is required.",
+            "task_description_suffix": _D02_SUFFIX,
+            "terrain_config": {
+                "slot1_floor": 9.7,
+                "slot1_ceil": 11.2,
+                "slot3_floor": 8.9,
+                "slot3_ceil": 10.7,
+                "slot2_floor": 7.8,
+                "slot2_ceil": 9.8,
+            },
+            "physics_config": {},
+        },
+        {
             "stage_id": "Stage-3",
-            "title": "Heavy and Resistive",
-            "mutation_description": "Stronger gravity and moderate damping; trajectory and range both affected.",
+            "title": "Gale and Gravity",
+            "mutation_description": "Combination of high gravity and a strong headwind; momentum will be lost rapidly.",
             "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "gravity": (0, -20.0),
-                "linear_damping": 1.2,
-                "angular_damping": 1.2,
+                "gravity": (0, -35.0),
+                "wind": (-20.0, 0),
             },
         },
         {
             "stage_id": "Stage-4",
-            "title": "Extreme Environment",
-            "mutation_description": "High gravity, high damping, and bouncy take-off surface; full re-tuning required.",
+            "title": "Hurricane Tunnel",
+            "mutation_description": "Extreme environment with high gravity, headwind, and air resistance.",
             "task_description_suffix": _D02_SUFFIX,
-            "terrain_config": {
-                "left_platform_restitution": 0.5,
-            },
+            "terrain_config": {},
             "physics_config": {
-                "gravity": (0, -23.0),
-                "linear_damping": 2.0,
-                "angular_damping": 2.0,
+                "gravity": (0, -30.0),
+                "wind": (-15.0, 0),
+                "linear_damping": 1.0,
             },
         },
     ]

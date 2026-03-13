@@ -14,38 +14,64 @@ import re
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """
     Update task description to reflect visible physical changes.
+    Format: [new_value] (originally [old_value] in the source environment).
     """
     description = base_description
     target_y = target_terrain_config.get("target_object_y", 9.0)
     base_y = base_terrain_config.get("target_object_y", 9.0)
-    
+    target_obj = target_terrain_config.get("object", {})
+    base_obj = base_terrain_config.get("object", {})
+    target_mass = float(target_obj.get("mass", 20.0))
+    base_mass = float(base_obj.get("mass", 20.0))
+
     if target_y != base_y:
         # Update "at least y=9.0m"
         pattern = r"(at least y=)(\d+\.?\d*)m"
         description = re.sub(pattern, f"\\g<1>{target_y:.1f}m (originally y={base_y:.1f}m in the source environment)", description)
-        
+        # Update "Object center reaches y >= 9.0m" (constraints section)
+        pattern_y_ge = r"(reaches y >= )(\d+\.?\d*)m"
+        description = re.sub(pattern_y_ge, f"\\g<1>{target_y:.1f}m (originally y >= {base_y:.1f}m in the source environment)", description)
         # Update "at or above y=9.0m"
         pattern2 = r"(at or above y=)(\d+\.?\d*)m"
         description = re.sub(pattern2, f"\\g<1>{target_y:.1f}m (originally y={base_y:.1f}m in the source environment)", description)
-        
+
+    if target_mass != base_mass:
+        # Update "A 20 kg block" (target object mass); keep " block resting at y=" and the rest of the line
+        mass_pattern = r"(- \*\*Target Object\*\*: A )(\d+\.?\d*)( kg)( block resting at y=)"
+        if re.search(mass_pattern, description):
+            description = re.sub(
+                mass_pattern,
+                f"\\g<1>{target_mass:.0f} kg (originally {base_mass:.0f} kg in the source environment)\\g<4>",
+                description,
+            )
+
     return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update success criteria to reflect visible physical changes."""
+    """Update success criteria to reflect visible physical changes. Format: [new_value] (originally [old_value] in the source environment)."""
     criteria = base_success_criteria
     target_y = target_terrain_config.get("target_object_y", 9.0)
     base_y = base_terrain_config.get("target_object_y", 9.0)
-    
+    target_obj = target_terrain_config.get("object", {})
+    base_obj = base_terrain_config.get("object", {})
+    target_mass = float(target_obj.get("mass", 20.0))
+    base_mass = float(base_obj.get("mass", 20.0))
+
     if target_y != base_y:
-        # Update "Reaches y >= 9.0m"
-        pattern = r"(Reaches y >= )(\d+\.?\d*)m"
-        criteria = re.sub(pattern, f"\\g<1>{target_y:.1f}m (originally y >= {base_y:.1f}m in the source environment)", criteria)
-        
-        # Update "holds the object at or above y=9.0m"
+        # Update "Object reaches y >= 9.0m" (lowercase "reaches" in prompt)
+        pattern = r"(reaches y >= )(\d+\.?\d*)m"
+        criteria = re.sub(pattern, f"\\g<1>{target_y:.1f}m (originally y >= {base_y:.1f}m in the source environment)", criteria, flags=re.IGNORECASE)
+        # Update "at or above y=..."
         pattern2 = r"(at or above y=)(\d+\.?\d*)m"
         criteria = re.sub(pattern2, f"\\g<1>{target_y:.1f}m (originally y={base_y:.1f}m in the source environment)", criteria)
-        
+
+    if target_mass != base_mass:
+        # Success criteria may reference object mass; if there is a "20 kg" in design constraints for object, sync it
+        # Current prompt has "Mass Budget**: < 60 kg" (structure), not object. Object mass only in task_description.
+        # No object mass in success_criteria text for K_05; leave criteria unchanged for mass.
+        pass
+
     return criteria
 
 

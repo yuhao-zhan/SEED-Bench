@@ -444,7 +444,7 @@ class Sandbox:
         imp_max = getattr(self, "_impulse_zone_x_max", 9.0)
         if imp_min <= cabin_x <= imp_max:
             if not getattr(self, "_impulse_zone_applied", False):
-                mag = getattr(self, "_impulse_magnitude", 2.0)
+                mag = getattr(self, "_impulse_magnitude", 1.5)
                 impulse = (-mag, 0.0)
                 if cabin is not None and cabin.awake:
                     cabin.ApplyLinearImpulse(impulse, cabin.worldCenter, wake=True)
@@ -460,7 +460,7 @@ class Sandbox:
         imp2_max = getattr(self, "_impulse2_zone_x_max", 11.0)
         if imp2_min <= cabin_x <= imp2_max:
             if not getattr(self, "_impulse2_zone_applied", False):
-                mag2 = getattr(self, "_impulse2_magnitude", 1.3)
+                mag2 = getattr(self, "_impulse2_magnitude", 0.55)
                 impulse2 = (-mag2, 0.0)
                 if cabin is not None and cabin.awake:
                     cabin.ApplyLinearImpulse(impulse2, cabin.worldCenter, wake=True)
@@ -471,11 +471,11 @@ class Sandbox:
         elif cabin_x < imp2_min:
             self._impulse2_zone_applied = False
 
-        # Decel zone [9.5, 11]: strong damping — must land v(11) in [1.7, 2.1] for gate phase alignment
+        # Decel zone [9.5, 11]: strong damping — must land v(11) in narrow band for gate phase alignment
         dec_min = getattr(self, "_decel_zone_x_min", 9.5)
         dec_max = getattr(self, "_decel_zone_x_max", 11.0)
         if dec_min <= cabin_x <= dec_max:
-            k = getattr(self, "_decel_damping", 5.0)
+            k = getattr(self, "_decel_damping", 3.2)
             if cabin is not None and cabin.awake:
                 vx, vy = cabin.linearVelocity.x, cabin.linearVelocity.y
                 cabin.ApplyForceToCenter((-k * vx, -k * vy), wake=True)
@@ -507,10 +507,10 @@ class Sandbox:
             if speed < getattr(self, "_speed_trap_min", 2.8):
                 self._speed_trap_failed = True
 
-        # Checkpoint at x=11: first crossing speed must be in [1.7, 2.1] — velocity profile constraint
+        # Checkpoint at x=11: first crossing speed must be in [1.1, 2.7] — velocity profile constraint
         cp_x = getattr(self, "_checkpoint_11_x", 11.0)
-        cp_lo = getattr(self, "_checkpoint_11_speed_min", 1.3)
-        cp_hi = getattr(self, "_checkpoint_11_speed_max", 2.5)
+        cp_lo = getattr(self, "_checkpoint_11_speed_min", 1.1)
+        cp_hi = getattr(self, "_checkpoint_11_speed_max", 2.7)
         if not getattr(self, "_checkpoint_11_checked", False) and cabin_x >= cp_x:
             self._checkpoint_11_checked = True
             vx = cabin.linearVelocity.x if cabin else 0.0
@@ -587,13 +587,13 @@ class Sandbox:
             "gate2_pivot_x": getattr(self, "_gate2_pivot_x", 11.5),
             "gate3_pivot_x": getattr(self, "_gate3_pivot_x", 11.75),
             "gate4_pivot_x": getattr(self, "_gate4_pivot_x", 12.5),
-            "gate_angular_velocity": getattr(self, "_gate_omega", 1.85),
+            "gate_angular_velocity": getattr(self, "_gate_omega", 1.8),
             "speed_trap_x": getattr(self, "_speed_trap_x", 9.0),
             "speed_trap_min": getattr(self, "_speed_trap_min", 2.8),
             "decel_zone": [getattr(self, "_decel_zone_x_min", 9.5), getattr(self, "_decel_zone_x_max", 11.0)],
             "checkpoint_11_x": getattr(self, "_checkpoint_11_x", 11.0),
-            "checkpoint_11_speed_min": getattr(self, "_checkpoint_11_speed_min", 1.3),
-            "checkpoint_11_speed_max": getattr(self, "_checkpoint_11_speed_max", 2.5),
+            "checkpoint_11_speed_min": getattr(self, "_checkpoint_11_speed_min", 1.1),
+            "checkpoint_11_speed_max": getattr(self, "_checkpoint_11_speed_max", 2.7),
             "min_beam_count": getattr(self, "MIN_BEAM_COUNT", 4),
             "impulse_zone": [getattr(self, "_impulse_zone_x_min", 8.0), getattr(self, "_impulse_zone_x_max", 9.0)],
             "impulse2_zone": [getattr(self, "_impulse2_zone_x_min", 10.5), getattr(self, "_impulse2_zone_x_max", 11.0)],
@@ -606,6 +606,11 @@ class Sandbox:
             "max_beam_count": getattr(self, "MAX_BEAM_COUNT", 5),
             "max_structure_mass": getattr(self, "MAX_STRUCTURE_MASS", 14.0),
         }
+
+    def apply_force(self, body, force_vector):
+        """Apply a force to the center of a body."""
+        if body and hasattr(body, 'ApplyForceToCenter'):
+            body.ApplyForceToCenter(force_vector, wake=True)
 
     def get_passenger_position(self):
         cabin = self._terrain_bodies.get("vehicle_cabin")

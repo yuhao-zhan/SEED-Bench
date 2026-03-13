@@ -641,11 +641,13 @@ class CodeVerifier:
             # Unified stuck detection for all tasks (skip for Category4/F_03: plow can be "stuck" during scoop phase;
             # skip for C_02 Lander: lander sits on ground after landing so position is constant)
             skip_stuck = ('f03' in task_lower or 'category4' in task_lower or
-                          'c02' in task_lower or 'c03' in task_lower or
+                          'c01' in task_lower or 'c02' in task_lower or 'c03' in task_lower or
                           'e04' in task_lower or 's02' in task_lower or
                           's06' in task_lower or 'e01' in task_lower or
                           'k01' in task_lower or 'k05' in task_lower or 'k_05' in task_lower or
-                          'k06' in task_lower or 'k_06' in task_lower)
+                          'k06' in task_lower or 'k_06' in task_lower or
+                          'category3' in task_lower or 'd01' in task_lower or 'd02' in task_lower or
+                          'd03' in task_lower or 'd04' in task_lower or 'd05' in task_lower or 'd06' in task_lower)
             if current_pos and not skip_stuck:
                 if step_count > STABILIZATION_STEPS and last_position is not None:
                     dx = abs(current_pos[0] - last_position[0])
@@ -743,11 +745,13 @@ class CodeVerifier:
             # For C_03 (seeker), evaluate every 10 steps to detect "target lost" (distance > 6m) promptly
             # For C_02 (lander), evaluate every step so landing (and success/failure) is detected immediately
             task_lower = self.task_name.lower()
+            is_category1 = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])
             is_category2_k03 = 'k_03' in task_lower or ('category2' in task_lower and 'kinematics' in task_lower)
+            is_category3 = 'category3' in task_lower or 'd_01' in task_lower or 'd_02' in task_lower or 'd_03' in task_lower or 'd04' in task_lower or 'd05' in task_lower or 'd06' in task_lower
             is_category5_c03 = 'c_03' in task_lower or ('category_5_03' in task_lower)
             is_category5_c02 = 'c_02' in task_lower or ('category_5_02' in task_lower)
             is_e05_magnet = 'e_05' in task_lower
-            eval_interval = 1 if (is_category5_c02 or is_e05_magnet) else (10 if (is_category2_k03 or is_category5_c03) else 100)
+            eval_interval = 1 if (is_category5_c02 or is_e05_magnet or is_category3) else (10 if (is_category2_k03 or is_category5_c03) else 100)
             if step_count % eval_interval == 0 and evaluator:
                 # Check for Category1 tasks (case-insensitive) or E-03 (sled, no agent_body)
                 is_category1 = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])

@@ -16,14 +16,14 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_reach = base_terrain_config.get("target_reach", 12.0)
     if target_reach != base_reach:
         pattern = r"(- \*\*Goal\*\*: Reach x >= )(\d+\.?\d*)m"
-        description = re.sub(pattern, f"\\g<1>{target_reach:.1f}m (originally {base_reach:.1f}m)", description)
+        description = re.sub(pattern, f"\\g<1>{target_reach:.1f}m (originally {base_reach:.1f}m in the source environment)", description)
     
     # Update Mass Limit
     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
     if target_mass != base_mass:
         pattern = r"(- \*\*Mass Limit\*\*: < )(\d+,?\d*) kg"
-        description = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg)", description)
+        description = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment)", description)
     
     # Update Obstacles visibility
     if target_terrain_config.get("obstacle_active", False):
@@ -41,14 +41,14 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_reach = base_terrain_config.get("target_reach", 12.0)
     if target_reach != base_reach:
         pattern = r"(Tip reaches x >= )(\d+\.?\d*)m"
-        criteria = re.sub(pattern, f"\\g<1>{target_reach:.1f}m (originally {base_reach:.1f}m)", criteria)
+        criteria = re.sub(pattern, f"\\g<1>{target_reach:.1f}m (originally {base_reach:.1f}m in the source environment)", criteria)
     
     # Update Mass Budget in Success Criteria
     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
     if target_mass != base_mass:
         pattern = r"(- \*\*Mass Budget\*\*: < )(\d+,?\d*) kg"
-        criteria = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg)", criteria)
+        criteria = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment)", criteria)
         
     return criteria
 

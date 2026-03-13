@@ -38,35 +38,42 @@ def build_advanced_tower(sandbox, levels=25, base_w=4.0, beam_h=1.5, base_densit
     return base
 
 def build_agent(sandbox):
-    return build_advanced_tower(sandbox, levels=22, base_w=5.0)
+    return build_advanced_tower(sandbox, levels=22, base_w=4.0)
 
 def agent_action(sandbox, agent_body, step_count):
     pass
 
 def build_agent_stage_1(sandbox):
-    return build_advanced_tower(sandbox, levels=28, base_w=11.5,
-                               base_density=50.0, top_density=1.0,
-                               taper_rate=0.5, density_taper=0.4)
+    return build_advanced_tower(sandbox, levels=22, base_w=4.0,
+                               base_density=45.0, top_density=1.0,
+                               taper_rate=0.7, density_taper=0.65)
 
 def build_agent_stage_2(sandbox):
-    tmd = {'size': (1.2, 1.2), 'density': 300.0, 'stiffness': 15.0, 'damping': 1.0}
-    return build_advanced_tower(sandbox, levels=32, base_w=10.0,
-                               base_density=400.0, top_density=0.01,
-                               taper_rate=0.2, density_taper=0.1,
-                               tmd_params=tmd)
+    tmd = {"size": (1.0, 1.0), "density": 350.0, "stiffness": 20.0, "damping": 0.98}
+    return build_advanced_tower(
+        sandbox, levels=22, base_w=4.0,
+        base_density=45.0, top_density=1.0,
+        taper_rate=0.7, density_taper=0.65,
+        tmd_params=tmd,
+    )
 
 def build_agent_stage_3(sandbox):
-    tmd = {'size': (1.2, 1.2), 'density': 400.0, 'stiffness': 15.0, 'damping': 1.0}
-    return build_advanced_tower(sandbox, levels=28, base_w=11.5,
-                               base_density=400.0, top_density=0.01,
-                               tmd_params=tmd)
+    tmd = {"size": (1.0, 1.0), "density": 320.0, "stiffness": 18.0, "damping": 0.97}
+    return build_advanced_tower(
+        sandbox, levels=22, base_w=4.0,
+        base_density=45.0, top_density=1.0,
+        taper_rate=0.7, density_taper=0.65,
+        tmd_params=tmd,
+    )
 
 def build_agent_stage_4(sandbox):
-    tmd = {'size': (0.4, 0.4), 'density': 20.0, 'stiffness': 40.0, 'damping': 1.0}
-    return build_advanced_tower(sandbox, levels=26, base_w=11.0,
-                               base_density=40.0, top_density=0.1,
-                               taper_rate=1.0, density_taper=0.1,
-                               tmd_params=tmd)
+    tmd = {"size": (0.95, 0.95), "density": 280.0, "stiffness": 22.0, "damping": 0.96}
+    return build_advanced_tower(
+        sandbox, levels=22, base_w=4.0,
+        base_density=38.0, top_density=0.85,
+        taper_rate=0.68, density_taper=0.62,
+        tmd_params=tmd,
+    )
 
 def agent_action_stage_1(sandbox, agent_body, step_count): pass
 

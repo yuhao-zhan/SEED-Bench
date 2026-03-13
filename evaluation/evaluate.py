@@ -478,11 +478,29 @@ def evaluate_single_task(task_name, args):
                 
                 target_terrain = env_j.get("terrain_config", {})
                 base_terrain = env_i.get("terrain_config", {})
-                
+                target_physics = env_j.get("physics_config", {})
+                base_physics = env_i.get("physics_config", {})
+
                 if update_desc_func:
-                    desc = update_desc_func(desc, target_terrain, base_terrain)
+                    try:
+                        import inspect
+                        sig = inspect.signature(update_desc_func)
+                        if len(sig.parameters) >= 5:
+                            desc = update_desc_func(desc, target_terrain, base_terrain, target_physics, base_physics)
+                        else:
+                            desc = update_desc_func(desc, target_terrain, base_terrain)
+                    except Exception:
+                        desc = update_desc_func(desc, target_terrain, base_terrain)
                 if update_criteria_func:
-                    criteria = update_criteria_func(criteria, target_terrain, base_terrain)
+                    try:
+                        import inspect
+                        sig = inspect.signature(update_criteria_func)
+                        if len(sig.parameters) >= 5:
+                            criteria = update_criteria_func(criteria, target_terrain, base_terrain, target_physics, base_physics)
+                        else:
+                            criteria = update_criteria_func(criteria, target_terrain, base_terrain)
+                    except Exception:
+                        criteria = update_criteria_func(criteria, target_terrain, base_terrain)
                     
                 if args.method.endswith('_CE'):
                     suffix = f'## Environmental Anomalies Detected\n + "terrain_config": {json.dumps(target_terrain)}, \n"physics_config": {json.dumps(env_j.get("physics_config", {}))}'

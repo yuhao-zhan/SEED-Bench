@@ -25,7 +25,7 @@ Design a static bridge to connect two cliffs. A vehicle will spawn on the left c
 - **Cliffs**: Two static platforms separated by a wide gap.
 - **Left Cliff**: Ends at x=10.0m, y=10.0m.
 - **Right Cliff**: Starts at x=25.0m, y=10.0m.
-- **Vehicle**: A motorized vehicle will spawn on the left cliff and move right at a constant velocity.
+- **Vehicle**: A motorized vehicle (mass: 2000.0 kg) will spawn on the left cliff and move right at a constant velocity of 5.0 m/s.
 - **Fail Zone**: A water surface exists at y=0m. If the vehicle or structural components fall into it, the task fails.
 - **Target**: The vehicle must fully cross the gap and reach at least x=30.0m on the right side.
 
@@ -40,14 +40,17 @@ Design a stable bridge structure that can:
 - **Mass Budget**: Total structure mass must be less than 2000 kg.
 - **Build Zone**: Structure must be built within x=[10, 25], y=[5, 15]. The deck surface may extend beyond these bounds to reach the target x=30.0m.
 - **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters.
-- **Traction**: The deck surface must provide sufficient friction for the vehicle's wheels to roll without excessive slipping.
+- **Traction**: The deck surface must provide a minimum friction coefficient of 0.5 for the vehicle's wheels to roll without excessive slipping.
+- **Joint Strength**: Maximum linear force for structural joints is 80.0; maximum torque is 300.0.
+- **Anchor Strength**: Maximum linear force for cliff anchors is 100.0; maximum torque is 500.0.
 """,
     
     'success_criteria': """
 ## Success Criteria
 1. **Passage**: Vehicle reaches x >= 30.0m.
 2. **Integrity**: No structural breaks (all joints must remain intact during the crossing).
-3. **Smoothness**: The vehicle's vertical acceleration must remain low (avoid bumpy or collapsing decks).
+3. **Smoothness**: The vehicle's vertical acceleration must remain < 19.6 m/s² (2.0g).
+4. **Stability**: The vehicle's angular velocity must remain < 2.0 rad/s and net airborne rotation must not exceed 180 degrees.
 
 ## Design Constraints
 - **Mass Budget**: < 2000 kg.

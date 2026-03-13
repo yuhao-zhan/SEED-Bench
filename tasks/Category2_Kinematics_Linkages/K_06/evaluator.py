@@ -33,7 +33,16 @@ class Evaluator:
             return (False, 0.0, {"error": "No particles found"})
             
         removal_ratio = (initial_count - remaining_count) / initial_count
-        
+
+        failed = False
+        failure_reason = None
+        # Failure: Structure exceeds mass budget (hard constraint; checked every step)
+        max_mass = getattr(self.environment, 'MAX_STRUCTURE_MASS', 15.0)
+        structure_mass = self.environment.get_structure_mass()
+        if structure_mass > max_mass:
+            failed = True
+            failure_reason = f"Structure exceeds mass budget: {structure_mass:.2f} kg > {max_mass:.2f} kg limit."
+
         # Robust wiper tracking
         wiper = agent_body
         if wiper is None and self.environment._bodies:
@@ -43,9 +52,6 @@ class Evaluator:
         if wiper:
             wiper_x = wiper.position.x
             wiper_y = wiper.position.y
-
-        failed = False
-        failure_reason = None
         
         # Failure: Not enough particles removed by the end
         is_end = (step_count >= max_steps - 1)

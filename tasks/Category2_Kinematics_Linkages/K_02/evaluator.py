@@ -16,13 +16,13 @@ class Evaluator:
         self.terrain_bounds = terrain_bounds
         self.environment = environment
         
-        self.target_height = float(terrain_bounds.get("target_height", 15.0))
+        self.target_height = float(terrain_bounds.get("target_height", 20.0))
         self.min_simulation_time = 10.0 # seconds
         self.min_simulation_steps = int(self.min_simulation_time / TIME_STEP)
         
-        self.initial_y = 2.0 # Corrected starting height for mutated agents
-        self.max_y_reached = 2.0
-        self.min_height_seen = 2.0
+        self.initial_y = 1.5 # Aligned with prompt starting position
+        self.max_y_reached = 1.5
+        self.min_height_seen = 1.5
         self.design_constraints_checked = False
 
     def evaluate(self, agent_body, step_count, max_steps):
@@ -35,10 +35,11 @@ class Evaluator:
             
             # Mass Budget
             total_mass = self.environment.get_structure_mass()
-            if total_mass > getattr(self.environment, 'MAX_STRUCTURE_MASS', 50.0):
+            max_mass = getattr(self.environment, 'MAX_STRUCTURE_MASS', 50.0)
+            if total_mass > max_mass:
                 return True, 0.0, {
                     "failed": True,
-                    "failure_reason": f"Design constraint violated: Total mass ({total_mass:.2f}kg) exceeds budget (50kg)",
+                    "failure_reason": f"Design constraint violated: Total mass ({total_mass:.2f}kg) exceeds budget ({max_mass:.0f}kg)",
                     "structure_mass": total_mass
                 }
             
@@ -76,10 +77,11 @@ class Evaluator:
             failed = True
             failure_reason = "Climber fell: touched the ground (height < 0.5m)"
 
-        # Failure: Left the wall vicinity (x in [3.0, 5.5])
-        if not (3.0 <= current_x <= 5.5):
+        # Failure: Left the wall vicinity (x in [3.5, 7.5])
+        # Range tightened to reflect wall interaction (wall at x=5.0, oscillation amp 0.2-0.6m)
+        if not (3.5 <= current_x <= 7.5):
             failed = True
-            failure_reason = f"Climber lost wall contact: x={current_x:.2f}m (required x in [3.0, 5.5]m)"
+            failure_reason = f"Climber lost wall contact: x={current_x:.2f}m (required x in [3.5, 7.5]m)"
 
         # NEW: Min Mass Check (usually checked at design time but evaluator should double check)
         min_mass = getattr(self.environment, 'MIN_STRUCTURE_MASS', 0.0)
@@ -89,7 +91,7 @@ class Evaluator:
             failure_reason = f"Design constraint violated: Total mass ({current_mass:.2f}kg) is below minimum required ({min_mass:.2f}kg)"
             
         # Success if maintained target height and survived minimum time
-        target_y = 20.0
+        target_y = self.target_height
         is_above_target = (current_y >= target_y)
         success = is_above_target and step_count >= self.min_simulation_steps
         
@@ -124,6 +126,7 @@ class Evaluator:
             'min_simulation_steps_required': self.min_simulation_steps,
             'structure_mass': self.environment.get_structure_mass(),
             'max_structure_mass': getattr(self.environment, 'MAX_STRUCTURE_MASS', 50.0),
+            'min_structure_mass': getattr(self.environment, 'MIN_STRUCTURE_MASS', 0.0),
         }
         
         return done, score, metrics

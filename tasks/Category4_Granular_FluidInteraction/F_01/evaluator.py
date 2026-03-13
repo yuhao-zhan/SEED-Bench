@@ -1,6 +1,6 @@
 """
 F-01: The Dam task evaluation module
-Defines task objectives and success criteria. Failure: leakage rate > 0.2%;
+Defines task objectives and success criteria. Failure: leakage rate > 0.1%;
 design: max beam height 1.5 m, breakable joints.
 """
 import sys

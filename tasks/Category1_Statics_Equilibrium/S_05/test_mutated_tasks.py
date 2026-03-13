@@ -46,7 +46,7 @@ def test_stage_with_agent_code(stage_config, agent_code):
     task_name = "Category1_Statics_Equilibrium/S_05"
     verifier = CodeVerifier(
         task_name=task_name,
-        max_steps=20000,  # Need enough time for all meteors
+        max_steps=30000,  # Need enough time for all meteors (200 * 30 + buffer)
         env_overrides=env_overrides
     )
     
@@ -67,7 +67,7 @@ def test_stage_with_agent_code(stage_config, agent_code):
     # Print key metrics
     if metrics:
         print(f"\nKey metrics:")
-        for key in ['failed', 'failure_reason', 'core_damage', 'max_core_force', 
+        for key in ['failed', 'failure_reason', 'core_force', 'max_core_force', 
                    'structure_stable', 'structure_mass', 'max_mass', 'meteor_count']:
             if key in metrics:
                 print(f"  {key}: {metrics[key]}")

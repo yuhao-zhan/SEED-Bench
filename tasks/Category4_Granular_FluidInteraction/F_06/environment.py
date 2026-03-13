@@ -70,9 +70,10 @@ class Sandbox:
         self.GRAVWELL_Y_MIN = 1.5
         self.GRAVWELL_Y_MAX = 3.5
         self.GRAVWELL_FY = float(terrain_config.get("gravwell_fy", -120.0))
-        # Force budget
+        self.MAX_TIME_SECONDS = float(physics_config.get("max_time_seconds", 40.0))
         self.FORCE_BUDGET_PER_STEP = float(physics_config.get("force_budget", 12000.0))
         self._force_budget_used = 0.0
+        self.MAX_STEPS = int(self.MAX_TIME_SECONDS * 60)
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 380.0))
         self.MIN_DELIVERY_RATIO = float(terrain_config.get("min_delivery_ratio", 0.90))
 

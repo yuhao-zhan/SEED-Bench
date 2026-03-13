@@ -26,16 +26,20 @@ def agent_action(sandbox, agent_body, step_count):
     t = step_count / 60.0
     if t < 5.0:
         sandbox.set_slider_motor(joints['slider'], 1.2, 10000.0)
+        sandbox.set_motor(joints['left_finger'], 0.0, 5000.0)
+        sandbox.set_motor(joints['right_finger'], 0.0, 5000.0)
     elif t < 7.0:
         sandbox.set_slider_motor(joints['slider'], 0.0, 10000.0)
+        sandbox.set_motor(joints['left_finger'], 2.0, 5000.0)
+        sandbox.set_motor(joints['right_finger'], -2.0, 5000.0)
     elif t < 10.0:
         sandbox.set_slider_motor(joints['slider'], 0.0, 10000.0)
         sandbox.set_motor(joints['left_finger'], 4.0, 5000.0)
         sandbox.set_motor(joints['right_finger'], -4.0, 5000.0)
     else:
-        sandbox.set_slider_motor(joints['slider'], -2.0, 10000.0)
-        sandbox.set_motor(joints['left_finger'], 2.0, 5000.0)
-        sandbox.set_motor(joints['right_finger'], -2.0, 5000.0)
+        sandbox.set_slider_motor(joints['slider'], -1.8, 10000.0)
+        sandbox.set_motor(joints['left_finger'], 4.0, 5000.0)
+        sandbox.set_motor(joints['right_finger'], -4.0, 5000.0)
 
 def build_agent_stage_1(sandbox):
     gantry = sandbox.get_anchor_for_gripper()
@@ -43,7 +47,7 @@ def build_agent_stage_1(sandbox):
     sandbox.add_joint(gantry, base, (5.0, 10.0), type='rigid')
     slider = sandbox.add_beam(x=5.0, y=8.0, width=0.4, height=0.4, angle=0, density=2.0)
     sandbox.set_fixed_rotation(slider, True)
-    sandbox.add_joint(base, slider, (5.0, 9.6), type='slider', axis=(0,-1), lower_translation=0.0, upper_translation=10.0, enable_motor=True, motor_speed=0.0, max_motor_force=100000.0)
+    sandbox.add_joint(base, slider, (5.0, 9.6), type='slider', axis=(0, -1), lower_translation=0.0, upper_translation=10.0, enable_motor=True, motor_speed=0.0, max_motor_force=100000.0)
     l_finger = sandbox.add_beam(x=4.7, y=6.0, width=0.15, height=2.0, angle=0, density=5.0)
     sandbox.set_material_properties(l_finger, friction=1.0)
     sandbox.add_joint(slider, l_finger, (4.7, 8.0), type='pivot', enable_motor=True, max_motor_torque=100000.0, lower_limit=-0.2*math.pi, upper_limit=0.2*math.pi)

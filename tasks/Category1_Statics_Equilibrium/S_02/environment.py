@@ -51,6 +51,8 @@ class S02Sandbox:
             position=(0, 0.5), shapes=polygonShape(box=(2.0, 0.5)))
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
+        width = max(0.1, min(10.0, float(width)))
+        height = max(0.1, min(10.0, float(height)))
         body = self._world.CreateDynamicBody(position=(x, y), angle=angle, linearDamping=0.1, angularDamping=0.1)
         body.CreatePolygonFixture(box=(width/2, height/2), density=density, friction=0.5, restitution=0.1)
         self._bodies.append(body)

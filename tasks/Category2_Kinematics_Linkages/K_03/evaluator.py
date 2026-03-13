@@ -19,6 +19,7 @@ class Evaluator:
         
         # Target: object must be physically grasped and lifted
         self.start_object_y = 2.0  # Object starting position
+        self.min_object_height = 2.0  # Object must not fall below this (m) after being lifted
         self.target_object_y = 3.5  # Reach and sustain y>=3.5m (red line)
         self.target_x = 3.5  # For renderer: draw target line (renamed from 4.0 to match target_y)
         self.min_simulation_time = 1.34  # Sustain height for ~1.34s (80 steps) at/above target

@@ -192,11 +192,11 @@ class Evaluator:
     def get_task_description(self):
         return {
             "task": "F-03: The Excavator",
-            "description": "Dig sand from pit and transport into hopper; > 15 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)",
+            "description": f"Dig sand from pit and transport into hopper; > {self.MIN_PARTICLES_IN_HOPPER} particles in hopper within {self.MAX_TIME_SECONDS:.0f} s; base at (-2,0), 2 DOF (Arm + Bucket)",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": "Deposit > 15 sand particles into the Hopper",
-                "secondary": "Complete within 40 seconds; structure intact",
+                "primary": f"Deposit > {self.MIN_PARTICLES_IN_HOPPER} sand particles into the Hopper",
+                "secondary": f"Complete within {self.MAX_TIME_SECONDS:.0f} seconds; structure intact",
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},
         }

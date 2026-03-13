@@ -50,15 +50,15 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-1",
             "title": "Slippery Object",
-            "mutation_description": "Object surface friction reduced from 0.6 to 0.3. Added stabilization damping.",
+            "mutation_description": "Target is a circular (disk) object with reduced surface friction. Added stabilization damping.",
             "task_description_suffix": task_description_suffix,
-            "terrain_config": {"objects": {"shape": "box", "mass": 1.0, "friction": 0.3, "x": 5.0, "y": 2.0}},
+            "terrain_config": {"objects": {"shape": "circle", "mass": 1.0, "friction": 0.25, "x": 5.0, "y": 2.0}},
             "physics_config": {"linear_damping": 0.5, "angular_damping": 0.5},
         },
         {
             "stage_id": "Stage-2",
             "title": "Heavy World",
-            "mutation_description": "Gravity increased to -20 m/s², object mass to 5kg. Added stabilization damping.",
+            "mutation_description": "Gravity increased; object mass increased. Added stabilization damping.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {"objects": {"shape": "box", "mass": 5.0, "friction": 0.6, "x": 5.0, "y": 2.0}},
             "physics_config": {"gravity": (0, -20.0), "linear_damping": 0.5, "angular_damping": 0.5},
@@ -66,7 +66,7 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-3",
             "title": "Slippery Object + Heavy World + Damping",
-            "mutation_description": "Object friction 0.2, gravity -20, mass 5kg, damping 0.5.",
+            "mutation_description": "Object friction reduced; gravity increased; object mass increased; atmospheric damping present.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {"objects": {"shape": "box", "mass": 5.0, "friction": 0.2, "x": 5.0, "y": 2.0}},
             "physics_config": {
@@ -78,7 +78,7 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-4",
             "title": "Circular Object + Slippery + Heavy + Damping",
-            "mutation_description": "Target is a circular object (disk), friction 0.2, gravity -20, mass 5kg, damping 0.5.",
+            "mutation_description": "Target is a circular object (disk) with reduced friction; gravity increased; object mass increased; damping present.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {"objects": {"shape": "circle", "mass": 5.0, "friction": 0.2, "x": 5.0, "y": 2.0}},
             "physics_config": {

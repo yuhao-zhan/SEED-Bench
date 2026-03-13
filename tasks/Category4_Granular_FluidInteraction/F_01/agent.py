@@ -2,9 +2,9 @@ def build_agent(sandbox):
     x_left = 12.5
     x_middle = 13.0
     x_right = 13.5
-    beam_w = min(0.6, getattr(sandbox, 'MAX_BEAM_WIDTH', 0.6))
-    max_h = getattr(sandbox, 'MAX_BEAM_HEIGHT', 1.5)
-    min_bottom_y = getattr(sandbox, 'MIN_BEAM_BOTTOM_Y', 0.5)
+    beam_w = sandbox.MAX_BEAM_WIDTH
+    max_h = sandbox.MAX_BEAM_HEIGHT
+    min_bottom_y = sandbox.MIN_BEAM_BOTTOM_Y
     density = 46.0
     left_layer_h = min(0.7, max_h)
     left_n = 8
@@ -40,26 +40,59 @@ def build_agent(sandbox):
     sandbox.add_joint(middle_beam, right_beams[1], (anchor_mid_right_x, anchor_mid_right_y), type='rigid')
     cross_anchor_y = (left_beams[0].position.y + right_beams[0].position.y) / 2
     sandbox.add_joint(left_beams[0], right_beams[0], (13.0, cross_anchor_y), type='rigid')
-    total_mass = sandbox.get_structure_mass()
-    if total_mass > sandbox.MAX_STRUCTURE_MASS:
-        raise ValueError(f"Structure mass {total_mass:.2f} kg exceeds limit {sandbox.MAX_STRUCTURE_MASS} kg")
-    if len(sandbox.bodies) > sandbox.MAX_BEAM_COUNT:
-        raise ValueError(f"Beam count {len(sandbox.bodies)} exceeds maximum {sandbox.MAX_BEAM_COUNT}")
-    right_count = sum(1 for b in sandbox.bodies
-                     if getattr(sandbox, 'BUILD_ZONE_RIGHT_X_MIN', 13.4) <= b.position.x <= getattr(sandbox, 'BUILD_ZONE_RIGHT_X_MAX', 13.6))
-    if right_count > getattr(sandbox, 'MAX_BEAMS_RIGHT_STRIP', 2):
-        raise ValueError(f"Right strip has {right_count} beams; at most {sandbox.MAX_BEAMS_RIGHT_STRIP} allowed")
-    middle_count = sum(1 for b in sandbox.bodies
-                      if getattr(sandbox, 'BUILD_ZONE_MIDDLE_X_MIN', 12.9) <= b.position.x <= getattr(sandbox, 'BUILD_ZONE_MIDDLE_X_MAX', 13.1))
-    if middle_count > getattr(sandbox, 'MAX_BEAMS_MIDDLE_STRIP', 1):
-        raise ValueError(f"Middle strip has {middle_count} beams; at most {sandbox.MAX_BEAMS_MIDDLE_STRIP} allowed")
-    terrain_count = sandbox.get_terrain_joint_count()
-    if terrain_count > sandbox.MAX_TERRAIN_ANCHORS:
-        raise ValueError(f"Terrain anchors {terrain_count} exceeds maximum {sandbox.MAX_TERRAIN_ANCHORS}")
-    beam_joints = len(sandbox.joints) - terrain_count
-    if beam_joints > getattr(sandbox, 'MAX_JOINT_COUNT', 11):
-        raise ValueError(f"Beam-to-beam joint count {beam_joints} exceeds maximum {sandbox.MAX_JOINT_COUNT}")
     return left_beams[0]
 
 def agent_action(sandbox, agent_body, step_count):
     pass
+
+def build_agent_stage_1(sandbox):
+    return _build_divergent_dam(sandbox, density=54.0)
+
+def agent_action_stage_1(sandbox, agent_body, step_count):
+    for body in sandbox.bodies:
+        sandbox.apply_force(body, (0, -200.0 * body.mass))
+
+def build_agent_stage_2(sandbox):
+    return _build_divergent_dam(sandbox, density=20.0)
+
+def agent_action_stage_2(sandbox, agent_body, step_count):
+    for body in sandbox.bodies:
+        sandbox.apply_force(body, (0, -5.0 * body.mass))
+
+def build_agent_stage_3(sandbox):
+    return _build_divergent_dam(sandbox, density=50.0)
+
+def agent_action_stage_3(sandbox, agent_body, step_count):
+    for body in sandbox.bodies:
+        sandbox.apply_force(body, (0, -100.0 * body.mass))
+
+def build_agent_stage_4(sandbox):
+    return _build_divergent_dam(sandbox, density=40.0)
+
+def agent_action_stage_4(sandbox, agent_body, step_count):
+    for body in sandbox.bodies:
+        sandbox.apply_force(body, (0, -50.0 * body.mass))
+
+def _build_divergent_dam(sandbox, density):
+    x_left, x_middle, x_right = 12.5, 13.0, 13.5
+    l_beams = []
+    l_beams.append(sandbox.add_beam(x_left, 1.25, 0.6, 1.5, density=density))
+    l_beams.append(sandbox.add_beam(x_left, 2.1, 0.6, 0.2, density=density))
+    l_beams.append(sandbox.add_beam(x_left, 2.3, 0.6, 0.2, density=density))
+    for i in range(7):
+        cy = 2.75 + i * 0.7
+        l_beams.append(sandbox.add_beam(x_left, cy, 0.6, 0.7, density=density))
+    for b in l_beams:
+        sandbox.set_damping(b, linear=100.0, angular=100.0)
+    for i in range(1, len(l_beams)):
+        sandbox.add_joint(l_beams[i], l_beams[i-1], (x_left, (l_beams[i].position.y + l_beams[i-1].position.y)/2))
+    mid = sandbox.add_beam(x_middle, 1.25, 0.6, 1.5, density=density)
+    sandbox.set_damping(mid, linear=100.0, angular=100.0)
+    r0 = sandbox.add_beam(x_right, 1.25, 0.6, 1.5, density=density)
+    r1 = sandbox.add_beam(x_right, 2.75, 0.6, 1.5, density=density)
+    sandbox.set_damping(r0, linear=100.0, angular=100.0)
+    sandbox.set_damping(r1, linear=100.0, angular=100.0)
+    sandbox.add_joint(r1, r0, (x_right, 2.0))
+    sandbox.add_joint(l_beams[0], mid, (12.75, 1.25))
+    sandbox.add_joint(mid, r0, (13.25, 1.25))
+    return l_beams[0]

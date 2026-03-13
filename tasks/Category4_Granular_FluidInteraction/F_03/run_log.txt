@@ -1,0 +1,113 @@
+/home/test/test1709/miniconda3/lib/python3.13/site-packages/pygame/pkgdata.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_stream, resource_exists
+============================================================
+F-03: Reference solution on baseline and mutated stages
+============================================================
+
+=== Task Information ===
+Task: F-03: The Excavator
+Description: Dig sand from pit and transport into hopper; > 15 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)
+=======================
+
+
+🎉 Success! Agent completed task!
+
+============================================================
+Simulation ended, total steps: 2400
+============================================================
+
+📊 Evaluation Results:
+  Final score: 100.0/100
+  ✅ Task successful!
+============================================================
+
+
+Baseline: score=100.0 success=True failed=False
+
+=== Task Information ===
+Task: F-03: The Excavator
+Description: Dig sand from pit and transport into hopper; > 15 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)
+=======================
+
+
+❌ Failed: Deposited 12/200 particles (need > 100 in hopper)
+
+============================================================
+Simulation ended, total steps: 2400
+============================================================
+
+📊 Evaluation Results:
+  Final score: 0.0/100
+  ❌ Task failed: Deposited 12/200 particles (need > 100 in hopper)
+============================================================
+
+
+Stage-1 (Slippery sand): score=0.0 success=False failed=True
+  reason: Deposited 12/200 particles (need > 100 in hopper)
+
+=== Task Information ===
+Task: F-03: The Excavator
+Description: Dig sand from pit and transport into hopper; > 15 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)
+=======================
+
+
+❌ Failed: Deposited 3/200 particles (need > 20 in hopper)
+
+============================================================
+Simulation ended, total steps: 2400
+============================================================
+
+📊 Evaluation Results:
+  Final score: 0.0/100
+  ❌ Task failed: Deposited 3/200 particles (need > 20 in hopper)
+============================================================
+
+
+Stage-2 (Heavier world): score=0.0 success=False failed=True
+  reason: Deposited 3/200 particles (need > 20 in hopper)
+
+=== Task Information ===
+Task: F-03: The Excavator
+Description: Dig sand from pit and transport into hopper; > 15 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)
+=======================
+
+
+🎉 Success! Agent completed task!
+
+============================================================
+Simulation ended, total steps: 2400
+============================================================
+
+📊 Evaluation Results:
+  Final score: 100.0/100
+  ✅ Task successful!
+============================================================
+
+
+Stage-3 (Dense atmosphere and slippery grains): score=100.0 success=True failed=False
+  WARNING: Ref solution passed; should fail. Strengthen mutation for Stage-3.
+
+=== Task Information ===
+Task: F-03: The Excavator
+Description: Dig sand from pit and transport into hopper; > 15 particles in hopper within 40 s; base at (-2,0), 2 DOF (Arm + Bucket)
+=======================
+
+
+❌ Failed: Deposited 0/200 particles (need > 20 in hopper)
+
+============================================================
+Simulation ended, total steps: 2400
+============================================================
+
+📊 Evaluation Results:
+  Final score: 0.0/100
+  ❌ Task failed: Deposited 0/200 particles (need > 20 in hopper)
+============================================================
+
+
+Stage-4 (Hostile excavation): score=0.0 success=False failed=True
+  reason: Deposited 0/200 particles (need > 20 in hopper)
+
+============================================================
+FAIL: Stage-3 passed with ref solution (should fail).
+============================================================

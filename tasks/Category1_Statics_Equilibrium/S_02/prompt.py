@@ -23,32 +23,35 @@ TASK_PROMPT = {
     You may consider structural damping to counteract vibrations.
 
     ## Task Environment
-    - **Foundation**: A static ground area at x=[-2, 2], y=0. Your structure can only contact the ground within this narrow zone.
-    - **Earthquake**: After an initial period, the foundation will undergo horizontal oscillations. The foundation itself moves, and your structure must survive the vibrations.
-    - **Wind**: Lateral forces are applied to structural components at various altitudes (starting as low as 5m in some scenarios), simulating wind pressure.
-    - **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters.
+    - **Foundation**: The allowed ground-contact zone is ±4.5 m from the foundation center (x=[-4.5, 4.5] when the foundation is at rest). All ground contact must lie within this zone; the foundation may move during seismic activity, and contact is evaluated relative to its current position. (The physical foundation platform may be smaller than this zone.)
+    - **Seismic Activity**: After an initial period, the foundation will undergo horizontal oscillations. Your structure must survive these vibrations.
+    - **Wind**: Lateral forces are applied to structural components at various altitudes, simulating wind pressure.
+    - **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters. Beams outside this range are rejected.
+    - **Joint Strength**: Maximum linear force for a joint is inf; maximum torque is inf.
+    - **Safety Limit**: If the structure's topmost point exceeds y=150.0m, it is considered physically unstable and the task fails.
+
+    ## Task Objective
+    Design a stable skyscraper structure that can:
+    1. Reach a peak height greater than 30 m during the stable period before the earthquake (initial height criterion).
+    2. Maintain its integrity and height during and after the earthquake.
+    3. Resist lateral wind forces at high altitudes.
+    4. Maintain global stability (the structure's center of mass must remain within a safe lateral range).
     """,
 
-## Task Objective
-Design a stable skyscraper structure that can:
-1. Reach an initial height greater than 30m.
-2. Maintain its integrity and height during and after the earthquake.
-3. Resist lateral wind forces at high altitudes.
-4. Maintain global stability (the structure's center of mass must remain within a safe lateral range).
-""",
-    
     'success_criteria': """
-## Success Criteria
-1. **Height**: Topmost point > 30m at start.
-2. **Survival**: Structure remains standing (top point remains > 5m) after the earthquake and wind duration.
-3. **Stability**: Global center of mass stays within x=[-300, 300] relative to foundation.
-
-## Design Constraints
-- **Foundation Contact**: All ground contact must be within x=[-2, 2].
-- **Height Requirement**: Must exceed 30m.
-- **Width Limit**: Total structure width cannot exceed 12m.
-- **APIs**: Use only the primitives documented below.
-""",
+    ## Success Criteria
+    1. **Height**: Peak topmost point during the pre-seismic stable period must exceed 30 m.
+    2. **Survival**: Structure remains standing (top point remains > 5 m) after the earthquake and wind duration.
+    3. **Stability**: Global center of mass stays within x=[-300, 300] relative to foundation.
+    4. **Physical Limits**: Topmost point must never exceed 150.0 m.
+    
+    ## Design Constraints
+    - **Foundation Contact**: All ground contact must be within ±4.5 m of the foundation center (evaluated relative to foundation position).
+    - **Height Requirement**: Must exceed 30m.
+    - **Width Limit**: Total structure width cannot exceed 24.0m.
+    - **Joint strength**: Limits apply as stated in Task Environment.
+    - **APIs**: Use only the primitives documented below.
+    """,
     
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['S_02'].values()),
 }

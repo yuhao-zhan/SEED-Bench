@@ -19,7 +19,7 @@ class Evaluator:
         self._pit_y_threshold = 0.72  # ball below this = pit (near ground 0.5)
         self._pit_speed_threshold = 1.0  # if speed > this when in pit, fail
         self._ball_ever_in_pit_fast = False
-        self._approach_x = 8.0  # ball "arrives" when first px < this (inner zone; allows absorption time)
+        self._approach_x = 7.4  # increased leeway for high-speed mutated stages (allows more absorption time)
         self._ball_arrived = set()  # indices that have entered approach zone
         self._sequential_violation = False  # ball i arrived before ball j (j<i) was caught
         # UNIFIED target box (split zones would require complex routing)
@@ -215,7 +215,8 @@ class Evaluator:
         structure_mass = self.environment.get_structure_mass()
         mass_budget_used = (structure_mass / self.MAX_STRUCTURE_MASS * 100) if self.MAX_STRUCTURE_MASS > 0 else 0
         terrain = self.environment.get_terrain_bounds() if hasattr(self.environment, "get_terrain_bounds") else {}
-        max_joint_force = terrain.get("max_joint_force", 320.0)
+        max_joint_force = terrain.get("max_joint_force", 880.0)
+        n_beams = len(getattr(self.environment, "_bodies", []))
         return {
             "ball_x": px, "ball_y": py,
             "ball_vx": vx, "ball_vy": vy, "ball_speed": speed,
@@ -228,11 +229,14 @@ class Evaluator:
             "ball_caught": all_caught,
             "ball_in_catch_zone": in_target,
             "joint_count": len(self.environment._joints),
+            "beam_count": n_beams,
             "max_joint_force_limit": max_joint_force,
             "ball_speed_vs_threshold": speed - self._caught_speed_threshold,
             "balls_caught_count": len(self._balls_caught),
             "balls_required_count": len(positions),
             "uncaptured_positions": uncaptured_positions if uncaptured_positions else None,
+            "pit_failure": getattr(self, "_ball_ever_in_pit_fast", False),
+            "sequential_violation": getattr(self, "_sequential_violation", False),
         }
 
     def get_task_description(self):

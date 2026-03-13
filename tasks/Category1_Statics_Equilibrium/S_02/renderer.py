@@ -23,7 +23,7 @@ class S02Renderer(Renderer):
                 self.simulator.screen = pygame.Surface((800, 450))
                 
         # Panoramic Camera Viewport for S-02 (Skyscraper)
-        # Needs to cover height up to 35m and a reasonable width around x=0
+        # Needs to cover height up to 30m (task target) and a reasonable width around x=0
         self.simulator.ppm = 10.0
         
         center_x_world = 0.0

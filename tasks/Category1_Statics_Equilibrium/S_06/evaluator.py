@@ -40,7 +40,9 @@ class Evaluator:
         self.MAX_BLOCK_COUNT = env_class.MAX_BLOCK_COUNT
         self.START_ZONE_X_MAX = env_class.START_ZONE_X_MAX
         self.SPAWN_ZONE = terrain_bounds.get("spawn_zone", [-10.0, 0.0])
-        self.MAX_TOTAL_MASS = 20000.0  # INCREASED for extreme difficulty support
+        self.MAX_TOTAL_MASS = 20000.0  # default; overridden from terrain_config when present
+        if environment and hasattr(environment, '_terrain_config'):
+            self.MAX_TOTAL_MASS = environment._terrain_config.get("max_total_mass", 20000.0)
         
         self.design_constraints_checked = False
         self.persistently_failed = False

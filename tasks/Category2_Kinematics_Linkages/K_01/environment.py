@@ -268,13 +268,14 @@ class Sandbox:
         self._world.Step(time_step, 10, 10)
     
     def get_terrain_bounds(self):
-        """Get terrain bounds (for evaluation)"""
+        """Get terrain bounds (for evaluation). Includes target_distance for evaluator consistency."""
         return {
             "ground": {"y": self._ground_y},
             "build_zone": {
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]
-            }
+            },
+            "target_distance": float(self._terrain_config.get("target_distance", 15.0)),
         }
     
     def get_walker_position(self):

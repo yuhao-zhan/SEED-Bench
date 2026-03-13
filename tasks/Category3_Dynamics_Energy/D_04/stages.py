@@ -1,92 +1,98 @@
 """
 D-04: The Swing curriculum stages (mutations).
-
-Stage-1 and Stage-2: one physical parameter change each (invisible).
-Stage-3 and Stage-4: multiple parameter changes. Difficulty increases Stage-1 → Stage-4.
-All changes here are invisible (gravity, damping, wind period); do NOT tell the agent
-exact values in the prompt — they must infer from environment feedback.
 """
 
 from __future__ import annotations
 
 from typing import Any, Dict, List
 
-# Generic warning for invisible env changes (no exact parameter values)
-_INVISIBLE_ENV_WARNING = """
-## Environmental Note
-Physical conditions in this stage may differ from the default. Use simulation feedback to adapt your strategy.
-"""
-
-
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update task description for visible changes."""
-    return base_description
-
-
-def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update success criteria for visible changes."""
-    return base_success_criteria
-
-
-_D04_SUFFIX = """
+def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
+    """
+    Return ordered stage configs for D-04 mutated tasks.
+    Order: Stage-1 (one param) -> Stage-2 (one param) -> Stage-3 (multi) -> Stage-4 (multi).
+    Difficulty increases so that the reference solution fails in each mutated environment.
+    """
+    
+    # We dynamically generate the uniform suffix from the union of all mutated variables
+    # across the 4 stages to ensure information hiding and embodied discovery.
+    # The variables used in our stages are:
+    # 1. dead_zone
+    # 2. quadratic_damping
+    # 3. actuator_fault
+    # 4. wind_strength & wind_period (constant extreme wind)
+    
+    union_variables = {
+        "Actuator Dead Zone": "The swing's primary force thrusters may fail to engage within certain spatial regions, requiring momentum to carry the seat through.",
+        "Quadratic Damping Anomaly": "The environment may exhibit extreme energy drain that scales exponentially with the swing's velocity, heavily penalizing excessive speed.",
+        "Directional Actuator Fault": "The force actuators may be jammed, allowing thrust to be applied in only one horizontal direction.",
+        "Extreme Atmospheric Conditions": "Atmospheric or wind conditions may differ from the initial environment in ways that affect the swing's equilibrium and trajectory; use feedback to infer the actual behavior."
+    }
+    
+    bullet_points = "\\n".join([f" - **{k}**: {v}" for k, v in union_variables.items()])
+    
+    _D04_SUFFIX = f"""
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Gravity**: Variations in the gravitational field may alter the swing's natural period and the effort required to reach the apex.
-- **Seat Damping**: Resistance at the swing's pivot or seat may be altered, affecting the energy lost during each oscillation.
-- **Wind Period**: The timing and frequency of atmospheric wind gusts may have changed, requiring adjustments to the pumping rhythm.
+{bullet_points}
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
-
-def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
-    """
-    Return ordered stage configs for D-04 mutated tasks.
-    Order: Stage-1 (one param) → Stage-2 (one param) → Stage-3 (multi) → Stage-4 (multi).
-    Difficulty increases so that the reference solution fails in each mutated environment.
-    """
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Stronger Gravity",
-            "mutation_description": "Gravity increased to -18.5 m/s². Swing period shorter, apex lower; original tuning under-pumps.",
+            "title": "The Dead Zone",
+            "mutation_description": "Actuator fails between x=9.5 and x=10.5. Wind pushes it out eventually.",
             "task_description_suffix": _D04_SUFFIX,
-            "terrain_config": {},
-            "physics_config": {"gravity": (0, -18.5)},
+            "terrain_config": {
+                "dead_zone": [9.5, 10.5],
+                "wind_strength": 60.0, # Strong wind to push it out of dead zone
+            },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
-            "title": "High Damping",
-            "mutation_description": "Seat linear/angular damping increased. More energy loss per cycle.",
+            "title": "Quadratic Energy Drain",
+            "mutation_description": "High quadratic damping penalizes fast swings. Baseline reaches a terminal amplitude below target.",
             "task_description_suffix": _D04_SUFFIX,
             "terrain_config": {
-                "seat_linear_damping": 0.28,
-                "seat_angular_damping": 0.28,
+                "quadratic_damping": 0.25,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "Heavy World and Damping",
-            "mutation_description": "Gravity -13 m/s² + increased seat damping. Dual invisible params.",
+            "title": "One-Way Actuator & Gale",
+            "mutation_description": "Actuator only pushes left, but there is a massive constant wind pushing right.",
             "task_description_suffix": _D04_SUFFIX,
             "terrain_config": {
-                "seat_linear_damping": 0.22,
-                "seat_angular_damping": 0.22,
+                "actuator_fault": "left_only",
+                "wind_strength": 30.0,
+                "wind_period": 0.0, # Effectively constant
             },
-            "physics_config": {"gravity": (0, -13.0)},
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-4",
-            "title": "Extreme Conditions",
-            "mutation_description": "Gravity -15 m/s² + high seat damping + different wind period. Original wind-aware timing fails.",
+            "title": "The Ultimate Crucible",
+            "mutation_description": "Right-only actuator, dead zone in the middle, quadratic damping, and constant leftward gale.",
             "task_description_suffix": _D04_SUFFIX,
             "terrain_config": {
-                "seat_linear_damping": 0.32,
-                "seat_angular_damping": 0.32,
-                "wind_period": 2.2,
+                "actuator_fault": "right_only",
+                "dead_zone": [9.8, 10.2],
+                "quadratic_damping": 0.10,
+                "wind_strength": -25.0,
+                "wind_period": 0.0,
             },
-            "physics_config": {"gravity": (0, -15.0)},
+            "physics_config": {},
         },
     ]
+
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update task description for visible changes."""
+    return base_description
+
+def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+    """Update success criteria for visible changes."""
+    return base_success_criteria

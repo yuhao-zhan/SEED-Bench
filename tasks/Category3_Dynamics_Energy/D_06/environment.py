@@ -316,7 +316,14 @@ class Sandbox:
 
     def set_material_properties(self, body, restitution=0.2):
         for fixture in body.fixtures:
-            fixture.restitution = float(restitution)
+            fixture.restitution = restitution
+
+    def set_damping(self, body, linear=None, angular=None):
+        if linear is not None:
+            body.linearDamping = linear
+        if angular is not None:
+            body.angularDamping = angular
+
 
     def step(self, time_step):
         self._sim_time += time_step

@@ -41,14 +41,14 @@ def _apply_climb_action(sandbox, step_count):
 def build_agent_stage_1(sandbox):
     x_pos = 4.85
     base_y = 2.0
-    torso = sandbox.add_beam(x_pos, base_y, 0.05, 0.8, density=1.0)
-    p1 = sandbox.add_pad(x_pos + 0.1, base_y - 0.2, radius=0.1, density=0.5)
-    p2 = sandbox.add_pad(x_pos + 0.1, base_y + 0.2, radius=0.1, density=0.5)
+    torso = sandbox.add_beam(x_pos, base_y, 0.05, 0.8, density=0.2)
+    p1 = sandbox.add_pad(x_pos + 0.1, base_y - 0.2, radius=0.08, density=0.1)
+    p2 = sandbox.add_pad(x_pos + 0.1, base_y + 0.2, radius=0.08, density=0.1)
     sandbox.add_joint(torso, p1, (x_pos + 0.1, base_y - 0.2), type='rigid')
     sandbox.add_joint(torso, p2, (x_pos + 0.1, base_y + 0.2), type='rigid')
-    arm = sandbox.add_beam(x_pos, base_y + 1.0, 0.04, 1.2, density=0.5)
-    p3 = sandbox.add_pad(x_pos + 0.1, base_y + 1.4, radius=0.1, density=0.5)
-    p4 = sandbox.add_pad(x_pos + 0.1, base_y + 1.6, radius=0.1, density=0.5)
+    arm = sandbox.add_beam(x_pos, base_y + 1.0, 0.04, 1.2, density=0.2)
+    p3 = sandbox.add_pad(x_pos + 0.1, base_y + 1.4, radius=0.08, density=0.1)
+    p4 = sandbox.add_pad(x_pos + 0.1, base_y + 1.6, radius=0.08, density=0.1)
     sandbox.add_joint(arm, p3, (x_pos + 0.1, base_y + 1.4), type='rigid')
     sandbox.add_joint(arm, p4, (x_pos + 0.1, base_y + 1.6), type='rigid')
     joint = sandbox.add_joint(torso, arm, (x_pos, base_y + 0.4), type='pivot', lower_limit=-0.1, upper_limit=2.0)
@@ -56,7 +56,9 @@ def build_agent_stage_1(sandbox):
         'p_torso': [p1, p2],
         'p_arm': [p3, p4],
         'joint': joint,
-        'cycle': 60
+        'cycle': 80,
+        'speed': 5.0,
+        'torque': 150.0
     }
     return torso
 
@@ -65,26 +67,26 @@ def agent_action_stage_1(sandbox, agent_body, step_count):
 
 def build_agent_stage_2(sandbox):
     x_pos = 4.85
-    base_y = 1.5
-    torso = sandbox.add_beam(x_pos, base_y, 0.05, 0.6, density=1.0)
-    p1 = sandbox.add_pad(x_pos + 0.1, base_y - 0.2, radius=0.1, density=0.5)
-    p2 = sandbox.add_pad(x_pos + 0.1, base_y + 0.2, radius=0.1, density=0.5)
+    base_y = 1.0
+    torso = sandbox.add_beam(x_pos, base_y, 0.05, 0.6, density=0.4)
+    p1 = sandbox.add_pad(x_pos + 0.1, base_y - 0.2, radius=0.1, density=0.2)
+    p2 = sandbox.add_pad(x_pos + 0.1, base_y + 0.2, radius=0.1, density=0.2)
     sandbox.add_joint(torso, p1, (x_pos + 0.1, base_y - 0.2), type='rigid')
     sandbox.add_joint(torso, p2, (x_pos + 0.1, base_y + 0.2), type='rigid')
-    arm = sandbox.add_beam(x_pos, base_y + 2.8, 0.06, 5.0, density=1.0)
-    p3 = sandbox.add_pad(x_pos + 0.1, base_y + 5.0, radius=0.1, density=0.5)
-    p4 = sandbox.add_pad(x_pos + 0.1, base_y + 5.2, radius=0.1, density=0.5)
-    sandbox.add_joint(arm, p3, (x_pos + 0.1, base_y + 5.0), type='rigid')
-    sandbox.add_joint(arm, p4, (x_pos + 0.1, base_y + 5.2), type='rigid')
-    joint = sandbox.add_joint(torso, arm, (x_pos, base_y + 0.4), type='pivot', lower_limit=-0.1, upper_limit=2.8)
+    arm = sandbox.add_beam(x_pos, 4.0, 0.1, 8.0, density=0.4)
+    p3 = sandbox.add_pad(x_pos + 0.1, 7.8, radius=0.1, density=0.2)
+    p4 = sandbox.add_pad(x_pos + 0.1, 8.0, radius=0.1, density=0.2)
+    sandbox.add_joint(arm, p3, (x_pos + 0.1, 7.8), type='rigid')
+    sandbox.add_joint(arm, p4, (x_pos + 0.1, 8.0), type='rigid')
+    joint = sandbox.add_joint(torso, arm, (x_pos, 1.3), type='pivot', lower_limit=-0.1, upper_limit=5.0)
     sandbox._climber_joints = {
         'p_torso': [p1, p2],
         'p_arm': [p3, p4],
         'joint': joint,
-        'cycle': 80,
-        'speed': 8.0,
-        'torque': 5000.0,
-        'overlap': 10
+        'cycle': 200,
+        'speed': 10.0,
+        'torque': 100000.0,
+        'overlap': 50
     }
     return torso
 
@@ -93,25 +95,22 @@ def agent_action_stage_2(sandbox, agent_body, step_count):
 
 def build_agent_stage_3(sandbox):
     x_pos = 4.8
-    base_y = 2.0
-    torso = sandbox.add_beam(x_pos, base_y, 0.2, 1.2, density=60.0)
-    p1 = sandbox.add_pad(x_pos + 0.15, base_y - 0.4, radius=0.15, density=20.0)
-    p2 = sandbox.add_pad(x_pos + 0.15, base_y + 0.4, radius=0.15, density=20.0)
-    sandbox.add_joint(torso, p1, (x_pos + 0.15, base_y - 0.4), type='rigid')
-    sandbox.add_joint(torso, p2, (x_pos + 0.15, base_y + 0.4), type='rigid')
-    arm = sandbox.add_beam(x_pos, base_y + 1.5, 0.2, 1.8, density=60.0)
-    p3 = sandbox.add_pad(x_pos + 0.15, base_y + 2.2, radius=0.15, density=20.0)
-    p4 = sandbox.add_pad(x_pos + 0.15, base_y + 2.6, radius=0.15, density=20.0)
-    sandbox.add_joint(arm, p3, (x_pos + 0.15, base_y + 2.2), type='rigid')
-    sandbox.add_joint(arm, p4, (x_pos + 0.15, base_y + 2.6), type='rigid')
-    joint = sandbox.add_joint(torso, arm, (x_pos, base_y + 0.6), type='pivot', lower_limit=-0.1, upper_limit=2.0)
+    base_y = 1.0
+    torso = sandbox.add_beam(x_pos, base_y, 0.2, 0.8, density=100.0)
+    p1 = sandbox.add_pad(x_pos + 0.1, base_y, radius=0.1, density=20.0)
+    sandbox.add_joint(torso, p1, (x_pos + 0.1, base_y), type='rigid')
+    arm = sandbox.add_beam(x_pos, base_y + 1.0, 0.2, 1.2, density=100.0)
+    p2 = sandbox.add_pad(x_pos + 0.1, base_y + 1.5, radius=0.1, density=20.0)
+    sandbox.add_joint(arm, p2, (x_pos + 0.1, base_y + 1.5), type='rigid')
+    joint = sandbox.add_joint(torso, arm, (x_pos, base_y + 0.4), type='pivot', lower_limit=-0.1, upper_limit=2.0)
     sandbox._climber_joints = {
-        'p_torso': [p1, p2],
-        'p_arm': [p3, p4],
+        'p_torso': [p1],
+        'p_arm': [p2],
         'joint': joint,
         'cycle': 100,
-        'speed': 8.0,
-        'torque': 20000.0
+        'speed': 10.0,
+        'torque': 150000.0,
+        'overlap': 20
     }
     return torso
 
@@ -121,11 +120,11 @@ def agent_action_stage_3(sandbox, agent_body, step_count):
 def build_agent_stage_4(sandbox):
     x_pos = 4.9
     base_y = 0.5
-    torso = sandbox.add_beam(x_pos, base_y, 0.05, 0.4, density=1.0)
-    p1 = sandbox.add_pad(x_pos + 0.05, base_y, radius=0.05, density=0.5)
+    torso = sandbox.add_beam(x_pos, base_y, 0.05, 0.4, density=20.0)
+    p1 = sandbox.add_pad(x_pos + 0.05, base_y, radius=0.05, density=5.0)
     sandbox.add_joint(torso, p1, (x_pos + 0.05, base_y), type='rigid')
-    arm = sandbox.add_beam(x_pos, base_y + 0.5, 0.04, 0.6, density=0.5)
-    p2 = sandbox.add_pad(x_pos + 0.05, base_y + 0.8, radius=0.05, density=0.5)
+    arm = sandbox.add_beam(x_pos, base_y + 0.5, 0.04, 0.6, density=20.0)
+    p2 = sandbox.add_pad(x_pos + 0.05, base_y + 0.8, radius=0.05, density=5.0)
     sandbox.add_joint(arm, p2, (x_pos + 0.05, base_y + 0.8), type='rigid')
     joint = sandbox.add_joint(torso, arm, (x_pos, base_y + 0.2), type='pivot', lower_limit=-0.1, upper_limit=2.0)
     sandbox._climber_joints = {
@@ -133,8 +132,8 @@ def build_agent_stage_4(sandbox):
         'p_arm': [p2],
         'joint': joint,
         'cycle': 30,
-        'speed': 25.0,
-        'torque': 5000.0,
+        'speed': 40.0,
+        'torque': 50000.0,
         'overlap': 4
     }
     return torso

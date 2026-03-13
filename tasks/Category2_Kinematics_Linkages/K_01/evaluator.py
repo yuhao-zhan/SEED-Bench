@@ -50,9 +50,19 @@ class Evaluator:
         if current_y < self.min_torso_height:
             failed = True
             failure_reason = f"Walker collapsed: torso touched ground (height {current_y:.2f}m < {self.min_torso_height}m)"
+        
+        # Failure: Mass budget exceeded (design constraint)
+        max_structure_mass = getattr(self.environment, 'MAX_STRUCTURE_MASS', 100.0)
+        structure_mass = self.environment.get_structure_mass()
+        if structure_mass > max_structure_mass:
+            failed = True
+            failure_reason = (
+                failure_reason + "; " if failure_reason else ""
+            ) + f"Design constraint violated: structure mass {structure_mass:.2f}kg exceeds budget {max_structure_mass:.1f}kg"
             
         # Success if reached target distance and survived minimum time
         distance_traveled = current_x - self.initial_x
+        progress = min(max(0, distance_traveled) / self.target_distance, 1.0)
         success = distance_traveled >= self.target_distance and step_count >= self.min_simulation_steps
         
         is_end = (step_count >= max_steps - 1)
@@ -63,8 +73,7 @@ class Evaluator:
         elif failed:
             score = 0.0
         else:
-            progress = min(max(0, distance_traveled) / self.target_distance, 1.0)
-            score = progress * 70.0 
+            score = progress * 70.0
             if step_count > 0:
                 score += (min(step_count, self.min_simulation_steps) / self.min_simulation_steps) * 30.0
                 
@@ -74,14 +83,14 @@ class Evaluator:
             'distance_traveled': distance_traveled,
             'max_x_reached': self.max_x_reached,
             'min_torso_y': self.min_torso_y,
-            'progress': progress * 100.0 if 'progress' in locals() else 0.0,
+            'progress': progress * 100.0,
             'success': success and not failed,
             'failed': failed,
             'failure_reason': failure_reason,
             'step_count': step_count,
             'min_simulation_steps_required': self.min_simulation_steps,
-            'structure_mass': self.environment.get_structure_mass(),
-            'max_structure_mass': getattr(self.environment, 'MAX_STRUCTURE_MASS', 100.0),
+            'structure_mass': structure_mass,
+            'max_structure_mass': max_structure_mass,
         }
         
         return done, score, metrics

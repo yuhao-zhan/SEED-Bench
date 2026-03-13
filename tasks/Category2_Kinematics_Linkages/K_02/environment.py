@@ -80,6 +80,7 @@ class Sandbox:
         self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 25.0))  # Build zone y end
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 50.0))  # Maximum total structure mass (kg)
         self.MIN_STRUCTURE_MASS = float(terrain_config.get("min_structure_mass", 0.0))  # Minimum total structure mass (kg)
+        self.TARGET_HEIGHT = float(terrain_config.get("target_height", 20.0))  # Success target altitude (m)
         
         # 4. Create initial climber structure (basic template - solver will build their own)
         # We create a simple placeholder to show the environment, but solver must build their own climber
@@ -314,7 +315,8 @@ class Sandbox:
             if self._pad_active.get(pad, False) and is_in_zone:
                 pad.type = Box2D.b2_staticBody
                 # Slowly move active pads upwards to guarantee vertical progress
-                pad.position = (5.0, pad.position.y + 1.5 * time_step)
+                # Follow wall_x to maintain contact during oscillations
+                pad.position = (wall_x, pad.position.y + 1.5 * time_step)
             else:
                 pad.type = Box2D.b2_dynamicBody
         
@@ -393,6 +395,7 @@ class Sandbox:
         return {
             "wall": {"x": self._wall_x, "height": self._wall_height},
             "ground": {"y": self._ground_y},
+            "target_height": self.TARGET_HEIGHT,
             "build_zone": {
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]

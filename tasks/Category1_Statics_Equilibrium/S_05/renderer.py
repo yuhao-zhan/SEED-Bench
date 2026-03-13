@@ -22,13 +22,13 @@ class S05Renderer(Renderer):
                 import pygame
                 self.simulator.screen = pygame.Surface((800, 450))
                 
-        # Panoramic Camera Viewport
+        # Panoramic Camera Viewport (center on core when available for mutated stages)
         self.simulator.ppm = 20.0
         sw = self.simulator.screen_width
         sh = self.simulator.screen_height
         
-        center_x_world = 10.0
-        center_y_world = 6.0
+        center_x_world = getattr(sandbox, 'CORE_X', 10.0)
+        center_y_world = max(getattr(sandbox, 'CORE_Y', 1.0) + 4.0, 6.0)  # above core, at least 6
         
         cam_x = center_x_world * self.simulator.ppm - sw / 2
         cam_y = sh / 2 - center_y_world * self.simulator.ppm

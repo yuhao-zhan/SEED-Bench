@@ -227,7 +227,7 @@ class Evaluator:
                 "y": [self.target_y_min, self.target_y_max],
             },
             "success_criteria": {
-                "primary": "Projectile center enters target zone (x in [40, 45] m, y in [2, 5] m)",
+                "primary": f"Projectile center enters target zone (x in [{self.target_x_min}, {self.target_x_max}] m, y in [{self.target_y_min}, {self.target_y_max}] m)",
                 "failure_miss": "Projectile does not land inside target zone",
                 "failure_insufficient_distance": "Projectile does not reach target x range",
             },

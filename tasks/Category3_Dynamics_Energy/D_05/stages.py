@@ -7,7 +7,11 @@ All changes are invisible (shell hardness, slot bar phase/omega, gravity, dampin
 do NOT tell the agent exact values in the prompt — they must infer from environment feedback.
 """
 from __future__ import annotations
+import re
 from typing import Any, Dict, List
+
+# Default shell break force in source environment (must match environment.py and prompt.py)
+_DEFAULT_SHELL_BREAK_FORCE = 5000.0
 
 # Generic warning for invisible env changes (no exact parameter values)
 _INVISIBLE_ENV_WARNING = """
@@ -17,12 +21,28 @@ Physical conditions in this stage may differ from the default. Use simulation fe
 
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update task description for visible changes."""
-    return base_description
+    """
+    Update task description for visible changes using format: [new_value] (originally [old_value] in the source environment).
+    Syncs shell_break_force when mutated in stages.
+    """
+    description = base_description
+    target_terrain_config = target_terrain_config or {}
+    base_terrain_config = base_terrain_config or {}
+    target_break = float(target_terrain_config.get("shell_break_force", _DEFAULT_SHELL_BREAK_FORCE))
+    base_break = float(base_terrain_config.get("shell_break_force", _DEFAULT_SHELL_BREAK_FORCE))
+    if target_break != base_break:
+        # Match "force (≥ 5000 N)" or "force (> 5000 N)" and replace with new value + (originally ...)
+        pattern = r"(Delivers a strike with enough kinetic energy and )force\s*[\(]?(?:≥|>=|>)\s*[\d.]+\s*N[\)]?( to break the shell\.)"
+        replacement = (
+            r"\1force ≥ " + f"{target_break:.0f} N (originally {base_break:.0f} N in the source environment)" + r"\2"
+        )
+        if re.search(pattern, description):
+            description = re.sub(pattern, replacement, description)
+    return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update success criteria for visible changes."""
+    """Update success criteria for visible changes (D-05 success_criteria does not state force value)."""
     return base_success_criteria
 
 

@@ -259,11 +259,29 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
                 
                 target_terrain = env_j.get("terrain_config", {})
                 base_terrain = env_i.get("terrain_config", {})
-                
+                target_physics = env_j.get("physics_config", {})
+                base_physics = env_i.get("physics_config", {})
+
                 if update_desc_func:
-                    desc = update_desc_func(desc, target_terrain, base_terrain)
+                    try:
+                        import inspect
+                        sig = inspect.signature(update_desc_func)
+                        if len(sig.parameters) >= 5:
+                            desc = update_desc_func(desc, target_terrain, base_terrain, target_physics, base_physics)
+                        else:
+                            desc = update_desc_func(desc, target_terrain, base_terrain)
+                    except Exception:
+                        desc = update_desc_func(desc, target_terrain, base_terrain)
                 if update_criteria_func:
-                    criteria = update_criteria_func(criteria, target_terrain, base_terrain)
+                    try:
+                        import inspect
+                        sig = inspect.signature(update_criteria_func)
+                        if len(sig.parameters) >= 5:
+                            criteria = update_criteria_func(criteria, target_terrain, base_terrain, target_physics, base_physics)
+                        else:
+                            criteria = update_criteria_func(criteria, target_terrain, base_terrain)
+                    except Exception:
+                        criteria = update_criteria_func(criteria, target_terrain, base_terrain)
                 
                 # Add suffix from target environment if it exists
                 if method.endswith('_CE'):

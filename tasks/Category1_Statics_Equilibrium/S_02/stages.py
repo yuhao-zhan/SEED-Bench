@@ -7,12 +7,40 @@ from __future__ import annotations
 from typing import Any, Dict, List
 import re
 
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Updates the task description for VISIBLE changes (none currently for S-02)."""
-    return base_description
+def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any], target_physics_config: Dict[str, Any] = None, base_physics_config: Dict[str, Any] = None) -> str:
+    """
+    Updates the task description for VISIBLE changes (joint strength).
+    Callers must pass target_physics_config and base_physics_config for mutated joint limits
+    to be reflected in the prompt with the required '[new_value] (originally [old_value] in the source environment)' format.
+    """
+    description = base_description
+
+    target_physics_config = target_physics_config or {}
+    base_physics_config = base_physics_config or {}
+
+    # Sync Joint Strength if mutated
+    for key, pattern, default, suffix in [
+        ("max_joint_force", r"(- \*\*Joint Strength\*\*: Maximum linear force for a joint is )(\w+\.?\d*)", float('inf'), ";"),
+        ("max_joint_torque", r"(; maximum torque is )(\w+\.?\d*)", float('inf'), ".")
+    ]:
+        target_val = target_physics_config.get(key, default)
+        base_val = base_physics_config.get(key, default)
+        
+        if target_val != base_val:
+            target_str = f"{target_val:.1f}" if target_val != float('inf') else "inf"
+            base_str = f"{base_val:.1f}" if base_val != float('inf') else "inf"
+            
+            if re.search(pattern, description):
+                description = re.sub(
+                    pattern,
+                    f"\\g<1>{target_str} (originally {base_str} in the source environment)",
+                    description
+                )
+    
+    return description
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Updates the success criteria for VISIBLE changes (none currently for S-02)."""
+    """Updates the success criteria for VISIBLE changes (none currently for S-02 besides those in description)."""
     return base_success_criteria
 
 def get_s02_curriculum_stages() -> List[Dict[str, Any]]:
@@ -27,7 +55,7 @@ Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
  - **Structural Integrity Thresholds**: Joints between beams may have altered breaking limits for both force and torque.
  - **Seismic Dynamics**: The foundation's oscillation may exhibit varying amplitudes, frequencies, or evolve in intensity over time.
- - **Atmospheric Loading**: Lateral wind forces may change in magnitude, height-dependent shear, or periodic pulsation (oscillation).
+ - **Atmospheric Loading**: Lateral wind forces may change in magnitude, height thresholds, shear, or periodic oscillation.
  - **Gravitational Constant**: The local vertical acceleration may differ from standard earth gravity, altering the weight of the structure.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how the tower sways) to infer the hidden constraints and adapt your design.
@@ -37,61 +65,62 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-1",
             "title": "The Brittle Foundation",
-            "mutation_description": "Extreme structural torque limit at the base. Standard heavy towers will snap their foundation joints immediately upon oscillation.",
+            "mutation_description": "Structural torque limit at the base. Heavy towers will snap foundation joints upon oscillation; agent must build light/balanced.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "earthquake_amplitude": 0.4,
             },
             "physics_config": {
-                "max_joint_torque": 1200.0,  # Critical bottleneck: force agent to build light/balanced
+                "max_joint_torque": 80000.0,  # Light tower passes; initial (heavy) fails
                 "max_joint_force": 50000.0,
             },
         },
         {
             "stage_id": "Stage-2",
             "title": "Atmospheric Resonance",
-            "mutation_description": "Wind pulsates at a frequency that induces structural resonance. Without active damping (TMD), the tower will oscillate to destruction.",
+            "mutation_description": "Sustained oscillating wind from low altitude drives structural resonance; standard tower without tuned damping fails.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "wind_force": 2500.0,
-                "wind_oscillation_frequency": 5.0,  # High-frequency wind gusts
-                "wind_height_threshold": 5.0,     # Wind starts much lower
+                "wind_force": 2.5,
+                "wind_oscillation_frequency": 0.35,
+                "wind_height_threshold": 14.0,
             },
             "physics_config": {
-                "max_joint_force": 50000.0,
-                "max_joint_torque": 100000.0,
+                "max_joint_force": 60000.0,
+                "max_joint_torque": 120000.0,
             },
         },
         {
             "stage_id": "Stage-3",
             "title": "Seismic Amplification",
-            "mutation_description": "The earthquake intensity evolves non-linearly over time. A tower that survives the start will collapse as the energy builds.",
+            "mutation_description": "Sustained moderate-amplitude seismic load; heavy towers sway beyond width limit without tuned damping.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "earthquake_amplitude": 0.4,
-                "earthquake_frequency": 5.0,
-                "earthquake_amplitude_evolution": 0.1, 
+                "earthquake_amplitude": 0.36,
+                "earthquake_frequency": 1.75,
+                "earthquake_amplitude_evolution": 0.0,
             },
             "physics_config": {
-                "max_joint_force": 500000.0,
-                "max_joint_torque": 1000000.0,
+                "max_joint_force": 250000.0,
+                "max_joint_torque": 200000.0,
             },
         },
         {
             "stage_id": "Stage-4",
             "title": "The Gravity Well Collapse",
-            "mutation_description": "Extreme gravity combined with high-intensity chaotic seismic and wind loads. Structural weight becomes the enemy.",
+            "mutation_description": "High gravity plus strong seismic and wind create conflicting constraints; weight and lateral load must be balanced.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "earthquake_amplitude": 1.5,
-                "earthquake_frequency": 8.0,
-                "wind_force": 500.0,
-                "wind_shear_factor": 2.0,
+                "earthquake_amplitude": 0.34,
+                "earthquake_frequency": 1.75,
+                "wind_force": 22.0,
+                "wind_height_threshold": 16.0,
+                "wind_shear_factor": 0.06,
             },
             "physics_config": {
-                "gravity": (0, -25.0), # Extreme gravity
-                "max_joint_force": 250000.0,
-                "max_joint_torque": 500000.0,
+                "gravity": (0, -12.5),
+                "max_joint_force": 80000.0,
+                "max_joint_torque": 90000.0,
             },
         },
     ]

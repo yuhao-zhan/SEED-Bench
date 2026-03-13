@@ -23,7 +23,7 @@ Design a hammer mechanism to break a hard shell located behind a protective barr
 
 ## Task Environment
 - **The Shell**: A breakable target at x=16.0m, y=2.6m. It requires a large instantaneous force to break.
-- **The Slot Barrier**: A wall at x=15.0m with a narrow vertical gap. Your hammer head must pass through this gap.
+- **The Slot Barrier**: A wall at x=15.0m with a narrow vertical gap (y from 1.85 m to 3.35 m). Your hammer head must pass through this gap.
 - **The Oscillating Bar**: A horizontal bar inside the slot gap that moves up and down. You must time your swing to pass when the bar is away.
 - **Obstacles**: A swinging pendulum at x=7.0m may block your swing.
 - **Build Zone**: x=[2.0, 12.0] m, y=[2.0, 8.0] m. You must anchor your mechanism to the ground.
@@ -32,7 +32,7 @@ Design a hammer mechanism to break a hard shell located behind a protective barr
 Design a hammer that:
 1. Is anchored to the ground and consists of a handle and a heavy head.
 2. Achieves a trajectory that passes through the narrow slot gap without hitting the walls or the oscillating bar.
-3. Delivers a strike with enough kinetic energy and force (> 5000 N) to break the shell.
+3. Delivers a strike with enough kinetic energy and force (≥ 5000 N) to break the shell.
 """,
     "success_criteria": """
 ## Success Criteria

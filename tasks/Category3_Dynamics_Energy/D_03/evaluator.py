@@ -17,10 +17,10 @@ class Evaluator:
         self.terrain_bounds = terrain_bounds
         self.environment = environment
         
-        # Aligned with environment.py defaults
-        self._target_x_min = 11.75
-        self._target_speed_min = 0.45
-        self._target_speed_max = 2.6
+        # Read from terrain_bounds so mutated stages stay in sync (aligned with environment.py defaults)
+        self._target_x_min = float(terrain_bounds.get("target_x_min", 11.75))
+        self._target_speed_min = float(terrain_bounds.get("target_speed_min", 0.45))
+        self._target_speed_max = float(terrain_bounds.get("target_speed_max", 2.6))
         
         self.design_constraints_checked = False
         self.initial_joint_count = 0
@@ -38,20 +38,10 @@ class Evaluator:
                 return True, 0.0, {"failed": True, "failure_reason": "Design constraint violated: " + "; ".join(violations)}
             self.design_constraints_checked = True
 
-        # Collision with gate check
-        if getattr(self.environment, "get_gate_collision", lambda: False)():
-            return True, 0.0, {"failed": True, "failure_reason": "Gate collision"}
-
-        if getattr(self.environment, "_speed_trap_failed", False):
-            return True, 0.0, {"failed": True, "failure_reason": "Speed trap failed (too slow at x=9)"}
-
-        if getattr(self.environment, "_checkpoint_11_failed", False):
-            return True, 0.0, {"failed": True, "failure_reason": "Checkpoint failed (speed at x=11 out of band)"}
-
         cabin_pos = self.environment.get_vehicle_position()
         cabin_vel = self.environment.get_vehicle_velocity()
         if cabin_pos is None or cabin_vel is None:
-            return False, 0.0, {"error": "Vehicle not found"}
+            return False, 0.0, {"failed": True, "failure_reason": "Cart not found"}
 
         current_x, current_y = cabin_pos
         vx, vy = cabin_vel
@@ -59,10 +49,21 @@ class Evaluator:
 
         failed = False
         failure_reason = None
-        
+
         if len(self.environment._joints) < self.initial_joint_count:
             self.structure_broken = True
             failed, failure_reason = True, "Structure broken"
+
+        # Gate collision check
+        if getattr(self.environment, "get_gate_collision", lambda: False)():
+            return True, 0.0, {"failed": True, "failure_reason": "Gate collision"}
+
+        if getattr(self.environment, "_speed_trap_failed", False):
+            return True, 0.0, {"failed": True, "failure_reason": "Speed trap failed (too slow at x=9)"}
+
+        # Checkpoint failed check
+        if getattr(self.environment, "_checkpoint_11_failed", False):
+            return True, 0.0, {"failed": True, "failure_reason": "Checkpoint failed (speed at x=11 out of band)"}
 
         # Determine success
         is_end = (step_count >= max_steps - 1)
@@ -71,6 +72,7 @@ class Evaluator:
             if current_x >= self._target_x_min:
                 if self._target_speed_min <= speed <= self._target_speed_max:
                     success = True
+                    print(f"SUCCESS at step {step_count}: x={current_x:.2f}, speed={speed:.2f}")
                 elif is_end:
                     failed, failure_reason = True, f"Final speed out of band ({speed:.2f} m/s)"
             elif is_end:

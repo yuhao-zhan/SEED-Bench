@@ -44,7 +44,8 @@ class K05Renderer(Renderer):
         screen_y = self.simulator.screen_height - (world_y * ppm) - self.camera_offset_y
         return (int(screen_x), int(screen_y))
 
-    def render(self, sandbox, agent_body, target_x, camera_offset_x):
+    def render(self, sandbox, agent_body, target_height, camera_offset_x):
+        """target_height: target y (m) for the lifter; used to draw the target line."""
         ppm = self.simulator.ppm
         sw = self.simulator.screen_width
         sh = self.simulator.screen_height
@@ -131,9 +132,9 @@ class K05Renderer(Renderer):
                 except Exception:
                     pass
 
-        # Target line (Goldenrod Yellow)
-        if target_x and target_x > 0:
-            self.draw_line(0, target_x, 8.0, target_x, COLOR_ENV, 3)
+        # Target line (Goldenrod Yellow) at target height (y)
+        if target_height and target_height > 0:
+            self.draw_line(0, target_height, 8.0, target_height, COLOR_ENV, 3)
         
         # Build zone (Goldenrod Yellow)
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):

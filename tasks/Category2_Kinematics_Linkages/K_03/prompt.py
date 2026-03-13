@@ -6,13 +6,8 @@ import os
 import json
 import sys
 
-# Add the tasks directory to sys.path to find primitives_api.py
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from primitives_api import API_INTRO
-import sys
-
 # Add tasks directory to path to import primitives_api
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
@@ -50,7 +45,7 @@ Design a robotic gripper attached to a gantry that can grasp an object on a plat
 ## Success Criteria
 1. **Vertical Lift**: Object reaches y >= 3.5m.
 2. **Sustain**: Object held at target height for >= 1.34 seconds.
-3. **Stability**: Object never falls below y=1.9m after being lifted.
+3. **Stability**: Object never falls below y=2.0m after being lifted.
 4. **Integrity**: Gripper remains intact and within constraints.
 
 ## Design Constraints

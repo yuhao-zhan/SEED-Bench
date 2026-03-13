@@ -64,14 +64,15 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
         {
             "stage_id": "Stage-3",
             "title": "The Squeeze",
-            "mutation_description": "Extremely narrow corridor (6.0-7.2m) combined with reduced fuel and a gravity spike at step 150.",
+            "mutation_description": "Extremely narrow corridor (6.0-15.0m) combined with reduced fuel and a gravity spike at step 150 (max thrust increased to 1200 N).",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "min_fuel_remaining_at_landing": 550.0,
             },
             "physics_config": {
-                "barrier_y_bottom": 7.2,
+                "barrier_y_bottom": 15.0,
                 "total_fuel_impulse": 3800.0,
+                "max_thrust": 1200.0,
                 "gravity_mutation": {
                     "at_step": 150,
                     "gravity_after": (0, -18.0),
@@ -81,22 +82,22 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
         {
             "stage_id": "Stage-4",
             "title": "The Perfect Storm",
-            "mutation_description": "Extreme combination: narrow corridor, high latency, low fuel, strong wind, and fragile touchdown.",
+            "mutation_description": "Extreme combination: narrow corridor (6.0-20.0m), high latency, low fuel, strong wind, and fragile touchdown (1.5m/s).",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "max_safe_vertical_speed": 0.8,
+                "max_safe_vertical_speed": 1.5,
                 "min_fuel_remaining_at_landing": 500.0,
             },
             "physics_config": {
-                "barrier_y_bottom": 9.0,
+                "barrier_y_bottom": 20.0,
                 "thrust_delay_steps": 8,
-                "total_fuel_impulse": 3400.0,
+                "total_fuel_impulse": 6000.0,
                 "wind_amplitude": 60.0,
                 "gust_amplitude": 85.0,
                 "gust_prob": 0.12,
                 "gravity_mutation": {
                     "at_step": 150,
-                    "gravity_after": (0, -16.5),
+                    "gravity_after": (0, -11.5),
                 },
             },
         },

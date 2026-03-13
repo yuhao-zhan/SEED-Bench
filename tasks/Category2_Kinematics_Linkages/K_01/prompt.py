@@ -33,7 +33,7 @@ Design a 2D side-view walker that moves forward using motor-driven joints.
 ## Task Environment
 - **Ground**: A flat horizontal surface at y=1.0m.
 - **Build Zone**: x=[0, 50], y=[2, 10]. All structure components must be placed within this zone.
-- **Starting Position**: Walker components should be centered around x=10m, y=4.5m for an initial drop.
+- **Starting Position**: Walker components should be centered around x=10m, y=2.0m (within the build zone).
 - **Target**: Move the walker's torso to at least x=25.0m (15 meters forward from starting x).
 
 ## Constraints (must satisfy)

@@ -42,7 +42,7 @@ class K02Renderer(Renderer):
         screen_y = self.simulator.screen_height - (world_y * ppm) - self.camera_offset_y
         return (int(screen_x), int(screen_y))
 
-    def render(self, sandbox, agent_body, target_x, camera_offset_x):
+    def render(self, sandbox, agent_body, target_y, camera_offset_x):
         ppm = self.simulator.ppm
         sw = self.simulator.screen_width
         sh = self.simulator.screen_height
@@ -118,11 +118,11 @@ class K02Renderer(Renderer):
                     pass
 
         # Target line (Goldenrod Yellow)
-        if target_x and target_x > 0:
+        if target_y and target_y > 0:
             wall_x = 5.0
             if hasattr(sandbox, '_wall_x'):
                 wall_x = sandbox._wall_x
-            self.draw_line(wall_x, target_x, wall_x + 3.0, target_x, COLOR_ENV, 3)
+            self.draw_line(wall_x, target_y, wall_x + 3.0, target_y, COLOR_ENV, 3)
         
         # Build zone (Goldenrod Yellow)
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):

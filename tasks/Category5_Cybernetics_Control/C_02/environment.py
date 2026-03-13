@@ -113,8 +113,8 @@ class Sandbox:
 
         self._main_thrust = 0.0
         self._steering_torque = 0.0
-        self._max_thrust = 600.0
-        self._max_torque = 120.0
+        self._max_thrust = float(physics_config.get("max_thrust", 600.0))
+        self._max_torque = float(physics_config.get("max_torque", 120.0))
 
     def _create_ground(self, terrain_config: dict):
         """Create horizontal ground (static)."""

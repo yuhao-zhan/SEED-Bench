@@ -41,6 +41,10 @@ Design a ground-based pusher vehicle that can move a heavy object across a high-
 - **Mass Budget**: Total structure mass must be less than 40 kg.
 - **Build Zone**: All components must stay within x=[0, 15], y=[1.5, 8].
 - **Beam Dimensions**: 0.05 <= width, height <= 3.0 meters.
+- **Wheel Radius**: 0.05 <= radius <= 0.8 meters (for add_wheel).
+- **Pivot Joint Angle Limits**: Radians in [-π, π] when using limits on pivot joints.
+- **Stability**: Pusher chassis tilt must stay within ±30° (π/6 rad); excess tilt is failure.
+- **Payload Support**: Object must remain on the platform; object center y below 0.5 m is failure.
 
 ## Instructions
 1. **Design**: Create a wheeled or sliding pusher vehicle.

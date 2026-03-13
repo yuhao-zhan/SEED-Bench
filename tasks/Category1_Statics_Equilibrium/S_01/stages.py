@@ -8,10 +8,31 @@ from typing import Any, Dict, List
 import re
 
 
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(
+    base_description: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+    *,
+    stage: Dict[str, Any] = None,
+) -> str:
+    """
+    Update task description with visible changes using format: [new_value] (originally [old_value] in the source environment).
+    Callers may pass stage=stage so that physics_config (joint/anchor limits) is synced from the stage dict.
+    """
     description = base_description
     default_gap_width = 15.0
     default_max_structure_mass = 2000.0
+
+    target_terrain_config = target_terrain_config or {}
+    base_terrain_config = base_terrain_config or {}
+    target_physics_config = target_physics_config or {}
+    base_physics_config = base_physics_config or {}
+    if stage is not None:
+        target_physics_config = dict(stage.get("physics_config") or {})
+        base_physics_config = {}
+
     target_gap_width = target_terrain_config.get("gap_width", default_gap_width)
     base_gap_width = base_terrain_config.get("gap_width", default_gap_width)
     target_right_cliff_start = 10.0 + target_gap_width
@@ -26,7 +47,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(right_cliff_pattern, description):
             description = re.sub(
                 right_cliff_pattern,
-                lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}m (originally x={base_right_cliff_start:.1f}m in the source environment){m.group(3) if m.group(3) else '.'}",
+                lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}m (originally {base_right_cliff_start:.1f}m in the source environment){m.group(3) if m.group(3) else '.'}",
                 description
             )
         
@@ -35,7 +56,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(build_zone_pattern, description):
             description = re.sub(
                 build_zone_pattern,
-                lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}{m.group(3)} (originally x=[10, {base_right_cliff_start:.1f}] in the source environment)",
+                lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}{m.group(3)} (originally [10, {base_right_cliff_start:.1f}] in the source environment)",
                 description
             )
             
@@ -46,7 +67,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(target_desc_pattern, description):
             description = re.sub(
                 target_desc_pattern,
-                lambda m: f"{m.group(1)}{target_x:.1f}m (originally x={base_target_x:.1f}m in the source environment){m.group(3)}",
+                lambda m: f"{m.group(1)}{target_x:.1f}m (originally {base_target_x:.1f}m in the source environment){m.group(3)}",
                 description
             )
 
@@ -56,9 +77,29 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(mass_desc_pattern, description):
             description = re.sub(
                 mass_desc_pattern,
-                f"\\g<1>{target_max_mass:.0f} kg (originally < {base_max_mass:.0f} kg in the source environment).",
+                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
                 description
             )
+
+    # Sync Joint/Anchor Strength if mutated
+    for key, label, default in [
+        ("joint_max_force", "Joint Strength", 80.0),
+        ("joint_max_torque", "Joint Strength", 300.0),
+        ("anchor_max_force", "Anchor Strength", 100.0),
+        ("anchor_max_torque", "Anchor Strength", 500.0)
+    ]:
+        target_val = target_physics_config.get(key, default)
+        base_val = base_physics_config.get(key, default)
+        if target_val != base_val:
+            if "force" in key:
+                pattern = rf"(- \*\*{label}\*\*: Maximum linear force for .* is )(\d+\.?\d*);"
+                replacement = f"\\g<1>{target_val:.1f} (originally {base_val:.1f} in the source environment);"
+            else:
+                pattern = rf"(- \*\*{label}\*\*: .* maximum torque is )(\d+\.?\d*)\."
+                replacement = f"\\g<1>{target_val:.1f} (originally {base_val:.1f} in the source environment)."
+            
+            if re.search(pattern, description):
+                description = re.sub(pattern, replacement, description)
 
     return description
 
@@ -80,7 +121,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         if re.search(target_pattern, criteria):
             criteria = re.sub(
                 target_pattern,
-                f"\\g<1>{target_x:.1f}m (originally x >= {base_target_x:.1f}m in the source environment).",
+                f"\\g<1>{target_x:.1f}m (originally {base_target_x:.1f}m in the source environment).",
                 criteria
             )
     if target_max_mass != base_max_mass:
@@ -88,7 +129,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         if re.search(mass_pattern, criteria):
             criteria = re.sub(
                 mass_pattern,
-                f"\\g<1>{target_max_mass:.0f} kg (originally < {base_max_mass:.0f} kg in the source environment).",
+                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
                 criteria
             )
     return criteria
@@ -98,6 +139,7 @@ def get_s01_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for S-01: The Bridge task variants.
     Information Hiding: Uniform suffix for all stages to test physical reasoning.
+    mutation_description is for logs/orchestration only and must NOT be shown to the agent.
     """
     
     UNIFORM_SUFFIX = """
@@ -120,7 +162,7 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-1",
             "title": "Brittle Material",
-            "mutation_description": "Joints cannot withstand torque (max_torque: 0.1) and must act purely as pivots.",
+            "mutation_description": "Joints cannot withstand torque and must act purely as pivots.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {},
             "physics_config": {
@@ -131,7 +173,7 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-2",
             "title": "Fragile Joints",
-            "mutation_description": "Structural joints are very weak (max_force: 8.0, max_torque: 15.0).",
+            "mutation_description": "Structural joints are very weak.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {},
             "physics_config": {
@@ -142,7 +184,7 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-3",
             "title": "The Vortex Gorge",
-            "mutation_description": "Extreme gravity (-22.0), horizontal wind (-20.0), and wider gap (20m) with fragile joints and anchors.",
+            "mutation_description": "Stronger gravity, significant wind, wider gap, and reduced joint and anchor strength.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "gap_width": 20.0,
@@ -159,7 +201,7 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-4",
             "title": "Abyssal Crossing",
-            "mutation_description": "25m Gap, Gravity -25, Severe wind, and high mass budget for a robust structure.",
+            "mutation_description": "Wider gap, stronger gravity, significant wind, and adjusted mass budget.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "gap_width": 25.0,

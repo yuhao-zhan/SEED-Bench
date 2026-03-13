@@ -25,10 +25,11 @@ Design an attachment for a cart to help it pass through multiple rotating gates 
 - **The Cart**: A cabin starts at x=4.0m, y=2.5m with an initial horizontal speed of 10.0m/s.
 - **Rotating Gates**: Four gates with rotating rods are located at x=10.0, 11.5, 11.75, and 12.5. Each gate is only 'open' (passable) during a very narrow angular window.
 - **Obstacles**: Mud zones, impulse zones (providing backward kicks), and decel zones affect the cart's velocity profile along the track.
+- **Speed trap**: When the cart center first crosses x=9 m, its speed must be at least 2.8 m/s or the run fails.
+- **Checkpoint at x=11**: When the cart center first crosses x=11 m, its speed must be in the band [1.1, 2.7] m/s or the run fails.
 - **Build Zone**: x=[4.8, 9.0] m, y=[2.0, 3.2] m. All beams must be attached to the cart cabin.
 - **Success Criteria**: The cart must reach the target zone (x >= 11.75m) with a final speed between 0.45m/s and 2.6m/s, having passed all four gates when they were open.
 
-## Task Objective
 ## Task Objective
 Design an attachment that:
 1. Uses a specific number of beams (between 4 and 5) to adjust the cart's mass and momentum.
@@ -37,7 +38,9 @@ Design an attachment that:
 ...
 ## Success Criteria
 1. **Gate Clearance**: Pass all four rotating gates without collision (only when open).
-2. **Target**: Reach x >= 11.75m with final speed in [0.45, 2.6] m/s.
+2. **Speed trap**: When first crossing x=9 m, cart speed must be >= 2.8 m/s.
+3. **Checkpoint at x=11**: When first crossing x=11 m, cart speed must be in [1.1, 2.7] m/s.
+4. **Target**: Reach x >= 11.75m with final speed in [0.45, 2.6] m/s.
 
 
 ## Design Constraints

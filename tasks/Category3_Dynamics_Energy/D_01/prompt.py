@@ -40,6 +40,8 @@ Design a launcher that:
 
 ## Design Constraints
 - **Mass Budget**: Total structure mass < 500 kg.
+- **Beam dimensions**: Each beam width and height must be in [0.1, 5.0] m (enforced by the environment).
+- **Spring stiffness**: Spring stiffness must be in [10, 3000] N/m (enforced by the environment).
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['D_01'].values()),

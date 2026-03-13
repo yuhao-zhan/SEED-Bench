@@ -4,6 +4,7 @@ Mutated environment evaluation module
 Handles task sequences with environment mutations.
 Automatically reads from previous task's log file and continues sequence.
 """
+import inspect
 import os
 import sys
 import json
@@ -837,18 +838,44 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                             update_criteria_func = getattr(stages_mod, name)
                     
                     terrain_config = env_overrides.get("terrain_config", {})
+                    physics_config = env_overrides.get("physics_config", {})
                     # For evaluate_mutated, the base is always the initial task (empty config)
                     base_terrain_config = {}
-                    
+                    base_physics_config = {}
+
                     if update_desc_func:
-                        # Update description with visible changes explicitly marked
-                        updated_description = update_desc_func(base_description, terrain_config, base_terrain_config)
+                        # Update description with visible changes explicitly marked.
+                        # Try stage= for tasks (e.g. S_01) that accept it; else try physics_config for 5-arg (e.g. S_02).
+                        try:
+                            updated_description = update_desc_func(base_description, terrain_config, base_terrain_config, stage=stage)
+                        except TypeError:
+                            try:
+                                sig = inspect.signature(update_desc_func)
+                                if len(sig.parameters) >= 5:
+                                    updated_description = update_desc_func(
+                                        base_description, terrain_config, base_terrain_config,
+                                        physics_config, base_physics_config,
+                                    )
+                                else:
+                                    updated_description = update_desc_func(base_description, terrain_config, base_terrain_config)
+                            except Exception:
+                                updated_description = update_desc_func(base_description, terrain_config, base_terrain_config)
                     else:
                         updated_description = base_description
                     
                     if update_criteria_func:
                         # Update success criteria with visible changes explicitly marked
-                        updated_criteria = update_criteria_func(base_success_criteria, terrain_config, base_terrain_config)
+                        try:
+                            sig = inspect.signature(update_criteria_func)
+                            if len(sig.parameters) >= 5:
+                                updated_criteria = update_criteria_func(
+                                    base_success_criteria, terrain_config, base_terrain_config,
+                                    physics_config, base_physics_config,
+                                )
+                            else:
+                                updated_criteria = update_criteria_func(base_success_criteria, terrain_config, base_terrain_config)
+                        except Exception:
+                            updated_criteria = update_criteria_func(base_success_criteria, terrain_config, base_terrain_config)
                     else:
                         updated_criteria = base_success_criteria
                     

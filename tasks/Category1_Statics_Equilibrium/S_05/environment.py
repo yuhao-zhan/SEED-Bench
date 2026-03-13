@@ -17,7 +17,8 @@ class DaVinciSandbox:
         self._physics_config = dict(physics_config)
 
         gravity = tuple(physics_config.get("gravity", (0, -10)))
-        self._world = world(gravity=gravity, doSleep=True)
+        do_sleep = True if abs(gravity[1]) < 20 else False
+        self._world = world(gravity=gravity, doSleep=do_sleep)
         self._bodies = []
         self._joints = []
         self._terrain_bodies = {}
@@ -31,8 +32,8 @@ class DaVinciSandbox:
         self.bodies = self._bodies
         self.joints = self._joints
 
-        self.CORE_X = 10.0
-        self.CORE_Y = 1.0
+        self.CORE_X = float(terrain_config.get("core_x", 10.0))
+        self.CORE_Y = float(terrain_config.get("core_y", 1.0))
         self.CORE_RADIUS = 0.5
         self.CORE_MAX_FORCE = float(terrain_config.get("max_core_force", 150.0))
         
@@ -49,8 +50,13 @@ class DaVinciSandbox:
         self._meteor_restitution = float(terrain_config.get("meteor_restitution", 0.2))
         self._meteor_density = float(terrain_config.get("meteor_density", 5.0))
         self._floor_friction = float(terrain_config.get("floor_friction", 0.5))
+        self._floor_restitution = float(terrain_config.get("floor_restitution", 0.0))
+        self._structure_restitution = float(terrain_config.get("structure_restitution", 0.0))
+        self._structure_friction = float(terrain_config.get("structure_friction", 0.5))
+        self._meteor_vx_range = terrain_config.get("meteor_vx_range", [-2.0, 2.0])
         self._max_joint_force = float(terrain_config.get("max_joint_force", 1e12))
         self._max_joint_torque = float(terrain_config.get("max_joint_torque", 1e12))
+        self._has_walls = terrain_config.get("has_walls", False)
         self._step_count = 0
 
         self._create_terrain(terrain_config)
@@ -64,9 +70,36 @@ class DaVinciSandbox:
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(floor_length / 2, floor_height / 2)),
                 friction=self._floor_friction,
+                restitution=self._floor_restitution,
+                userData="floor"
             ),
         )
         self._terrain_bodies["floor"] = floor
+
+        if self._has_walls:
+            # Add left and right walls to contain the bouncing chaos
+            wall_width = 0.5
+            wall_height = 20.0
+            left_wall = self._world.CreateStaticBody(
+                position=(-wall_width / 2, wall_height / 2),
+                fixtures=Box2D.b2FixtureDef(
+                    shape=polygonShape(box=(wall_width / 2, wall_height / 2)),
+                    friction=0.0,
+                    restitution=1.0,
+                    userData="wall"
+                ),
+            )
+            right_wall = self._world.CreateStaticBody(
+                position=(floor_length + wall_width / 2, wall_height / 2),
+                fixtures=Box2D.b2FixtureDef(
+                    shape=polygonShape(box=(wall_width / 2, wall_height / 2)),
+                    friction=0.0,
+                    restitution=1.0,
+                    userData="wall"
+                ),
+            )
+            self._terrain_bodies["left_wall"] = left_wall
+            self._terrain_bodies["right_wall"] = right_wall
 
     def _create_core(self, terrain_config: dict):
         core = self._world.CreateDynamicBody(
@@ -75,15 +108,40 @@ class DaVinciSandbox:
                 shape=circleShape(radius=self.CORE_RADIUS),
                 density=1.0,
                 friction=0.5,
+                userData="core"
             ),
+            allowSleep=False,
         )
         self._terrain_bodies["core"] = core
 
+    def _spawn_side_meteor(self):
+        # Spawn from far left or right at lower height to ensure they hit the sides
+        side = self._rng.choice([-1, 1])
+        x = self.CORE_X + side * 15.0
+        y = self._rng.uniform(1.0, 5.0)
+        radius = self._rng.uniform(0.2, 0.4)
+        vx = -side * self._rng.uniform(10.0, 20.0)
+        vy = self._rng.uniform(0, 5.0)
+        
+        meteor = self._world.CreateDynamicBody(
+            position=(x, y),
+            fixtures=Box2D.b2FixtureDef(
+                shape=circleShape(radius=radius),
+                density=self._meteor_density,
+                friction=0.0,
+                restitution=self._meteor_restitution,
+                userData="meteor"
+            ),
+            bullet=True
+        )
+        meteor.linearVelocity = (vx, vy)
+        self._meteors.append(meteor)
+
     def _spawn_meteor(self):
-        x = self._rng.uniform(self.BUILD_ZONE_X_MIN - 2, self.BUILD_ZONE_X_MAX + 2)
+        x = self._rng.uniform(self.BUILD_ZONE_X_MIN - 4, self.BUILD_ZONE_X_MAX + 4)
         y = 15.0
         radius = self._rng.uniform(0.2, 0.5)
-        vx = self._rng.uniform(-2.0, 2.0)
+        vx = self._rng.uniform(self._meteor_vx_range[0], self._meteor_vx_range[1])
         vy = self._rng.uniform(-15.0, -10.0)
         
         meteor = self._world.CreateDynamicBody(
@@ -93,7 +151,9 @@ class DaVinciSandbox:
                 density=self._meteor_density,
                 friction=0.5,
                 restitution=self._meteor_restitution,
+                userData="meteor"
             ),
+            bullet=True
         )
         meteor.linearVelocity = (vx, vy)
         self._meteors.append(meteor)
@@ -108,7 +168,9 @@ class DaVinciSandbox:
             raise ValueError(f"Beam center distance to core {dist_to_core:.2f}m is within 1.3m keep-out zone")
 
         body = self._world.CreateDynamicBody(position=(x, y), angle=angle)
-        body.CreatePolygonFixture(box=(width/2, height/2), density=density, friction=0.5)
+        fixture = body.CreatePolygonFixture(box=(width/2, height/2), density=density, friction=self._structure_friction)
+        fixture.restitution = self._structure_restitution
+        fixture.userData = "beam"
         self._bodies.append(body)
         return body
 
@@ -135,6 +197,10 @@ class DaVinciSandbox:
         if self._step_count < self._meteor_count * self._meteor_spawn_interval:
             if self._step_count % self._meteor_spawn_interval == 0:
                 self._spawn_meteor()
+                
+                # Side meteor for more horizontal reach (every 3 standard meteors)
+                if self._step_count % (self._meteor_spawn_interval * 3) == 0:
+                    self._spawn_side_meteor()
         
         self._step_count += 1
 
@@ -146,7 +212,12 @@ class DaVinciSandbox:
                     # Apply horizontal force proportional to mass (simulates acceleration-based wind)
                     body.ApplyForceToCenter((self._wind_force * body.mass, 0), True)
 
-        self._world.Step(time_step, 10, 10)
+        # Balanced stability for cross-platform Box2D versions
+        # 6 sub-steps (1/360s) is generally more stable than 10 for older solvers
+        sub_steps = 6
+        sub_dt = time_step / sub_steps
+        for _ in range(sub_steps):
+            self._world.Step(sub_dt, 30, 30)
         
         # Joint damage tracking
         inv_dt = 1.0 / time_step
@@ -166,21 +237,32 @@ class DaVinciSandbox:
 
         # Damage tracking: monitor impacts on core
         core = self._terrain_bodies["core"]
-        floor = self._terrain_bodies["floor"]
+        
         for contact_edge in core.contacts:
             if contact_edge.contact.touching:
-                # Skip contacts with the floor
-                if contact_edge.other == floor:
-                    continue
                 # Approximate force from manifold normal impulse
                 manifold = contact_edge.contact.manifold
                 if manifold.pointCount > 0:
+                    # Only track impacts from meteors or beams
+                    # Skip if either fixture is floor or wall
+                    f1, f2 = contact_edge.contact.fixtureA, contact_edge.contact.fixtureB
+                    if f1.userData in ["floor", "wall"] or f2.userData in ["floor", "wall"]:
+                        continue
+                    
+                    # Also ensure the other object is actually a meteor or beam
+                    other_fixture = f2 if f1.userData == "core" else f1
+                    if other_fixture.userData not in ["meteor", "beam"]:
+                        continue
+
                     impulse = manifold.points[0].normalImpulse
                     force = impulse / time_step
                     self._max_force_on_core = max(self._max_force_on_core, force)
 
     def get_core_max_force(self):
         return self._max_force_on_core
+
+    def reset_max_core_force(self):
+        self._max_force_on_core = 0.0
 
     def get_terrain_bounds(self):
         return {

@@ -49,9 +49,9 @@ class Sandbox:
         self.BASE_X = -2.0
         self.BASE_Y = 0.0
         self.BUILD_ZONE_X_MIN = -4.0
-        self.BUILD_ZONE_X_MAX = 2.0
+        self.BUILD_ZONE_X_MAX = float(terrain_config.get("build_zone_x_max", 2.0))
         self.BUILD_ZONE_Y_MIN = 0.0
-        self.BUILD_ZONE_Y_MAX = 5.0
+        self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 5.0))
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 800.0))
         self.MIN_PARTICLES_IN_HOPPER = int(terrain_config.get("min_particles_in_hopper", 15))
         self.MAX_TIME_SECONDS = float(terrain_config.get("max_time_seconds", 40.0))

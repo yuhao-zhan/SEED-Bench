@@ -88,7 +88,7 @@ class Evaluator:
         # - angle blows past limit (large tilt), not merely "not yet balanced for 15s"
         if not catch_ok and current_time > 1.0:
             failed = True
-            failure_reason = "Failed to catch load at (3,0)"
+            failure_reason = "Failed to catch load at (3, 5.5)"
         elif catch_ok and angle_deviation > self.max_angle_deviation and current_time > 2.0:
             failed = True
             failure_reason = f"Beam angle {angle_deviation * 180 / math.pi:.1f}° exceeds ±{self.max_angle_deviation * 180 / math.pi:.1f}° limit"
@@ -153,7 +153,7 @@ class Evaluator:
             'balance_duration': self.balance_duration,
             'target_balance_time': self.balance_time,
             'max_angle_deviation_deg': self.max_angle_deviation * 180 / math.pi,
-            'ground_y_limit': -10.0,
+            'ground_y_limit': -5.0,
             'success': success and not failed,
             'failed': failed,
             'failure_reason': failure_reason,
@@ -180,7 +180,7 @@ class Evaluator:
             'task': 'S-04: The Balancer',
             'description': 'Build a structure that balances on a pivot',
             'success_criteria': {
-                'catch': 'Connect to load at (3,0)',
+                'catch': 'Connect to load at (3, 5.5)',
                 'balance': f'Keep angle within ±10° for {self.balance_time}s'
             }
         }

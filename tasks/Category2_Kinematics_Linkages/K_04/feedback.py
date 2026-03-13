@@ -1,82 +1,258 @@
 """
-Task-specific feedback generation for K-04: The Pusher.
-Purified and audited for code-grounded truth and cross-stage compatibility.
+Task-specific feedback for K-04: The Pusher.
+Process-aware, diagnostic feedback grounded only in evaluator metrics.
+No hallucination, no spoilers, dynamic thresholds for stage mutations.
 """
+import math
 from typing import Dict, Any, List
+
+
+def _safe_float(v: Any, default: float = None) -> float:
+    """Return float if v is finite, else default. Used to avoid reporting NaN/inf."""
+    if default is None:
+        default = 0.0
+    try:
+        x = float(v)
+        return x if math.isfinite(x) else default
+    except (TypeError, ValueError):
+        return default
 
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Expose high-resolution physical metrics for K-04: The Pusher.
-    All strings and keys are grounded in evaluator.py metrics.
+    Expose high-resolution physical metrics from the evaluator only.
+    No suggestions; only what is present in metrics. Phase and boundary
+    proximity derived from existing keys (target_object_x, max_structure_mass, etc.).
     """
-    metric_parts = []
-    
-    if 'object_x' in metrics:
-        metric_parts.append(f"**Payload State**: Position at x={metrics['object_x']:.2f}m")
-        if 'distance_pushed' in metrics:
-            metric_parts.append(f"- Net Displacement: {metrics['distance_pushed']:.2f}m")
-        if 'object_velocity_x' in metrics:
-            metric_parts.append(f"- Current Velocity: {metrics['object_velocity_x']:.3f} m/s")
+    parts = []
 
-    if 'pusher_x' in metrics:
-        metric_parts.append(f"**Actuator State**: Position at x={metrics['pusher_x']:.2f}m")
-        if 'pusher_angle' in metrics:
-            metric_parts.append(f"- Chassis Orientation: {metrics['pusher_angle']:.3f} rad (tilt)")
-        if 'max_pusher_tilt' in metrics:
-            metric_parts.append(f"- Peak Tilt Observed: {metrics['max_pusher_tilt']:.3f} rad")
+    # --- Payload state (object to push) ---
+    if "object_x" in metrics:
+        ox = _safe_float(metrics.get("object_x"))
+        parts.append(f"**Payload State**: Position x={ox:.2f}m")
+        if "object_y" in metrics:
+            oy = _safe_float(metrics.get("object_y"))
+            parts.append(f"- Vertical position y={oy:.2f}m")
+        if "distance_pushed" in metrics:
+            dp = _safe_float(metrics.get("distance_pushed"))
+            parts.append(f"- Net displacement: {dp:.2f}m")
+        if "object_velocity_x" in metrics:
+            ovx = _safe_float(metrics.get("object_velocity_x"))
+            parts.append(f"- Current velocity (x): {ovx:.3f} m/s")
+        target_x = _safe_float(metrics.get("target_object_x"), default=18.0)
+        shortfall = target_x - ox
+        if shortfall > 0:
+            parts.append(f"- Shortfall to target x: {shortfall:.2f}m")
+        else:
+            parts.append(f"- Target x reached or exceeded")
 
-    if 'structure_mass' in metrics:
-        max_m = metrics.get('max_structure_mass', float('inf'))
-        metric_parts.append(f"**Structural Profile**: Mass {metrics['structure_mass']:.2f}kg")
-        if max_m != float('inf') and max_m > 0:
-            utilization = (metrics['structure_mass'] / max_m) * 100
-            metric_parts.append(f"- Mass Budget Utilization: {utilization:.1f}%")
+    # --- Actuator / pusher state ---
+    if "pusher_x" in metrics:
+        px = _safe_float(metrics.get("pusher_x"))
+        parts.append(f"**Actuator State**: Position x={px:.2f}m")
+        if "pusher_y" in metrics:
+            py = _safe_float(metrics.get("pusher_y"))
+            parts.append(f"- Vertical position y={py:.2f}m")
+        if "pusher_angle" in metrics:
+            pa = _safe_float(metrics.get("pusher_angle"))
+            parts.append(f"- Chassis orientation (tilt): {pa:.3f} rad")
+        if "max_pusher_tilt" in metrics:
+            pmax = _safe_float(metrics.get("max_pusher_tilt"))
+            parts.append(f"- Peak tilt observed: {pmax:.3f} rad")
+        if "pusher_velocity_x" in metrics:
+            pvx = _safe_float(metrics.get("pusher_velocity_x"))
+            parts.append(f"- Velocity (x): {pvx:.3f} m/s")
+        if "pusher_velocity_y" in metrics:
+            pvy = _safe_float(metrics.get("pusher_velocity_y"))
+            parts.append(f"- Velocity (y): {pvy:.3f} m/s")
+        if metrics.get("pusher_tipped") is True:
+            parts.append(f"- Stability: tilt exceeded threshold (failure)")
 
-    return metric_parts
+    # --- Distance / progress (phase-aware) ---
+    if "max_distance_pushed" in metrics:
+        mdp = _safe_float(metrics.get("max_distance_pushed"))
+        parts.append(f"**Displacement**: Best distance pushed: {mdp:.2f}m")
+    if "progress" in metrics:
+        prog = _safe_float(metrics.get("progress"), default=0.0)
+        parts.append(f"- Distance progress: {prog:.1f}%")
+    if "step_count" in metrics and "min_simulation_steps_required" in metrics:
+        steps = metrics.get("step_count", 0)
+        req = metrics.get("min_simulation_steps_required")
+        if req is not None and isinstance(steps, (int, float)) and isinstance(req, (int, float)):
+            req = int(req)
+            steps = int(steps)
+            parts.append(f"- Time phase: {steps} / {req} steps (motion duration requirement)")
+
+    # --- Structural / design (dynamic threshold from metrics) ---
+    if "structure_mass" in metrics:
+        mass = _safe_float(metrics.get("structure_mass"))
+        max_m = metrics.get("max_structure_mass")
+        if max_m is not None:
+            max_m = _safe_float(max_m, default=float("inf"))
+        else:
+            max_m = float("inf")
+        parts.append(f"**Structural Profile**: Mass {mass:.2f} kg")
+        if max_m != float("inf") and max_m > 0:
+            utilization = (mass / max_m) * 100
+            parts.append(f"- Mass budget utilization: {utilization:.1f}%")
+            margin = max_m - mass
+            parts.append(f"- Margin to mass limit: {margin:.2f} kg")
+
+    # --- Outcome flags (no interpretation) ---
+    if "failed" in metrics and metrics["failed"] and "failure_reason" in metrics:
+        reason = metrics.get("failure_reason")
+        if reason:
+            parts.append(f"**Terminal State**: {reason}")
+
+    return parts
 
 
-def get_improvement_suggestions(metrics: Dict[str, Any], score: float, success: bool, 
-                                failed: bool, failure_reason: str = None, 
-                                error: str = None) -> List[str]:
+def get_improvement_suggestions(
+    metrics: Dict[str, Any],
+    score: float,
+    success: bool,
+    failed: bool,
+    failure_reason: str = None,
+    error: str = None,
+) -> List[str]:
     """
-    Generate diagnostic physical feedback for K-04: The Pusher.
-    Strictly follows the Hallucination, Hardcode, Over-fitting, and No-Spoilers audits.
+    Diagnostic, process-aware suggestions. No spoilers; no hardcoded env thresholds.
+    Root-cause ordering: design constraint first, then runtime physics failures.
+    Multi-objective: highlight trade-offs (e.g. good on one objective, fail on another).
     """
     suggestions = []
     reason_str = (failure_reason or "").lower()
     error_str = (error or "").lower()
-    
-    # Audit 1 & 2: Constraint Violation (Grounded in metrics.get)
+
+    # Dynamic thresholds from metrics (stage-mutation safe)
+    max_mass = metrics.get("max_structure_mass")
+    if max_mass is not None:
+        max_mass = _safe_float(max_mass, default=float("inf"))
+    else:
+        max_mass = float("inf")
+    structure_mass = _safe_float(metrics.get("structure_mass"), default=0.0)
+    target_x = _safe_float(metrics.get("target_object_x"), default=18.0)
+    object_x = _safe_float(metrics.get("object_x"), default=0.0)
+    progress_pct = _safe_float(metrics.get("progress"), default=0.0)
+    min_steps = metrics.get("min_simulation_steps_required")
+
+    # --- Numerical instability (physics engine limits) ---
+    for key in ("object_x", "object_y", "pusher_x", "pusher_y", "pusher_angle",
+                "distance_pushed", "structure_mass", "progress", "pusher_velocity_x", "object_velocity_x"):
+        if key not in metrics:
+            continue
+        val = metrics[key]
+        try:
+            f = float(val)
+            if not math.isfinite(f):
+                suggestions.append("DIAGNOSTIC: Numerical instability detected in simulation state (non-finite values). Consider more conservative control or structure parameters.")
+                break
+        except (TypeError, ValueError):
+            pass
+
+    # --- Root-cause 1: Design constraint violated (checked first at step 0) ---
     if error_str or (failed and "design constraint" in reason_str):
         if "mass" in error_str or "mass" in reason_str:
-            max_m = metrics.get('max_structure_mass', 0.0)
-            suggestions.append(f"DIAGNOSTIC: Pusher assembly mass ({metrics.get('structure_mass', 0):.2f}kg) exceeds the environmental threshold ({max_m:.1f}kg).")
-            suggestions.append("ADVISORY: High structural inertia detected. Ensure actuator torque can overcome the mass of the constructed tool.")
+            suggestions.append(
+                "DIAGNOSTIC: The structure mass exceeds the allowed budget for this environment. "
+                "The evaluator rejects the design before simulation."
+            )
+            suggestions.append(
+                "ADVISORY: The strength-to-weight ratio of the assembly may be suboptimal; "
+                "excessive mass can also limit the ability of the actuator to accelerate the system."
+            )
+        if "outside" in reason_str or "build zone" in reason_str:
+            suggestions.append(
+                "DIAGNOSTIC: At least one component was placed outside the permitted build zone. "
+                "Design constraints are enforced at initialization."
+            )
+            suggestions.append(
+                "ADVISORY: Verify that all body positions lie within the task’s spatial bounds."
+            )
         return suggestions
 
-    # Audit 3: Failure Mode Diagnostics (Grounded in evaluator.py failure_reason)
+    # --- Root-cause 2: Runtime physics failures (order by typical causal chain) ---
     if failed:
-        if "tipped over" in reason_str or metrics.get('pusher_tipped', False):
-            suggestions.append("DIAGNOSTIC: Loss of rotational equilibrium. The chassis tilt angle exceeded the stability threshold.")
-            suggestions.append("ADVISORY: Analyze the vertical and horizontal center of mass location relative to the ground contact points.")
-        
+        if "tipped over" in reason_str or metrics.get("pusher_tipped") is True:
+            suggestions.append(
+                "DIAGNOSTIC: Loss of rotational equilibrium. The pusher chassis tilt exceeded "
+                "the stability threshold for this environment."
+            )
+            suggestions.append(
+                "ADVISORY: Consider how the center of mass and ground contact geometry affect "
+                "resistance to overturning under forward thrust or contact forces."
+            )
         elif "fell off" in reason_str:
-            suggestions.append("DIAGNOSTIC: Loss of payload constraint. The target object has departed from the support platform.")
-            suggestions.append("ADVISORY: Investigate the alignment of the force vector applied to the object to ensure a stable trajectory.")
-
-    # Audit 4: Performance Diagnostics (Grounded in system behaviors)
-    if not success and not failed:
-        # Check for engagement failure as defined by evaluator's "not pushed effectively" logic
-        if "not pushed effectively" in reason_str:
-            suggestions.append("DIAGNOSTIC: Mechanical slip or lack of effective engagement between actuator and payload.")
-            suggestions.append("ADVISORY: Evaluate the contact geometry and friction at the pusher-payload interface.")
-        
-        # Check for traction/suspension issues identified by evaluator's wheel state checks
-        if "wheel spinning" in reason_str:
-            suggestions.append("DIAGNOSTIC: Traction saturation. Rotational energy is being lost at the ground interface.")
-        
+            suggestions.append(
+                "DIAGNOSTIC: The payload left the support surface (vertical constraint violated). "
+                "The applied force or contact geometry led to loss of support."
+            )
+            suggestions.append(
+                "ADVISORY: Consider the line of action of the pushing force relative to the "
+                "payload’s center of mass and base of support to maintain stable contact."
+            )
+        elif "wheel spinning" in reason_str:
+            suggestions.append(
+                "DIAGNOSTIC: Traction saturation—rotational motion at the wheels is not "
+                "translating into sufficient forward motion of the vehicle."
+            )
+            suggestions.append(
+                "ADVISORY: Consider the friction and normal force at the wheel–ground interface "
+                "and how drive torque relates to linear acceleration in this environment."
+            )
         elif "wheels suspended" in reason_str:
-            suggestions.append("DIAGNOSTIC: Suspension geometry failure. The drive components have lost contact with the terrain.")
+            suggestions.append(
+                "DIAGNOSTIC: Drive components lost contact with the terrain (suspension or "
+                "geometry failure)."
+            )
+            suggestions.append(
+                "ADVISORY: Consider the kinematic layout and ground clearance so that driving "
+                "elements remain in contact with the surface."
+            )
+        elif "not pushed effectively" in reason_str:
+            suggestions.append(
+                "DIAGNOSTIC: The actuator is moving but the payload is not being driven effectively— "
+                "possible slip or poor force transmission at the contact."
+            )
+            suggestions.append(
+                "ADVISORY: Consider contact geometry, friction, and alignment between pusher "
+                "and payload to improve force transfer."
+            )
+        else:
+            suggestions.append(
+                "DIAGNOSTIC: The run terminated with a failure. Use the reported terminal state "
+                "and metrics to identify the first physical limit that was exceeded."
+            )
+
+    # --- Multi-objective trade-off paradox ---
+    if not success and not failed:
+        # Incomplete run: highlight which objective is satisfied vs missing
+        distance_ok = object_x >= target_x if target_x else False
+        if progress_pct >= 99.0 and not distance_ok:
+            suggestions.append(
+                "DIAGNOSTIC: Distance progress is high but the run ended before meeting the "
+                "full target or time requirement. Check whether time or step limit was reached."
+            )
+        if min_steps is not None and isinstance(metrics.get("step_count"), (int, float)):
+            steps_done = int(metrics.get("step_count", 0))
+            req = int(min_steps)
+            if steps_done < req and progress_pct > 0:
+                suggestions.append(
+                    "DIAGNOSTIC: Motion was achieved but the required sustained-motion duration "
+                    "was not reached. The task requires both displacement and minimum time."
+                )
+
+    # --- Paradox: good on one axis, fail on another ---
+    if failed and progress_pct > 50.0:
+        suggestions.append(
+            "DIAGNOSTIC: Substantial displacement was achieved before failure. The primary "
+            "failure mode (e.g. tip, payload loss, or traction) may be addressable without "
+            "redesigning the entire propulsion strategy."
+        )
+    if failed and structure_mass < max_mass and max_mass != float("inf"):
+        suggestions.append(
+            "ADVISORY: Mass budget is satisfied; the failure is likely due to dynamics or "
+            "stability rather than an overweight structure."
+        )
 
     return suggestions

@@ -56,7 +56,7 @@ class Sandbox:
         self.BUILD_ZONE_Y_MAX = 2.38
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 75.0))
         self.MAX_BEAMS = int(terrain_config.get("max_beams", 6))
-        self.MIN_PURITY = float(terrain_config.get("min_purity", 0.354))
+        self.MIN_PURITY = float(terrain_config.get("min_purity", 0.35))
         self._pending_second_wave = []
         self._pending_third_wave = []
         self.SECOND_WAVE_STEP = int(terrain_config.get("second_wave_step", 1800))
@@ -336,6 +336,11 @@ class Sandbox:
         """API: Set restitution for a body."""
         for fixture in body.fixtures:
             fixture.restitution = float(restitution)
+
+    def apply_force(self, body, force):
+        """API: Apply a force vector (fx, fy) to the center of a body."""
+        if body and hasattr(body, 'ApplyForceToCenter'):
+            body.ApplyForceToCenter(force, wake=True)
 
     def step(self, time_step):
         """Wind+gust; move both sweepers; spawn second wave; block large from passing sieve band; step world."""

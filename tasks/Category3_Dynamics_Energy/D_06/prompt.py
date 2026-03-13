@@ -33,16 +33,19 @@ Design a catching structure that:
 1. Absorbs the kinetic energy of all seven balls.
 2. Keeps all balls within the target zone (x=[7, 11], y=[0.5, 5.5]) with a final speed < 0.35 m/s.
 3. Handles sequential arrivals: each ball must be caught before the next one arrives to avoid ball-ball collisions.
+4. **Pit failure**: If any ball reaches y < 0.72 m with speed > 1.0 m/s before being caught, the task fails immediately.
 """,
     "success_criteria": """
 ## Success Criteria
 1. **Catch All**: All seven balls must be caught and stabilized within the target area.
 2. **Order**: Balls must be processed sequentially without pile-ups.
-3. **Integrity**: The structure must not break under the impact forces (max joint force < 880 N).
+3. **Integrity**: The structure must not break under the impact forces (see structural limits below).
+4. **No pit failure**: No ball may reach y < 0.72 m with speed > 1.0 m/s before being caught.
 
 ## Design Constraints
 - **Beam Limit**: Maximum 9 beams.
 - **Mass Budget**: Total structure mass < 10.0 kg.
+- **Joint force limit**: Joints fail if the reaction force exceeds 880 N in a single step. Joints may also fail under sustained high load over consecutive steps; the structure must not break.
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['D_06'].values()),

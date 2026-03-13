@@ -37,7 +37,7 @@ Design a scissor lift mechanism that can lift objects vertically using motor rot
 
 ## Constraints (must satisfy)
 - **Vertical Lift**: Object center reaches y >= 9.0m.
-- **Sustain**: Object held at target height for at least 3.0 seconds.
+- **Sustain**: Object held at target height for at least 3.0 seconds (vertical velocity must remain >= -0.4 m/s; sliding down does not count as held).
 - **Mass Budget**: Total structure mass must be less than 60 kg.
 - **Build Zone**: All components must stay within x=[0, 8], y=[1, 12].
 - **Beam Dimensions**: 0.05 <= width, height <= 4.0 meters.
@@ -50,7 +50,7 @@ Design a scissor lift mechanism that can lift objects vertically using motor rot
     'success_criteria': """
 ## Success Criteria
 1. **Vertical Movement**: Object reaches y >= 9.0m.
-2. **Sustain**: Held at target height for >= 3.0 seconds.
+2. **Sustain**: Held at target height for >= 3.0 seconds (vertical velocity >= -0.4 m/s; sliding down disqualifies).
 3. **Integrity**: Structure remains intact (no joint breaks).
 
 ## Design Constraints

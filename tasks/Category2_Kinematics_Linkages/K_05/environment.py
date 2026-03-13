@@ -131,30 +131,47 @@ class Sandbox:
 
     def _create_object(self, terrain_config: dict):
         """
-        Create object to lift
+        Create object to lift. Supports optional com_offset (center of mass offset in body-local coordinates).
         """
         object_config = terrain_config.get("object", {})
         object_mass = float(object_config.get("mass", 20.0))  # Object to lift
         object_friction = float(object_config.get("friction", 0.6))
+        com_offset = object_config.get("com_offset")
+        if com_offset is not None:
+            com_offset = (float(com_offset[0]), float(com_offset[1]))
         
         # Object position
         object_x = 4.0
         object_y = 1.8  # On ground (slightly above ground surface)
         
         # Rectangular object
-        width = 0.6
-        height = 0.4
+        width, height = 0.6, 0.4
+        hw, hh = width / 2.0, height / 2.0
         density = object_mass / (width * height)
         obj = self._world.CreateDynamicBody(
             position=(object_x, object_y),
             fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(width/2, height/2)),
+                shape=polygonShape(box=(hw, hh)),
                 density=density,
                 friction=object_friction,
             )
         )
         obj.linearDamping = self._default_linear_damping
         obj.angularDamping = self._default_angular_damping
+        if com_offset is not None and (com_offset[0] != 0.0 or com_offset[1] != 0.0):
+            # Set center of mass offset (Box2D: center is in local coordinates)
+            try:
+                mass_data = obj.GetMassData()
+                ox, oy = com_offset[0], com_offset[1]
+                # b2MassData: mass, center (b2Vec2), I (inertia)
+                mass_data.center = (ox, oy)
+                # Parallel-axis: I_new = I_cm + m * (ox^2 + oy^2) so inertia stays valid
+                mass_data.I = mass_data.I + object_mass * (ox * ox + oy * oy)
+                if mass_data.I <= 0:
+                    mass_data.I = 0.01
+                obj.SetMassData(mass_data)
+            except Exception:
+                pass
         self._object_to_lift = obj
         self._terrain_bodies["object"] = obj
 
@@ -454,6 +471,10 @@ class Sandbox:
         )
         self._joints.append(joint)
 
-    def get_target_x(self):
+    def get_target_height(self):
         """Get target height (y-axis) for renderer and evaluator."""
         return self.target_object_y
+
+    def get_target_x(self):
+        """Deprecated: use get_target_height(). Returns target height (y) for backward compatibility."""
+        return self.get_target_height()

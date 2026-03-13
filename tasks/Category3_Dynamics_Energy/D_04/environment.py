@@ -160,18 +160,37 @@ class Sandbox:
 
     def step(self, time_step):
         # Apply wind to swing seat before physics step (external disturbance)
-        if self._wind_enabled:
-            seat = self._terrain_bodies.get("swing_seat")
-            if seat is not None:
-                # Periodic wind: F_x = wind_strength * sin(2*pi*t/T)
+        seat = self._terrain_bodies.get("swing_seat")
+        if self._wind_enabled and seat is not None:
+            # Periodic wind: F_x = wind_strength * sin(2*pi*t/T)
+            if self._wind_period == 0:
+                wind_fx = self._wind_strength
+            else:
                 wind_fx = self._wind_strength * math.sin(2.0 * math.pi * self._sim_time / self._wind_period)
-                # Random gust (impulse-like)
-                if random.random() < self._gust_prob:
-                    wind_fx += self._gust_force * (1 if random.random() > 0.5 else -1)
+            
+            # Random gust (impulse-like)
+            if random.random() < self._gust_prob:
+                wind_fx += self._gust_force * (1 if random.random() > 0.5 else -1)
+            try:
+                seat.ApplyForceToCenter((wind_fx, 0.0), True)
+            except TypeError:
+                seat.ApplyForceToCenter((wind_fx, 0.0), wake=True)
+
+        # Apply quadratic damping if configured
+        qd = self._terrain_config.get("quadratic_damping", 0.0)
+        if qd > 0.0 and seat is not None:
+            vx, vy = seat.linearVelocity.x, seat.linearVelocity.y
+            speed_sq = vx**2 + vy**2
+            speed = math.sqrt(speed_sq)
+            if speed > 0:
+                drag_mag = qd * speed_sq
+                drag_fx = -drag_mag * (vx / speed)
+                drag_fy = -drag_mag * (vy / speed)
                 try:
-                    seat.ApplyForceToCenter((wind_fx, 0.0), True)
+                    seat.ApplyForceToCenter((drag_fx, drag_fy), True)
                 except TypeError:
-                    seat.ApplyForceToCenter((wind_fx, 0.0), wake=True)
+                    seat.ApplyForceToCenter((drag_fx, drag_fy), wake=True)
+
         self._sim_time += time_step
         self._world.Step(time_step, 10, 10)
 
@@ -184,9 +203,6 @@ class Sandbox:
             "target_x_min": self._target_x_min,
             "target_x_max": self._target_x_max,
             "max_pump_force": getattr(self, "MAX_PUMP_FORCE", 42.0),
-            "wind_enabled": self._wind_enabled,
-            "wind_strength": self._wind_strength,
-            "wind_period": self._wind_period,
             "build_zone": {
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX],
@@ -205,6 +221,8 @@ class Sandbox:
         """Return horizontal wind force (N) that would be applied at given sim_time (no gust). For wind-aware control."""
         if not self._wind_enabled:
             return 0.0
+        if self._wind_period == 0:
+            return self._wind_strength
         return self._wind_strength * math.sin(2.0 * math.pi * sim_time / self._wind_period)
 
     def get_swing_seat(self):
@@ -215,19 +233,50 @@ class Sandbox:
         """Apply force (N) to swing seat. Call in agent_action for pumping. |fx| <= MAX_PUMP_FORCE."""
         seat = self._terrain_bodies.get("swing_seat")
         if seat is not None:
+            # Clamp force to MAX_PUMP_FORCE
+            max_f = getattr(self, "MAX_PUMP_FORCE", 42.0)
+            fx = max(-max_f, min(max_f, float(fx)))
+            fy = max(-max_f, min(max_f, float(fy)))
+            
+            # Apply task-specific mutations
+            fault = self._terrain_config.get("actuator_fault")
+            if fault == "right_only" and fx < 0: fx = 0.0
+            if fault == "left_only" and fx > 0: fx = 0.0
+
+            dead_zone = self._terrain_config.get("dead_zone")
+            if dead_zone:
+                if dead_zone[0] <= seat.position.x <= dead_zone[1]:
+                    fx = 0.0
+                    fy = 0.0
+
             try:
-                seat.ApplyForceToCenter((float(fx), float(fy)), True)
+                seat.ApplyForceToCenter((fx, fy), True)
             except TypeError:
-                seat.ApplyForceToCenter((float(fx), float(fy)), wake=True)
+                seat.ApplyForceToCenter((fx, fy), wake=True)
 
     def apply_impulse_to_seat(self, ix, iy):
         """Apply impulse (N·s) to swing seat. Call in agent_action for initial kick."""
         seat = self._terrain_bodies.get("swing_seat")
         if seat is not None:
+            max_i = getattr(self, "MAX_PUMP_FORCE", 42.0) * 0.1 # Very small to prevent impulse exploit
+            ix = max(-max_i, min(max_i, float(ix)))
+            iy = max(-max_i, min(max_i, float(iy)))
+            
+            # Apply task-specific mutations
+            fault = self._terrain_config.get("actuator_fault")
+            if fault == "right_only" and ix < 0: ix = 0.0
+            if fault == "left_only" and ix > 0: ix = 0.0
+
+            dead_zone = self._terrain_config.get("dead_zone")
+            if dead_zone:
+                if dead_zone[0] <= seat.position.x <= dead_zone[1]:
+                    ix = 0.0
+                    iy = 0.0
+
             try:
-                seat.ApplyLinearImpulse((float(ix), float(iy)), seat.worldCenter, True)
+                seat.ApplyLinearImpulse((ix, iy), seat.worldCenter, True)
             except TypeError:
-                seat.ApplyLinearImpulse((float(ix), float(iy)), seat.worldCenter, wake=True)
+                seat.ApplyLinearImpulse((ix, iy), seat.worldCenter, wake=True)
 
     def get_sim_time(self):
         """Return current simulation time in seconds."""

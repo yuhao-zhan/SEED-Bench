@@ -24,6 +24,8 @@ The structure must extend horizontally to reach the target distance and support 
 
 ## Task Environment
 - **Wall**: A vertical static surface at x=0. You may use a maximum of 2 anchor points on this wall.
+- **Build Zone**: Structure must be built within x = [0, 50] m and y = [-20, 30] m. Beams outside this region violate design constraints.
+- **Beam Limits**: Each beam's width and height are clamped to [0.1 m, 15.0 m] per dimension.
 - **Payloads**: Payloads will be applied to your structure to test its load-bearing capacity and stability.
 - **Atmosphere**: The environment exhibits physical properties that will test the structural integrity of your design.
 - **Obstacles**: The build zone may contain static obstructions that your structure must navigate.
@@ -47,6 +49,8 @@ Design a robust cantilever structure that can:
 ## Design Constraints
 - **Mass Budget**: < 15,000 kg.
 - **Anchor Limit**: Maximum 2 anchor points on the wall.
+- **Build Zone**: x = [0, 50] m, y = [-20, 30] m.
+- **Beam Limits**: Width and height in [0.1, 15.0] m per dimension.
 - **Strength Limits**: Joints and anchors have finite capacity; exceeding these limits will cause failure.
 - **APIs**: Use only the primitives documented below.
 """,

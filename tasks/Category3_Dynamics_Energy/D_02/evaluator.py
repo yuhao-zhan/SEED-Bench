@@ -18,10 +18,10 @@ class Evaluator:
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
-        self._right_platform_start_x = terrain_bounds.get("right_platform_start_x", 20.0)
-        self._pit_bottom_y = terrain_bounds.get("pit_bottom_y", -2.0)
+        self._right_platform_start_x = terrain_bounds.get("right_platform_start_x", 26.0)
+        self._pit_bottom_y = terrain_bounds.get("pit_bottom_y", 0.0)
         self._landing_min_y = 1.0  # Jumper center must be at least this y when on right side
-        self._pit_fail_y = 0.0  # Below this y = in pit (fail)
+        self._pit_fail_y = self._pit_bottom_y  # Below this y = in pit (fail); use env value
         self._landed = False
         self._design_constraints_checked = False
         # Slots in pit: each slot (x_min, x_max, floor_y, ceil_y); jumper center must stay inside (floor+margin, ceil-margin) when in x-range
@@ -103,7 +103,7 @@ class Evaluator:
         # Fall into pit: y below threshold
         if py < self._pit_fail_y:
             failed = True
-            failure_reason = "Fall into pit: jumper fell into the pit (y < 0 m)"
+            failure_reason = f"Fall into pit: jumper fell into the pit (y < {self._pit_fail_y} m)"
 
         done = False
         if failed:

@@ -36,11 +36,13 @@ Design a structure that:
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Cargo Retention**: All initial cargo (100%) remains on the boat.
+1. **Cargo Retention**: All initial cargo (100%) remains on the boat. Cargo is counted as lost (in water) if its center falls below y = 1.98 m.
 2. **Stability**: Boat does not capsize (angle must remain below 18 degrees).
 
 ## Design Constraints
 - **Mass Budget**: Total structure mass <= 60 kg.
+- **Beam dimensions**: Each beam width and height is clamped by the environment to [0.1, 1.0] m (see Add Beam in the API below).
+- **Joint structural limits**: In the base environment, joints are not subject to a documented force/torque limit; in some task variants, joints may fail if reaction forces or torques exceed the environment's structural capacity.
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['F_05'].values()),

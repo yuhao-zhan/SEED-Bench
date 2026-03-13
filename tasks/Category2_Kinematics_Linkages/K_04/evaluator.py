@@ -113,13 +113,14 @@ class Evaluator:
         is_end = (step_count >= max_steps - 1)
         # Early termination on success or failure
         done = failed or success or is_end
-        
+
+        # Progress (0–1) for metrics; always compute so metrics are consistent on success/failure
+        progress = min(max(0, distance_pushed) / self.target_distance, 1.0) if self.target_distance > 0 else 0.0
         if success and not failed:
             score = 100.0
         elif failed:
             score = 0.0
         else:
-            progress = min(max(0, distance_pushed) / self.target_distance, 1.0)
             score = progress * 70.0
             if step_count > 0:
                 score += (min(step_count, self.min_simulation_steps) / self.min_simulation_steps) * 30.0
@@ -138,7 +139,7 @@ class Evaluator:
             'max_pusher_tilt': self.max_pusher_tilt,
             'pusher_tipped': abs(pusher_angle) > math.pi / 6,
             'target_object_x': self.initial_object_x + self.target_distance,
-            'progress': progress * 100.0 if 'progress' in locals() else 0.0,
+            'progress': progress * 100.0,
             'success': success and not failed,
             'failed': failed,
             'failure_reason': failure_reason or (wheel_state if step_count > 100 else None) or ("not pushed effectively" if getattr(self, 'not_pushed_counter', 0) > 200 else None),

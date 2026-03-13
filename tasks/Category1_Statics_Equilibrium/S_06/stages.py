@@ -8,62 +8,76 @@ import re
 
 def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     description = base_description
-    
+    base_terrain_config = base_terrain_config or {}
+    default_spawn = [-10.0, 0.0]
+    default_ceiling = 100.0
+    default_mass = 20000.0
+
     # Update Target Overhang
     target_overhang = target_terrain_config.get("target_overhang", 0.1)
-    if target_overhang != 0.1:
+    base_overhang = base_terrain_config.get("target_overhang", 0.1)
+    if target_overhang != base_overhang:
         pattern = r"(- \*\*Goal\*\*: Reach x >= )(\d+\.?\d*)(m beyond the edge.)"
-        description = re.sub(pattern, f"\\g<1>{target_overhang:.2f}m (originally 0.1m) \\g<3>", description)
-    
+        description = re.sub(pattern, f"\\g<1>{target_overhang:.2f}m (originally {base_overhang:.2f}m in the source environment) \\g<3>", description)
+
     # Update Spawn Zone
-    target_spawn = target_terrain_config.get("spawn_zone", [-10.0, 0.0])
-    if target_spawn != [-10.0, 0.0]:
+    target_spawn = target_terrain_config.get("spawn_zone", default_spawn)
+    base_spawn = base_terrain_config.get("spawn_zone", default_spawn)
+    if target_spawn != base_spawn:
         pattern = r"(- \*\*Spawn Rule\*\*: Blocks must be initialized within the permitted build access zone \(typically x < 0.0, but may be further restricted: x in )(\[.*?\])(\)\.)"
-        description = re.sub(pattern, f"\\g<1>[{target_spawn[0]:.1f}, {target_spawn[1]:.1f}] (originally [-10.0, 0.0])\\g<3>", description)
-    
+        base_str = f"[{base_spawn[0]:.1f}, {base_spawn[1]:.1f}]"
+        description = re.sub(pattern, f"\\g<1>[{target_spawn[0]:.1f}, {target_spawn[1]:.1f}] (originally {base_str} in the source environment)\\g<3>", description)
+
     # Update Ceiling Clearance
-    target_ceiling = target_terrain_config.get("ceiling_y", 100.0)
-    if target_ceiling != 100.0:
+    target_ceiling = target_terrain_config.get("ceiling_y", default_ceiling)
+    base_ceiling = base_terrain_config.get("ceiling_y", default_ceiling)
+    if target_ceiling != base_ceiling:
         pattern = r"(- \*\*Clearance\*\*: Watch out for overhead obstacles \(ceilings\) in some regions. Current clearance y: )(\d+\.?\d*)(m\.)"
-        description = re.sub(pattern, f"\\g<1>{target_ceiling:.1f}m (originally 100.0m)\\g<3>", description)
-        
+        description = re.sub(pattern, f"\\g<1>{target_ceiling:.1f}m (originally {base_ceiling:.1f}m in the source environment)\\g<3>", description)
+
     # Update Mass Budget
-    target_mass = target_terrain_config.get("max_total_mass", 20000.0)
-    if target_mass != 20000.0:
+    target_mass = target_terrain_config.get("max_total_mass", default_mass)
+    base_mass = base_terrain_config.get("max_total_mass", default_mass)
+    if target_mass != base_mass:
         pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*)( units\.)"
-        description = re.sub(pattern, f"\\g<1>{target_mass:.1f} units (originally 20000.0 units)\\g<3>", description)
-        
+        description = re.sub(pattern, f"\\g<1>{target_mass:.1f} units (originally {base_mass:.1f} units in the source environment).", description)
+
     return description
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     criteria = base_success_criteria
-    
+    base_terrain_config = base_terrain_config or {}
+
     # Update Reach in Success Criteria
     target_overhang = target_terrain_config.get("target_overhang", 0.1)
-    if target_overhang != 0.1:
+    base_overhang = base_terrain_config.get("target_overhang", 0.1)
+    if target_overhang != base_overhang:
         pattern = r"(\(Tip reaches x > )(\d+\.?\d*)(m\))"
-        criteria = re.sub(pattern, f"\\g<1>{target_overhang:.2f}m (originally 0.1m))", criteria)
-        
-    # Update Mass Budget in constraints
+        criteria = re.sub(pattern, f"\\g<1>{target_overhang:.2f}m (originally {base_overhang:.2f}m in the source environment))", criteria)
+
+    # Update Mass Budget in constraints (avoid duplicating " units." by ending with ".")
     target_mass = target_terrain_config.get("max_total_mass", 20000.0)
-    if target_mass != 20000.0:
+    base_mass = base_terrain_config.get("max_total_mass", 20000.0)
+    if target_mass != base_mass:
         pattern = r"(- \*\*Mass Budget\*\*: Total mass must be <= )(\d+\.?\d*)( units\.)"
-        criteria = re.sub(pattern, f"\\g<1>{target_mass:.1f} units (originally 20000.0 units)\\g<3>", criteria)
-        
+        criteria = re.sub(pattern, f"\\g<1>{target_mass:.1f} units (originally {base_mass:.1f} units in the source environment).", criteria)
+
     return criteria
 
 def get_s06_curriculum_stages() -> List[Dict[str, Any]]:
-    # Define the uniform suffix based on the union of all mutated variables
+    # Define the uniform suffix based on the union of all mutated variables (Stage-1 to Stage-4)
     UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Gravitational Intensity: The magnitude of the downward pull may be significantly higher, increasing structural stress and magnifying the effects of any imbalance.
- - Surface Friction: The table's grip may be severely compromised, making standard anchoring techniques ineffective and causing the structure to slide under minimal load.
- - Atmospheric Wind: Powerful lateral forces may exert constant pressure on the structure, pushing it away from or towards the edge.
- - Table Inclination: The support surface may be tilted, introducing parallel gravitational components that encourage sliding and complicate the center of mass calculation.
- - Vertical Clearance: Overhead obstacles may restrict the height of your structure, preventing high stacking or certain counterweight designs.
- - Seismic Activity: The foundation may exhibit high-frequency oscillations, testing the dynamic stability and structural integrity of your assembly.
+ - Target overhang / goal reach: The required horizontal extent beyond the table edge may differ from the initial specification.
+ - Build access zone / spawn zone: The permitted x-interval for placing blocks may be restricted differently.
+ - Gravitational Intensity: The magnitude of the downward pull may have changed, affecting structural stress and balance.
+ - Surface Friction: The table's grip may have changed, affecting how well the structure anchors and resists sliding.
+ - Atmospheric Wind: Lateral forces may act on the structure; their presence or strength may differ from the initial environment.
+ - Table Inclination: The support surface may be tilted, introducing components that complicate the center of mass calculation.
+ - Vertical Clearance: Overhead obstacles may restrict the height of your structure, preventing certain designs.
+ - Seismic Activity: The foundation may exhibit oscillations, testing dynamic stability and structural integrity.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """

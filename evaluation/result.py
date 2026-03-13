@@ -654,7 +654,7 @@ def main():
                         print_markdown_table(mn, models, methods, task_tables[mn])
 
     # --- 3. Plots ---
-    plot_dir = os.path.join(RESULTS_DIR, "plots")
+    plot_dir = os.path.join(RESULTS_DIR, "plots", args.task)
     plot_results(tables, models, methods, plot_dir)
     plot_task_env_heatmaps(results, models, methods, plot_dir)
     print(f"\nPlots saved to: {plot_dir}")

@@ -30,6 +30,35 @@ def update_task_description_for_visible_changes(base_description: str, target_te
             )
             
     # Update Build Zone (if changed)
+    target_bz = target_terrain_config.get("build_zone", {})
+    base_bz = base_terrain_config.get("build_zone", {})
+    target_x = target_bz.get("x", [0.0, 15.0])
+    target_y = target_bz.get("y", [1.5, 8.0])
+    base_x = base_bz.get("x", [0.0, 15.0])
+    base_y = base_bz.get("y", [1.5, 8.0])
+    if (target_x != base_x or target_y != base_y) and isinstance(target_x, (list, tuple)) and isinstance(target_y, (list, tuple)):
+        x_min_t, x_max_t = float(target_x[0]), float(target_x[1])
+        y_min_t, y_max_t = float(target_y[0]), float(target_y[1])
+        x_min_b, x_max_b = float(base_x[0]), float(base_x[1])
+        y_min_b, y_max_b = float(base_y[0]), float(base_y[1])
+        bz_desc_pattern = r"(- \*\*Build Zone\*\*: x=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\], y=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\].)"
+        if re.search(bz_desc_pattern, description):
+            description = re.sub(
+                bz_desc_pattern,
+                lambda m: (
+                    f"{m.group(1)}{x_min_t:.1f}, {x_max_t:.1f}{m.group(4)}{y_min_t:.1f}, {y_max_t:.1f}{m.group(8)} "
+                    f"(originally x=[{x_min_b:.1f}, {x_max_b:.1f}], y=[{y_min_b:.1f}, {y_max_b:.1f}] in the source environment)."
+                ),
+                description
+            )
+        bz_constraint_pattern = r"(All components must stay within x=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\], y=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\].)"
+        if re.search(bz_constraint_pattern, description):
+            description = re.sub(
+                bz_constraint_pattern,
+                f"\\g<1>{x_min_t:.1f}, {x_max_t:.1f}\\g<4>{y_min_t:.1f}, {y_max_t:.1f}\\g<8> (originally x=[{x_min_b:.1f}, {x_max_b:.1f}], y=[{y_min_b:.1f}, {y_max_b:.1f}] in the source environment).",
+                description
+            )
+
     # Update Mass Budget (if changed)
     target_mass = target_terrain_config.get("max_structure_mass", 40.0)
     base_mass = base_terrain_config.get("max_structure_mass", 40.0)
@@ -38,7 +67,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(mass_pattern, description):
             description = re.sub(
                 mass_pattern,
-                f"\\g<1>{target_mass:.0f} kg (originally < {base_mass:.0f} kg in the source environment).",
+                f"\\g<1>{target_mass:.0f} kg (originally {base_mass:.0f} kg in the source environment).",
                 description
             )
             
@@ -72,7 +101,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         if re.search(mass_pattern, criteria):
             criteria = re.sub(
                 mass_pattern,
-                f"\\g<1>{target_mass:.0f}\\g<3> (originally < {base_mass:.0f}\\g<3> in the source environment).",
+                f"\\g<1>{target_mass:.0f}\\g<3> (originally {base_mass:.0f}\\g<3> in the source environment).",
                 criteria
             )
             
@@ -89,6 +118,7 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Ground Friction**: The traction and slipperiness of the pushing surface may be altered.
 - **Center of Mass Offset**: The internal mass distribution and balance of the pushed object may have changed.
 - **Object Mass**: The weight of the payload block may be higher or lower than initial specifications.
+- **Object Friction**: The friction between the payload and the ground (or pusher) may be altered.
 - **Gravity**: The magnitude and direction of the gravitational force may differ from standard.
 - **Damping**: The rate at which the object's momentum and motion are dissipated may vary.
 

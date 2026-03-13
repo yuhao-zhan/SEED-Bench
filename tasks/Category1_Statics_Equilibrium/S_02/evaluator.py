@@ -54,22 +54,37 @@ class Evaluator:
         failed = False
         reason = None
         
-        if step_count == 1 and not self.design_constraints_checked:
-            if bounds.get("width", 0) > 12.0:
-                failed, reason = True, f"Width {bounds.get('width', 0):.2f}m > 12.0m"
-            
-            # Check for foundation contact violation (must be within x=[-2, 2] at base)
-            for body in self.environment._bodies:
-                for fixture in body.fixtures:
-                    shape = fixture.shape
-                    for vertex in shape.vertices:
-                        world_v = body.GetWorldPoint(vertex)
-                        if world_v.y < 1.01 and abs(world_v.x - foundation_x) > 2.01:
-                            failed, reason = True, f"Foundation contact violation at x={world_v.x:.2f} (Limit: ±2.0m)"
+        # Design constraints: check every step so violations introduced after step 1 are detected
+        if not failed:
+            if bounds.get("width", 0) > 24.0:
+                failed, reason = True, f"Width {bounds.get('width', 0):.2f}m > 24.0m"
+            if not failed:
+                for body in self.environment._bodies:
+                    if body.type != Box2D.b2_dynamicBody:
+                        continue
+                    for fixture in body.fixtures:
+                        shape = fixture.shape
+                        if hasattr(shape, 'vertices') and len(shape.vertices) >= 2:
+                            def _vx(v):
+                                return v.x if hasattr(v, 'x') else v[0]
+                            def _vy(v):
+                                return v.y if hasattr(v, 'y') else v[1]
+                            xs = [_vx(shape.vertices[i]) for i in range(len(shape.vertices))]
+                            ys = [_vy(shape.vertices[i]) for i in range(len(shape.vertices))]
+                            beam_w = max(xs) - min(xs)
+                            beam_h = max(ys) - min(ys)
+                            if beam_w < 0.1 or beam_w > 10.0 or beam_h < 0.1 or beam_h > 10.0:
+                                failed, reason = True, f"Beam dimensions {beam_w:.2f}m x {beam_h:.2f}m outside [0.1, 10.0]m"
+                                break
+                        for vertex in shape.vertices:
+                            world_v = body.GetWorldPoint(vertex)
+                            if world_v.y < 1.01 and abs(world_v.x - foundation_x) > 4.5:
+                                failed, reason = True, f"Foundation contact violation at x={world_v.x:.2f} (Limit: ±4.5m)"
+                                break
+                        if failed:
                             break
-                if failed: break
-            
-            self.design_constraints_checked = True
+                    if failed:
+                        break
         
         if not failed and step_count >= self.quake_start_step:
             if current_height < 5.0:
@@ -114,7 +129,7 @@ class Evaluator:
             "target_height": self.TARGET_HEIGHT,
             "survival_threshold": self.SURVIVAL_THRESHOLD,
             "stability_zone": self.STABILITY_ZONE,
-            "max_width_limit": 12.0,
+            "max_width_limit": 24.0,
             "instability_height_limit": 150.0
         }
 

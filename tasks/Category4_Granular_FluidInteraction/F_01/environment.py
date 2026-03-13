@@ -251,6 +251,17 @@ class Sandbox:
         for fixture in body.fixtures:
             fixture.restitution = float(restitution)
 
+    def set_damping(self, body, linear=None, angular=None):
+        """Adjusts linear and angular damping for a specific body."""
+        if linear is not None:
+            body.linearDamping = float(linear)
+        if angular is not None:
+            body.angularDamping = float(angular)
+
+    def apply_force(self, body, force_vector):
+        """Applies a linear force to the center of the body."""
+        body.ApplyForce(force_vector, body.worldCenter, True)
+
     def _in_build_zone(self, x, y):
         in_left = self.BUILD_ZONE_LEFT_X_MIN <= x <= self.BUILD_ZONE_LEFT_X_MAX
         in_middle = getattr(self, 'BUILD_ZONE_MIDDLE_X_MIN', 12.9) <= x <= getattr(self, 'BUILD_ZONE_MIDDLE_X_MAX', 13.1)
