@@ -42,7 +42,8 @@ class Sandbox:
         # Track wiper components
         self._wiper_bodies = {}
         self._wiper_joints = []
-        
+        self._wiper_motor_joint = None  # Set by set_motor() for renderer
+
         # Track particles to clean
         self._particles = []
         
@@ -109,7 +110,7 @@ class Sandbox:
         Create particles to clean (small circular objects on glass)
         """
         particle_config = terrain_config.get("particles", {})
-        num_particles = int(particle_config.get("count", 45))  # Hard: 45 particles, 100% must be cleared
+        num_particles = int(particle_config.get("count", 45))  # Default 45 particles; at least 80% must be removed (residual <= 20%)
         particle_friction = float(particle_config.get("friction", 0.35))
         particle_mass = float(particle_config.get("mass", 0.15))
         particle_radius = float(particle_config.get("radius", 0.08))
@@ -294,6 +295,7 @@ class Sandbox:
         joint.motorEnabled = True
         joint.motorSpeed = float(motor_speed)
         joint.maxMotorTorque = torque
+        self._wiper_motor_joint = joint  # For renderer to display wiper arm
 
     def get_structure_mass(self):
         """

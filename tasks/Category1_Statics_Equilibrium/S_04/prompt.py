@@ -24,7 +24,7 @@ The goal is to design a system that maintains a level orientation despite the un
 
 ## Task Environment
 - **Pivot**: A sharp static support at (0, 5).
-- **The Load**: A heavy block (mass: 200.0 kg) located at or near (3, 5.5). It may automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3, 5.5), OR it may be DROPPED from above. If the load is not caught or falls, the task fails.
+- **The Load**: A heavy block (mass: 200.0 kg) located at or near (3, 5.5). It may automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3, 5.5), OR it may be DROPPED from above. When dropped, the load is considered caught when within 0.6 m of any part of your structure. If the load is not caught or falls, the task fails.
 - **Environmental Anomalies**: The environment may contain static obstacles you must build around, or experience severe lateral wind forces that apply continuous torque to your structure.
 - **Beam Dimensions**: 0.1 <= width <= 7.0 m, 0.1 <= height <= 2.0 m.
 
@@ -36,7 +36,8 @@ Design a balanced structure that:
 4. The structure must be free to rotate about the pivot; it must rely on active or passive mass balancing, not rigid anchoring to the ground.
 
 ## Constraints (must satisfy)
-- **Contact**: The structure should only touch the pivot. Any contact with the ground (below the pivot level) will lead to failure.
+- **Contact**: The structure should only touch the pivot. Any contact with the ground (y < -5.0 m) will lead to failure.
+- **Pivot torque capacity** (when fragile): In environments where the pivot is fragile, the joint fails if the magnitude of static torque about the pivot exceeds 1000.0 N·m.
 - **Mass Budget**: No explicit limit, but structural efficiency is key to maintaining balance.
 - **Beam Limits**: Individual beams must stay within width <= 7.0m and height <= 2.0m.
 """,
@@ -45,7 +46,7 @@ Design a balanced structure that:
 ## Success Criteria
 1. **Load Attachment**: Successfully catch or connect to the heavy load at x=3.0.
 2. **Static Balance**: Maintain the main beam's angle within ±10 degrees for at least 15 seconds after the load is supported.
-3. **No Grounding**: The structure does not touch the ground or any surface other than the pivot.
+3. **No Grounding**: The structure does not touch the ground (y >= -5.0 m) or any surface other than the pivot.
 
 ## Design Constraints
 - **Beam size**: 0.1 <= width <= 7.0 m, 0.1 <= height <= 2.0 m.

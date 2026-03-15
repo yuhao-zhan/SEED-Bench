@@ -79,11 +79,10 @@ class Sandbox:
         self._brake_damping = float(terrain_config.get("brake_damping", 0.0))
         # Minimum beams required (hard constraint — trivial solutions fail)
         self.MIN_BEAM_COUNT = int(terrain_config.get("min_beam_count", 4))
-        # Impulse zone [x_min, x_max]: periodic backward impulse (N·s) — must have enough mass to survive
+        # Impulse zone [x_min, x_max]: one-time backward impulse (N·s) when first entering — must have enough mass to survive
         self._impulse_zone_x_min = float(terrain_config.get("impulse_zone_x_min", 8.0))
         self._impulse_zone_x_max = float(terrain_config.get("impulse_zone_x_max", 9.0))
         self._impulse_magnitude = float(terrain_config.get("impulse_magnitude", 1.5))
-        self._impulse_interval = int(terrain_config.get("impulse_interval_steps", 28))
         self._impulse_zone_applied = False  # apply at most once per passage through [8,9]
         # Second impulse zone [10.5, 11]: one-time backward impulse AFTER gate 1 — must survive two kicks
         self._impulse2_zone_x_min = float(terrain_config.get("impulse2_zone_x_min", 10.5))

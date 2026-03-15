@@ -55,10 +55,20 @@ class Evaluator:
             failure_reason = "Hammer hit the slot barrier (wall) before reaching the shell; the path has a narrow vertical GAP—you must design a trajectory that passes through the gap (thread the needle)"
         elif hit_pendulum:
             failed = True
-            failure_reason = "Hammer hit a pendulum before reaching the shell; must pass when both pendulums have cleared"
+            has_second_pendulum = "pendulum_rod_2" in self.environment._terrain_bodies
+            failure_reason = (
+                "Hammer hit a pendulum before reaching the shell; must pass when both pendulums have cleared"
+                if has_second_pendulum
+                else "Hammer hit the pendulum before reaching the shell; must pass when the pendulum has cleared"
+            )
         elif hit_gate:
             failed = True
-            failure_reason = "Hammer hit the first gate before reaching the shell; must pass through only when both gates are open"
+            has_second_gate = "gate2" in self.environment._terrain_bodies
+            failure_reason = (
+                "Hammer hit the first gate before reaching the shell; must pass through only when both gates are open"
+                if has_second_gate
+                else "Hammer hit the gate before reaching the shell; must pass through only when the gate is open"
+            )
         elif hit_gate2:
             failed = True
             failure_reason = "Hammer hit the second gate before reaching the shell; both gates must be open when you pass"

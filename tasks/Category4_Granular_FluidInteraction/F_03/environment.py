@@ -21,6 +21,9 @@ class Sandbox:
         gravity = tuple(physics_config.get("gravity", (0, -10)))
         self._default_linear_damping = float(physics_config.get("linear_damping", 0.02))
         self._default_angular_damping = float(physics_config.get("angular_damping", 0.02))
+        # Joint breaking: when set, joints are destroyed if reaction force/torque exceeds limit (default: no break)
+        self._joint_max_force = float(physics_config.get("joint_max_force", float("inf")))
+        self._joint_max_torque = float(physics_config.get("joint_max_torque", float("inf")))
 
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
@@ -317,6 +320,24 @@ class Sandbox:
         for body in self._scoop_bodies:
             if body.active:
                 self._prev_scoop_state[id(body)] = (body.position.x, body.position.y)
+        # Joint breaking: destroy joints that exceed reaction force/torque limits (when limits are set)
+        if self._joint_max_force < float("inf") or self._joint_max_torque < float("inf"):
+            inv_dt = 1.0 / time_step if time_step > 0 else 0.0
+            to_destroy = []
+            for j in list(self._joints):
+                try:
+                    force = j.GetReactionForce(inv_dt).length
+                    torque = abs(j.GetReactionTorque(inv_dt))
+                    if force > self._joint_max_force or torque > self._joint_max_torque:
+                        to_destroy.append(j)
+                except Exception:
+                    continue
+            for j in to_destroy:
+                if j in self._joints:
+                    self._world.DestroyJoint(j)
+                    self._joints.remove(j)
+                    if j in self._revolute_joints:
+                        self._revolute_joints.remove(j)
         # Clamp particles that entered hopper zone (retain in hopper)
         margin = 1.0
         x_lo = self.HOPPER_X_MIN - margin

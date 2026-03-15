@@ -42,11 +42,15 @@ def get_all_stages(base_task_name: str) -> List[Dict[str, Any]]:
     stages_file = os.path.join(task_dir, 'stages.py')
     
     all_envs = []
+    task_id = base_task_name.split("/")[-1] if "/" in base_task_name else base_task_name
+    initial_physics = {}
+    if task_id == "K_04":
+        initial_physics = {"do_sleep": False}  # Pusher needs continuous motion; align with mutated stages
     all_envs.append({
         "stage_id": "Initial",
         "title": "Initial Task",
         "terrain_config": {},
-        "physics_config": {}
+        "physics_config": initial_physics
     })
     
     if os.path.exists(stages_file):
@@ -102,17 +106,37 @@ def get_reference_solution(base_task_name: str, stage_id: str) -> str:
     
     lines = content.splitlines()
 
-    # Identify all stage entry point functions to exclude those that aren't our target
+    # Only exclude other stage *entry* functions (build_agent, agent_action, build_agent_stage_N, agent_action_stage_N).
+    # Do NOT exclude helpers like agent_action_pd — they are called by entry functions and must be in the
+    # reference solution so the prompt gets a complete, runnable snippet (all called functions included).
+    def is_stage_entry(name: str) -> bool:
+        if name == "build_agent" or name == "agent_action":
+            return True
+        if name.startswith("build_agent_stage_") and name[len("build_agent_stage_"):].isdigit():
+            return True
+        if name.startswith("agent_action_stage_") and name[len("agent_action_stage_"):].isdigit():
+            return True
+        return False
+
     stage_funcs = set()
     for line in lines:
         if line.startswith("def "):
-            # Extract function name before '('
             name = line.split("(")[0][4:].strip()
-            if name.startswith("build_agent") or name.startswith("agent_action"):
+            if is_stage_entry(name):
                 stage_funcs.add(name)
 
     targets = {build_func, action_func}
-    to_exclude = stage_funcs - targets
+    # Find callees: stage-entry functions that are called by build_func or action_func (e.g. D_06 Stage-2 calls build_agent_stage_1)
+    required_callees = set()
+    for line in lines:
+        stripped = line.strip()
+        for name in stage_funcs:
+            # Match "name(" as a call (not "def name(")
+            if stripped.startswith("def "):
+                continue
+            if name + "(" in line or line.strip().startswith("return " + name + "("):
+                required_callees.add(name)
+    to_exclude = stage_funcs - targets - required_callees
 
     # Split content into top-level blocks
     # A block starts at a non-indented line and continues until the next non-indented line

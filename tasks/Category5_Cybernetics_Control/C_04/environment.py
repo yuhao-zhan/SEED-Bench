@@ -274,7 +274,11 @@ class Sandbox:
             in_activation_zone = ACTIVATION_X_MIN <= x <= ACTIVATION_X_MAX
             if (in_activation_zone and self._force_x < self._backward_fx_threshold and speed < self._backward_speed_max):
                 self._backward_steps += 1
+                if self._current_step % 50 == 0:
+                    print(f"[ENV] Step {self._current_step}: Unlock Progress {self._backward_steps}/{self._backward_steps_required} (x={x:.2f}, speed={speed:.2f}, fx={self._force_x:.2f})")
                 if self._backward_steps >= self._backward_steps_required:
+                    if not self._behavioral_unlock:
+                        print(f"[ENV] BEHAVIORAL UNLOCK TRIGGERED at step {self._current_step}")
                     self._behavioral_unlock = True
             else:
                 self._backward_steps = 0

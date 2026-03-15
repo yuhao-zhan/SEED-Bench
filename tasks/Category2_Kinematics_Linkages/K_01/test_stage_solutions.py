@@ -36,8 +36,8 @@ def main():
         try:
             code = get_reference_solution("Category2_Kinematics_Linkages/K_01", stage_id)
             
-            # Initial walker is slow and needs many steps
-            max_steps = 90000 if stage_id == "Initial" else 15000
+            # Initial and mutated walkers need many steps; Stage-4 (low gravity + mass cap) needs ~350k.
+            max_steps = 90000 if stage_id == "Initial" else 350000
             
             verifier = CodeVerifier(
                 task_name="Category2_Kinematics_Linkages/K_01",

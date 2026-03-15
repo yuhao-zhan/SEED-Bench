@@ -94,8 +94,9 @@ class Evaluator:
         
         self.last_max_x = current_max_x
         
-        stability_ok = self.stable_duration >= self.stability_time - 0.01
-        overhang_ok = self.max_x_position >= self.target_overhang - 0.01
+        # Use small epsilon (1e-6) so threshold aligns with prompt (e.g. 0.1m) without float edge failures
+        stability_ok = self.stable_duration >= self.stability_time - 1e-6
+        overhang_ok = self.max_x_position >= self.target_overhang - 1e-6
         success = stability_ok and overhang_ok
         
         # Persistent Failure Checks

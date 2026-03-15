@@ -23,15 +23,13 @@ class DaVinciSandbox:
         self._load_bodies = []
         
         self.MIN_BEAM_SIZE = 0.1
-        self.MAX_BEAM_WIDTH = 2.0
-        self.MAX_BEAM_HEIGHT = 2.0
         self.MAX_BEAM_SIZE = 15.0 
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 15000.0))
         
         self._load_1_active = False
         self._load_2_active = False
-        self._load_attach_time = 5.0
-        self._load_2_attach_time = 15.0
+        self._load_attach_time = float(terrain_config.get("load_attach_time", 5.0))
+        self._load_2_attach_time = float(terrain_config.get("load_2_attach_time", 15.0))
         
         self._forbidden_anchor_y = terrain_config.get("forbidden_anchor_y", None)
         self._obstacle_active = terrain_config.get("obstacle_active", False)
@@ -209,10 +207,11 @@ class DaVinciSandbox:
             self._load_bodies.append(load_body)
 
     def get_terrain_bounds(self):
+        # Report same limits as add_beam() enforces (clamped to [MIN_BEAM_SIZE, MAX_BEAM_SIZE] per dimension)
         return {
             "wall": {"x": [-1.0, 0.0], "y": [-20, 30]},
-            "max_beam_width": self.MAX_BEAM_WIDTH,
-            "max_beam_height": self.MAX_BEAM_HEIGHT,
+            "max_beam_width": self.MAX_BEAM_SIZE,
+            "max_beam_height": self.MAX_BEAM_SIZE,
             "obstacle_active": self._obstacle_active,
             "obstacle_rects": self._obstacle_rects,
             "forbidden_anchor_y": self._forbidden_anchor_y,

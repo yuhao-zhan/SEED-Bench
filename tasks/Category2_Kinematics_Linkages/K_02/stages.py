@@ -9,11 +9,29 @@ import math
 from typing import Any, Dict, List
 import re
 
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(
+    base_description: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+    *,
+    stage: Dict[str, Any] = None,
+) -> str:
     """
     Update task description to reflect visible physical changes.
+    Format: [new_value] (originally [old_value] in the source environment).
+    Callers may pass stage=stage so that physics_config (joint limits) is synced from the stage dict.
     """
     description = base_description
+    target_terrain_config = target_terrain_config or {}
+    base_terrain_config = base_terrain_config or {}
+    if stage is not None:
+        target_physics_config = dict(stage.get("physics_config") or {})
+        base_physics_config = {}
+    target_physics_config = target_physics_config or {}
+    base_physics_config = base_physics_config or {}
+
     default_y_max = 25.0
     target_y_max = target_terrain_config.get("build_zone_y_max", default_y_max)
     base_y_max = base_terrain_config.get("build_zone_y_max", default_y_max)
@@ -39,20 +57,70 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                 f"\\g<1>{target_min_mass:.1f} kg (originally {base_min_mass:.1f} kg in the source environment) and less than \\g<4>\\g<5>",
                 description
             )
-        # Success criteria Design Constraints: "Minimum 0 kg, maximum < 50 kg"
-        min_mass_criteria_pattern = r"(Minimum )(\d+\.?\d*)( kg, maximum)"
-        if re.search(min_mass_criteria_pattern, description):
+
+    # Sync max_structure_mass when mutated (visible structural limit)
+    default_max_mass = 50.0
+    target_max_mass = target_terrain_config.get("max_structure_mass", default_max_mass)
+    base_max_mass = base_terrain_config.get("max_structure_mass", default_max_mass)
+    if target_max_mass != base_max_mass:
+        max_mass_pattern = r"( and less than )(\d+\.?\d*)( kg\.)"
+        if re.search(max_mass_pattern, description):
             description = re.sub(
-                min_mass_criteria_pattern,
-                f"\\g<1>{target_min_mass:.1f} kg (originally {base_min_mass:.1f} kg in the source environment), maximum",
+                max_mass_pattern,
+                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
                 description
             )
+
+    # Sync joint force/torque limits when mutated (visible structural limits)
+    inf_val = float("inf")
+    default_joint_force = inf_val
+    default_joint_torque = inf_val
+    target_joint_force = target_physics_config.get("max_joint_force", default_joint_force)
+    target_joint_torque = target_physics_config.get("max_joint_torque", default_joint_torque)
+    base_joint_force = base_physics_config.get("max_joint_force", default_joint_force)
+    base_joint_torque = base_physics_config.get("max_joint_torque", default_joint_torque)
+    force_changed = target_joint_force != base_joint_force and target_joint_force != inf_val
+    torque_changed = target_joint_torque != base_joint_torque and target_joint_torque != inf_val
+
+    if force_changed or torque_changed:
+        joint_strength_pattern = r"(- \*\*Joint strength\*\*: )(Maximum joint reaction force and maximum joint torque are unlimited in the default environment \(joints do not break\)\.)"
+        base_force_str = "unlimited" if base_joint_force == inf_val else f"{base_joint_force:.1f} N"
+        base_torque_str = "unlimited" if base_joint_torque == inf_val else f"{base_joint_torque:.1f} N·m"
+        if force_changed and torque_changed:
+            new_str = (
+                f"Maximum joint reaction force is {target_joint_force:.1f} N (originally {base_force_str} in the source environment); "
+                f"maximum joint torque is {target_joint_torque:.1f} N·m (originally {base_torque_str} in the source environment)."
+            )
+        elif force_changed:
+            new_str = (
+                f"Maximum joint reaction force is {target_joint_force:.1f} N (originally {base_force_str} in the source environment); "
+                "maximum joint torque remains unlimited."
+            )
+        else:
+            new_str = (
+                "Maximum joint reaction force remains unlimited; "
+                f"maximum joint torque is {target_joint_torque:.1f} N·m (originally {base_torque_str} in the source environment)."
+            )
+        if re.search(joint_strength_pattern, description):
+            description = re.sub(joint_strength_pattern, r"\g<1>" + new_str, description)
 
     return description
 
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     criteria = base_success_criteria
+    # Sync build zone y in success_criteria (e.g. "- **Build zone**: x=[0, 5], y=[0, 25].")
+    default_y_max = 25.0
+    target_y_max = target_terrain_config.get("build_zone_y_max", default_y_max)
+    base_y_max = base_terrain_config.get("build_zone_y_max", default_y_max)
+    if target_y_max != base_y_max:
+        build_zone_pattern = r"(y=\[0, )(\d+\.?\d*)(\])"
+        if re.search(build_zone_pattern, criteria):
+            criteria = re.sub(
+                build_zone_pattern,
+                f"\\g<1>{target_y_max:.1f}\\g<3> (originally y=[0, {base_y_max:.1f}] in the source environment)",
+                criteria
+            )
     default_min_mass = 0.0
     target_min_mass = target_terrain_config.get("min_structure_mass", default_min_mass)
     base_min_mass = base_terrain_config.get("min_structure_mass", default_min_mass)
@@ -64,6 +132,17 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
                 f"\\g<1>{target_min_mass:.1f} kg (originally {base_min_mass:.1f} kg in the source environment), maximum",
                 criteria
             )
+    default_max_mass = 50.0
+    target_max_mass = target_terrain_config.get("max_structure_mass", default_max_mass)
+    base_max_mass = base_terrain_config.get("max_structure_mass", default_max_mass)
+    if target_max_mass != base_max_mass:
+        max_mass_criteria_pattern = r"(maximum < )(\d+\.?\d*)( kg\.)"
+        if re.search(max_mass_criteria_pattern, criteria):
+            criteria = re.sub(
+                max_mass_criteria_pattern,
+                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
+                criteria
+            )
     return criteria
 
 
@@ -72,14 +151,12 @@ def get_k02_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-02: The Climber task variants.
     """
     
-    # UNION of all physical variables modified across all stages
+    # UNION of all physical variables modified across all stages (none modify wall_oscillation or boulder_interval)
     # - max_joint_force: Structural load limit
     # - max_joint_torque: Actuator torque limit
     # - gravity: Base gravitational acceleration
     # - gravity_evolution: Time-dependent gravity shift
     # - suction_zones: Functional regions for adhesive pads
-    # - wall_oscillation_amp/freq: Seismic wall movement
-    # - boulder_interval: Periodic projectile interference
     # - min_structure_mass: Stability requirement
     # - wind_force: Constant lateral atmospheric pressure
     # - wind_oscillation: Pulsing atmospheric turbulence

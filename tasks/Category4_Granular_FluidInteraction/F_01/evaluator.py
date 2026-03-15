@@ -13,7 +13,7 @@ class Evaluator:
     """
     Evaluation system for F-01: The Dam (extreme variant).
     Success: leakage rate <= 0.1%. Failure: leakage rate > 0.1%.
-    Design: max beam height 1.5 m; joints can break under load; seepage zone [13.5, 14] counts as half-leak.
+    Design: max beam height 1.5 m; joints can break under load; leak boundary = moving wall left edge; half-leak band = 0.5 m before that boundary.
     """
 
     MAX_LEAKAGE_RATE = 0.001  # 0.1% - brutal: moving wall, debris, earthquake, min 3 beams per vertical band
@@ -29,11 +29,12 @@ class Evaluator:
             raise ValueError("Evaluator requires environment instance")
         env_class = type(environment)
         self.MAX_LEAKAGE_RATE = getattr(environment, 'MAX_LEAKAGE_RATE', 0.001)
-        self.MAX_STRUCTURE_MASS = getattr(environment, 'MAX_STRUCTURE_MASS', getattr(env_class, 'MAX_STRUCTURE_MASS', 3000.0))
-        self.MAX_TERRAIN_ANCHORS = getattr(environment, 'MAX_TERRAIN_ANCHORS', getattr(env_class, 'MAX_TERRAIN_ANCHORS', 4))
-        self.MAX_BEAM_COUNT = getattr(environment, 'MAX_BEAM_COUNT', getattr(env_class, 'MAX_BEAM_COUNT', 50))
-        self.MIN_BEAM_COUNT = getattr(environment, 'MIN_BEAM_COUNT', getattr(env_class, 'MIN_BEAM_COUNT', 1))
-        self.MAX_BEAMS_RIGHT_STRIP = getattr(environment, 'MAX_BEAMS_RIGHT_STRIP', getattr(env_class, 'MAX_BEAMS_RIGHT_STRIP', 99))
+        # F-01 defaults: 380 kg, 0 anchors, 10–18 beams, right strip ≤2, 15 joints, build y max 7.5
+        self.MAX_STRUCTURE_MASS = getattr(environment, 'MAX_STRUCTURE_MASS', getattr(env_class, 'MAX_STRUCTURE_MASS', 380.0))
+        self.MAX_TERRAIN_ANCHORS = getattr(environment, 'MAX_TERRAIN_ANCHORS', getattr(env_class, 'MAX_TERRAIN_ANCHORS', 0))
+        self.MAX_BEAM_COUNT = getattr(environment, 'MAX_BEAM_COUNT', getattr(env_class, 'MAX_BEAM_COUNT', 18))
+        self.MIN_BEAM_COUNT = getattr(environment, 'MIN_BEAM_COUNT', getattr(env_class, 'MIN_BEAM_COUNT', 10))
+        self.MAX_BEAMS_RIGHT_STRIP = getattr(environment, 'MAX_BEAMS_RIGHT_STRIP', getattr(env_class, 'MAX_BEAMS_RIGHT_STRIP', 2))
         self.MAX_BEAMS_MIDDLE_STRIP = getattr(environment, 'MAX_BEAMS_MIDDLE_STRIP', getattr(env_class, 'MAX_BEAMS_MIDDLE_STRIP', 1))
         # Three disjoint strips: left, middle (bridge), right
         self.BUILD_ZONE_LEFT_X_MIN = getattr(environment, 'BUILD_ZONE_LEFT_X_MIN', 12.4)
@@ -45,9 +46,9 @@ class Evaluator:
         self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', 12.0)
         self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', 14.0)
         self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', 0.0)
-        self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', 10.0)
+        self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', 7.5)
         self.MIN_BEAM_BOTTOM_Y = getattr(environment, 'MIN_BEAM_BOTTOM_Y', 0.5)
-        self.MAX_JOINT_COUNT = getattr(environment, 'MAX_JOINT_COUNT', getattr(env_class, 'MAX_JOINT_COUNT', 99))
+        self.MAX_JOINT_COUNT = getattr(environment, 'MAX_JOINT_COUNT', getattr(env_class, 'MAX_JOINT_COUNT', 15))
 
     def evaluate(self, agent_body, step_count, max_steps):
         """
@@ -163,6 +164,7 @@ class Evaluator:
             return ["Environment not available"]
         self.MIN_BEAM_BOTTOM_Y = getattr(self.environment, 'MIN_BEAM_BOTTOM_Y', 0.5)
         self.MAX_BEAM_HEIGHT = getattr(self.environment, 'MAX_BEAM_HEIGHT', 1.5)
+        self.MAX_BEAM_WIDTH = getattr(self.environment, 'MAX_BEAM_WIDTH', 0.6)
         structure_mass = self.environment.get_structure_mass()
         if structure_mass > self.MAX_STRUCTURE_MASS:
             violations.append(f"Structure mass {structure_mass:.2f} kg exceeds maximum {self.MAX_STRUCTURE_MASS} kg")
@@ -177,8 +179,10 @@ class Evaluator:
             violations.append(f"Beam count {beam_count} exceeds maximum {self.MAX_BEAM_COUNT}")
         if beam_count < self.MIN_BEAM_COUNT:
             violations.append(f"Beam count {beam_count} is below minimum {self.MIN_BEAM_COUNT}")
-        # MIN BEAMS PER VERTICAL BAND: at least 3 beams with center y in [0.5, 2.5], 3 in [2.5, 5], 3 in [5, 7.5]
-        band_limits = [(0.5, 2.5), (2.5, 5.0), (5.0, 7.5)]
+        # MIN BEAMS PER VERTICAL BAND: at least 3 beams per band; bands derived from environment
+        y_min = getattr(self.environment, 'MIN_BEAM_BOTTOM_Y', 0.5)
+        y_max = getattr(self.environment, 'BUILD_ZONE_Y_MAX', 7.5)
+        band_limits = [(y_min, 2.5), (2.5, 5.0), (5.0, y_max)]
         min_per_band = getattr(self.environment, 'MIN_BEAMS_PER_BAND', 3)
         for y_lo, y_hi in band_limits:
             n_in_band = sum(1 for b in self.environment._bodies
@@ -201,7 +205,7 @@ class Evaluator:
             )
         if middle_strip_count < 1:
             violations.append(
-                "Dam must use the middle strip: at least one beam center in middle strip x=[12.9, 13.1] (bridge required for valid topology)"
+                f"Dam must use the middle strip: at least one beam center in middle strip x=[{self.BUILD_ZONE_MIDDLE_X_MIN}, {self.BUILD_ZONE_MIDDLE_X_MAX}] (bridge required for valid topology)"
             )
         beam_to_beam_joints = len(self.environment._joints) - terrain_joints
         if beam_to_beam_joints > self.MAX_JOINT_COUNT:
@@ -241,7 +245,7 @@ class Evaluator:
                          if self.BUILD_ZONE_RIGHT_X_MIN <= b.position.x <= self.BUILD_ZONE_RIGHT_X_MAX)
         if left_count < 1 or right_count < 1:
             violations.append(
-                "Dam must span the gate: at least one beam center in left strip x=[12.4,12.6] and at least one in right strip x=[13.4,13.6]"
+                f"Dam must span the gate: at least one beam center in left strip x=[{self.BUILD_ZONE_LEFT_X_MIN}, {self.BUILD_ZONE_LEFT_X_MAX}] and at least one in right strip x=[{self.BUILD_ZONE_RIGHT_X_MIN}, {self.BUILD_ZONE_RIGHT_X_MAX}]"
             )
         # Build zones and mandatory underflow gap (left OR middle OR right)
         for body in self.environment._bodies:
@@ -258,17 +262,32 @@ class Evaluator:
             try:
                 if body.fixtures:
                     shape = body.fixtures[0].shape
-                    if hasattr(shape, 'box'):
-                        hx, hy = shape.box
+                    hx, hy = None, None
+                    try:
+                        if hasattr(shape, 'box'):
+                            hx, hy = shape.box
+                    except Exception:
+                        pass
+                    if hx is None and getattr(shape, 'vertices', None):
+                        verts = shape.vertices
+                        if len(verts) >= 2:
+                            hx = max(abs(v[0]) for v in verts)
+                            hy = max(abs(v[1]) for v in verts)
+                    if hx is not None and hy is not None:
                         bottom = body.position.y - hy
                         if bottom < self.MIN_BEAM_BOTTOM_Y:
                             violations.append(
                                 f"Beam at ({x:.2f}, {y:.2f}) extends below y={self.MIN_BEAM_BOTTOM_Y} (bottom={bottom:.2f}); mandatory underflow gap required"
                             )
                         beam_height = 2.0 * hy
-                        if beam_height > self.MAX_BEAM_HEIGHT:
+                        beam_width = 2.0 * hx
+                        if beam_height > self.MAX_BEAM_HEIGHT + 1e-6:
                             violations.append(
                                 f"Beam at ({x:.2f}, {y:.2f}) has height {beam_height:.2f} m; maximum beam height is {self.MAX_BEAM_HEIGHT} m (tall beams break under surge)"
+                            )
+                        if beam_width > self.MAX_BEAM_WIDTH + 1e-6:
+                            violations.append(
+                                f"Beam at ({x:.2f}, {y:.2f}) has width {beam_width:.2f} m; maximum beam width is {self.MAX_BEAM_WIDTH} m"
                             )
             except (IndexError, TypeError, AttributeError):
                 pass
@@ -276,6 +295,7 @@ class Evaluator:
         return violations
 
     def get_task_description(self):
+        """For display/API; uses env-derived limits. Agent-facing prompt comes from task TASK_PROMPT + stage updates (stages.update_*_for_visible_changes)."""
         limit_pct = self.MAX_LEAKAGE_RATE * 100
         return {
             "task": "F-01: The Dam (extreme)",

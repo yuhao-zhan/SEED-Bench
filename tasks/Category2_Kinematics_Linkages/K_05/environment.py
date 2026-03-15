@@ -10,6 +10,8 @@ Design alignment (keep consistent with evaluator.py, prompt.py):
 # Object start height (must match evaluator OBJECT_START_Y)
 OBJECT_START_Y = 1.8
 OBJECT_START_X = 4.0
+# Minimum height gain (m) above initial object y to count as "lifting started" (align with evaluator, prompt)
+LIFTING_THRESHOLD_M = 0.5
 import Box2D
 from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody, revoluteJoint, weldJoint)
 import math
@@ -208,6 +210,7 @@ class Sandbox:
                 self._world.DestroyBody(body)
 
     # --- Physical constraint constants ---
+    LIFTING_THRESHOLD_M = 0.5  # Min height gain (m) above initial object y to count as "lifting started" (sync evaluator, prompt)
     MIN_BEAM_SIZE = 0.05  # Minimum beam width/height (meters)
     MAX_BEAM_SIZE = 4.0  # Maximum beam width/height (meters)
     MIN_JOINT_LIMIT = -math.pi  # Minimum joint angle limit (radians)

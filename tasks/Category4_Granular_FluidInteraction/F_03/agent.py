@@ -15,6 +15,7 @@ def _build_agent_internal(sandbox, torque=3000.0, arm_config=None, initial_angle
         if i == 0:
             _aj = sandbox.add_revolute_joint(prev_body, body, prev_anchor, enable_motor=True, max_motor_torque=torque)
             sandbox._aj = _aj
+            sandbox.agent_arm_joint = _aj
         else:
             sandbox.add_joint(prev_body, body, (current_x, current_y))
         prev_body = body
@@ -24,6 +25,7 @@ def _build_agent_internal(sandbox, torque=3000.0, arm_config=None, initial_angle
     scoop = sandbox.add_scoop(current_x, current_y, scoop_w, scoop_h, angle=initial_angle, density=20.0)
     _bj = sandbox.add_revolute_joint(prev_body, scoop, (current_x, current_y), enable_motor=True, max_motor_torque=torque)
     sandbox._bj = _bj
+    sandbox.agent_bucket_joint = _bj
     return scoop
 
 def build_agent(sandbox):

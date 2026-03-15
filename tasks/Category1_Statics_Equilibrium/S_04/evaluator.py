@@ -25,6 +25,7 @@ class Evaluator:
             # Read from instance attributes first (for mutated tasks), fallback to class constants
             self.MAX_ANGLE_DEVIATION = getattr(environment, 'MAX_ANGLE_DEVIATION', env_class.MAX_ANGLE_DEVIATION)
             self.BALANCE_TIME = getattr(environment, 'BALANCE_TIME', env_class.BALANCE_TIME)
+            self.ground_y_limit = getattr(environment, 'GROUND_Y_FAILURE', -5.0)
             # Also update balance_time (used in evaluate method)
             self.balance_time = self.BALANCE_TIME
             self.max_angle_deviation = self.MAX_ANGLE_DEVIATION
@@ -38,8 +39,10 @@ class Evaluator:
         if not self.environment:
             return False, 0.0, {"error": "Environment not available"}
         
-        # Check if load is caught
-        if "load" in self.environment._terrain_bodies:
+        # Check if load is caught (for drop_load: only when structure actually caught it)
+        if getattr(self.environment, "_drop_load", False):
+            self.load_caught = getattr(self.environment, "_load_caught_by_structure", False)
+        elif "load" in self.environment._terrain_bodies:
             self.load_caught = True
         
         # Get main beam angle
@@ -47,8 +50,8 @@ class Evaluator:
         angle_deviation = abs(beam_angle)
         self.max_angle_seen = max(self.max_angle_seen, angle_deviation)
         
-        # Track balance duration
-        time_step = 1.0 / 60.0
+        # Track balance duration (use step size from environment when available)
+        time_step = getattr(self.environment, '_last_time_step', 1.0 / 60.0)
         current_time = step_count * time_step
         
         if angle_deviation <= self.max_angle_deviation:
@@ -71,15 +74,15 @@ class Evaluator:
         
         # Check if load touches ground
         load_body = self.environment._terrain_bodies.get("load")
-        if load_body and load_body.position.y < -5.0:
+        if load_body and load_body.position.y < self.ground_y_limit:
             failed = True
-            failure_reason = f"Load fell to the ground (y={load_body.position.y:.2f} < -5.0)"
+            failure_reason = f"Load fell to the ground (y={load_body.position.y:.2f} < {self.ground_y_limit})"
         
         # Check if any body touches ground
         for i, body in enumerate(self.environment._bodies):
-            if body.position.y < -5.0:
+            if body.position.y < self.ground_y_limit:
                 failed = True
-                failure_reason = f"Structure body {i} touched ground (y={body.position.y:.2f} < -5.0)"
+                failure_reason = f"Structure body {i} touched ground (y={body.position.y:.2f} < {self.ground_y_limit})"
                 break
         
         # Fail fast only for hard-constraint violations:
@@ -88,7 +91,10 @@ class Evaluator:
         # - angle blows past limit (large tilt), not merely "not yet balanced for 15s"
         if not catch_ok and current_time > 1.0:
             failed = True
-            failure_reason = "Failed to catch load at (3, 5.5)"
+            if getattr(self.environment, "_drop_load", False):
+                failure_reason = "Failed to catch the load"
+            else:
+                failure_reason = "Failed to catch load at (3, 5.5)"
         elif catch_ok and angle_deviation > self.max_angle_deviation and current_time > 2.0:
             failed = True
             failure_reason = f"Beam angle {angle_deviation * 180 / math.pi:.1f}° exceeds ±{self.max_angle_deviation * 180 / math.pi:.1f}° limit"
@@ -153,7 +159,7 @@ class Evaluator:
             'balance_duration': self.balance_duration,
             'target_balance_time': self.balance_time,
             'max_angle_deviation_deg': self.max_angle_deviation * 180 / math.pi,
-            'ground_y_limit': -5.0,
+            'ground_y_limit': self.ground_y_limit,
             'success': success and not failed,
             'failed': failed,
             'failure_reason': failure_reason,
@@ -175,12 +181,19 @@ class Evaluator:
         return []
     
     def get_task_description(self):
-        """Return task description"""
+        """Return task description (uses environment/mutated angle tolerance, balance time, and drop_load)."""
+        angle_deg = self.max_angle_deviation * 180.0 / math.pi
+        drop_load = getattr(self.environment, "_drop_load", False)
+        catch = (
+            "Catch the falling load and prevent it from touching the ground"
+            if drop_load
+            else "Connect to load at (3, 5.5)"
+        )
         return {
             'task': 'S-04: The Balancer',
             'description': 'Build a structure that balances on a pivot',
             'success_criteria': {
-                'catch': 'Connect to load at (3, 5.5)',
-                'balance': f'Keep angle within ±10° for {self.balance_time}s'
+                'catch': catch,
+                'balance': f'Keep angle within ±{angle_deg:.1f}° for {self.balance_time}s'
             }
         }

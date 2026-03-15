@@ -20,8 +20,14 @@ class Evaluator:
         self.environment = environment
         self._right_platform_start_x = terrain_bounds.get("right_platform_start_x", 26.0)
         self._pit_bottom_y = terrain_bounds.get("pit_bottom_y", 0.0)
-        self._landing_min_y = 1.0  # Jumper center must be at least this y when on right side
+        self._landing_min_y = float(terrain_bounds.get("landing_min_y", 1.0))  # Jumper center must be at least this y when on right side
         self._pit_fail_y = self._pit_bottom_y  # Below this y = in pit (fail); use env value
+        spawn = terrain_bounds.get("jumper_spawn", (5.0, 5.0))
+        self._jumper_spawn_x = float(spawn[0]) if len(spawn) >= 1 else 5.0
+        jw = float(terrain_bounds.get("jumper_width", 0.8))
+        jh = float(terrain_bounds.get("jumper_height", 0.6))
+        self._jumper_half_w = jw / 2.0
+        self._jumper_half_h = jh / 2.0
         self._landed = False
         self._design_constraints_checked = False
         # Slots in pit: each slot (x_min, x_max, floor_y, ceil_y); jumper center must stay inside (floor+margin, ceil-margin) when in x-range
@@ -79,7 +85,6 @@ class Evaluator:
         failure_reason = None
 
         # Must pass through each slot: when in slot x-range, jumper center must be inside (floor+margin, ceiling-margin)
-        JUMPER_HALF_W, JUMPER_HALF_H = 0.4, 0.3
         SLOT_MARGIN = 0.05  # m; clearance from floor and ceiling (minimal for discrete step passability)
         for i, slot in enumerate(self._slots):
             if len(slot) != 4:
@@ -87,15 +92,15 @@ class Evaluator:
             bx_min, bx_max, floor_y, ceil_y = slot
             if bx_min is None or bx_max is None or floor_y is None or ceil_y is None:
                 continue
-            in_x_range = px - JUMPER_HALF_W <= bx_max and px + JUMPER_HALF_W >= bx_min
+            in_x_range = px - self._jumper_half_w <= bx_max and px + self._jumper_half_w >= bx_min
             if not in_x_range:
                 continue
             # In this slot: center must be in (floor+margin, ceil-margin); also avoid touching (bottom/top vs floor/ceiling)
-            if py - JUMPER_HALF_H <= floor_y + SLOT_MARGIN:
+            if py - self._jumper_half_h <= floor_y + SLOT_MARGIN:
                 failed = True
                 failure_reason = "Hit lower red bar or left slot: trajectory must pass through the gap between lower and upper red bars"
                 break
-            if py + JUMPER_HALF_H >= ceil_y - SLOT_MARGIN:
+            if py + self._jumper_half_h >= ceil_y - SLOT_MARGIN:
                 failed = True
                 failure_reason = "Hit upper red bar or left slot: trajectory must pass through the gap between lower and upper red bars"
                 break
@@ -158,7 +163,7 @@ class Evaluator:
         px, py = pos if pos else (0, 0)
         vx, vy = (vel[0], vel[1]) if vel else (0, 0)
         speed = (vx * vx + vy * vy) ** 0.5
-        progress = max(0.0, (px - 5.0) / (self._right_platform_start_x - 5.0)) * 100.0
+        progress = max(0.0, (px - self._jumper_spawn_x) / (self._right_platform_start_x - self._jumper_spawn_x)) * 100.0
         progress = min(100.0, progress)
 
         # Jumper body for angular state (if available)
@@ -194,7 +199,7 @@ class Evaluator:
             "task": "D-02: The Jumper",
             "description": "Launch a jumper across a pit with an obstacle; trajectory must go OVER the barrier to the right platform",
             "success_criteria": {
-                "primary": f"Jumper reaches right platform (x >= {self._right_platform_start_x} m, y >= 1 m)",
+                "primary": f"Jumper reaches right platform (x >= {self._right_platform_start_x} m, y >= {self._landing_min_y} m)",
                 "failure": "Fall into pit or insufficient jump",
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},

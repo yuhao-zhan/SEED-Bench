@@ -71,8 +71,9 @@ class Sandbox:
         
         # 3. Set build zone and max structure mass (configurable)
         gap_width = float(terrain_config.get("gap_width", 15.0))
+        right_cliff_start = 10.0 + gap_width
         self.BUILD_ZONE_X_MIN = 10.0  # Build zone x start
-        self.BUILD_ZONE_X_MAX = 10.0 + gap_width  # Build zone x end (extends to right cliff)
+        self.BUILD_ZONE_X_MAX = right_cliff_start + 5.0  # Build zone x end = target position (deck can reach goal)
         self.BUILD_ZONE_Y_MIN = 5.0  # Build zone y start
         self.BUILD_ZONE_Y_MAX = 15.0  # Build zone y end
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 2000.0))  # Maximum total structure mass (kg)
@@ -205,14 +206,12 @@ class Sandbox:
         self._terrain_bodies["vehicle_wheel2"] = wheel2
         self._vehicle_joints = [joint1, joint2]
 
-    # --- Physical constraint constants ---
+    # --- Physical constraint constants (instance-dependent BUILD_ZONE_X_MAX, MAX_STRUCTURE_MASS set in __init__) ---
     MIN_BEAM_SIZE = 0.1  # Minimum beam width/height (meters)
     MAX_BEAM_SIZE = 10.0  # Maximum beam width/height (meters)
     BUILD_ZONE_X_MIN = 10.0
-    BUILD_ZONE_X_MAX = 25.0
     BUILD_ZONE_Y_MIN = 5.0
     BUILD_ZONE_Y_MAX = 15.0
-    MAX_STRUCTURE_MASS = 2000.0
     MIN_DECK_FRICTION = 0.5
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
@@ -359,7 +358,8 @@ class Sandbox:
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]
             },
-            "water_level": 0.0
+            "water_level": 0.0,
+            "fail_zone_y": 0.5
         }
     
     def get_vehicle_position(self):

@@ -18,10 +18,10 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     target_physics_config = target_physics_config or {}
     base_physics_config = base_physics_config or {}
 
-    # Sync Joint Strength if mutated
+    # Sync Joint Strength if mutated (torque pattern uses (inf|\d+\.?\d*) so trailing period is not consumed)
     for key, pattern, default, suffix in [
         ("max_joint_force", r"(- \*\*Joint Strength\*\*: Maximum linear force for a joint is )(\w+\.?\d*)", float('inf'), ";"),
-        ("max_joint_torque", r"(; maximum torque is )(\w+\.?\d*)", float('inf'), ".")
+        ("max_joint_torque", r"(; maximum torque is )(inf|\d+\.?\d*)", float('inf'), ".")
     ]:
         target_val = target_physics_config.get(key, default)
         base_val = base_physics_config.get(key, default)

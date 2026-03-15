@@ -174,14 +174,9 @@ class Sandbox:
             self._cargo.append(body)
         self._initial_cargo_count = len(self._cargo)
 
-    # --- Physical constraint constants ---
+    # --- Physical constraint constants (beam clamp only; build zone and mass are set in __init__ from terrain_config) ---
     MIN_BEAM_SIZE = 0.1
     MAX_BEAM_SIZE = 1.0
-    BUILD_ZONE_X_MIN = 12.0
-    BUILD_ZONE_X_MAX = 18.0
-    BUILD_ZONE_Y_MIN = 2.0
-    BUILD_ZONE_Y_MAX = 4.5
-    MAX_STRUCTURE_MASS = 60.0
 
     def add_beam(self, x, y, width, height, angle=0, density=150.0):
         """API: Add a beam (e.g. rail, tie to secure cargo)."""

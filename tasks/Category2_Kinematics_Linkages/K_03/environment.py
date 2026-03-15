@@ -59,6 +59,10 @@ class Sandbox:
         self.BUILD_ZONE_Y_MIN = 5.0  # Build zone y start (above objects)
         self.BUILD_ZONE_Y_MAX = 15.0  # Build zone y end
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 30.0))  # Maximum total structure mass (kg)
+        # Evaluation targets (single source of truth; evaluator reads these when present)
+        self.TARGET_OBJECT_Y = float(terrain_config.get("target_object_y", 3.5))
+        self.MIN_OBJECT_HEIGHT = float(terrain_config.get("min_object_height", 2.0))
+        self.MIN_SIMULATION_TIME = float(terrain_config.get("min_simulation_time", 1.34))
         
         # 4. Create objects to grasp
         self._create_objects(terrain_config)

@@ -58,6 +58,7 @@ class Evaluator:
             self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', 8.0)
             self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', 1.0)
             self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', 12.0)
+            self.lifting_threshold_m = getattr(environment, 'LIFTING_THRESHOLD_M', 0.5)
         except Exception as e:
             raise AttributeError(f"Environment missing required constants: {e}")
         
@@ -98,11 +99,11 @@ class Evaluator:
         if current_object_y > self.max_object_y_reached:
             self.max_object_y_reached = current_object_y
         
-        # Check if object is being lifted (y increased from initial position)
-        if current_object_y > self.initial_object_y + 0.5:
+        # Check if object is being lifted (y increased from initial position by at least lifting_threshold_m)
+        if current_object_y > self.initial_object_y + self.lifting_threshold_m:
             self.lifting_started = True
-        if self.max_object_y_reached > self.initial_object_y + 0.5:
-            self.lifting_started = True  # ever reached above initial + 0.5
+        if self.max_object_y_reached > self.initial_object_y + self.lifting_threshold_m:
+            self.lifting_started = True  # ever reached above initial + threshold
         # Only count sustain when object is at target height AND not falling (robust: no "sliding down" counting)
         obj_vel_y = 0.0
         if self.environment._object_to_lift:
@@ -159,7 +160,7 @@ class Evaluator:
             if not self.structure_broken:
                 structure_score = 30.0  # 30 points for maintaining structure
             # If object was never meaningfully lifted, do not reward structure (mutated tasks: harder scoring)
-            if self.max_object_y_reached < self.initial_object_y + 0.5:
+            if self.max_object_y_reached < self.initial_object_y + self.lifting_threshold_m:
                 structure_score = 0.0
             height_maintenance_score = min(self.steps_with_object_above_target / self.min_simulation_steps, 1.0) * 20.0  # Max 20 points for sustained height
             score = max(0.0, height_score + structure_score + height_maintenance_score)

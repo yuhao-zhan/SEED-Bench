@@ -17,6 +17,10 @@ class Evaluator:
         self.environment = environment
         
         self.target_height = float(terrain_bounds.get("target_height", 20.0))
+        self.fell_height_threshold = float(terrain_bounds.get("fell_height_threshold", 0.5))
+        wall_contact_x = terrain_bounds.get("wall_contact_x", [3.5, 7.5])
+        self.wall_contact_x_lo = float(wall_contact_x[0]) if len(wall_contact_x) >= 1 else 3.5
+        self.wall_contact_x_hi = float(wall_contact_x[1]) if len(wall_contact_x) >= 2 else 7.5
         self.min_simulation_time = 10.0 # seconds
         self.min_simulation_steps = int(self.min_simulation_time / TIME_STEP)
         
@@ -40,7 +44,9 @@ class Evaluator:
                 return True, 0.0, {
                     "failed": True,
                     "failure_reason": f"Design constraint violated: Total mass ({total_mass:.2f}kg) exceeds budget ({max_mass:.0f}kg)",
-                    "structure_mass": total_mass
+                    "structure_mass": total_mass,
+                    "build_zone_x_min": getattr(self.environment, 'BUILD_ZONE_X_MIN', 0.0),
+                    "build_zone_x_max": getattr(self.environment, 'BUILD_ZONE_X_MAX', 5.0),
                 }
             
             # Build Zone
@@ -52,7 +58,9 @@ class Evaluator:
                         "failed": True,
                         "failure_reason": f"Design constraint violated: Component at ({pos.x:.2f}, {pos.y:.2f}) is outside Build Zone",
                         "climber_x": pos.x,
-                        "climber_y": pos.y
+                        "climber_y": pos.y,
+                        "build_zone_x_min": getattr(self.environment, 'BUILD_ZONE_X_MIN', 0.0),
+                        "build_zone_x_max": getattr(self.environment, 'BUILD_ZONE_X_MAX', 5.0),
                     }
 
         # 2. Body Tracking
@@ -72,16 +80,15 @@ class Evaluator:
         failure_reason = None
         height_progress = 0.0
         
-        # Failure: Fell below ground level (safety margin)
-        if current_y < 0.5:
+        # Failure: Fell below ground level (threshold from terrain_bounds)
+        if current_y < self.fell_height_threshold:
             failed = True
-            failure_reason = "Climber fell: touched the ground (height < 0.5m)"
+            failure_reason = f"Climber fell: touched the ground (height < {self.fell_height_threshold}m)"
 
-        # Failure: Left the wall vicinity (x in [3.5, 7.5])
-        # Range tightened to reflect wall interaction (wall at x=5.0, oscillation amp 0.2-0.6m)
-        if not (3.5 <= current_x <= 7.5):
+        # Failure: Left the wall vicinity (band from terrain_bounds)
+        if not (self.wall_contact_x_lo <= current_x <= self.wall_contact_x_hi):
             failed = True
-            failure_reason = f"Climber lost wall contact: x={current_x:.2f}m (required x in [3.5, 7.5]m)"
+            failure_reason = f"Climber lost wall contact: x={current_x:.2f}m (required x in [{self.wall_contact_x_lo}, {self.wall_contact_x_hi}]m)"
 
         # NEW: Min Mass Check (usually checked at design time but evaluator should double check)
         min_mass = getattr(self.environment, 'MIN_STRUCTURE_MASS', 0.0)
@@ -116,7 +123,7 @@ class Evaluator:
             'height_gained': current_y - self.initial_y,
             'max_height_reached': self.max_y_reached,
             'min_height_seen': self.min_height_seen,
-            'climber_fell': self.min_height_seen < 0.5,
+            'climber_fell': self.min_height_seen < self.fell_height_threshold,
             'target_y': target_y,
             'progress': height_progress * 100.0,
             'success': success and not failed,
@@ -127,6 +134,10 @@ class Evaluator:
             'structure_mass': self.environment.get_structure_mass(),
             'max_structure_mass': getattr(self.environment, 'MAX_STRUCTURE_MASS', 50.0),
             'min_structure_mass': getattr(self.environment, 'MIN_STRUCTURE_MASS', 0.0),
+            'wall_contact_x_lo': self.wall_contact_x_lo,
+            'wall_contact_x_hi': self.wall_contact_x_hi,
+            'build_zone_x_min': getattr(self.environment, 'BUILD_ZONE_X_MIN', 0.0),
+            'build_zone_x_max': getattr(self.environment, 'BUILD_ZONE_X_MAX', 5.0),
         }
         
         return done, score, metrics

@@ -148,6 +148,8 @@ class TaskEvaluator:
         self.best_score = -1.0
         self.best_code = None
         self.best_metrics = {}
+        self._stop_reason = None   # 'success' | 'error_generating_code' | None (exhausted iterations)
+        self._stop_error = None    # exception message when stopped due to error
         
         if self.base_method == 'tree_of_thought':
             self.max_iterations = max_iterations
@@ -246,6 +248,8 @@ class TaskEvaluator:
                 if new_code:
                     current_code = new_code
             except Exception as e:
+                self._stop_reason = 'error_generating_code'
+                self._stop_error = str(e)
                 print(f"❌ Error generating code: {e}")
                 break
                 
@@ -297,9 +301,12 @@ class TaskEvaluator:
                 print(f"🎯 New best score: {score:.1f}/100")
             
             if success:
+                self._stop_reason = 'success'
                 print(f"✅ Task solved in {iteration} iterations!")
                 break
                 
+        if self._stop_reason is None and len(self.iteration_history) < self.max_iterations:
+            self._stop_reason = 'error_generating_code'
         return self._generate_report()
 
     def _generate_report(self):
@@ -315,6 +322,10 @@ class TaskEvaluator:
             'iterations': len(self.iteration_history),
             'history': self.iteration_history
         }
+        if self._stop_reason is not None:
+            report['stop_reason'] = self._stop_reason
+        if self._stop_error is not None:
+            report['stop_error'] = self._stop_error
         return report
 
     def print_report(self, report):

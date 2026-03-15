@@ -6,12 +6,6 @@ import os
 import json
 import sys
 
-# Add the tasks directory to sys.path to find primitives_api.py
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from primitives_api import API_INTRO
-import sys
-
-# Add tasks directory to path to import primitives_api
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from primitives_api import API_INTRO
 
@@ -31,7 +25,7 @@ Design a ground-based pusher vehicle that can move a heavy object across a high-
 
 ## Task Environment
 - **Ground**: A high-friction horizontal surface at y=1.0m.
-- **Heavy Object**: A rectangular block (approximately 50 kg) at x=8.0m.
+- **Heavy Object**: A rectangular block 1.0 m × 0.8 m (width × height), approximately 50 kg, at x=8.0m.
 - **Build Zone**: x=[0, 15], y=[1.5, 8]. All structure components must be placed within this zone.
 - **Target**: Push the object to at least x=18.0m (10 meters forward from starting x).
 
@@ -42,6 +36,7 @@ Design a ground-based pusher vehicle that can move a heavy object across a high-
 - **Build Zone**: All components must stay within x=[0, 15], y=[1.5, 8].
 - **Beam Dimensions**: 0.05 <= width, height <= 3.0 meters.
 - **Wheel Radius**: 0.05 <= radius <= 0.8 meters (for add_wheel).
+- **Motor torque**: Default maximum motor torque for pivot joints is 100 N·m (set_motor max_torque).
 - **Pivot Joint Angle Limits**: Radians in [-π, π] when using limits on pivot joints.
 - **Stability**: Pusher chassis tilt must stay within ±30° (π/6 rad); excess tilt is failure.
 - **Payload Support**: Object must remain on the platform; object center y below 0.5 m is failure.

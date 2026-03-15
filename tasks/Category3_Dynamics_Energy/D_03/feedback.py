@@ -5,7 +5,7 @@ Physics domain: Dynamics + time-window + phase matching (velocity profile, gate 
 impulse/damping zones). Feedback is derived only from the metrics dict returned by
 evaluator.evaluate(); no hardcoded thresholds; suggestions diagnose mechanism, never
 dictate implementation. Adapts to stage mutations (impulse, damping, gravity) via
-failure-reason and reported state only.
+failure_reason and reported state only.
 """
 from typing import Dict, Any, List
 import math
@@ -25,7 +25,8 @@ def _is_finite(x: Any) -> bool:
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
     Expose high-resolution physical metrics from evaluator output only.
-    No invented metrics; phase-segregated for dynamics (spatial, kinematic, termination).
+    No invented metrics. Phase-segregated for dynamics: outcome, spatial, kinematic, termination.
+    Reports only keys that exist in metrics (e.g. x, speed, success, failed, failure_reason).
     """
     parts: List[str] = []
 
@@ -38,7 +39,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             f"**Objective Success**: {'Yes' if metrics.get('success') else 'No'}"
         )
     if "failed" in metrics and metrics.get("failed"):
-        parts.append(f"**Run Failed**: True")
+        parts.append("**Run Failed**: True")
 
     # --- Phase 2: Spatial outcome (only if present and finite) ---
     if "x" in metrics:
@@ -46,9 +47,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if _is_finite(x):
             parts.append(f"**Final Vehicle Position (x)**: {float(x):.2f} m")
         else:
-            parts.append(
-                "**Final Vehicle Position (x)**: Non-finite (numerical instability detected)."
-            )
+            parts.append("**Final Vehicle Position (x)**: Non-finite")
 
     # --- Phase 3: Kinematic outcome (only if present and finite) ---
     if "speed" in metrics:
@@ -56,9 +55,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if _is_finite(s):
             parts.append(f"**Final Vehicle Speed**: {float(s):.2f} m/s")
         else:
-            parts.append(
-                "**Final Vehicle Speed**: Non-finite (numerical instability detected)."
-            )
+            parts.append("**Final Vehicle Speed**: Non-finite")
 
     # --- Phase 4: Termination reason (exactly as reported) ---
     if "failure_reason" in metrics and metrics.get("failure_reason"):
@@ -79,31 +76,19 @@ def get_improvement_suggestions(
 ) -> List[str]:
     """
     Diagnostic, process-aware suggestions. No hardcoded thresholds; no spoilers.
-    Uses only metrics and failure_reason/error; infers root-cause chain and
-    multi-objective trade-offs from the reported outcome.
+    Uses only metrics and failure_reason/error; infers root-cause (first violated constraint)
+    and multi-objective trade-offs from the reported outcome. Adapts to stage mutations
+    via the reported failure_reason text only.
     """
     suggestions: List[str] = []
     msg = (error or failure_reason or "").strip().lower()
     if not msg and not metrics:
         return suggestions
 
-    # Resolve canonical reason from metrics if not passed
+    # Resolve canonical reason from metrics if not passed (evaluator returns only x, speed, success, failed, failure_reason)
     reason = (failure_reason or metrics.get("failure_reason") or "").strip().lower()
-    x = metrics.get("x") if metrics else None
-    speed = metrics.get("speed") if metrics else None
-    has_finite_x = _is_finite(x)
-    has_finite_speed = _is_finite(speed)
 
-    # --- Physics engine / numerical sanity ---
-    if metrics and (not has_finite_x or not has_finite_speed):
-        if "x" in metrics or "speed" in metrics:
-            suggestions.append(
-                "- **Numerical Instability**: Simulation state became non-finite. "
-                "This can indicate extreme forces, stiffness, or timestep issues; consider constraining applied forces or structure layout."
-            )
-            return suggestions
-
-    # --- Design constraints (root cause: build-time violation) ---
+    # --- Design constraints (root cause: build-time violation; first check in evaluator) ---
     if "design constraint" in reason or "design constraint" in msg:
         if "beam count" in reason or "beam count" in msg:
             suggestions.append(
@@ -122,14 +107,6 @@ def get_improvement_suggestions(
             )
         return suggestions
 
-    # --- Structural integrity (root cause: joint/attachment failure) ---
-    if "structure broken" in reason or "structure broken" in msg:
-        suggestions.append(
-            "- **Structural Failure**: One or more attachments failed under load before the run completed. "
-            "Load path and joint stress under impulses and damping may need to be revisited."
-        )
-        return suggestions
-
     # --- Gate collision (root cause: phase / timing) ---
     if "gate collision" in reason or "gate collision" in msg:
         suggestions.append(
@@ -138,7 +115,7 @@ def get_improvement_suggestions(
         )
         return suggestions
 
-    # --- Velocity-profile checkpoints (root cause: momentum / energy at a specific x) ---
+    # --- Velocity-profile checkpoints (root cause: momentum / energy at a specific segment) ---
     if "speed trap" in reason or "speed trap" in msg:
         suggestions.append(
             "- **Velocity Profile (Early Segment)**: Speed was below the required minimum when first crossing the early measurement point. "
@@ -156,8 +133,8 @@ def get_improvement_suggestions(
     # --- Terminal conditions: multi-objective / root-cause distinction ---
     if "final speed out of band" in reason or "final speed out of band" in msg:
         suggestions.append(
-            "- **Terminal Velocity Band**: The run reached the target region but final speed was outside the required band. "
-            "Braking and damping near the end determine where speed lands; balance progress with energy dissipation in the final segment."
+            "- **Multi-Objective Trade-off**: The run reached the target region but final speed was outside the required band. "
+            "One objective (position) was met while another (terminal velocity) was violated; braking and damping in the final segment determine where speed lands—balance progress with energy dissipation."
         )
         return suggestions
 
@@ -175,10 +152,11 @@ def get_improvement_suggestions(
         )
         return suggestions
 
-    # --- Generic fallback (no spoilers) ---
+    # --- Generic fallback (no spoilers); reinforce root-cause interpretation ---
     if failed and not suggestions:
         suggestions.append(
-            "- **Diagnosis**: The run terminated without success. Use the reported position, speed, and termination reason above to infer which physical constraint or phase was violated, then adjust design or control strategy."
+            "- **Diagnosis**: The run terminated without success. The reported termination reason above indicates the first constraint violated in the evaluation sequence. "
+            "Use the reported position, speed, and reason to infer which physical phase (design, gate timing, velocity profile, or terminal band) was violated, then adjust design or control strategy."
         )
 
     return suggestions

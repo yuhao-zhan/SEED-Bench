@@ -27,18 +27,21 @@ You cannot use joints or any form of artificial bonding. The structure must rely
 - **Table**: A horizontal surface extending from x=-20 to x=0. The table edge is at x=0.
 - **Table Height**: The table surface is at y=0.0.
 - **Surface Properties**: Both the table and the blocks provide friction, which you must utilize to stabilize the stack.
+- **Table Friction**: Table friction coefficient is 0.8.
+- **Block Friction**: Block friction coefficient is 0.6.
 - **Goal**: Reach x >= 0.1m beyond the edge.
 - **Block Dimensions**: width <= 1.0m, height <= 0.2m.
-- **Spawn Rule**: Blocks must be initialized within the permitted build access zone (typically x < 0.0, but may be further restricted: x in [-10.0, 0.0]).
+- **Spawn Rule**: Blocks must be initialized within the permitted build access zone: x in [-10.0, 0.0].
 - **Block Count**: You are limited to a maximum of 100 blocks.
-- **Mass Budget**: Total structure mass must be less than 20000.0 units.
+- **Mass Budget**: Total structure mass must be less than or equal to 20000.0 units.
+- **Support Boundary**: If any part of the structure falls below y = -5.0 m, the structure is considered to have left the support and the task fails.
 - **Clearance**: Watch out for overhead obstacles (ceilings) in some regions. Current clearance y: 100.0m.
 """,
     
     'success_criteria': """
 ## Success Criteria
 1. **Static Stability**: The structure remains upright and relatively motionless for at least 10 seconds.
-2. **Reach**: The horizontal extent of any part of the stack exceeds the table edge (Tip reaches x > 0.1m).
+2. **Reach**: The horizontal extent of any part of the stack exceeds the table edge (Tip reaches x >= 0.1m).
 
 ## Design Constraints
 - **Primitive Limits**: Max block width = 1.0m, Max block height = 0.2m.

@@ -32,9 +32,10 @@ def generate_initial_gif():
     renderer = K01Renderer(simulator)
     print("Renderer initialized")
     
-    # Camera tracking (center on starting position)
+    # Camera tracking (center on starting position); target from terrain bounds (task target 25.0m)
     camera_offset_x = 0
-    target_x = 20.0  # Target position for visualization
+    terrain_bounds = environment.get_terrain_bounds()
+    target_x = terrain_bounds.get("target_x", 25.0)
     
     # Run simulation for a few seconds to show environment
     max_steps = 300  # 5 seconds at 60 FPS

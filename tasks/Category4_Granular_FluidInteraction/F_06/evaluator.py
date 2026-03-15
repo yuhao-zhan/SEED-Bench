@@ -33,7 +33,12 @@ class Evaluator:
         self.MIN_DELIVERY_RATIO = getattr(environment, 'MIN_DELIVERY_RATIO', 0.90)
         self.FORCE_BUDGET = getattr(environment, 'FORCE_BUDGET_PER_STEP', 12000.0)
         self.MAX_TIME_SECONDS = getattr(environment, 'MAX_TIME_SECONDS', 40.0)
-        self.MAX_STEPS = int(self.MAX_TIME_SECONDS * TARGET_FPS)
+        # Use environment.MAX_STEPS when set (e.g. from physics_config); else derive from time and FPS
+        self.MAX_STEPS = getattr(environment, 'MAX_STEPS', None)
+        if self.MAX_STEPS is None:
+            self.MAX_STEPS = int(self.MAX_TIME_SECONDS * TARGET_FPS)
+        else:
+            self.MAX_STEPS = int(self.MAX_STEPS)
 
     def evaluate(self, agent_body, step_count, max_steps):
         if not self.environment:

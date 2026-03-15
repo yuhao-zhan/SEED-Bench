@@ -17,14 +17,12 @@ class Evaluator:
         self.environment = environment
         
         self.target_distance = float(terrain_bounds.get("target_distance", 15.0))
+        self.initial_x = float(terrain_bounds.get("initial_x", 10.0))
         self.min_torso_height = 1.2 # Lowered from 1.5 to provide better margin from 2.0 start
         self.min_simulation_time = 15.0 # seconds
         self.min_simulation_steps = int(self.min_simulation_time / TIME_STEP)
-        
-        self.initial_x = 10.0
-        self.max_x_reached = 10.0
+        self.max_x_reached = self.initial_x
         self.min_torso_y = 2.0  # Starting torso height approx 2.0m
-        self.design_constraints_checked = False
 
     def evaluate(self, agent_body, step_count, max_steps):
         if not self.environment:
@@ -59,6 +57,20 @@ class Evaluator:
             failure_reason = (
                 failure_reason + "; " if failure_reason else ""
             ) + f"Design constraint violated: structure mass {structure_mass:.2f}kg exceeds budget {max_structure_mass:.1f}kg"
+
+        # Failure: Torso (main body) left the build zone. Use y_min = min_torso_height (1.2) so that
+        # "build zone" for torso aligns with stability (torso > 1.2); legs can extend to ground for traction.
+        build_zone = self.terrain_bounds.get("build_zone", {})
+        x_range = build_zone.get("x", [0.0, 50.0])
+        y_range = build_zone.get("y", [2.0, 10.0])
+        x_min, x_max = float(x_range[0]), float(x_range[1])
+        y_max = float(y_range[1])
+        y_min = self.min_torso_height  # Torso build zone: allow down to 1.2m (stability limit), not 2.0
+        if current_x < x_min or current_x > x_max or current_y < y_min or current_y > y_max:
+            failed = True
+            failure_reason = (
+                failure_reason + "; " if failure_reason else ""
+            ) + f"Build zone violated: torso at ({current_x:.2f}, {current_y:.2f}) is outside allowed region x=[{x_min}, {x_max}], y=[{y_min:.1f}, {y_max}]."
             
         # Success if reached target distance and survived minimum time
         distance_traveled = current_x - self.initial_x
@@ -77,6 +89,7 @@ class Evaluator:
             if step_count > 0:
                 score += (min(step_count, self.min_simulation_steps) / self.min_simulation_steps) * 30.0
                 
+        target_x = self.initial_x + self.target_distance
         metrics = {
             'walker_x': current_x,
             'walker_y': current_y,
@@ -91,6 +104,7 @@ class Evaluator:
             'min_simulation_steps_required': self.min_simulation_steps,
             'structure_mass': structure_mass,
             'max_structure_mass': max_structure_mass,
+            'target_x': target_x,
         }
         
         return done, score, metrics

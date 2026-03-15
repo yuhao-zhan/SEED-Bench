@@ -25,8 +25,8 @@ Design a static bridge to connect two cliffs. A vehicle will spawn on the left c
 - **Cliffs**: Two static platforms separated by a wide gap.
 - **Left Cliff**: Ends at x=10.0m, y=10.0m.
 - **Right Cliff**: Starts at x=25.0m, y=10.0m.
-- **Vehicle**: A motorized vehicle (mass: 2000.0 kg) will spawn on the left cliff and move right at a constant velocity of 5.0 m/s.
-- **Fail Zone**: A water surface exists at y=0m. If the vehicle or structural components fall into it, the task fails.
+- **Vehicle**: A motorized vehicle (mass: 2000.0 kg) will spawn on the left cliff at x=5.0 m, y=10.5 m and move right at a constant velocity of 5.0 m/s. Vehicle footprint: wheelbase 3.0 m, chassis 2.0 m × 0.5 m, wheel radius 0.4 m.
+- **Fail Zone**: A water surface exists at y=0m. The task fails if the vehicle or any structural component reaches or goes below y=0.5 m.
 - **Target**: The vehicle must fully cross the gap and reach at least x=30.0m on the right side.
 
 ## Task Objective
@@ -38,7 +38,7 @@ Design a stable bridge structure that can:
 
 ## Constraints (must satisfy)
 - **Mass Budget**: Total structure mass must be less than 2000 kg.
-- **Build Zone**: Structure must be built within x=[10, 25], y=[5, 15]. The deck surface may extend beyond these bounds to reach the target x=30.0m.
+- **Build Zone**: Structure must be built within x=[10, 30], y=[5, 15] (the upper x-bound is the target position so the deck can reach the goal).
 - **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters.
 - **Traction**: The deck surface must provide a minimum friction coefficient of 0.5 for the vehicle's wheels to roll without excessive slipping.
 - **Joint Strength**: Maximum linear force for structural joints is 80.0; maximum torque is 300.0.
@@ -50,7 +50,7 @@ Design a stable bridge structure that can:
 1. **Passage**: Vehicle reaches x >= 30.0m.
 2. **Integrity**: No structural breaks (all joints must remain intact during the crossing).
 3. **Smoothness**: The vehicle's vertical acceleration must remain < 19.6 m/s² (2.0g).
-4. **Stability**: The vehicle's angular velocity must remain < 2.0 rad/s and net airborne rotation must not exceed 180 degrees.
+4. **Stability**: The vehicle's angular velocity must remain < 2.0 rad/s and net airborne rotation must not exceed 180 degrees. Stability is evaluated after simulation step 200; 5 consecutive steps with angular velocity ≥ 2.0 rad/s result in failure. The vehicle is considered **airborne** when its center is more than 0.5 m above the cliff top (y > 10.5 m); the 180° limit applies to rotation accumulated only while in that state.
 
 ## Design Constraints
 - **Mass Budget**: < 2000 kg.

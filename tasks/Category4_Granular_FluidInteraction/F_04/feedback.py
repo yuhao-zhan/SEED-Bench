@@ -22,6 +22,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
     Expose high-resolution physical metrics from the Evaluator metrics dict only.
     No invented metrics. Includes constraint margins and phase segregation when data exists.
+    All limits (max_structure_mass, max_beams, min_purity_percent) come from metrics for stage-mutation adaptability.
     """
     parts = []
 
@@ -33,7 +34,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             parts.append(f"- Violation: {v}")
         return parts
 
-    # 1. Structural Design & Constraints (with margin proximity)
+    # 1. Structural Design & Constraints (with margin proximity from metrics only)
     if "structure_mass" in metrics or "beam_count" in metrics:
         parts.append("### 1. Structural Design & Constraints")
         max_mass = metrics.get("max_structure_mass")
@@ -66,7 +67,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if "joint_count" in metrics:
             parts.append(f"- Joint Count: {metrics['joint_count']} connections")
 
-    # 2. Sorting Performance & Phase-Specific Segregation
+    # 2. Sorting Performance & Phase-Specific Segregation (all from metrics)
     if "purity_percent" in metrics or "initial_particle_count" in metrics:
         parts.append("\n### 2. Sorting Performance (Phase-Specific)")
         min_pct = metrics.get("min_purity_percent")
@@ -81,8 +82,16 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
                 else:
                     parts.append(f"- Purity Margin: {abs(shortfall):.1f} percentage points above target")
 
-        if "initial_particle_count" in metrics:
-            parts.append(f"- Total Particles Fed: {metrics['initial_particle_count']}")
+        initial_total = metrics.get("initial_particle_count")
+        if initial_total is not None and initial_total > 0:
+            parts.append(f"- Total Particles Fed: {initial_total}")
+            # Derived routing summary (only from existing metrics)
+            s_ok = metrics.get("small_in_small_zone", 0) or 0
+            m_ok = metrics.get("medium_in_medium_zone", 0) or 0
+            l_ok = metrics.get("large_in_large_zone", 0) or 0
+            correct = s_ok + m_ok + l_ok
+            in_transit_or_misrouted = initial_total - correct
+            parts.append(f"- Correctly Placed: {correct} / {initial_total}; In transit or misrouted: {in_transit_or_misrouted}")
 
         # Phase segregation: correctly sorted per size class
         if any(k in metrics for k in ("small_in_small_zone", "medium_in_medium_zone", "large_in_large_zone")):
@@ -121,18 +130,6 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if "contaminated" in metrics:
             parts.append(f"- Any contamination (zero-tolerance): {'Yes' if metrics['contaminated'] else 'No'}")
 
-    # 4. Numerical sanity (only if we have numeric metrics)
-    numerics = ["structure_mass", "purity_percent", "classification_purity"]
-    if any(k in metrics for k in numerics):
-        non_finite = []
-        for k in numerics:
-            v = metrics.get(k)
-            if v is not None and not _is_finite(v):
-                non_finite.append(k)
-        if non_finite:
-            parts.append("\n### 4. Numerical Stability")
-            parts.append(f"- Non-finite or invalid values detected in: {', '.join(non_finite)}. Simulation state may be unstable.")
-
     return parts
 
 
@@ -145,18 +142,11 @@ def get_improvement_suggestions(
     error: str = None,
 ) -> List[str]:
     """
-    Diagnostic suggestions only. No spoilers: describe the physical/systemic problem,
+    Diagnostic suggestions only. No spoilers: describe the physical or systemic failure,
     never dictate exact design or code. All thresholds from metrics (stage-mutation safe).
     """
     suggestions = []
     reason = ((error or "") + " " + (failure_reason or "")).lower()
-
-    # Physics engine / numerical instability
-    for key in ("structure_mass", "purity_percent", "classification_purity"):
-        v = metrics.get(key)
-        if v is not None and not _is_finite(v):
-            suggestions.append("Diagnostic: Numerical instability detected in simulation outputs. Check for extreme forces or invalid state that could cause non-finite values.")
-            break
 
     # Design constraint violations (build phase) — root-cause: constraint violated before run
     if "design constraint" in reason or (error and "constraint" in error.lower()):
@@ -170,56 +160,55 @@ def get_improvement_suggestions(
             for v in violations:
                 v_lower = v.lower()
                 if "mass" in v_lower and max_mass is not None:
-                    suggestions.append("Diagnostic: Structural mass exceeds the allowed budget for this environment. The design must achieve separation performance within a stricter mass limit.")
+                    suggestions.append("Diagnostic: Structural mass exceeds the allowed budget for this environment.")
                     break
                 if "beam" in v_lower and max_beams is not None:
-                    suggestions.append("Diagnostic: Component count exceeds the allowed beam limit. Fewer, more effective structural elements are required.")
+                    suggestions.append("Diagnostic: Component count exceeds the allowed beam limit for this environment.")
                     break
                 if "build zone" in v_lower or "outside" in v_lower:
                     suggestions.append("Diagnostic: At least one component lies outside the permitted build zone. All structure must be contained within the designated construction bounds.")
                     break
         else:
-            if mass is not None and max_mass is not None and mass > max_mass:
-                suggestions.append("Diagnostic: Structural mass exceeds the allowed budget for this environment. The design must achieve separation performance within a stricter mass limit.")
+            if mass is not None and max_mass is not None and _is_finite(mass) and mass > max_mass:
+                suggestions.append("Diagnostic: Structural mass exceeds the allowed budget for this environment.")
             if beam_count is not None and max_beams is not None and beam_count > max_beams:
-                suggestions.append("Diagnostic: Component count exceeds the allowed beam limit. Fewer, more effective structural elements are required.")
+                suggestions.append("Diagnostic: Component count exceeds the allowed beam limit for this environment.")
             if "build zone" in reason or "outside" in reason:
                 suggestions.append("Diagnostic: At least one component lies outside the permitted build zone. All structure must be contained within the designated construction bounds.")
 
         return suggestions
 
-    # Runtime failure: multi-objective and root-cause
     if failed:
         structure_broken = metrics.get("structure_broken", False)
-        min_purity = metrics.get("min_purity")
+        min_purity = metrics.get("min_purity")  # from metrics (stage-mutable)
         purity = metrics.get("classification_purity")
-        purity_ok = purity is not None and min_purity is not None and purity >= min_purity
+        purity_ok = purity is not None and min_purity is not None and _is_finite(purity) and purity >= min_purity
         integrity_ok = not structure_broken
 
-        # Multi-objective trade-off: one objective met, the other severely failed
         if purity_ok and not integrity_ok:
-            suggestions.append("Diagnostic: Sorting purity met the target, but structural integrity was lost during the run. Load or environmental forces may have exceeded what the current geometry can sustain.")
+            suggestions.append("Diagnostic: Sorting purity met the target, but structural integrity was lost during the run. Load or environmental forces exceeded what the geometry could sustain.")
         elif integrity_ok and not purity_ok:
-            suggestions.append("Diagnostic: Structure remained intact, but sorting purity fell below the required threshold. Particle routing or size separation is insufficient for the current flow and environment.")
+            suggestions.append("Diagnostic: Structure remained intact, but sorting purity fell below the required threshold. Separation performance is insufficient for the current flow and environment.")
         elif not purity_ok and not integrity_ok:
-            # Root-cause chain: which failed first is not in metrics; suggest both
-            suggestions.append("Diagnostic: Both structural integrity and sorting purity failed. Structural failure (e.g. joint breakage under load) can alter the effective sieve geometry and thus purity; consider whether integrity must be addressed first.")
+            suggestions.append("Diagnostic: Both structural integrity and sorting purity failed. Structural failure (e.g. joint breakage) can alter the effective geometry and thus measured purity.")
 
         # Purity-specific diagnostics (no spoilers)
-        if "purity" in reason or (purity is not None and min_purity is not None and purity < min_purity):
-            suggestions.append("Diagnostic: Separation performance is below the required purity. Particle flow and size-dependent routing (apertures, barriers, or active forcing) may be misaligned with the target zones.")
-
+        purity_below = purity is not None and min_purity is not None and _is_finite(purity) and purity < min_purity
+        if purity_below:
             large_in_small = metrics.get("large_in_small_zone", 0) or 0
             large_in_band = metrics.get("large_in_sieve_band", 0) or 0
             if large_in_small > 0 or large_in_band > 0:
-                suggestions.append("Diagnostic: Coarse material is reaching regions intended for smaller fractions. The boundary between coarse and fine pathways may be too permissive or poorly oriented.")
-
+                suggestions.append("Diagnostic: Coarse material is reaching regions intended for smaller fractions; separation between size classes is failing.")
             small_above = metrics.get("small_above_sieve", 0) or 0
             small_in_band = metrics.get("small_in_sieve_band", 0) or 0
             if small_above > 0 or small_in_band > 0:
-                suggestions.append("Diagnostic: Fine material is being retained or diverted away from the bottom zone. Downward passage or active assistance for small particles may be insufficient.")
+                suggestions.append("Diagnostic: Fine material is not reaching the bottom zone; downward flow or retention in upper regions indicates a systemic routing failure for small particles.")
+
+        # Contamination (zero-tolerance): diagnostic without spoiling design
+        if metrics.get("contaminated", False):
+            suggestions.append("Diagnostic: Cross-zone contamination occurred (zero tolerance). Material is crossing the intended zone boundaries.")
 
         if structure_broken:
-            suggestions.append("Diagnostic: Structural integrity was lost (e.g. joints or connections failed). The filter geometry may be overstressed by dead load, particle impact, or environmental forces.")
+            suggestions.append("Diagnostic: Structural integrity was lost (e.g. joints or connections failed). The geometry was overstressed by dead load, particle impact, or environmental forces.")
 
     return suggestions

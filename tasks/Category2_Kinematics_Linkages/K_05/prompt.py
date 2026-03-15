@@ -30,10 +30,11 @@ TASK_PROMPT = {
 Design a scissor lift mechanism that can lift objects vertically using motor rotation or linear forces.
 
 ## Task Environment
-- **Ground**: A flat horizontal surface at y=1.0m.
-- **Target Object**: A 20 kg block resting at y=1.8m.
+- **Ground**: A flat horizontal surface at y=1.0m (friction coefficient 0.8).
+- **Target Object**: A 20 kg block (0.6 m × 0.4 m, width × height), friction coefficient 0.6, resting at x=4.0m, y=1.8m.
 - **Target Height**: Lift the object so its center reaches at least y=9.0m.
 - **Build Zone**: x=[0, 8], y=[1, 12]. All structure components must be placed within this zone.
+- **Ceiling**: None (no vertical obstacle).
 
 ## Constraints (must satisfy)
 - **Vertical Lift**: Object center reaches y >= 9.0m.
@@ -41,6 +42,11 @@ Design a scissor lift mechanism that can lift objects vertically using motor rot
 - **Mass Budget**: Total structure mass must be less than 60 kg.
 - **Build Zone**: All components must stay within x=[0, 8], y=[1, 12].
 - **Beam Dimensions**: 0.05 <= width, height <= 4.0 meters.
+- **Joint Angle Limits**: Pivot joint angle limits (when used) are clamped to [-π, π] radians.
+- **Slider Translation**: Prismatic (slider) joints have default translation range ±10 m along the axis if not specified.
+- **Motor limits**: Default maximum torque for pivot (revolute) motors is 100 N·m and default maximum force for slider (prismatic) motors is 100 N if not specified when calling `set_motor` or `set_slider_motor`.
+- **Joint reaction limit**: Structural joints do not break under reaction force in the base environment.
+- **Lifting threshold**: For failure detection, the object is considered "lifted" only when its center rises at least 0.5 m above its initial height (y=1.8 m).
 
 ## Instructions
 1. **Design**: Create a scissor lift or telescoping mechanism.

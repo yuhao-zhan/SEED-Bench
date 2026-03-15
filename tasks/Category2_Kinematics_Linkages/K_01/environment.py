@@ -85,7 +85,7 @@ class Sandbox:
         This is just for visualization - the solver must build their own walker.
         """
         spawn_x = 10.0
-        spawn_y = 3.0  # Above ground
+        spawn_y = 2.0  # Match prompt: "Starting Position ... y=2.0m"
         
         # Simple torso (small box) - just for visualization
         torso_width = 0.5
@@ -124,8 +124,15 @@ class Sandbox:
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
         """
         API: Add a beam (rigid rectangular structural element)
-        Constraint: 0.05 <= width, height <= 5.0
+        Constraint: 0.05 <= width, height <= 5.0; position must be within build zone x=[0, 50], y=[2, 10].
         """
+        # Validate build zone (placement constraint)
+        if not (self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX and self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
+            raise ValueError(
+                f"add_beam: position ({x}, {y}) is outside the build zone "
+                f"x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]. "
+                "All components must be placed within this zone."
+            )
         # Validate constraints
         width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_SIZE))
         height = max(self.MIN_BEAM_SIZE, min(height, self.MAX_BEAM_SIZE))
@@ -147,8 +154,15 @@ class Sandbox:
     def add_wheel(self, x, y, radius=0.2, density=0.6):
         """
         API: Add a wheel (circular rigid body). Attach with add_joint(..., type='pivot') and drive with set_motor.
-        Constraint: 0.05 <= radius <= 0.8
+        Constraint: 0.05 <= radius <= 0.8; position must be within build zone x=[0, 50], y=[2, 10].
         """
+        # Validate build zone (placement constraint)
+        if not (self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX and self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
+            raise ValueError(
+                f"add_wheel: position ({x}, {y}) is outside the build zone "
+                f"x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]. "
+                "All components must be placed within this zone."
+            )
         radius = max(self.MIN_WHEEL_RADIUS, min(radius, self.MAX_WHEEL_RADIUS))
         body = self._world.CreateDynamicBody(
             position=(x, y),
@@ -268,14 +282,18 @@ class Sandbox:
         self._world.Step(time_step, 10, 10)
     
     def get_terrain_bounds(self):
-        """Get terrain bounds (for evaluation). Includes target_distance for evaluator consistency."""
+        """Get terrain bounds (for evaluation and renderer). Includes target_distance and initial_x."""
+        initial_x = float(self._terrain_config.get("initial_x", 10.0))
+        target_distance = float(self._terrain_config.get("target_distance", 15.0))
         return {
             "ground": {"y": self._ground_y},
             "build_zone": {
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]
             },
-            "target_distance": float(self._terrain_config.get("target_distance", 15.0)),
+            "target_distance": target_distance,
+            "initial_x": initial_x,
+            "target_x": initial_x + target_distance,
         }
     
     def get_walker_position(self):

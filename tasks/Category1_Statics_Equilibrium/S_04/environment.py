@@ -10,7 +10,6 @@ class DaVinciSandbox:
     """DaVinci Sandbox environment wrapper for S-04: The Balancer"""
     
     MIN_BEAM_SIZE = 0.1
-    MAX_BEAM_SIZE = 10.0
     MAX_BEAM_WIDTH = 7.0
     MAX_BEAM_HEIGHT = 2.0
     PIVOT_POSITION = (0.0, 5.0)
@@ -18,6 +17,7 @@ class DaVinciSandbox:
     LOAD_MASS = 200.0
     MAX_ANGLE_DEVIATION = 10.0 * math.pi / 180.0
     BALANCE_TIME = 15.0
+    GROUND_Y_FAILURE = -5.0
     
     def __init__(self, *, terrain_config=None, physics_config=None):
         terrain_config = terrain_config or {}
@@ -39,6 +39,7 @@ class DaVinciSandbox:
         
         self.MAX_ANGLE_DEVIATION = terrain_config.get("max_angle_deviation_deg", 10.0) * math.pi / 180.0
         self.BALANCE_TIME = float(terrain_config.get("balance_time", 15.0))
+        self.GROUND_Y_FAILURE = float(terrain_config.get("ground_y_failure", -5.0))
         
         self.world = self._world
         self.bodies = self._bodies
@@ -53,6 +54,7 @@ class DaVinciSandbox:
         self._obstacle_amplitude = terrain_config.get("obstacle_amplitude", 2.0)
         self._obstacle_frequency = terrain_config.get("obstacle_frequency", 0.5)
         self._step_timer = 0.0
+        self._last_time_step = 1.0 / 60.0  # Default; updated in step() so evaluator uses actual sim dt
 
         self._fragile_joints = terrain_config.get("fragile_joints", False)
         self._max_joint_torque = float(terrain_config.get("max_joint_torque", 1000.0))
@@ -124,9 +126,11 @@ class DaVinciSandbox:
                 )
             )
             self._load_attached = True
+            self._load_caught_by_structure = False  # True once structure catches dropped load
             self._terrain_bodies["load"] = self._load_body
 
     def step(self, time_step):
+        self._last_time_step = time_step  # Expose for evaluator so balance_duration uses actual sim dt
         if not self._initial_disturbance_applied:
             for body in self._bodies:
                 body.angularVelocity = 0
@@ -198,6 +202,24 @@ class DaVinciSandbox:
 
         self._world.Step(time_step, 60, 60)
         self._step_timer += time_step
+        
+        # Drop-load: catch when load gets within range of any structure body (weld = caught)
+        if self._drop_load and self._load_body and not getattr(self, "_load_caught_by_structure", False) and self._bodies:
+            lx, ly = self._load_body.position.x, self._load_body.position.y
+            for body in self._bodies:
+                dx = body.position.x - lx
+                dy = body.position.y - ly
+                if math.sqrt(dx * dx + dy * dy) < 0.6:
+                    ax, ay = (lx + body.position.x) / 2.0, (ly + body.position.y) / 2.0
+                    self._world.CreateWeldJoint(
+                        bodyA=body,
+                        bodyB=self._load_body,
+                        anchor=(ax, ay),
+                        collideConnected=False,
+                    )
+                    self._load_caught_by_structure = True
+                    self._joints.append(self._world.joints[-1])
+                    break
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0, friction=None):
         width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_WIDTH))
@@ -239,9 +261,10 @@ class DaVinciSandbox:
         return self._bodies[0].angle if self._bodies else 0.0
 
     def get_terrain_bounds(self):
+        load_pos = (3.0, self.PIVOT_Y + 4.0) if self._drop_load else self.LOAD_POSITION
         return {
             "pivot": (self.PIVOT_X, self.PIVOT_Y),
-            "load_position": self.LOAD_POSITION,
+            "load_position": load_pos,
             "max_angle_deviation": self.MAX_ANGLE_DEVIATION * 180 / math.pi,
             "max_beam_width": self.MAX_BEAM_WIDTH,
             "max_beam_height": self.MAX_BEAM_HEIGHT,

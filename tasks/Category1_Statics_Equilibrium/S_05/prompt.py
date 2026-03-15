@@ -25,7 +25,9 @@ Boulders will spawn above the core, mostly targeting the center, but some will f
 ## Task Environment
 - **Core**: A circular object centered at (10.0, 1.0). It fails if any single impact force exceeds 150 N (its structural tolerance).
 - **Ground**: A static surface at y=0.0. Your shelter must be supported by the ground outside the designated keep-out zone.
-- **Boulders**: Boulders fall from a high altitude (y=15m). They target the build zone broadly. You must design a structure to deflect or absorb these impacts.
+- **Lateral boundaries**: The scene has no lateral containment walls; the build zone is open at the sides.
+- **Boulders**: Boulders fall from a high altitude (y=15m). They target the build zone broadly. In the nominal mission, 12 boulders spawn (one every 30 simulation steps). Success is evaluated only after the simulation has run at least 1000 steps and the full bombardment sequence has completed (i.e. at least meteor_count × spawn_interval steps, whichever is larger). You must design a structure to deflect or absorb these impacts.
+- **Build Zone**: Structure must be built within x=[5, 15] m and y=[0, 8] m (beam centers and joint anchors must lie inside this region).
 - **Beam Dimensions**: 0.1 <= width, height <= 10.0 m.
 - **Joint Limits**: Joints and anchors have maximum linear force 1e12 N and maximum torque 1e12 Nm in the nominal mission; these limits may be restricted in mission variants. 
 
@@ -37,8 +39,9 @@ Design a shelter structure that:
 4. Complies with the mission's mass budget and height restrictions.
 
 ## Constraints (must satisfy)
+- **Build Zone**: All beam centers and joint anchors must lie within x=[5, 15] m, y=[0, 8] m.
 - **Keep-Out Zone**: You cannot build any structural components within 1.3m of the core center (10.0, 1.0).
-- **Height Limit**: No part of the shelter may extend above y=7.5m.
+- **Height Limit**: No beam center may be above y=7.5m.
 - **Mass Budget**: Total structure mass must be less than 300 kg.
 - **Structural Integrity**: The shelter must remain standing throughout the bombardment. Structural collapse is defined as any beam center falling below y=0.3 m. Joints may break if force or torque exceeds their limits.
 """,
@@ -49,9 +52,11 @@ Design a shelter structure that:
 2. **Stability**: The shelter does not collapse (no beam center below y=0.3 m) under its own weight or the weight of the debris.
 
 ## Design Constraints
+- **Build Zone**: Beam centers and joint anchors within x=[5, 15] m, y=[0, 8] m.
+- **Lateral boundaries**: The scene has no lateral containment walls.
 - **Keep-Out Zone**: Beam center distance to (10.0, 1.0) must be >= 1.3m.
 - **Mass Budget**: < 300 kg.
-- **Height Limit**: No part of the shelter may extend above y=7.5m.
+- **Height Limit**: No beam center may be above y=7.5m.
 - **Core Force**: Peak force on core < 150 N.
 - **APIs**: Use only the primitives documented below.
 """,

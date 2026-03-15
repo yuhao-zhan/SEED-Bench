@@ -42,6 +42,7 @@ class K03Renderer(Renderer):
         return (int(screen_x), int(screen_y))
 
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
+        # target_x: for K-03 this is the y-coordinate of the target line (evaluator.target_x alias for API compatibility)
         ppm = self.simulator.ppm
         sw = self.simulator.screen_width
         sh = self.simulator.screen_height

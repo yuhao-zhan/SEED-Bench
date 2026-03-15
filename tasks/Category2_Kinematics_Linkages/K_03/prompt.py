@@ -26,14 +26,17 @@ Design a robotic gripper attached to a gantry that can grasp an object on a plat
 
 ## Task Environment
 - **Gantry**: A static support at y=10.0m. Use `get_anchor_for_gripper()` to anchor your base.
-- **Target Object**: An object at x=5.0m, y=2.0m (on a platform at y=1.8m).
+- **Target Object**: An object of mass 1.0 kg with surface friction coefficient 0.6 at x=5.0m, y=2.0m (on a platform at y=1.8m; platform surface friction coefficient 0.25).
 - **Target Height**: Lift the object so its center reaches at least y=3.5m.
-- **Build Zone**: x=[0, 10], y=[5, 15]. The gripper base must be anchored to the gantry.
+- **Build Zone**: x=[0, 10], y=[5, 15]. The gripper base must be anchored to the gantry. Ground surface friction 0.8.
 
 ## Constraints (must satisfy)
 - **Object Hold**: The object must be held above y=3.5m for at least 1.34 seconds (approx. 80 steps).
 - **Mass Budget**: Total gripper structure mass must be less than 30 kg.
 - **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters.
+- **Revolute joint angle limits**: Lower/upper angle limits must be in [-π, π] radians if specified.
+- **Pivot motor**: Default maximum torque 100 N·m (revolute joints).
+- **Slider motor**: Default maximum force 5000 N (prismatic joints). Slider vertical travel: 0 to 8 m (lower_translation to upper_translation).
 
 ## Instructions
 1. **Anchor**: Weld your gripper base to the gantry anchor.

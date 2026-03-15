@@ -22,7 +22,7 @@ TASK_PROMPT = {
 Design a control strategy to pump a swing seat to reach a target zone.
 
 ## Task Environment
-- **Swing Seat**: A heavy body attached to a fixed pivot at (10, 10) m.
+- **Swing Seat**: A heavy body attached to a fixed pivot at (10, 10) m by a cable of length 4 m (seat vertical range: 6 m to 14 m).
 - **Wind**: Environmental wind forces may act on the seat.
 - **Target Zone**: y >= 11.7 m, x in [9.35, 10.65] m.
 - **Build Zone**: Any structure (e.g. beams) must be placed within x in [6, 14] m, y in [4, 10] m.
@@ -41,7 +41,9 @@ Design a controller that:
 ## Design Constraints
 - **Mass Budget**: Total structure mass must be less than 100 kg.
 - **Build Zone**: Structure must be built within x = [6, 14] m, y = [4, 10] m.
+- **Beam Size**: Each beam dimension (width, height) is clamped to [0.1, 3.0] m.
 - **Pump Force**: |fx|, |fy| <= 42 N per step.
+- **Impulse Limit**: Applied impulse (e.g. via apply_impulse_to_seat) is clamped per component; effective limit is 4.2 N·s per axis.
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['D_04'].values()),

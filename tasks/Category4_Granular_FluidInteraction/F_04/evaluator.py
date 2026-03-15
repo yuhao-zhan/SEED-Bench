@@ -1,6 +1,6 @@
 """
 F-04: The Filter task evaluation module (feedback-driven variant)
-Three-way separation: small / medium / large. Zone boundaries not given; infer from feedback.
+Three-way separation: small / medium / large. Zone boundaries and constraints are stated in the task prompt.
 Failure: purity < MIN_PURITY, structure broken.
 """
 import sys

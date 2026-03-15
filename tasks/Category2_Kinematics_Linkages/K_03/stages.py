@@ -14,17 +14,45 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     
     target_shape = target_obj.get("shape", "box")
     base_shape = base_obj.get("shape", "box")
+    target_mass = float(target_obj.get("mass", 1.0))
+    base_mass = float(base_obj.get("mass", 1.0))
+    target_friction = float(target_obj.get("friction", 0.6))
+    base_friction = float(base_obj.get("friction", 0.6))
     
     if target_shape != base_shape:
-        # Update Target Object description
-        pattern = r"(- \*\*Target Object\*\*: An object)( at x=5.0m, y=2.0m \(on a platform at y=1.8m\)\.)"
+        # Update Target Object description (shape); prompt line includes "of mass X kg" and optional platform friction
+        pattern = r"(- \*\*Target Object\*\*: An object)( of mass \d+\.?\d* kg with surface friction coefficient \d+\.?\d* at x=5\.0m, y=2\.0m \(on a platform at y=1\.8m)(; platform surface friction coefficient 0\.25)?\)\."
         if re.search(pattern, description):
             shape_name = "a circular disk" if target_shape == "circle" else "a triangular block" if target_shape == "triangle" else "a rectangular block"
-            orig_name = "a rectangular block" if base_shape == "box" else "a circular disk"
+            orig_name = "a rectangular block" if base_shape == "box" else "a triangular block" if base_shape == "triangle" else "a circular disk"
             description = re.sub(
                 pattern,
-                lambda m: f"- **Target Object**: {shape_name} (originally {orig_name} in the source environment){m.group(2)}",
+                lambda m: f"- **Target Object**: {shape_name} (originally {orig_name} in the source environment){m.group(2)}{m.group(3) or ''}).",
                 description
+            )
+    
+    if target_mass != base_mass:
+        # Update object mass with format [new_value] (originally [old_value] in the source environment)
+        # Only match the first "of mass X kg" not the one inside "(originally X kg ...)"
+        mass_pattern = r"(of mass )(\d+\.?\d*)( kg)(?! \()"
+        if re.search(mass_pattern, description):
+            description = re.sub(
+                mass_pattern,
+                lambda m: f"{m.group(1)}{target_mass}{m.group(3)} (originally {m.group(2)} kg in the source environment)",
+                description,
+                count=1,
+            )
+    
+    if target_friction != base_friction:
+        # Update object friction with format [new_value] (originally [old_value] in the source environment)
+        # Capture full position suffix including optional platform friction so output is not truncated
+        friction_pattern = r"(with surface friction coefficient )(\d+\.?\d*)( at x=5\.0m, y=2\.0m \(on a platform at y=1\.8m)(; platform surface friction coefficient 0\.25)?\)\."
+        if re.search(friction_pattern, description):
+            description = re.sub(
+                friction_pattern,
+                lambda m: f"{m.group(1)}{target_friction} (originally {m.group(2)} in the source environment){m.group(3)}{m.group(4) or ''}).",
+                description,
+                count=1,
             )
             
     return description
@@ -38,6 +66,7 @@ def get_k03_curriculum_stages():
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Target object shape**: The geometry of the payload (e.g., rectangular, circular, or triangular).
  - **Object surface friction**: The slipperiness of the payload.
  - **Gravitational acceleration**: The strength of the vertical gravitational force.
  - **Object mass**: The weight of the target payload.

@@ -45,7 +45,12 @@ class DaVinciSandbox:
         
         # Table Angle
         self._table_angle = terrain_config.get("table_angle", 0.0)
-        self._wind_force = physics_config.get("wind_force", 0.0)
+        # Wind: accept scalar (x only) or tuple (x, y) for ApplyForceToCenter
+        wf = physics_config.get("wind_force", 0.0)
+        if isinstance(wf, (tuple, list)) and len(wf) >= 2:
+            self._wind_force = (float(wf[0]), float(wf[1]))
+        else:
+            self._wind_force = (float(wf), 0.0)
 
         self._create_terrain(terrain_config)
 
@@ -79,17 +84,16 @@ class DaVinciSandbox:
             )
         self._terrain_bodies["table"] = table
 
-        # Optional Ceiling
-        if "ceiling_y" in terrain_config:
-            cy = terrain_config["ceiling_y"]
-            ceiling = self._world.CreateStaticBody(
-                position=(0, cy + 0.5), 
-                fixtures=Box2D.b2FixtureDef(
-                    shape=polygonShape(box=(20.0, 0.5)),
-                    friction=0.2,
-                ),
-            )
-            self._terrain_bodies["ceiling"] = ceiling
+        # Ceiling (default y=100.0 so prompt and evaluator stay aligned)
+        cy = terrain_config.get("ceiling_y", 100.0)
+        ceiling = self._world.CreateStaticBody(
+            position=(0, cy + 0.5),
+            fixtures=Box2D.b2FixtureDef(
+                shape=polygonShape(box=(20.0, 0.5)),
+                friction=0.2,
+            ),
+        )
+        self._terrain_bodies["ceiling"] = ceiling
 
     def add_block(self, x, y, width, height, angle=0, density=None):
         """API: Add a block for the overhang structure."""
@@ -125,21 +129,20 @@ class DaVinciSandbox:
             vx = self._osc_amplitude * self._osc_frequency * math.cos(self._osc_frequency * self._timer)
             self._terrain_bodies["table"].linearVelocity = (vx, 0)
         
-        if self._wind_force != 0:
+        if self._wind_force[0] != 0 or self._wind_force[1] != 0:
             for body in self._bodies:
-                body.ApplyForceToCenter((self._wind_force, 0), True)
+                body.ApplyForceToCenter(self._wind_force, True)
             
         self._world.Step(time_step, 10, 10)
 
     def get_terrain_bounds(self):
         bounds = {
-            "table": {"x": [-10.0, 0.0], "angle": self._table_angle},
+            "table": {"x": [-20.0, 0.0], "angle": self._table_angle},
             "edge_x": 0.0,
             "max_block_length": self.MAX_BLOCK_LENGTH,
             "max_block_height": self.MAX_BLOCK_HEIGHT,
             "max_block_count": self.MAX_BLOCK_COUNT,
-            "spawn_zone": self._terrain_config.get("spawn_zone", [-10.0, 0.0])
+            "spawn_zone": self._terrain_config.get("spawn_zone", [-10.0, 0.0]),
+            "ceiling_y": self._terrain_config.get("ceiling_y", 100.0),
         }
-        if "ceiling_y" in self._terrain_config:
-            bounds["ceiling_y"] = self._terrain_config["ceiling_y"]
         return bounds

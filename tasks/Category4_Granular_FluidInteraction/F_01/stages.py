@@ -16,42 +16,81 @@ import re
 def update_task_description_for_visible_changes(
     base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
-    """Update task description for visible changes."""
+    """
+    Update task description for visible changes using format:
+    [new_value] (originally [old_value] in the source environment).
+
+    IMPORTANT: base_terrain_config must be the pristine/source environment (empty or default).
+    If base_terrain_config is another stage's config (e.g. in cross-mutated evaluation),
+    the phrase "originally ... in the source environment" will be misleading.
+    """
     description = base_description
-    
-    # Leakage rate (success criteria often in description too)
-    target_leakage = target_terrain_config.get("max_leakage_rate", 0.001)
-    base_leakage = base_terrain_config.get("max_leakage_rate", 0.001)
-    
+    default_leakage = 0.001
+    default_joint_break_force = 50000.0
+    default_fluid_height = 7.0
+
+    # Leakage rate
+    target_leakage = target_terrain_config.get("max_leakage_rate", default_leakage)
+    base_leakage = base_terrain_config.get("max_leakage_rate", default_leakage)
     if target_leakage != base_leakage:
         pattern = r"(leakage rate remains below )(\d+\.?\d*%)"
         description = re.sub(
             pattern,
             f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
-            description
+            description,
         )
-        
+
+    # Joint break force (visible structural limit)
+    target_break = target_terrain_config.get("joint_break_force", default_joint_break_force)
+    base_break = base_terrain_config.get("joint_break_force", default_joint_break_force)
+    if target_break != base_break:
+        pattern = r"(reaction force exceeds )(\d+)( N for 3 consecutive simulation steps)"
+        if re.search(pattern, description):
+            description = re.sub(
+                pattern,
+                f"\\g<1>{target_break:.0f} N (originally {base_break:.0f} N in the source environment) for 3 consecutive simulation steps",
+                description,
+            )
+
+    # Reservoir fill height (visible structural limit)
+    target_height = target_terrain_config.get("fluid_height", default_fluid_height)
+    base_height = base_terrain_config.get("fluid_height", default_fluid_height)
+    if target_height != base_height:
+        pattern = r"(\*\*Reservoir fill height\*\*: )(\d+\.?\d*)( m\.)"
+        if re.search(pattern, description):
+            description = re.sub(
+                pattern,
+                f"\\g<1>{target_height:.1f} m (originally {base_height:.1f} m in the source environment).",
+                description,
+            )
+
     return description
 
 
 def update_success_criteria_for_visible_changes(
     base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
-    """Update success criteria for visible changes."""
+    """
+    Update success criteria for visible changes using format:
+    [new_value] (originally [old_value] in the source environment).
+
+    base_terrain_config must be the pristine/source environment; otherwise
+    "originally ... in the source environment" is misleading.
+    """
     criteria = base_success_criteria
-    
+    default_leakage = 0.001
+
     # Leakage rate
-    target_leakage = target_terrain_config.get("max_leakage_rate", 0.001)
-    base_leakage = base_terrain_config.get("max_leakage_rate", 0.001)
-    
+    target_leakage = target_terrain_config.get("max_leakage_rate", default_leakage)
+    base_leakage = base_terrain_config.get("max_leakage_rate", default_leakage)
     if target_leakage != base_leakage:
         pattern = r"(1\. \*\*Leakage Rate\*\*: Total leakage < )(\d+\.?\d*%)"
         criteria = re.sub(
             pattern,
-            f"\\g<1>{target_leakage*100:.2f}% (originally < {base_leakage*100:.2f}% in the source environment)",
-            criteria
+            f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+            criteria,
         )
-        
+
     return criteria
 
 
@@ -59,8 +98,11 @@ def get_f01_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for F-01: The Dam (difficulty ascending).
     Each stage: stage_id, title, mutation_description, task_description_suffix,
-    terrain_config, physics_config. All changes are invisible (fluid density, joint break,
-    gravity, etc.); prompt only gets generic environmental warning.
+    terrain_config, physics_config. Visible changes (max_leakage_rate, joint_break_force,
+    fluid_height) are synced into the prompt via update_task_description_for_visible_changes
+    and update_success_criteria_for_visible_changes. Invisible changes (fluid density,
+    gravity, etc.) are only hinted in the generic task_description_suffix; the agent
+    must infer exact values from feedback.
     """
     task_description_suffix = """
 ## Environmental Anomalies Detected
@@ -72,6 +114,7 @@ active interaction and environmental feedback to deduce which specific condition
  - **Joint break force**: The force threshold above which beam-to-beam welds can fail.
  - **Reservoir fill height**: The vertical fill level of the reservoir; affects pressure at the base.
  - **Gravitational acceleration**: The strength and direction of the vertical gravitational force.
+ - **Leakage success threshold**: The maximum allowed leakage rate for task success.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical
 rules of this specific environment through active interaction and observation.

@@ -19,7 +19,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(cooldown_pattern, description):
             description = re.sub(
                 cooldown_pattern,
-                f"\\g<1>{target_cooldown}\\g<3> (originally {base_cooldown}-step in the source environment)",
+                f"\\g<1>{target_cooldown}-step (originally {base_cooldown}-step in the source environment) cooldown between thrusts.",
                 description
             )
             
@@ -38,10 +38,50 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         if re.search(mass_pattern, criteria):
             criteria = re.sub(
                 mass_pattern,
-                f"\\g<1>{target_mass:.0f}\\g<3> (originally <= {base_mass:.0f} kg in the source environment)",
+                f"\\g<1>{target_mass:.0f} kg (originally {base_mass:.0f} kg in the source environment).",
                 criteria
             )
-            
+
+    # Update joint strength when max_joint_force is set or reverted (e.g. Stage-3 sets limit; Stage-1/2/4 have no limit)
+    default_joint_force = float('inf')
+    target_joint_force = target_terrain_config.get("max_joint_force", default_joint_force)
+    base_joint_force = base_terrain_config.get("max_joint_force", default_joint_force)
+    joint_limit_pattern = r"(- \*\*Joint Strength\*\*: Maximum force before shear is )(\d+\.?\d*)( N \(originally .+ in the source environment\)\.)"
+    joint_no_limit_pattern = r"(- \*\*Joint Strength\*\*: Structural connections do not break under load \(no force limit\)\.)"
+    # Reverted form (after going from finite limit back to no limit)
+    joint_no_limit_with_origin_pattern = r"(- \*\*Joint Strength\*\*: Structural connections do not break under load \(no force limit\) \(originally .+ in the source environment\)\.)"
+
+    if target_joint_force != base_joint_force:
+        base_str = "no limit" if base_joint_force == float('inf') else f"{base_joint_force:.0f} N"
+        if target_joint_force != float('inf'):
+            # Target has a finite limit: show new limit (originally base value)
+            if re.search(joint_no_limit_pattern, criteria):
+                criteria = re.sub(
+                    joint_no_limit_pattern,
+                    f"- **Joint Strength**: Maximum force before shear is {target_joint_force:.0f} N (originally {base_str} in the source environment).",
+                    criteria
+                )
+            elif re.search(joint_no_limit_with_origin_pattern, criteria):
+                criteria = re.sub(
+                    joint_no_limit_with_origin_pattern,
+                    f"- **Joint Strength**: Maximum force before shear is {target_joint_force:.0f} N (originally {base_str} in the source environment).",
+                    criteria
+                )
+            elif re.search(joint_limit_pattern, criteria):
+                criteria = re.sub(
+                    joint_limit_pattern,
+                    f"\\g<1>{target_joint_force:.0f} N (originally {base_str} in the source environment).",
+                    criteria
+                )
+        else:
+            # Target has no limit: revert to no-force-limit wording (originally base value)
+            if re.search(joint_limit_pattern, criteria):
+                criteria = re.sub(
+                    joint_limit_pattern,
+                    f"- **Joint Strength**: Structural connections do not break under load (no force limit) (originally {base_str} in the source environment).",
+                    criteria
+                )
+
     return criteria
 
 def get_f02_curriculum_stages() -> List[Dict[str, Any]]:

@@ -110,6 +110,12 @@ class CodeVerifier:
                 allowed.add('get_structure_mass_limit')
                 allowed.add('get_arena_bounds')
                 allowed.add('get_build_zone')
+                # F_03 (Excavator): reference solution stores revolute joints on sandbox for use in agent_action
+                if task_key == 'F_03':
+                    allowed.add('_aj')
+                    allowed.add('_bj')
+                    allowed.add('agent_arm_joint')
+                    allowed.add('agent_bucket_joint')
         except Exception as e:
             print(f"Warning: Failed to load allowed APIs: {e}")
             
@@ -644,7 +650,8 @@ class CodeVerifier:
                           'c01' in task_lower or 'c02' in task_lower or 'c03' in task_lower or
                           'e04' in task_lower or 's02' in task_lower or
                           's06' in task_lower or 'e01' in task_lower or
-                          'k01' in task_lower or 'k05' in task_lower or 'k_05' in task_lower or
+                          'k01' in task_lower or 'k04' in task_lower or 'k_04' in task_lower or
+                          'k05' in task_lower or 'k_05' in task_lower or
                           'k06' in task_lower or 'k_06' in task_lower or
                           'category3' in task_lower or 'd01' in task_lower or 'd02' in task_lower or
                           'd03' in task_lower or 'd04' in task_lower or 'd05' in task_lower or 'd06' in task_lower)
@@ -673,12 +680,19 @@ class CodeVerifier:
                         running = False
                         break
                 elif agent_body:
-                    # Detect anomalies for non-Category1 tasks
-                    import math
-                    speed = math.sqrt(agent_body.linearVelocity.x**2 + agent_body.linearVelocity.y**2)
-                    if speed > 20:
-                        running = False
-                        break
+                    # Detect anomalies for non-Category1 tasks (e.g. runaway velocity).
+                    # Skip speed check for: Category3 (projectile/jumper); Category4 (excavator/plow can move fast).
+                    task_lower_speed = self.task_name.lower().replace("_", "")
+                    is_projectile_task = ('category3' in task_lower_speed or 'd01' in task_lower_speed or
+                                          'd02' in task_lower_speed or 'd03' in task_lower_speed or
+                                          'd04' in task_lower_speed or 'd05' in task_lower_speed or 'd06' in task_lower_speed)
+                    is_category4_fast = 'category4' in task_lower_speed or 'f01' in task_lower_speed or 'f02' in task_lower_speed or 'f03' in task_lower_speed or 'f04' in task_lower_speed or 'f05' in task_lower_speed or 'f06' in task_lower_speed
+                    if not is_projectile_task and not is_category4_fast:
+                        import math
+                        speed = math.sqrt(agent_body.linearVelocity.x**2 + agent_body.linearVelocity.y**2)
+                        if speed > 20:
+                            running = False
+                            break
                     
                     if agent_body.position.y < -10:
                         running = False
@@ -765,6 +779,9 @@ class CodeVerifier:
                     should_stop, score, metrics = evaluator.evaluate(None, step_count, self.max_steps)
                 elif agent_body:
                     should_stop, score, metrics = evaluator.evaluate(agent_body, step_count, self.max_steps)
+                elif is_category3:
+                    # D_04 (Swing) etc.: build_agent returns None, evaluator uses environment (e.g. get_swing_seat_position)
+                    should_stop, score, metrics = evaluator.evaluate(None, step_count, self.max_steps)
                 else:
                     should_stop, score, metrics = False, 0.0, {}
                 
@@ -832,6 +849,11 @@ class CodeVerifier:
             elif agent_body:
                 final_should_stop, final_score, final_metrics = evaluator.evaluate(
                     agent_body, step_count, self.max_steps
+                )
+            elif 'category3' in task_lower or 'd_04' in task_lower or 'd_01' in task_lower or 'd_02' in task_lower or 'd_03' in task_lower or 'd_05' in task_lower or 'd_06' in task_lower:
+                # Category3 tasks where build_agent may return None (e.g. D_04 Swing)
+                final_should_stop, final_score, final_metrics = evaluator.evaluate(
+                    None, step_count, self.max_steps
                 )
             else:
                 final_should_stop, final_score, final_metrics = False, 0.0, {}

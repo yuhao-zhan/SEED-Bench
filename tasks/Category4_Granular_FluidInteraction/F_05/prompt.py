@@ -27,6 +27,7 @@ Design a stabilization and containment structure for a boat in rough water.
 - **Obstacles**: Static rocks are present in the water which can strike the boat or cargo.
 - **Dynamic Forces**: The boat is subject to multi-mode waves, sudden gusts, lateral wind, and water currents.
 - **Build Zone**: Structure must be attached to the boat body within x=[12.0, 18.0], y=[2.0, 4.5].
+- **Deck friction**: The vessel deck has a friction coefficient of 0.5; lower values make cargo more prone to sliding.
 
 ## Task Objective
 Design a structure that:
@@ -42,6 +43,7 @@ Design a structure that:
 ## Design Constraints
 - **Mass Budget**: Total structure mass <= 60 kg.
 - **Beam dimensions**: Each beam width and height is clamped by the environment to [0.1, 1.0] m (see Add Beam in the API below).
+- **Deck friction**: Deck friction coefficient is 0.5 (affects cargo sliding and containment design).
 - **Joint structural limits**: In the base environment, joints are not subject to a documented force/torque limit; in some task variants, joints may fail if reaction forces or torques exceed the environment's structural capacity.
 - **APIs**: Use only the primitives documented below.
 """,

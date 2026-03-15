@@ -40,7 +40,7 @@ class Sandbox:
         self.bodies = self._bodies
         self.joints = self._joints
 
-        # Three zones (undocumented; agent infers from feedback): small y < 1.92, medium 1.92 <= y < 2.52, large y >= 2.52
+        # Three zones (documented in task prompt): small y < 1.92, medium 1.92 <= y < 2.52, large y >= 2.52
         self.FEED_X_MIN = float(terrain_config.get("feed_x_min", 5.2))
         self.FEED_X_MAX = float(terrain_config.get("feed_x_max", 6.9))
         self.FEED_Y_MIN = 3.0

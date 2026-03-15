@@ -94,7 +94,7 @@ class Evaluator:
         elif failed:
             score = 0.0
         else:
-            progress = (front_x - 2.0) / (self.TARGET_X - 2.0) if front_x is not None and self.TARGET_X > 2 else 0.0
+            progress = (front_x - self.BUILD_ZONE_X_MIN) / (self.TARGET_X - self.BUILD_ZONE_X_MIN) if front_x is not None and self.TARGET_X > self.BUILD_ZONE_X_MIN else 0.0
             score = max(0.0, min(80.0, progress * 80.0))
 
         metrics = self._collect_metrics(
@@ -108,8 +108,8 @@ class Evaluator:
         velocity_x = velocity[0] if velocity else None
         velocity_y = velocity[1] if velocity else None
         progress = None
-        if front_x is not None and self.TARGET_X > 2:
-            progress = 100.0 * (front_x - 2.0) / (self.TARGET_X - 2.0)
+        if front_x is not None and self.TARGET_X > self.BUILD_ZONE_X_MIN:
+            progress = 100.0 * (front_x - self.BUILD_ZONE_X_MIN) / (self.TARGET_X - self.BUILD_ZONE_X_MIN)
         return {
             "step_count": step_count,
             "vehicle_front_x": front_x,

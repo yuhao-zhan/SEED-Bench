@@ -1,7 +1,7 @@
 """
 S-04: The Balancer task rendering module
 Zoomed and centered so the pivot + beam + load fill the frame.
-The 200kg load is drawn in a distinct color and the weld to the structure is shown so it doesn't look like it's floating.
+The load is drawn in a distinct color and the weld to the structure is shown so it doesn't look like it's floating.
 """
 import sys
 import os
@@ -10,11 +10,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 from common.renderer import Renderer
 from Box2D.b2 import dynamicBody, staticBody
 
-# Zoom: smaller = camera further away
+# Zoom: smaller = camera further away (used for consistent viewport)
 RENDER_SCALE = 1.2
-# World position to place at screen center
-CENTER_WORLD_X = 0.0
-CENTER_WORLD_Y = 1.5
+# World position to place at screen center (pivot + beam + load in frame)
+CENTER_WORLD_X = 1.5
+CENTER_WORLD_Y = 2.0
 
 class S04Renderer(Renderer):
     """S-04: The Balancer task specific renderer — zoomed and centered."""
@@ -41,12 +41,9 @@ class S04Renderer(Renderer):
         AGENT_OUTLINE = (26, 125, 30)    # Darker Green
         RED = (255, 0, 0)
         
-        # Fix camera
-        center_x_world = 1.5
-        center_y_world = 2.0
-        
-        cam_x = center_x_world * self.simulator.ppm - sw / 2
-        cam_y = sh / 2 - center_y_world * self.simulator.ppm
+        # Fix camera using module constants
+        cam_x = CENTER_WORLD_X * self.simulator.ppm - sw / 2
+        cam_y = sh / 2 - CENTER_WORLD_Y * self.simulator.ppm
         self.set_camera_offset(cam_x, cam_y)
         self.clear((0, 0, 0))  # Pure Black background
 

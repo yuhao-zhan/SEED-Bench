@@ -22,21 +22,27 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
     Expose high-resolution physical metrics from the evaluator.
     Only reports keys present in metrics; no hallucinated data.
-    Organizes by phase (payload state, structure, mass budget, stability).
+    Organizes by phase: numerical sanity, payload state, structure, mass budget, sustain, lifter.
     """
     parts: List[str] = []
 
-    # --- Numerical sanity: flag impossible values if present ---
-    sanity_issues = []
-    for key in ("object_y", "object_velocity_x", "object_velocity_y", "height_gained",
-                "max_object_y_reached", "progress", "structure_mass", "lifter_x", "lifter_y"):
-        v = metrics.get(key)
-        if v is not None and not _is_finite(v):
-            sanity_issues.append(key)
+    # --- Numerical sanity: flag non-finite values if present ---
+    sanity_keys = (
+        "object_y", "object_velocity_x", "object_velocity_y", "height_gained",
+        "max_object_y_reached", "progress", "structure_mass", "lifter_x", "lifter_y",
+        "object_x", "target_object_y",
+    )
+    sanity_issues = [
+        k for k in sanity_keys
+        if metrics.get(k) is not None and not _is_finite(metrics[k])
+    ]
     if sanity_issues:
-        parts.append(f"**Numerical anomaly**: Non-finite values in: {', '.join(sanity_issues)}. Simulation state may be unstable.")
+        parts.append(
+            f"**Numerical anomaly**: Non-finite values in: {', '.join(sanity_issues)}. "
+            "Simulation state may be unstable (e.g. extreme forces or overlaps)."
+        )
 
-    # --- Payload state (altitude, displacement, velocity) ---
+    # --- Phase: Payload state (altitude, displacement, velocity) ---
     obj_y = metrics.get("object_y")
     if obj_y is not None and _is_finite(obj_y):
         target_y = metrics.get("target_object_y")
@@ -46,6 +52,10 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             parts.append(f"- Margin to target height: {margin_to_target:+.2f} m (target y = {target_y:.1f} m)")
         else:
             parts.append(f"**Payload altitude**: y = {obj_y:.2f} m")
+
+    obj_x = metrics.get("object_x")
+    if obj_x is not None and _is_finite(obj_x):
+        parts.append(f"- Horizontal position: x = {obj_x:.2f} m")
 
     height_gained = metrics.get("height_gained")
     if height_gained is not None and _is_finite(height_gained):
@@ -66,7 +76,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if progress is not None and _is_finite(progress):
         parts.append(f"- Lift progress toward target displacement: {progress:.1f}%")
 
-    # --- Structural integrity ---
+    # --- Phase: Structural integrity ---
     joint_count = metrics.get("joint_count")
     if joint_count is not None:
         broken = metrics.get("structure_broken", False)
@@ -74,12 +84,15 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         parts.append(f"**Structural status**: {status}")
         parts.append(f"- Active joints: {joint_count}")
 
-    # --- Mass budget (dynamic threshold from environment/stage) ---
+    # --- Phase: Mass budget (dynamic threshold from environment/stage) ---
     curr_mass = metrics.get("structure_mass")
     max_mass = metrics.get("max_structure_mass")
     if curr_mass is not None and _is_finite(curr_mass):
-        max_m = max_mass if (max_mass is not None and _is_finite(max_mass)) else float("inf")
-        parts.append(f"**Mass budget**: {curr_mass:.2f} kg / {max_m:.1f} kg" if math.isfinite(max_m) else f"**Structure mass**: {curr_mass:.2f} kg")
+        max_m = float(max_mass) if (max_mass is not None and _is_finite(max_mass)) else float("inf")
+        parts.append(
+            f"**Mass budget**: {curr_mass:.2f} kg / {max_m:.1f} kg"
+            if math.isfinite(max_m) else f"**Structure mass**: {curr_mass:.2f} kg"
+        )
         if _is_finite(max_m) and max_m > 0:
             margin = max_m - curr_mass
             if margin < 0:
@@ -87,16 +100,23 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             else:
                 parts.append(f"- Margin remaining: {margin:.2f} kg")
 
-    # --- Stability / sustain phase (dynamic threshold: min_simulation_steps_required) ---
+    # --- Phase: Sustain (dynamic threshold: min_simulation_steps_required) ---
     steps_held = metrics.get("steps_with_object_above_target")
     req_steps = metrics.get("min_simulation_steps_required")
     if steps_held is not None and req_steps is not None:
         req = int(req_steps) if _is_finite(req_steps) else 0
-        parts.append(f"**Sustain phase**: {steps_held} steps at or above target height (required: {req})")
+        parts.append(
+            f"**Sustain phase**: {steps_held} steps at or above target height (required: {req})"
+        )
         if req > 0 and steps_held < req:
             parts.append(f"- Shortfall: {req - steps_held} steps")
 
-    # --- Lifter position (for context only) ---
+    # --- Phase: Simulation time (for context) ---
+    step_count = metrics.get("step_count")
+    if step_count is not None and _is_finite(step_count):
+        parts.append(f"**Simulation**: {int(step_count)} steps elapsed")
+
+    # --- Phase: Lifter position (for context) ---
     lx = metrics.get("lifter_x")
     ly = metrics.get("lifter_y")
     if lx is not None and _is_finite(lx) and ly is not None and _is_finite(ly):
@@ -128,19 +148,45 @@ def get_improvement_suggestions(
     req_steps = metrics.get("min_simulation_steps_required")
     req_steps_val = int(req_steps) if (req_steps is not None and _is_finite(req_steps)) else 0
 
-    target_y = metrics.get("target_object_y")
-    target_y_val = float(target_y) if (target_y is not None and _is_finite(target_y)) else 9.0
-
     curr_mass = metrics.get("structure_mass", 0.0)
     if not _is_finite(curr_mass):
         curr_mass = 0.0
+
+    progress_pct = metrics.get("progress")
+    progress_val = float(progress_pct) if (progress_pct is not None and _is_finite(progress_pct)) else 0.0
+    steps_held = metrics.get("steps_with_object_above_target", 0) or 0
+    structure_ok = not metrics.get("structure_broken", False)
 
     # --- Physics engine / numerical instability ---
     for key in ("object_y", "object_velocity_x", "object_velocity_y", "structure_mass", "progress"):
         v = metrics.get(key)
         if v is not None and not _is_finite(v):
-            suggestions.append("DIAGNOSTIC: Simulation state contains non-finite values. The physics engine may have become unstable (e.g. extreme forces or overlaps). Consider constraining control inputs or geometry to avoid singularities.")
+            suggestions.append(
+                "DIAGNOSTIC: Simulation state contains non-finite values. The physics engine may have "
+                "become unstable (e.g. extreme forces or overlaps). Consider constraining control inputs "
+                "or geometry to avoid singularities."
+            )
             break
+
+    # --- Root-cause chain: explain evaluation order so agent can deduce what broke first ---
+    if failed and failure_reason:
+        reason_lower = failure_reason.lower()
+        if "design constraint" in reason_lower:
+            suggestions.append(
+                "DIAGNOSTIC: Failure was determined by design-constraint checks (evaluated before simulation). "
+                "Address these before expecting valid simulation outcomes."
+            )
+        elif "structure integrity" in reason_lower or "joints broke" in reason_lower:
+            suggestions.append(
+                "DIAGNOSTIC: Failure was due to structural collapse during simulation. Reaction forces or "
+                "torques in the mechanism exceeded the connectors' capacity. The load path or dynamic loading "
+                "may need to be reconsidered."
+            )
+        elif "not lifted" in reason_lower:
+            suggestions.append(
+                "DIAGNOSTIC: Failure was due to insufficient lift before the time limit. The mechanism may "
+                "not produce enough vertical displacement or force transmission to raise the payload meaningfully."
+            )
 
     # --- Design constraint violations (root-cause: constraint check runs first) ---
     if failed and failure_reason and "design constraint" in failure_reason.lower():
@@ -149,14 +195,13 @@ def get_improvement_suggestions(
                 "DIAGNOSTIC: The structure's total mass exceeds this environment's allowed budget. "
                 "The load path and weight distribution may need to be reconsidered to meet the current limit."
             )
-        elif "build zone" in failure_reason.lower():
+        if "build zone" in failure_reason.lower() or "outside" in failure_reason.lower():
             suggestions.append(
                 "DIAGNOSTIC: At least one structural component lies outside the permitted build zone. "
                 "All parts must remain within the specified spatial boundaries."
             )
-        return suggestions
 
-    # --- Structural failure (root-cause: joint breakage) ---
+    # --- Structural failure (joint breakage) ---
     if metrics.get("structure_broken", False):
         suggestions.append(
             "DIAGNOSTIC: One or more joints failed under load. Reaction forces or torques in the mechanism "
@@ -164,27 +209,26 @@ def get_improvement_suggestions(
             "dynamic impact, or lateral forces) rather than a design-constraint check."
         )
 
-    # --- Multi-objective trade-off: structure intact but other objectives failed ---
-    structure_ok = not metrics.get("structure_broken", True)
-    progress_pct = metrics.get("progress")
-    progress_val = float(progress_pct) if (progress_pct is not None and _is_finite(progress_pct)) else 0.0
-    steps_held = metrics.get("steps_with_object_above_target", 0) or 0
+    # --- Multi-objective trade-off: one objective met, another severely failed ---
+    if structure_ok and progress_val >= 99.0 and steps_held < req_steps_val and req_steps_val > 0:
+        suggestions.append(
+            "DIAGNOSTIC: Target height was reached but the payload was not sustained there long enough. "
+            "Stability at the target altitude is failing (e.g. sliding, tipping, or loss of support)."
+        )
+    if structure_ok and progress_val < 50 and progress_val >= 0:
+        suggestions.append(
+            "DIAGNOSTIC: Structure remained intact but vertical displacement is well below the required height. "
+            "Lift capacity or stroke may be insufficient for the current target."
+        )
+    if not structure_ok and (progress_val > 50 or steps_held > 0):
+        suggestions.append(
+            "DIAGNOSTIC: The mechanism achieved partial lift or sustain but structural failure occurred. "
+            "Consider whether load path or joint loading can be reduced while preserving lift function."
+        )
 
-    if structure_ok and failed:
-        if "not lifted" in (failure_reason or "").lower():
-            suggestions.append(
-                "DIAGNOSTIC: The object was not lifted meaningfully before the time limit. "
-                "The mechanism may be unable to produce sufficient vertical displacement or force transmission."
-            )
-        elif progress_val >= 99.0 and steps_held < req_steps_val and req_steps_val > 0:
-            suggestions.append(
-                "DIAGNOSTIC: Target height was reached but the payload was not sustained there long enough. "
-                "Stability at the target altitude is failing (e.g. sliding, tipping, or loss of support)."
-            )
-
-    # --- Partial success: height reached but sustain or structure failed ---
+    # --- Partial success: height not reached or sustain short ---
     if not success and not failed:
-        if progress_val > 0 and progress_val < 100 and _is_finite(progress_val):
+        if 50 <= progress_val < 100 and _is_finite(progress_val):
             suggestions.append(
                 "DIAGNOSTIC: Vertical displacement is only partway to the required height. "
                 "Lift capacity or stroke may be insufficient for the current target."
@@ -195,16 +239,17 @@ def get_improvement_suggestions(
                 "Payload equilibrium or retention at height is the limiting factor."
             )
 
-    # --- Mass vs. performance trade-off (no spoilers) ---
-    if _is_finite(max_mass_val) and max_mass_val > 0 and curr_mass > max_mass_val:
-        suggestions.append(
-            "DIAGNOSTIC: Mass budget is violated. A design that satisfies the current mass limit "
-            "while still achieving the lift and stability objectives may require a different topology or load path."
-        )
-    elif structure_ok and progress_val < 50 and curr_mass > max_mass_val * 0.9:
-        suggestions.append(
-            "DIAGNOSTIC: Structure is near the mass limit but lift performance is low. "
-            "There may be a trade-off between mass allocation and effective lift capability."
-        )
+    # --- Mass vs. performance trade-off (no spoilers); use dynamic threshold ---
+    if _is_finite(max_mass_val) and max_mass_val > 0:
+        if curr_mass > max_mass_val:
+            suggestions.append(
+                "DIAGNOSTIC: Mass budget is violated. A design that satisfies the current mass limit "
+                "while still achieving the lift and stability objectives may require a different topology or load path."
+            )
+        elif structure_ok and progress_val < 50 and curr_mass > max_mass_val * 0.9:
+            suggestions.append(
+                "DIAGNOSTIC: Structure is near the mass limit but lift performance is low. "
+                "There may be a trade-off between mass allocation and effective lift capability."
+            )
 
     return suggestions

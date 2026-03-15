@@ -73,7 +73,10 @@ class Sandbox:
         self.MAX_TIME_SECONDS = float(physics_config.get("max_time_seconds", 40.0))
         self.FORCE_BUDGET_PER_STEP = float(physics_config.get("force_budget", 12000.0))
         self._force_budget_used = 0.0
-        self.MAX_STEPS = int(self.MAX_TIME_SECONDS * 60)
+        if "max_steps" in physics_config:
+            self.MAX_STEPS = int(physics_config["max_steps"])
+        else:
+            self.MAX_STEPS = int(self.MAX_TIME_SECONDS * 60)
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 380.0))
         self.MIN_DELIVERY_RATIO = float(terrain_config.get("min_delivery_ratio", 0.90))
 
@@ -150,14 +153,9 @@ class Sandbox:
 
         self._initial_particle_count = len(self._fluid_particles)
 
-    # --- Physical constraint constants ---
+    # Beam size limits (fixed; build zone and max mass are set in __init__ from config)
     MIN_BEAM_SIZE = 0.1
     MAX_BEAM_SIZE = 1.2
-    BUILD_ZONE_X_MIN = 6.0
-    BUILD_ZONE_X_MAX = 18.0
-    BUILD_ZONE_Y_MIN = 0.0
-    BUILD_ZONE_Y_MAX = 6.0
-    MAX_STRUCTURE_MASS = 380.0
 
     def add_beam(self, x, y, width, height, angle=0, density=250.0):
         """API: Add a beam (pipeline / pump / screw element)."""

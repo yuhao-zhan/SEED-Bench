@@ -41,6 +41,9 @@ def update_task_description_for_visible_changes(
     target_max_mass = target_terrain_config.get("max_structure_mass", default_max_structure_mass)
     base_max_mass = base_terrain_config.get("max_structure_mass", default_max_structure_mass)
 
+    base_target_x = base_right_cliff_start + 5.0
+    target_x = target_right_cliff_start + 5.0
+
     if target_gap_width != base_gap_width:
         # Update Right Cliff description
         right_cliff_pattern = r"(- \*\*Right Cliff\*\*: Starts at x=)(\d+\.?\d*)m(, y=[\d.]+m\.)?"
@@ -51,18 +54,16 @@ def update_task_description_for_visible_changes(
                 description
             )
         
-        # Update Build Zone description
-        build_zone_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[10, )(\d+\.?\d*)(\], y=\[5, 15\].)"
+        # Update Build Zone description (x max = target position); (originally ...) inline after new value
+        build_zone_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[10, )(\d+\.?\d*)(\], y=\[5, 15\] \([^)]+\)\.)"
         if re.search(build_zone_pattern, description):
             description = re.sub(
                 build_zone_pattern,
-                lambda m: f"{m.group(1)}{target_right_cliff_start:.1f}{m.group(3)} (originally [10, {base_right_cliff_start:.1f}] in the source environment)",
+                lambda m: f"{m.group(1)}{target_x:.1f}] (originally [10, {base_target_x:.1f}] in the source environment), y=[5, 15] (the upper x-bound is the target position so the deck can reach the goal).",
                 description
             )
             
         # Update Target description
-        base_target_x = base_right_cliff_start + 5.0
-        target_x = target_right_cliff_start + 5.0
         target_desc_pattern = r"(- \*\*Target\*\*: The vehicle must fully cross the gap and reach at least x=)(\d+\.?\d*)m( on the right side.)"
         if re.search(target_desc_pattern, description):
             description = re.sub(

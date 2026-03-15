@@ -6,7 +6,6 @@ import sys
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
-from common.simulator import TIME_STEP
 
 
 def _segment_intersects_rect(x0, y0, x1, y1, rx_min, ry_min, rx_max, ry_max):
@@ -48,6 +47,8 @@ class Evaluator:
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
+        spawn = terrain_bounds.get("projectile_spawn", (10.0, 3.0))
+        self._spawn_x = float(spawn[0]) if spawn else 10.0
         tz = terrain_bounds.get("target_zone", {})
         self.target_x_min = tz.get("x_min", 40.0)
         self.target_x_max = tz.get("x_max", 45.0)
@@ -64,9 +65,7 @@ class Evaluator:
 
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
-        self.MAX_STRUCTURE_MASS = getattr(
-            type(environment), "MAX_STRUCTURE_MASS", 500.0
-        )
+        self.MAX_STRUCTURE_MASS = getattr(environment, "MAX_STRUCTURE_MASS", 500.0)
         self.BUILD_ZONE_X_MIN = environment.BUILD_ZONE_X_MIN
         self.BUILD_ZONE_X_MAX = environment.BUILD_ZONE_X_MAX
         self.BUILD_ZONE_Y_MIN = environment.BUILD_ZONE_Y_MIN
@@ -124,8 +123,11 @@ class Evaluator:
         failed = False
         failure_reason = None
 
-        # Out of bounds: only fail if we have not already hit the target zone
-        if not self._hit_occurred and (py < -5.0 or px < -10.0 or px > 60.0):
+        # Out of bounds: only fail if we have not already hit the target zone (use env constants)
+        sim_x_min = getattr(type(self.environment), "SIM_BOUNDS_X_MIN", -10.0)
+        sim_x_max = getattr(type(self.environment), "SIM_BOUNDS_X_MAX", 60.0)
+        sim_y_min = getattr(type(self.environment), "SIM_BOUNDS_Y_MIN", -5.0)
+        if not self._hit_occurred and (py < sim_y_min or px < sim_x_min or px > sim_x_max):
             failed = True
             failure_reason = "Projectile left simulation bounds"
 
@@ -192,8 +194,8 @@ class Evaluator:
         # Progress: how far toward target (x) the projectile has gone
         progress = max(
             0.0,
-            (px - 10.0) / (self.target_x_min - 10.0),
-        ) if (self.target_x_min - 10.0) > 0 else 0.0
+            (px - self._spawn_x) / (self.target_x_min - self._spawn_x),
+        ) if (self.target_x_min - self._spawn_x) > 0 else 0.0
         progress = min(1.0, progress) * 100.0
 
         return {

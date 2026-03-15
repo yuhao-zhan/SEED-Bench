@@ -9,6 +9,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from main import TaskRunner
+from evaluation.evaluate_cross_mutated import get_all_stages
 
 
 def test_k04_agent():
@@ -34,14 +35,12 @@ def test_k04_agent():
         print(f"GIF will be saved to: {gif_path}")
         print(f"Max steps: 60000 (push 8m + 5s sustained motion)\n")
 
-        # Moderate difficulty: heavier than trivial, higher friction, reduced kick vs trivial
+        # Use same Initial env as test_reference_solutions.py (from get_all_stages)
+        stages = get_all_stages("Category2_Kinematics_Linkages/K_04")
+        initial_env = stages[0] if stages else {}
         env_overrides = {
-            'terrain_config': {
-                'object': {'mass': 0.12, 'friction': 0.1},   # 6x trivial 0.02
-                'ground_friction': 0.22,                      # higher than trivial 0.15
-                'pusher_initial_velocity_x': 3.0             # reduced from trivial 4.0
-            },
-            'physics_config': {'do_sleep': False}
+            "terrain_config": initial_env.get("terrain_config", {}),
+            "physics_config": initial_env.get("physics_config", {}),
         }
         result = runner.run(headless=True, max_steps=60000, save_gif=True, env_overrides=env_overrides)
 

@@ -22,6 +22,13 @@ class Evaluator:
         right_cliff_start = gap_info.get("x_end", 25.0)
         self.target_x = right_cliff_start + 5.0
         
+        # Cliff top and stall threshold from terrain (not hardcoded)
+        left_cliff = terrain_bounds.get("left_cliff", {})
+        self._cliff_top_y = float(left_cliff.get("y", 10.0))
+        gap_x_start = float(gap_info.get("x_start", 10.0))
+        gap_width = float(gap_info.get("width", 15.0))
+        self.stall_threshold_x = gap_x_start + gap_width / 3.0
+        
         self.max_vertical_acceleration = 2.0 * 9.8  # 2g in m/s²
         
         # Stability tracking
@@ -37,6 +44,7 @@ class Evaluator:
         
         # Track vehicle state
         self.vehicle_previous_velocity_y = 0.0
+        self._last_eval_step_count = 0
         self.max_vertical_accel_seen = 0.0
         
         # Track structure integrity
@@ -50,10 +58,14 @@ class Evaluator:
         env_class = type(environment)
         self.MAX_STRUCTURE_MASS = getattr(environment, 'MAX_STRUCTURE_MASS', getattr(env_class, 'MAX_STRUCTURE_MASS', 2000.0))
         self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', getattr(env_class, 'BUILD_ZONE_X_MIN', 10.0))
-        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 25.0))
+        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 30.0))
         self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', getattr(env_class, 'BUILD_ZONE_Y_MIN', 5.0))
         self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 15.0))
         self.MIN_DECK_FRICTION = getattr(environment, 'MIN_DECK_FRICTION', getattr(env_class, 'MIN_DECK_FRICTION', 0.5))
+        
+        # Fail zone: source from environment so evaluation stays aligned if fail_zone_y is ever configurable
+        bounds = getattr(environment, 'get_terrain_bounds', lambda: {})()
+        self.fail_zone_y = float(bounds.get("fail_zone_y", 0.5))
         
         self.design_constraints_checked = False
         
@@ -74,13 +86,13 @@ class Evaluator:
         angular_velocity = vehicle_chassis.angularVelocity if vehicle_chassis else 0.0
         angle = vehicle_chassis.angle if vehicle_chassis else 0.0
         
-        # Acceleration from velocity change (Evaluator usually called every 10 steps, check main loop frequency)
-        # We'll use a safer approach: assume evaluation frequency is consistent or use delta time
-        eval_interval = 100 # Default for this project's statics tasks
-        actual_time_step = eval_interval * TIME_STEP
-        if step_count > 0:
+        # Acceleration from velocity change: use actual step delta since last evaluation
+        steps_delta = step_count - self._last_eval_step_count
+        actual_time_step = steps_delta * TIME_STEP if steps_delta > 0 else TIME_STEP
+        if step_count > 0 and steps_delta > 0:
             vertical_accel = abs(velocity_y - self.vehicle_previous_velocity_y) / actual_time_step
             self.max_vertical_accel_seen = max(self.max_vertical_accel_seen, vertical_accel)
+        self._last_eval_step_count = step_count
         self.vehicle_previous_velocity_y = velocity_y
         
         if step_count == 0:
@@ -99,8 +111,10 @@ class Evaluator:
                 failed, failure_reason = True, "Design constraint violated: " + "; ".join(violations)
             self.design_constraints_checked = True
         
-        if current_y < 0.5:
+        if current_y <= self.fail_zone_y:
             failed, failure_reason = True, "Vehicle fell into water"
+        elif any(body.position.y <= self.fail_zone_y for body in self.environment._bodies):
+            failed, failure_reason = True, f"Structural component entered fail zone (y <= {self.fail_zone_y} m)"
         elif self.structure_broken:
             failed, failure_reason = True, "Structure integrity lost (joints broke)"
         elif self.max_vertical_accel_seen > self.max_vertical_acceleration:
@@ -148,12 +162,13 @@ class Evaluator:
             'max_vertical_acceleration_limit': self.max_vertical_acceleration,
             'vehicle_start_x': 5.0,
             'max_airborne_rotation_limit': self.MAX_AIRBORNE_ROTATION,
-            'stall_threshold_x': 15.0,
+            'stall_threshold_x': self.stall_threshold_x,
+            'fail_zone_y': self.fail_zone_y,
             'success': success and not failed, 'failed': failed, 'failure_reason': failure_reason,
             'step_count': step_count, 'structure_mass': self.environment.get_structure_mass(),
             'max_structure_mass': self.MAX_STRUCTURE_MASS, 'structure_broken': self.structure_broken,
             'joint_count': len(self.environment._joints), 'initial_joint_count': self.initial_joint_count,
-            'is_airborne': current_y > (10.0 + self.AIRBORNE_THRESHOLD),
+            'is_airborne': current_y > (self._cliff_top_y + self.AIRBORNE_THRESHOLD),
             'airborne_rotation_accumulated': airborne_rotation_accumulated,
             'high_angular_velocity_count': self.high_angular_velocity_count
         }
@@ -173,6 +188,14 @@ class Evaluator:
             if not (self.BUILD_ZONE_X_MIN <= x <= build_zone_x_max and
                     self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
                 violations.append(f"Beam at ({x:.2f}, {y:.2f}) outside build zone")
+            # Traction: each beam (deck surface) must have friction >= MIN_DECK_FRICTION
+            for fixture in body.fixtures:
+                if getattr(fixture, 'friction', 0) < self.MIN_DECK_FRICTION:
+                    violations.append(
+                        f"Beam at ({x:.2f}, {y:.2f}) has friction {getattr(fixture, 'friction', 0):.2f} "
+                        f"below minimum {self.MIN_DECK_FRICTION}"
+                    )
+                    break
         return violations
     
     def get_task_description(self):

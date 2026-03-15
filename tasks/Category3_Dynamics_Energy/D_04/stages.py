@@ -23,12 +23,12 @@ def get_d04_curriculum_stages() -> List[Dict[str, Any]]:
     
     union_variables = {
         "Actuator Dead Zone": "The swing's primary force thrusters may fail to engage within certain spatial regions, requiring momentum to carry the seat through.",
-        "Quadratic Damping Anomaly": "The environment may exhibit extreme energy drain that scales exponentially with the swing's velocity, heavily penalizing excessive speed.",
+        "Quadratic Damping Anomaly": "The environment may exhibit extreme energy drain that scales quadratically with the swing's velocity, heavily penalizing excessive speed.",
         "Directional Actuator Fault": "The force actuators may be jammed, allowing thrust to be applied in only one horizontal direction.",
         "Extreme Atmospheric Conditions": "Atmospheric or wind conditions may differ from the initial environment in ways that affect the swing's equilibrium and trajectory; use feedback to infer the actual behavior."
     }
     
-    bullet_points = "\\n".join([f" - **{k}**: {v}" for k, v in union_variables.items()])
+    bullet_points = "\n".join([f" - **{k}**: {v}" for k, v in union_variables.items()])
     
     _D04_SUFFIX = f"""
 ## Environmental Anomalies Detected

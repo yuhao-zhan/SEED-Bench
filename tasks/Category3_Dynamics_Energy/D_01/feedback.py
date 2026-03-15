@@ -2,9 +2,13 @@
 D-01: The Launcher task feedback module.
 Process-aware, diagnostic feedback for Dynamics/Energy domain.
 Exposes only metrics provided by evaluator.evaluate(); uses dynamic thresholds from metrics.
+No spoilers: diagnoses physical mechanism and trade-offs, never dictates parameter values or code.
 """
 from typing import Dict, Any, List
 import math
+
+# Diagnostic heuristic for progress-based suggestion (not an env-mutated threshold).
+_PROGRESS_HIGH_PCT = 70.0
 
 
 def _is_finite(x: Any) -> bool:
@@ -22,6 +26,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
     Expose high-resolution physical metrics from evaluator output only.
     No suggestions; baseline data for the agent to reason about trajectory and constraints.
+    All values are taken directly from the metrics dict (no hallucination).
     """
     parts = []
 
@@ -37,16 +42,12 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "error" in metrics and metrics["error"]:
         parts.append(f"**Error**: {metrics['error']}")
 
-    # --- Numerical stability (physics engine limits) ---
+    # --- Position and velocity (from metrics only) ---
     px = metrics.get("projectile_x")
     py = metrics.get("projectile_y")
     vx = metrics.get("projectile_vx")
     vy = metrics.get("projectile_vy")
     speed = metrics.get("projectile_speed")
-    if not all(_is_finite(x) for x in (px, py, vx, vy, speed) if x is not None):
-        parts.append("**Numerical Instability**: Projectile state contains non-finite values (NaN or infinity); simulation may be unstable.")
-
-    # --- Position and velocity (trajectory diagnostics) ---
     if px is not None and py is not None and _is_finite(px) and _is_finite(py):
         parts.append(f"**Final Position**: (x: {px:.2f} m, y: {py:.2f} m)")
     if vx is not None and vy is not None and _is_finite(vx) and _is_finite(vy):
@@ -58,7 +59,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "progress" in metrics and _is_finite(metrics.get("progress")):
         parts.append(f"**Horizontal Progress**: {metrics['progress']:.1f}%")
 
-    # --- Target zone and boundary margin proximity ---
+    # --- Boundary margin proximity: signed distance to target x-band (from metrics) ---
     tx_min = metrics.get("target_x_min")
     tx_max = metrics.get("target_x_max")
     ty_min = metrics.get("target_y_min")
@@ -67,9 +68,11 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if px < tx_min:
             gap = tx_min - px
             parts.append(f"**Shortfall (x)**: Projectile stopped {gap:.2f} m before target x-min ({tx_min:.1f} m).")
+            parts.append(f"**Boundary Margin (x)**: {px - tx_min:.2f} m (negative = short of target band).")
         elif px > tx_max:
             overshoot = px - tx_max
             parts.append(f"**Overshoot (x)**: Projectile passed target x-max by {overshoot:.2f} m (target x-max: {tx_max:.1f} m).")
+            parts.append(f"**Boundary Margin (x)**: +{overshoot:.2f} m (positive = past target band).")
         else:
             parts.append(f"**Horizontal Band**: Projectile x ({px:.2f} m) is inside target x-range [{tx_min:.1f}, {tx_max:.1f}] m.")
 
@@ -85,7 +88,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
                 else:
                     parts.append(f"**Vertical Band**: Peak y in band is inside target y-range [{ty_min:.1f}, {ty_max:.1f}] m.")
 
-    # --- Structure mass vs limit (dynamic threshold from metrics) ---
+    # --- Structure mass vs limit (dynamic threshold from metrics; stage-mutation safe) ---
     mass = metrics.get("structure_mass")
     max_mass = metrics.get("max_structure_mass")
     if mass is not None and max_mass is not None and _is_finite(mass) and _is_finite(max_mass):
@@ -113,32 +116,40 @@ def get_improvement_suggestions(
     Diagnostic, process-aware suggestions. No spoilers: diagnose physical mechanism
     and trade-offs, never dictate exact parameter values or code.
     Uses only dynamic thresholds from metrics (stage-mutation safe).
+    Root-cause order: design constraint first, then trajectory/energy, then multi-objective and diagnostics.
     """
     suggestions = []
     msg = (error or failure_reason or "").lower()
 
-    # --- Physics engine limits (numerical instability) ---
-    for key in ("projectile_x", "projectile_y", "projectile_vx", "projectile_vy", "projectile_speed"):
-        val = metrics.get(key)
-        if val is not None and not _is_finite(val):
-            suggestions.append("- **Numerical Instability**: Simulation state contains non-finite values; consider whether time step, stiffness, or collision setup could cause instability.")
-            break
-
-    # --- Root-cause: design constraint violated first ---
+    # --- Root-cause: design constraint violated first (evaluator checks these before trajectory) ---
     max_mass = metrics.get("max_structure_mass", float("inf"))
     mass = metrics.get("structure_mass")
     if mass is not None and max_mass != float("inf") and mass > max_mass:
         suggestions.append("- **Design Constraint (Root Cause)**: Structure mass exceeds the allowed budget. Optimize the strength-to-mass ratio of the launcher rather than adding more material.")
 
-    if "build zone" in msg or "outside" in msg:
+    if "build zone" in msg or "outside" in msg or "beam at" in msg:
         suggestions.append("- **Design Constraint (Root Cause)**: At least one component lies outside the valid construction region. Ensure all beam centers and joint anchors lie within the specified build zone.")
 
     if "simulation bounds" in msg:
-        suggestions.append("- **Trajectory Boundary**: The projectile left the valid simulation domain. The launch may be too violent or directed outward; consider how energy is transferred to the projectile.")
+        suggestions.append("- **Trajectory Boundary (Root Cause)**: The projectile left the valid simulation domain. The launch may be too violent or directed outward; consider how energy is transferred to the projectile.")
+
+    # --- Root-cause chain: trajectory failure (after design passed) ---
+    design_violation = "design constraint" in msg or (mass is not None and max_mass != float("inf") and mass > max_mass)
+    if failed and not success and not design_violation:
+        if "insufficient distance" in msg:
+            suggestions.append("- **Root Cause (Range)**: The projectile did not reach the target x-band. The limiting factor is likely launch energy delivery or in-flight energy loss rather than structure validity.")
+        elif "miss:" in msg or "wrong y" in msg or "overshoot" in msg:
+            suggestions.append("- **Root Cause (Placement)**: The projectile reached or passed the x-band but did not satisfy the vertical or lateral condition. Consider whether trajectory shape, arc height, or release timing is the limiting factor.")
 
     # --- Multi-objective trade-off: mass OK but trajectory failed ---
-    if failed and not success and mass is not None and max_mass != float("inf") and mass <= max_mass and "design constraint" not in msg.lower():
+    if failed and not success and mass is not None and max_mass != float("inf") and mass <= max_mass and not design_violation:
         suggestions.append("- **Multi-Objective**: Mass budget is satisfied but the trajectory did not meet the target. Consider whether launch energy delivery (impulse, timing) or trajectory shape is the limiting factor.")
+
+    # --- Progress-based diagnostic (high progress => refine trajectory, not launch energy) ---
+    progress = metrics.get("progress")
+    progress_high = progress is not None and _is_finite(progress) and float(progress) >= _PROGRESS_HIGH_PCT
+    if failed and not success and progress_high and not design_violation:
+        suggestions.append("- **Diagnostic**: Horizontal progress is high; failure may be due to vertical placement or trajectory curvature rather than insufficient launch energy.")
 
     # --- Trajectory diagnostics (no spoilers: mechanism, not numbers) ---
     if failed or not success:
@@ -159,6 +170,6 @@ def get_improvement_suggestions(
             if y_peak > ty_max:
                 suggestions.append("- **Altitude Overshoot in Band**: Peak altitude within the target x-band exceeds the vertical window. Trajectory curvature may be too steep for the allowed y-range.")
             elif y_peak < ty_min:
-                suggestions.append("- **Altitude Shortfall in Band**: Peak altitude within the target x-band stays below the vertical window. Consider whether a steeper arc or higher launch speed is needed to enter the zone.")
+                suggestions.append("- **Altitude Shortfall in Band**: Peak altitude within the target x-band stays below the vertical window; vertical extent of the trajectory or energy delivery may be insufficient.")
 
     return suggestions

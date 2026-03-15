@@ -27,10 +27,24 @@ def update_task_description_for_visible_changes(
     base_by = base_terrain_config.get("build_zone_y_max", 5.0)
     
     if target_bx != base_bx or target_by != base_by:
-        pattern = r"(- \*\*Build Zone\*\*: Mechanism must be built in x=\[)([^\]]+)(\], y=\[)([^\]]+)(\]\.)"
-        replacement = f"\\g<1>-4.0, {target_bx}\\g<3>0.0, {target_by}\\g<5> (originally x=[-4.0, {base_bx}], y=[0.0, {base_by}] in the source environment)"
+        # Capture trailing base sentence so it is preserved (not deleted); group 6=space, group 7=Base... to avoid double space
+        pattern = r"(- \*\*Build Zone\*\*: Mechanism must be built in x=\[)([^\]]+)(\], y=\[)([^\]]+)(\]\.)( )(Base is anchored at x=-2\.0 m, y=0\.0 m \(evaluator accepts any body within 0\.5 m of this position\)\.)"
+        replacement = f"\\g<1>-4.0, {target_bx}\\g<3>0.0, {target_by}] (originally x=[-4.0, {base_bx}], y=[0.0, {base_by}] in the source environment).\\g<6>\\g<7>"
         description = re.sub(pattern, replacement, description)
-        
+
+    # Per-scoop capacity (visible when mutated)
+    default_scoop_capacity = 999
+    target_scoop = int(target_terrain_config.get("scoop_capacity", default_scoop_capacity))
+    base_scoop = int(base_terrain_config.get("scoop_capacity", default_scoop_capacity))
+    if target_scoop != base_scoop:
+        scoop_pattern = r"(- \*\*Per-scoop capacity\*\*: Maximum particles carried per scoop per trip: )(\d+)( in the source environment \(effectively unlimited\)\.)"
+        if re.search(scoop_pattern, description):
+            description = re.sub(
+                scoop_pattern,
+                f"\\g<1>{target_scoop} (originally {base_scoop} in the source environment).",
+                description,
+            )
+
     return description
 
 
@@ -45,10 +59,10 @@ def update_success_criteria_for_visible_changes(
     base_count = base_terrain_config.get("min_particles_in_hopper", 15)
     
     if target_count != base_count:
-        pattern = r"(1\. \*\*Material Transfer\*\*: At least )(\d+)( sand particles are deposited in the hopper \(x=-5.0, y=3.0\)\.)"
+        pattern = r"(1\. \*\*Material Transfer\*\*: At least )(\d+)( sand particles are deposited in the hopper zone \(x=\[-6\.0, -4\.0\] m, y=\[0\.5, 5\.0\] m; center at x=-5\.0, y=3\.0\)\.)"
         criteria = re.sub(
             pattern,
-            f"\\g<1>{target_count}\\g<3> (originally {base_count} particles in the source environment)",
+            f"\\g<1>{target_count} (originally {base_count} in the source environment)\\g<3>",
             criteria
         )
         
@@ -115,7 +129,7 @@ While the following variables **MIGHT** have changed from the initial environmen
         {
             "stage_id": "Stage-4",
             "title": "Hostile excavation",
-            "mutation_description": "Lower particle friction, stronger gravity, pit drift, higher target count, and limited scoop capacity per trip.",
+            "mutation_description": "Lower particle friction, stronger gravity, pit drift, lower target count, and limited scoop capacity per trip.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "particles": {"friction": 0.1, "count": 200, "radius": 0.06, "density": 1500.0, "seed": 42},

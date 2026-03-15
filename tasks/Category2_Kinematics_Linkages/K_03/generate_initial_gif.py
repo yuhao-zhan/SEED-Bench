@@ -34,7 +34,8 @@ def generate_initial_gif():
     
     # Camera tracking (center on starting position)
     camera_offset_x = 0
-    target_x = 6.0  # Target height for visualization
+    # Use task target height so GIF matches prompt/environment (y=3.5m)
+    target_line_y = getattr(environment, 'TARGET_OBJECT_Y', 3.5)
     
     # Run simulation for a few seconds to show environment
     max_steps = 300  # 5 seconds at 60 FPS
@@ -44,7 +45,7 @@ def generate_initial_gif():
     
     for step_count in range(max_steps):
         # Render frame
-        renderer.render(environment, None, target_x, camera_offset_x)
+        renderer.render(environment, None, target_line_y, camera_offset_x)
         simulator.collect_frame(step_count, frame_interval=frame_interval)
         
         # Step physics (even without agent, let template fall/settle)

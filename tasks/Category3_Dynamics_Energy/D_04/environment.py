@@ -75,6 +75,7 @@ class Sandbox:
         pivot_x = self._pivot_x
         pivot_y = self._pivot_y
         rope_length = float(terrain_config.get("rope_length", 4.0))
+        self._rope_length = rope_length
         seat_x = pivot_x
         seat_y = pivot_y - rope_length
         seat_radius = 0.3
@@ -199,6 +200,7 @@ class Sandbox:
             "ground_y": self._ground_y,
             "pivot_x": self._pivot_x,
             "pivot_y": self._pivot_y,
+            "rope_length": getattr(self, "_rope_length", 4.0),
             "target_y_min": self._target_y_min,
             "target_x_min": self._target_x_min,
             "target_x_max": self._target_x_max,

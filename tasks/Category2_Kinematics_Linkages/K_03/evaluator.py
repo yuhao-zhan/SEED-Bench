@@ -17,12 +17,13 @@ class Evaluator:
         self.terrain_bounds = terrain_bounds
         self.environment = environment
         
-        # Target: object must be physically grasped and lifted
-        self.start_object_y = 2.0  # Object starting position
-        self.min_object_height = 2.0  # Object must not fall below this (m) after being lifted
-        self.target_object_y = 3.5  # Reach and sustain y>=3.5m (red line)
-        self.target_x = 3.5  # For renderer: draw target line (renamed from 4.0 to match target_y)
-        self.min_simulation_time = 1.34  # Sustain height for ~1.34s (80 steps) at/above target
+        # Target: object must be physically grasped and lifted (read from environment when set)
+        self.min_object_height = getattr(environment, 'MIN_OBJECT_HEIGHT', 2.0) if environment else 2.0
+        self.target_object_y = getattr(environment, 'TARGET_OBJECT_Y', 3.5) if environment else 3.5
+        # Y-coordinate for the target line in the renderer (same as target_object_y)
+        self.target_line_y = getattr(environment, 'TARGET_OBJECT_Y', 3.5) if environment else 3.5
+        self.target_x = self.target_line_y  # Alias for verifier/renderer API compatibility
+        self.min_simulation_time = getattr(environment, 'MIN_SIMULATION_TIME', 1.34) if environment else 1.34
         self.steps_per_eval = 10  # K_03 evaluates every 10 steps; count steps accordingly
         
         # Track gripper and object state
@@ -35,19 +36,17 @@ class Evaluator:
         self.last_object_y = None
         self.lifting_started = False
         
-        # Design constraints
+        # Design constraints: read from environment instance so mutations (terrain_config) are reflected
         if not environment:
             raise ValueError("Evaluator requires environment instance")
-        
-        env_class = type(environment)
         try:
-            self.MAX_STRUCTURE_MASS = env_class.MAX_STRUCTURE_MASS
-            self.BUILD_ZONE_X_MIN = env_class.BUILD_ZONE_X_MIN
-            self.BUILD_ZONE_X_MAX = env_class.BUILD_ZONE_X_MAX
-            self.BUILD_ZONE_Y_MIN = env_class.BUILD_ZONE_Y_MIN
-            self.BUILD_ZONE_Y_MAX = env_class.BUILD_ZONE_Y_MAX
+            self.MAX_STRUCTURE_MASS = environment.MAX_STRUCTURE_MASS
+            self.BUILD_ZONE_X_MIN = environment.BUILD_ZONE_X_MIN
+            self.BUILD_ZONE_X_MAX = environment.BUILD_ZONE_X_MAX
+            self.BUILD_ZONE_Y_MIN = environment.BUILD_ZONE_Y_MIN
+            self.BUILD_ZONE_Y_MAX = environment.BUILD_ZONE_Y_MAX
         except AttributeError as e:
-            raise AttributeError(f"Environment class {env_class.__name__} missing required constant: {e}")
+            raise AttributeError(f"Environment instance missing required attribute: {e}")
         
         self.design_constraints_checked = False
         

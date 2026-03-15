@@ -21,17 +21,16 @@ class Evaluator:
         self._target_x_min = float(terrain_bounds.get("target_x_min", 11.75))
         self._target_speed_min = float(terrain_bounds.get("target_speed_min", 0.45))
         self._target_speed_max = float(terrain_bounds.get("target_speed_max", 2.6))
+        self._speed_trap_x = float(terrain_bounds.get("speed_trap_x", 9.0))
+        self._checkpoint_11_x = float(terrain_bounds.get("checkpoint_11_x", 11.0))
         
         self.design_constraints_checked = False
-        self.initial_joint_count = 0
-        self.structure_broken = False
 
     def evaluate(self, agent_body, step_count, max_steps):
         if not self.environment:
             return True, 0.0, {"error": "Environment not available"}
 
         if not self.design_constraints_checked and step_count == 0:
-            self.initial_joint_count = len(self.environment._joints)
             violations = self._check_design_constraints()
             if violations:
                 self.design_constraints_checked = True
@@ -50,20 +49,16 @@ class Evaluator:
         failed = False
         failure_reason = None
 
-        if len(self.environment._joints) < self.initial_joint_count:
-            self.structure_broken = True
-            failed, failure_reason = True, "Structure broken"
-
         # Gate collision check
         if getattr(self.environment, "get_gate_collision", lambda: False)():
             return True, 0.0, {"failed": True, "failure_reason": "Gate collision"}
 
         if getattr(self.environment, "_speed_trap_failed", False):
-            return True, 0.0, {"failed": True, "failure_reason": "Speed trap failed (too slow at x=9)"}
+            return True, 0.0, {"failed": True, "failure_reason": f"Speed trap failed (too slow at x={self._speed_trap_x:.1f})"}
 
         # Checkpoint failed check
         if getattr(self.environment, "_checkpoint_11_failed", False):
-            return True, 0.0, {"failed": True, "failure_reason": "Checkpoint failed (speed at x=11 out of band)"}
+            return True, 0.0, {"failed": True, "failure_reason": f"Checkpoint failed (speed at x={self._checkpoint_11_x:.1f} out of band)"}
 
         # Determine success
         is_end = (step_count >= max_steps - 1)

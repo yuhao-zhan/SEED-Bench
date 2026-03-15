@@ -81,6 +81,7 @@ class Sandbox:
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 50.0))  # Maximum total structure mass (kg)
         self.MIN_STRUCTURE_MASS = float(terrain_config.get("min_structure_mass", 0.0))  # Minimum total structure mass (kg)
         self.TARGET_HEIGHT = float(terrain_config.get("target_height", 20.0))  # Success target altitude (m)
+        self.FELL_HEIGHT_THRESHOLD = float(terrain_config.get("fell_height_threshold", 0.5))  # Evaluation fails if climber y < this (m)
         
         # 4. Create initial climber structure (basic template - solver will build their own)
         # We create a simple placeholder to show the environment, but solver must build their own climber
@@ -392,10 +393,15 @@ class Sandbox:
     
     def get_terrain_bounds(self):
         """Get terrain bounds (for evaluation)"""
+        wall_x = getattr(self, '_wall_x', 5.0)
+        # Wall-contact band: x range where climber must stay during motion (evaluation fails otherwise)
+        wall_contact_x = [wall_x - 1.5, wall_x + 2.5]  # [3.5, 7.5] for default wall_x=5.0
         return {
             "wall": {"x": self._wall_x, "height": self._wall_height},
             "ground": {"y": self._ground_y},
             "target_height": self.TARGET_HEIGHT,
+            "fell_height_threshold": getattr(self, "FELL_HEIGHT_THRESHOLD", 0.5),
+            "wall_contact_x": wall_contact_x,
             "build_zone": {
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]

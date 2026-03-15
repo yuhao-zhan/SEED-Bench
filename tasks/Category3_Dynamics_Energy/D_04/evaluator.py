@@ -101,9 +101,10 @@ class Evaluator:
         px, py = pos if pos else (0, 0)
         vx, vy = (vel[0], vel[1]) if vel else (0, 0)
         speed = (vx * vx + vy * vy) ** 0.5
-        # Pivot at (10, 10), rope L=4 -> angle from vertical: sin(angle) = (px-10)/4
         pivot_x = getattr(self.environment, "_pivot_x", 10.0)
         pivot_y = getattr(self.environment, "_pivot_y", 10.0)
+        rope_length = getattr(self.environment, "_rope_length", 4.0)
+        swing_bottom_y = pivot_y - rope_length
         dx = px - pivot_x
         dy = py - pivot_y
         swing_angle_rad = math.atan2(dx, pivot_y - py) if (pivot_y - py) != 0 else 0.0
@@ -111,7 +112,10 @@ class Evaluator:
         height_gap_to_target = max(0.0, self._target_y_min - py)
         target_center_x = (self._target_x_min + self._target_x_max) / 2
         distance_to_target_x = abs(px - target_center_x) if not (self._target_x_min <= px <= self._target_x_max) else 0.0
-        progress_pct = max(0.0, min(100.0, 100.0 * (py - 6.0) / (self._target_y_min - 6.0))) if self._target_y_min > 6 else (100.0 if py >= self._target_y_min else 0.0)
+        if self._target_y_min > swing_bottom_y:
+            progress_pct = max(0.0, min(100.0, 100.0 * (py - swing_bottom_y) / (self._target_y_min - swing_bottom_y)))
+        else:
+            progress_pct = 100.0 if py >= self._target_y_min else 0.0
         return {
             "seat_x": px, "seat_y": py,
             "seat_vx": vx, "seat_vy": vy, "seat_speed": speed,

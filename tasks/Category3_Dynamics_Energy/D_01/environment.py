@@ -107,6 +107,11 @@ class Sandbox:
         self._target_y_min = float(terrain_config.get("target_y_min", 2.0))
         self._target_y_max = float(terrain_config.get("target_y_max", 5.0))
 
+    # --- Simulation bounds (single source for evaluator and prompt) ---
+    SIM_BOUNDS_X_MIN = -10.0
+    SIM_BOUNDS_X_MAX = 60.0
+    SIM_BOUNDS_Y_MIN = -5.0
+
     # --- Physical constraint constants ---
     MIN_BEAM_SIZE = 0.1
     MAX_BEAM_SIZE = 5.0

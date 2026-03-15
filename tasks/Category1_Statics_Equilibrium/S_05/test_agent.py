@@ -37,7 +37,7 @@ def test_s05_agent():
         print(f"Max steps: 20000 (need time for 24 meteors to spawn and fall)\n")
         
         # Run simulation - use fixed seed 123 for deterministic reference solution test
-        env_overrides = {"terrain_config": {"random_seed": 123}}
+        env_overrides = {"terrain_config": {"seed": 123}}
         result = runner.run(headless=True, max_steps=20000, save_gif=True, env_overrides=env_overrides)
         
         if result:

@@ -66,9 +66,10 @@ class K01Renderer(Renderer):
                              outline_color=COLOR_ENV,
                              outline_width=2)
         
-        # Draw ground markers for visual motion reference
+        # Draw ground markers for visual motion reference (from terrain bounds)
         ppm = self.simulator.ppm * RENDER_SCALE
-        ground_y = 1.0 # From environment.py
+        terrain_bounds = sandbox.get_terrain_bounds() if hasattr(sandbox, 'get_terrain_bounds') else {}
+        ground_y = terrain_bounds.get("ground", {}).get("y", 1.0)
         for x in range(0, 101, 2): # Every 2 meters
             marker_start = self.world_to_screen(x, ground_y)
             marker_end = self.world_to_screen(x, ground_y - 0.2)
@@ -137,15 +138,15 @@ class K01Renderer(Renderer):
                 except Exception:
                     pass
 
-        # Target line (Red for high visibility)
+        # Target line (Red for high visibility); use terrain_bounds so mutation of target_distance is reflected
         COLOR_TARGET = (255, 0, 0)
-        # The target distance is 15m from start (10m), so target_x is 25.0
-        display_target_x = 25.0 
+        display_target_x = terrain_bounds.get("target_x", 10.0 + terrain_bounds.get("target_distance", 15.0))
+        target_line_y_top = terrain_bounds.get("build_zone", {}).get("y", [2, 10])[1] if isinstance(terrain_bounds.get("build_zone"), dict) else 10.0
         
-        self.draw_line(display_target_x, 1.0, display_target_x, 10.0, COLOR_TARGET, 5)
+        self.draw_line(display_target_x, ground_y, display_target_x, target_line_y_top, COLOR_TARGET, 5)
         # Since draw_text is not available, we can draw a small 'X' or flag with lines
-        self.draw_line(display_target_x - 0.5, 10.5, display_target_x + 0.5, 9.5, COLOR_TARGET, 3)
-        self.draw_line(display_target_x - 0.5, 9.5, display_target_x + 0.5, 10.5, COLOR_TARGET, 3)
+        self.draw_line(display_target_x - 0.5, target_line_y_top + 0.5, display_target_x + 0.5, target_line_y_top - 0.5, COLOR_TARGET, 3)
+        self.draw_line(display_target_x - 0.5, target_line_y_top - 0.5, display_target_x + 0.5, target_line_y_top + 0.5, COLOR_TARGET, 3)
         
         # Build zone (Goldenrod Yellow)
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):

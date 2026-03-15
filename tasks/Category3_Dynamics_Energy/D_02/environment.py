@@ -2,7 +2,7 @@
 D-02: The Jumper task environment module
 Defines physics world: left platform, pit, right platform, jumper body, and build API.
 Mechanics: instant impulse, take-off angle optimization.
-Mutation: gravity, take-off ground elasticity.
+Mutation: gravity, wind, air resistance (linear damping), and terrain slot geometry.
 """
 import Box2D
 from Box2D.b2 import (
@@ -294,6 +294,9 @@ class Sandbox:
                 self._terrain_config.get("jumper_spawn_x", 5.0),
                 self._terrain_config.get("jumper_spawn_y", 5.0),
             ),
+            "jumper_width": float(self._terrain_config.get("jumper_width", 0.8)),
+            "jumper_height": float(self._terrain_config.get("jumper_height", 0.6)),
+            "landing_min_y": float(self._terrain_config.get("landing_min_y", 1.0)),
         }
 
     def get_jumper_position(self):

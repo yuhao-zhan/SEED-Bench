@@ -22,10 +22,14 @@ TASK_PROMPT = {
 Design an amphibian vehicle to cross a body of water and reach the target bank.
 
 ## Task Environment
-- **Water**: A 14m wide water gap between x=10m and x=24m.
+- **Water**: A 14m wide water gap between x=10m and x=24m, with vertical extent y=[0.0, 2.0]m (surface at y=2.0m, bottom at y=0.0m).
 - **Target**: Reach the right bank at x >= 26.0m.
 - **Build Zone**: Vehicle must be built on the left bank in x=[2.0, 8.0], y=[0.0, 4.0].
-- **Obstacles**: Three pillars are located in the water at x=14.0, 17.0, and 20.0m.
+- **Obstacles**: Three pillars (radius 0.46 m each) are located in the water at (x=14.0m, y=0.88m), (x=17.0m, y=0.90m), and (x=20.0m, y=0.92m).
+- **Deep Channel**: Between x=16.5m and x=19.5m buoyancy is reduced (scale factor 0.35); vehicles in this zone experience much less upward buoyant force and may sink if not designed for it.
+- **Beam Size**: Each beam dimension (width or height) must be between 0.15 m and 2.0 m.
+- **Propulsion Limit**: Maximum force per component per thrust application is 520 N.
+- **Speed Cap**: Maximum linear speed is 4.0 m/s (simulation stability).
 - **Environmental Factors**: Fluid resistance, gravity, and localized atmospheric/liquid forces that may affect stability.
 - **Propulsion**: Use `apply_force()` for paddling. **Cooldown**: Each component has a 3-step cooldown between thrusts.
 
@@ -43,6 +47,7 @@ Design a vehicle that:
 
 ## Design Constraints
 - **Mass Budget**: Total structure mass <= 600 kg.
+- **Joint Strength**: Structural connections do not break under load (no force limit).
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['F_02'].values()),

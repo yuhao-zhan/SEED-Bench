@@ -17,6 +17,8 @@ class Evaluator:
         self.environment = environment
         
         self.target_distance = float(terrain_bounds.get("target_distance", 10.0))
+        ground_info = terrain_bounds.get("ground") or {}
+        self.ground_y = float(ground_info.get("y", 1.0))
         self.min_simulation_time = 12.0 # seconds (aligned with prompt description)
         self.min_simulation_steps = int(self.min_simulation_time / TIME_STEP)
         
@@ -160,9 +162,9 @@ class Evaluator:
         
         for body in self.environment._bodies:
             x, y = body.position.x, body.position.y
-            # Check if any part of the body is outside. For simplicity, check center.
-            if not (self.BUILD_ZONE_X_MIN - 0.01 <= x <= self.BUILD_ZONE_X_MAX + 0.01 and
-                    self.BUILD_ZONE_Y_MIN - 0.01 <= y <= self.BUILD_ZONE_Y_MAX + 0.01):
+            # Check if any part of the body is outside. For simplicity, check center. Strict bounds (no tolerance) to match prompt.
+            if not (self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX and
+                    self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
                 violations.append(f"Component at ({x:.2f}, {y:.2f}) is outside build zone x:[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], y:[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]")
         return violations
 
@@ -178,12 +180,11 @@ class Evaluator:
         
         if not wheels: return None
         
-        ground_y = 1.0
         all_suspended = True
         for w in wheels:
             # Check if bottom of wheel is near ground
             radius = w.fixtures[0].shape.radius
-            if w.position.y - radius < ground_y + 0.15:
+            if w.position.y - radius < self.ground_y + 0.15:
                 all_suspended = False
                 break
         

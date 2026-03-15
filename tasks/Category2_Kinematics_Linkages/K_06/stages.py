@@ -52,6 +52,16 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         pattern = r"(Total structure mass must be less than )(\d+\.?\d*)( kg)"
         description = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally {base_mass:.2f} kg in the source environment)", description)
 
+    # Motor torque cap (when set by mutation; base has no cap)
+    target_motor_cap = target_terrain_config.get("max_motor_torque")
+    base_motor_cap = base_terrain_config.get("max_motor_torque")
+    if target_motor_cap is not None:
+        old_val = f"{base_motor_cap:.1f} N·m" if base_motor_cap is not None else "no cap"
+        pattern = r"(- \*\*Motor torque\*\*: )No environment cap \(solver may request up to API limits\)\."
+        replacement = f"\\g<1>Capped at {target_motor_cap:.1f} N·m (originally {old_val} in the source environment)."
+        if re.search(pattern, description):
+            description = re.sub(pattern, replacement, description)
+
     return description
 
 

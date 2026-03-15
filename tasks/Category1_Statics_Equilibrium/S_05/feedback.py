@@ -1,6 +1,7 @@
 """
 Task-specific feedback generation for S-05: The Shelter.
 Process-aware, diagnostic feedback. No spoilers; thresholds from metrics only.
+Domain: Statics + impact dynamics (shelter under bombardment).
 """
 from typing import Dict, Any, List
 import math
@@ -27,54 +28,56 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
 
     parts: List[str] = []
 
-    # --- Protection (core impact) ---
+    # --- Protection (core impact): peak force and margin to limit ---
     core_force = metrics.get("core_force")
     max_core_force = metrics.get("max_core_force")
     if core_force is not None and max_core_force is not None:
         if not _is_finite(core_force) or not _is_finite(max_core_force):
-            parts.append("⚠️ **Peak Core Impact**: Non-finite value detected (numerical instability).")
+            parts.append("⚠️ **Peak Core Impact**: Non-finite value detected.")
         else:
-            within = core_force <= max_core_force
+            cf, mcf = float(core_force), float(max_core_force)
+            within = cf <= mcf
             status = "✅" if within else "❌"
-            margin = (max_core_force - core_force) if within else (core_force - max_core_force)
+            margin = (mcf - cf) if within else (cf - mcf)
+            pct = (cf / mcf * 100) if mcf > 0 else 0
             parts.append(
-                f"{status} **Peak Core Impact**: {float(core_force):.2f} N "
-                f"(Threshold: {float(max_core_force):.2f} N) "
-                f"— margin {margin:.2f} N {'within' if within else 'over'} limit."
+                f"{status} **Peak Core Impact**: {cf:.2f} N "
+                f"(Threshold: {mcf:.2f} N) — margin {margin:.2f} N {'within' if within else 'over'} limit ({pct:.0f}% of threshold)."
             )
 
-    # --- Mass budget ---
+    # --- Mass budget: margin and utilization ---
     structure_mass = metrics.get("structure_mass")
     max_mass = metrics.get("max_mass")
     if structure_mass is not None and max_mass is not None:
         if not _is_finite(structure_mass) or not _is_finite(max_mass):
-            parts.append("⚠️ **Structural Mass**: Non-finite value detected (numerical instability).")
+            parts.append("⚠️ **Structural Mass**: Non-finite value detected.")
         else:
-            within = structure_mass <= max_mass
+            sm, mm = float(structure_mass), float(max_mass)
+            within = sm <= mm
             status = "✅" if within else "❌"
-            margin = (max_mass - structure_mass) if within else (structure_mass - max_mass)
+            margin = (mm - sm) if within else (sm - mm)
+            pct = (sm / mm * 100) if mm > 0 else 0
             parts.append(
-                f"{status} **Structural Mass**: {float(structure_mass):.2f} kg / {float(max_mass):.2f} kg "
-                f"— margin {margin:.2f} kg {'within' if within else 'over'} budget."
+                f"{status} **Structural Mass**: {sm:.2f} kg / {mm:.2f} kg "
+                f"— margin {margin:.2f} kg {'within' if within else 'over'} budget ({pct:.0f}% of limit)."
             )
 
-    # --- Structural clearance (collapse proxy) ---
+    # --- Structural clearance (collapse): lowest beam height ---
     min_body_y = metrics.get("min_body_y")
     if min_body_y is not None:
         if not _is_finite(min_body_y):
-            parts.append("⚠️ **Lowest Beam Height**: Non-finite value detected (numerical instability).")
+            parts.append("⚠️ **Lowest Beam Height**: Non-finite value detected.")
         else:
-            # Pass/fail from evaluator; threshold not in metrics so we show value only (no hardcode)
             failed = metrics.get("failed", False)
             failure_reason = (metrics.get("failure_reason") or "").lower()
             is_collapse = "collapse" in failure_reason or "below ground" in failure_reason
             status = "❌" if is_collapse else "✅"
             parts.append(
                 f"{status} **Lowest Beam Height**: {float(min_body_y):.2f} m "
-                "(structural collapse if below safe clearance)."
+                "(structural collapse if below ground level)."
             )
 
-    # --- Height limit ---
+    # --- Height limit (from metrics; stage-mutation safe) ---
     max_height_limit = metrics.get("max_height_limit")
     if max_height_limit is not None and _is_finite(max_height_limit):
         parts.append(f"**Height Limit**: No beam above y = {float(max_height_limit):.2f} m.")
@@ -90,6 +93,16 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if meteor_count is not None:
         parts.append(f"**Meteor Count**: {meteor_count}.")
 
+    # --- Evaluation outcome (informational) ---
+    success = metrics.get("success")
+    failed = metrics.get("failed")
+    if success is not None:
+        parts.append(f"**Success**: {'Yes' if success else 'No'}.")
+    if failed is not None and failed:
+        fr = metrics.get("failure_reason")
+        if fr:
+            parts.append(f"**Reported Failure**: {fr}")
+
     return parts
 
 
@@ -103,12 +116,15 @@ def get_improvement_suggestions(
 ) -> List[str]:
     """
     Diagnostic, process-aware suggestions. No spoilers; no hardcoded thresholds.
-    Root-cause chain, multi-objective trade-offs, numerical stability.
+    Root-cause chain and trade-offs derived only from evaluator metrics and failure_reason.
     """
     suggestions: List[str] = []
 
     if error:
-        suggestions.append(">> DIAGNOSTIC: A constraint was violated during build or simulation. Use the error and metrics to infer which physical rule was breached.")
+        suggestions.append(
+            ">> DIAGNOSTIC: A constraint was violated during build or simulation. "
+            "Use the error and metrics to infer which physical rule was breached."
+        )
         return suggestions
 
     # Dynamic thresholds from metrics only (stage-mutation safe)
@@ -119,11 +135,25 @@ def get_improvement_suggestions(
     min_body_y = metrics.get("min_body_y")
     reason_lower = (failure_reason or "").lower()
 
-    # --- Physics engine / numerical instability ---
-    for key, val in [("core_force", core_force), ("structure_mass", structure_mass), ("min_body_y", min_body_y)]:
+    # --- Non-finite measured quantity (from evaluator-returned values only) ---
+    for key, val in [
+        ("core_force", core_force),
+        ("structure_mass", structure_mass),
+        ("min_body_y", min_body_y),
+    ]:
         if val is not None and not _is_finite(val):
-            suggestions.append(">> PHYSICS ENGINE: A measured quantity is non-finite (NaN or infinite). This may indicate numerical instability or an invalid configuration; check that all constraints are physically consistent.")
+            suggestions.append(
+                ">> PHYSICS ENGINE: A measured quantity is non-finite (NaN or infinite). "
+                "Check that all constraints are physically consistent."
+            )
             break
+
+    # --- Incomplete evaluation (no failure but not success) ---
+    if not failed and not success and score is not None and score < 100:
+        suggestions.append(
+            ">> EVALUATION: Run did not register a failure but success was not achieved. "
+            "Success is evaluated only after the full impact sequence; use metrics to confirm duration."
+        )
 
     if not failed:
         return suggestions
@@ -131,43 +161,57 @@ def get_improvement_suggestions(
     suggestions.append(f">> FAILURE MODE: {failure_reason}")
 
     # --- Root-cause chain (evaluator order: collapse → core force → mass → height) ---
+    # Diagnostic only: physical mechanism, no design prescription.
     if "collapse" in reason_lower or "below ground" in reason_lower:
         suggestions.append(
-            "-> Root cause: Structural stability failed first. The load path lost vertical clearance "
-            "(lowest beam fell below the collapse threshold). Consider whether dead load, lateral forces, "
-            "or impact-induced collapse broke the structure before other limits were reached."
+            "-> Root cause: Structural stability failed first. The lowest beam fell below ground level. "
+            "Consider whether dead load, lateral forces, or impact-induced collapse broke the structure "
+            "before other limits were reached."
         )
-    elif "core protection failed" in reason_lower or ("force" in reason_lower and "core" in reason_lower):
+    elif "core protection failed" in reason_lower or (
+        "force" in reason_lower and "core" in reason_lower
+    ):
         suggestions.append(
             "-> Root cause: Core protection failed. Peak impact on the core exceeded the allowed force. "
-            "Consider whether the failure is due to insufficient kinetic isolation (geometry/coverage), "
+            "Consider whether the failure is due to insufficient isolation of the core from impacts, "
             "or whether structural collapse allowed debris or beams to contact the core."
         )
     elif "mass budget" in reason_lower or "mass" in reason_lower:
         suggestions.append(
-            "-> Root cause: Mass budget was exceeded. The structure used more material than the "
-            "allowed limit. Consider improving strength-to-weight ratio or reducing redundant mass."
+            "-> Root cause: Mass budget was exceeded. The structure used more material than "
+            "the allowed limit. Consider whether the same protection could be achieved with less mass, "
+            "or whether mass distribution led to the violation."
         )
     elif "height" in reason_lower:
         suggestions.append(
-            "-> Root cause: A structural element extended above the permitted height. Consider "
-            "reconfiguring vertical extent while preserving protection and stability."
+            "-> Root cause: A structural element extended above the permitted height. "
+            "Consider how vertical extent relates to the height limit reported in the metrics."
         )
 
-    # --- Multi-objective trade-off paradox ---
-    if max_core_force is not None and max_mass is not None and core_force is not None and structure_mass is not None:
+    # --- Trade-off (from metrics only; evaluator reports first violation in order) ---
+    if (
+        max_core_force is not None
+        and max_mass is not None
+        and core_force is not None
+        and structure_mass is not None
+    ):
         core_ok = _is_finite(core_force) and core_force <= max_core_force
         mass_ok = _is_finite(structure_mass) and structure_mass <= max_mass
         if core_ok and not mass_ok:
             suggestions.append(
-                "-> Trade-off: Protection was within limit, but mass budget was violated. One objective "
-                "was satisfied at the expense of another; consider whether the same protection can be "
-                "achieved with less material."
+                "-> Trade-off: Protection was within limit, but mass budget was violated. "
+                "Consider whether the same protection can be achieved with less material."
             )
         elif not core_ok and mass_ok:
             suggestions.append(
                 "-> Trade-off: Mass budget was satisfied, but core impact exceeded the threshold. "
-                "Consider whether geometry or coverage (rather than added mass) can improve isolation."
+                "Consider whether impact isolation (load path or distribution) can be improved without adding mass."
+            )
+        elif not core_ok and not mass_ok:
+            suggestions.append(
+                "-> Trade-off: Both protection and mass budget failed. The evaluator reports "
+                "the first constraint violated in order (collapse → core force → mass → height). "
+                "Consider which physical limit was hit first and whether addressing it affects the other."
             )
 
     return suggestions

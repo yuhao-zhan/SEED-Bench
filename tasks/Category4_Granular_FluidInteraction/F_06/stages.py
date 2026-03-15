@@ -19,19 +19,37 @@ def update_task_description_for_visible_changes(
     target_physics_config = target_physics_config or {}
     base_physics_config = base_physics_config or {}
 
-    # Target zone height
+    # Target zone height (apply before x so that when both change, y regex still matches)
     target_y_min = target_terrain_config.get("target_y_min", 0.0)
     target_y_max = target_terrain_config.get("target_y_max", 1.5)
     base_y_min = base_terrain_config.get("target_y_min", 0.0)
     base_y_max = base_terrain_config.get("target_y_max", 1.5)
 
     if target_y_min != base_y_min or target_y_max != base_y_max:
-        pattern = r"(y in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m)"
-        description = re.sub(
-            pattern,
-            f"\\g<1>{target_y_min:.1f}, {target_y_max:.1f}\\g<5> (originally y in [{base_y_min:.1f}, {base_y_max:.1f}] m in the source environment)",
-            description,
-        )
+        # Scope to Target Zone line only so we do not replace the gravity well "y in [1.5, 3.5] m"
+        target_zone_y_pattern = r"(- \*\*Target Zone\*\*: x in \[\d+\.?\d*, \d+\.?\d*\] m, y in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m\.?)"
+        if re.search(target_zone_y_pattern, description):
+            description = re.sub(
+                target_zone_y_pattern,
+                f"\\g<1>{target_y_min:.1f}, {target_y_max:.1f}] m (originally y in [{base_y_min:.1f}, {base_y_max:.1f}] m in the source environment).",
+                description,
+            )
+
+    # Target zone x bounds
+    default_x_min, default_x_max = 18.0, 22.0
+    target_x_min = float(target_terrain_config.get("target_x_min", default_x_min))
+    target_x_max = float(target_terrain_config.get("target_x_max", default_x_max))
+    base_x_min = float(base_terrain_config.get("target_x_min", default_x_min))
+    base_x_max = float(base_terrain_config.get("target_x_max", default_x_max))
+    if target_x_min != base_x_min or target_x_max != base_x_max:
+        # Matches either pristine line or line after y was updated (still has "] m, y in ")
+        target_zone_x_pattern = r"(- \*\*Target Zone\*\*: x in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m, y in )"
+        if re.search(target_zone_x_pattern, description):
+            description = re.sub(
+                target_zone_x_pattern,
+                f"\\g<1>{target_x_min:.1f}, {target_x_max:.1f}] m (originally x in [{base_x_min:.1f}, {base_x_max:.1f}] m in the source environment), y in ",
+                description,
+            )
 
     target_delivery = target_terrain_config.get("min_delivery_ratio", 0.90)
     base_delivery = base_terrain_config.get("min_delivery_ratio", 0.90)
@@ -53,7 +71,7 @@ def update_task_description_for_visible_changes(
         if re.search(pattern, description):
             description = re.sub(
                 pattern,
-                f"\\g<1>{target_count}\\g<3> (originally {base_count} in the source environment)",
+                f"\\g<1>{target_count}\\g<3> (originally {base_count} particles in the source environment)",
                 description,
             )
 
@@ -77,10 +95,10 @@ def update_success_criteria_for_visible_changes(
     target_delivery = target_terrain_config.get("min_delivery_ratio", 0.90)
     base_delivery = base_terrain_config.get("min_delivery_ratio", 0.90)
     if target_delivery != base_delivery:
-        pattern = r"(At least )(\d+)(% of released particles)"
+        pattern = r"(At least )(\d+)(% of released particles)( reach the target zone\.)"
         criteria = re.sub(
             pattern,
-            f"\\g<1>{int(target_delivery*100)}\\g<3> (originally {int(base_delivery*100)}% in the source environment)",
+            f"\\g<1>{int(target_delivery*100)}\\g<3> (originally {int(base_delivery*100)}% in the source environment)\\g<4>",
             criteria,
         )
 
@@ -94,6 +112,27 @@ def update_success_criteria_for_visible_changes(
             criteria = re.sub(
                 pattern,
                 f"\\g<1>{int(target_force)} N per step (originally {int(base_force)} N per step in the source environment).",
+                criteria,
+            )
+        # Design Constraints line: "- **Force Budget**: 12000 N per step."
+        design_force_pattern = r"(- \*\*Force Budget\*\*: )(\d+)( N per step\.)"
+        if re.search(design_force_pattern, criteria):
+            criteria = re.sub(
+                design_force_pattern,
+                f"\\g<1>{int(target_force)} N per step (originally {int(base_force)} N per step in the source environment).",
+                criteria,
+            )
+
+    # Mass budget (terrain_config)
+    default_max_mass = 380.0
+    target_mass = float(target_terrain_config.get("max_structure_mass", default_max_mass))
+    base_mass = float(base_terrain_config.get("max_structure_mass", default_max_mass))
+    if target_mass != base_mass:
+        mass_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d*)( kg\.)"
+        if re.search(mass_pattern, criteria):
+            criteria = re.sub(
+                mass_pattern,
+                f"\\g<1>{target_mass:.0f} kg (originally {base_mass:.0f} kg in the source environment).",
                 criteria,
             )
 
@@ -110,7 +149,6 @@ Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
 - **Fluid Viscosity**: The resistance of the medium may be altered.
 - **Gravity**: The acceleration due to the local gravitational field may vary.
-- **Atmospheric Resistance**: Headwinds acting against the flow may be present.
 - **Operational Resource Limit**: The per-step force budget available for particle manipulation may be adjusted.
 - **Target zone (vertical extent)**: The vertical range (y) of the target zone may differ.
 - **Delivery ratio threshold**: The required fraction of particles that must reach the target may differ.

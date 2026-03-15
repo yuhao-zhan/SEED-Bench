@@ -6,13 +6,8 @@ import os
 import json
 import sys
 
-# Add the tasks directory to sys.path to find primitives_api.py
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from primitives_api import API_INTRO
-import sys
-
-# Add tasks directory to path to import primitives_api
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+# Add the tasks directory to sys.path to find primitives_api
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from primitives_api import API_INTRO
 
 with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
@@ -32,17 +27,19 @@ Design a 2D side-view walker that moves forward using motor-driven joints.
 
 ## Task Environment
 - **Ground**: A flat horizontal surface at y=1.0m.
-- **Build Zone**: x=[0, 50], y=[2, 10]. All structure components must be placed within this zone.
+- **Ground friction**: Coefficient 0.8.
+- **Build Zone**: x=[0, 50], y=[2, 10]. All structure components must be placed within this zone. During motion, the torso must remain within x=[0, 50] and 1.2 < y ≤ 10 (above the stability limit and within the zone top).
 - **Starting Position**: Walker components should be centered around x=10m, y=2.0m (within the build zone).
 - **Target**: Move the walker's torso to at least x=25.0m (15 meters forward from starting x).
 
 ## Constraints (must satisfy)
-- **Stability**: The torso (main body) must always stay above y=1.2m. If the torso touches the ground or falls below y=1.2m, the task fails.
+- **Stability**: The torso (main body) must always stay above y=1.2m. If the torso touches the ground or falls below y=1.2m, the task fails. The evaluator treats the first body you create as the torso; create the torso first so that stability is measured correctly.
 - **Motion**: The walker must maintain forward motion for at least 15.0 seconds.
 - **Mass Budget**: Total structure mass must be less than 100 kg.
-- **Build Zone**: All components must stay within x=[0, 50], y=[2, 10].
+- **Build Zone**: All components must be placed within x=[0, 50], y=[2, 10]; during motion the torso must stay within x=[0, 50] and 1.2 < y ≤ 10.
 - **Beam Dimensions**: 0.05 <= width, height <= 5.0 meters.
 - **Wheel Radius** (if used): 0.05 <= radius <= 0.8 meters.
+- **Pivot Joint Angle Range**: By default, pivot (revolute) joints allow rotation in the range -π to π radians (full circle); mutated environments may impose a narrower range.
 
 ## Instructions
 1. **Design**: Create a walker structure (e.g., bipedal, quadrupedal, or using rotating linkages).

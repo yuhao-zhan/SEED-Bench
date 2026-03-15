@@ -1586,6 +1586,7 @@ def format_mutated_prompt(task_prompt, previous_successful_code, feedback):
 The physics environment has been modified. Your previously successful design NO LONGER WORKS.
 
 # Previous Successful Code (worked in the Original Environment)
+# (Self-contained: includes build_agent, agent_action, and all functions they call.)
 
 ```python
 {previous_successful_code}

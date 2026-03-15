@@ -23,21 +23,22 @@ class Evaluator:
         # Prioritize environment's internal terrain config for mutations
         env_terrain_cfg = getattr(environment, "_terrain_config", {})
         self.target_reach = float(env_terrain_cfg.get("target_reach", 12.0))
+        self.min_tip_height_limit = float(env_terrain_cfg.get("min_tip_height_limit", -15.0))
         
-        self.load_duration = 10.0 # seconds
+        self.load_duration = float(env_terrain_cfg.get("load_duration", 10.0))
         self.load_duration_steps = int(self.load_duration / TIME_STEP)
+        self.reach_tolerance = float(env_terrain_cfg.get("reach_tolerance", 1.0))
         
         # State tracking
         self.max_tip_x = 0.0
         self.min_tip_y = 1e9
-        self.min_tip_height_limit = -15.0 # Allowed sag limit in world Y
         
         self.initial_joint_count = -1
         self.structure_broken = False
         
-        # Load phases (aligned with environment.py)
-        self.load_attach_time = 5.0 # first load at 5s
-        self.load_2_attach_time = 15.0 # second load at 15s
+        # Load phases (from terrain_config, aligned with environment.py)
+        self.load_attach_time = float(env_terrain_cfg.get("load_attach_time", 5.0))
+        self.load_2_attach_time = float(env_terrain_cfg.get("load_2_attach_time", 15.0))
         self.load_attach_step = int(self.load_attach_time / TIME_STEP)
         self.load_2_attach_step = int(self.load_2_attach_time / TIME_STEP)
         
@@ -111,11 +112,12 @@ class Evaluator:
 
         self.external_force_y = total_ext_force_y / len(self.environment._bodies) if self.environment._bodies else 0.0
 
-        # Record max torque usage (using fixed 60Hz frequency for consistency)
+        # Record max torque usage (same frequency as environment joint checks: 1/TIME_STEP)
+        inv_dt = 1.0 / TIME_STEP
         for joint in self.environment._joints:
             try:
-                force = joint.GetReactionForce(60.0)
-                torque = abs(joint.GetReactionTorque(60.0))
+                force = joint.GetReactionForce(inv_dt)
+                torque = abs(joint.GetReactionTorque(inv_dt))
                 self.max_recorded_torque = max(self.max_recorded_torque, torque)
             except: pass
             
@@ -165,8 +167,8 @@ class Evaluator:
 
         # Failure: lost reach during test
         if not failed and step_count >= self.load_attach_step:
-            if current_tip_x < self.target_reach - 1.0: # Tolerance for deflection
-                failed, failure_reason = True, f"Structure lost reach under load (tip x={current_tip_x:.2f}m < {self.target_reach-1.0}m)"
+            if current_tip_x < self.target_reach - self.reach_tolerance:
+                failed, failure_reason = True, f"Structure lost reach under load (tip x={current_tip_x:.2f}m < {self.target_reach - self.reach_tolerance}m)"
 
         # Final determination
         is_end = (step_count >= max_steps - 1)
@@ -204,13 +206,13 @@ class Evaluator:
             'external_force_y': self.external_force_y,
             'structure_mass': current_mass,
             'max_structure_mass': self.MAX_STRUCTURE_MASS,
-            'max_anchor_torque': self.max_recorded_torque,
+            'peak_joint_torque': self.max_recorded_torque,
             'max_anchor_torque_limit': self.torque_limit_recorded,
             'max_internal_torque_limit': self.internal_torque_limit_recorded,
             'anchor_count': len([j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]]),
             'max_anchor_points': 2,
             'max_anchors_limit': 2,
-            'reach_tolerance': 1.0,
+            'reach_tolerance': self.reach_tolerance,
             'joint_count': len(self.environment._joints),
             'initial_joint_count': self.initial_joint_count,
             'success': success,
@@ -226,8 +228,8 @@ class Evaluator:
         if not self.environment: return ["Environment not available"]
         for body in self.environment._bodies:
             x, y = body.position.x, body.position.y
-            if not (self.BUILD_ZONE_X_MIN - 5.0 <= x <= self.BUILD_ZONE_X_MAX + 5.0 and
-                    self.BUILD_ZONE_Y_MIN - 5.0 <= y <= self.BUILD_ZONE_Y_MAX + 5.0):
+            if not (self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX and
+                    self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
                 violations.append(f"Beam at ({x:.2f}, {y:.2f}) outside build zone")
         
         anchor_count = len([j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]])
@@ -242,7 +244,7 @@ class Evaluator:
             'description': 'Design a structure that reaches far out and holds heavy loads',
             'success_criteria': {
                 'reach': f'Tip x >= {self.target_reach}m',
-                'load': 'Hold all payloads for 10s duration',
+                'load': f'Hold all payloads for {self.load_duration:.0f}s duration',
                 'integrity': 'No joint or anchor breaks'
             }
         }

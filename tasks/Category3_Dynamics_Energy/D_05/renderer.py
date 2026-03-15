@@ -37,12 +37,12 @@ class D05Renderer(Renderer):
         AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
         AGENT_OUTLINE = (26, 125, 30)    # Darker Green
 
-        # Draw all bodies
+        # Draw all bodies (terrain: ground, shell, slot_left, slot_right, slot_bar, pendulum, gates, etc.)
         shell = sandbox._terrain_bodies.get("shell")
         shield = sandbox._terrain_bodies.get("shield")
         pendulum_rod = sandbox._terrain_bodies.get("pendulum_rod")
         pendulum_anchor = sandbox._terrain_bodies.get("pendulum_anchor")
-        
+
         for body in sandbox.world.bodies:
             is_environment = False
             if hasattr(sandbox, "_terrain_bodies") and body in sandbox._terrain_bodies.values():

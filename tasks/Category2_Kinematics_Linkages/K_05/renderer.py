@@ -134,7 +134,8 @@ class K05Renderer(Renderer):
 
         # Target line (Goldenrod Yellow) at target height (y)
         if target_height and target_height > 0:
-            self.draw_line(0, target_height, 8.0, target_height, COLOR_ENV, 3)
+            x_end = getattr(sandbox, 'BUILD_ZONE_X_MAX', 8.0)
+            self.draw_line(0, target_height, x_end, target_height, COLOR_ENV, 3)
         
         # Build zone (Goldenrod Yellow)
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):

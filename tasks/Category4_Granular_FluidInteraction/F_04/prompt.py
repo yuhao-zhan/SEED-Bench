@@ -23,8 +23,9 @@ Design a static filtering structure to separate fluid particles into three size 
 
 ## Task Environment
 - **Particles**: A mixture of small (radius ~0.06m), medium (radius ~0.10m), and large (radius ~0.14m) particles will fall through the structure.
+- **Feed Zone**: Particles are introduced in x=[5.2, 6.9] m, y=[3.0, 5.0] m.
 - **Obstacles**: Static vertical baffles and moving horizontal sweepers in the feed zone will disturb particle flow.
-- **Build Zone**: x=[5.22, 6.88] m, y=[1.72, 2.38] m.
+- **Build Zone**: x=[5.22, 6.88] m, y=[1.72, 2.38] m. Each beam must have width and height in [0.08, 1.0] m.
 - **Target Zones**: 
   1. Small particles should be directed to the bottom (y < 1.92m).
   2. Medium particles should be directed to the middle (1.92m <= y < 2.52m).
@@ -35,6 +36,7 @@ Design a multi-layered filter that:
 1. Effectively separates particles by size into their respective target zones.
 2. Minimizes cross-contamination between categories.
 3. Maintains structural stability under particle load and sweeper impact using only static beams.
+- **Design limits**: Total structure mass <= 75 kg; Maximum 6 beams.
 """,
     "success_criteria": """
 ## Success Criteria

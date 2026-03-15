@@ -1,1 +1,1 @@
-# F-06: The Pipeline - Delivery efficiency >= 70%
+# F-06: The Pipeline - Delivery efficiency >= 90%

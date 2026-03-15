@@ -49,10 +49,10 @@ def test_stage_with_reference_solution(stage_config, reference_code):
     print()
 
     task_name = "Category2_Kinematics_Linkages/K_01"
-    # Walker needs enough steps: 5s at 60fps = 300 steps, plus distance 10m
+    # Must match test_reference_solutions.MAX_STEPS_OVERRIDES["K_01"] (90000) for consistent pass/fail
     verifier = CodeVerifier(
         task_name=task_name,
-        max_steps=6000,  # ~100 seconds for walker to reach 10m
+        max_steps=90000,
         env_overrides=env_overrides
     )
 

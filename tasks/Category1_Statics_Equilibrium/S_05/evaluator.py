@@ -15,8 +15,17 @@ class Evaluator:
         self.environment = environment
         self.terrain_bounds = terrain_bounds
         self.max_core_force = float(self.terrain_bounds.get("core_max_force", 150.0))
-        self.MAX_STRUCTURE_HEIGHT = 7.5
-        self.min_steps = 1000 # Minimum steps to evaluate success
+        self.MAX_STRUCTURE_HEIGHT = float(self.terrain_bounds.get("max_structure_height", 7.5))
+        # Minimum steps to evaluate success: at least cover full bombardment when terrain_bounds provide it
+        meteor_count = int(self.terrain_bounds.get("meteor_count", 12))
+        meteor_spawn_interval = int(self.terrain_bounds.get("meteor_spawn_interval", 30))
+        self.min_steps = max(1000, meteor_count * meteor_spawn_interval)
+        # Build zone from environment for consistency (e.g. design-constraint checks)
+        env_class = type(environment) if environment else None
+        self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', getattr(env_class, 'BUILD_ZONE_X_MIN', 5.0)) if environment else 5.0
+        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 15.0)) if environment else 15.0
+        self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', getattr(env_class, 'BUILD_ZONE_Y_MIN', 0.0)) if environment else 0.0
+        self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 8.0)) if environment else 8.0
 
     def evaluate(self, agent_body, step_count, max_steps):
         if not self.environment:
@@ -30,7 +39,7 @@ class Evaluator:
         failure_reason = None
         
         # Design constraint check (collapse)
-        # The core is at y=0.5 or 1.0. If structure falls below 0.3, it's definitely a collapse.
+        # The core default is at y=1.0 (may differ in mutated stages). If structure falls below 0.3, it's definitely a collapse.
         min_body_y = 100.0
         if self.environment._bodies:
             for body in self.environment._bodies:

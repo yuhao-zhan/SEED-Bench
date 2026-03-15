@@ -139,7 +139,7 @@ class Evaluator:
             "description": f"Build a tower > {self.TARGET_HEIGHT}m that survives an earthquake",
             "success_criteria": {
                 "initial_height": f"> {self.TARGET_HEIGHT}m",
-                "survival": f"Remain above {self.SURVIVAL_THRESHOLD}m during quake",
+                "survival": f"Remain ≥ {self.SURVIVAL_THRESHOLD}m during quake",
                 "stability": f"COM remains within ±{self.STABILITY_ZONE}m of foundation"
             }
         }

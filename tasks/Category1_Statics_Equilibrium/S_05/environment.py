@@ -160,12 +160,19 @@ class DaVinciSandbox:
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
         # Build-time constraints check
+        if x < self.BUILD_ZONE_X_MIN or x > self.BUILD_ZONE_X_MAX:
+            raise ValueError(f"Beam center x={x} is outside build zone x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}]")
+        if y < self.BUILD_ZONE_Y_MIN or y > self.BUILD_ZONE_Y_MAX:
+            raise ValueError(f"Beam center y={y} is outside build zone y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]")
         if y > self.MAX_STRUCTURE_HEIGHT:
             raise ValueError(f"Beam center y={y} exceeds height limit {self.MAX_STRUCTURE_HEIGHT}m")
         
         dist_to_core = math.sqrt((x - self.CORE_X)**2 + (y - self.CORE_Y)**2)
         if dist_to_core < 1.3 - 1e-6:
             raise ValueError(f"Beam center distance to core {dist_to_core:.2f}m is within 1.3m keep-out zone")
+
+        if width < 0.1 or width > 10.0 or height < 0.1 or height > 10.0:
+            raise ValueError(f"Beam dimensions must be in [0.1, 10.0] m; got width={width}, height={height}")
 
         body = self._world.CreateDynamicBody(position=(x, y), angle=angle)
         fixture = body.CreatePolygonFixture(box=(width/2, height/2), density=density, friction=self._structure_friction)
@@ -175,9 +182,13 @@ class DaVinciSandbox:
         return body
 
     def add_joint(self, body_a, body_b, anchor, type='rigid'):
-        # Anchor point check for height
+        # Anchor point checks: build zone and height
+        if anchor[0] < self.BUILD_ZONE_X_MIN or anchor[0] > self.BUILD_ZONE_X_MAX:
+            raise ValueError(f"Joint anchor x={anchor[0]} is outside build zone x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}]")
+        if anchor[1] < self.BUILD_ZONE_Y_MIN or anchor[1] > self.BUILD_ZONE_Y_MAX:
+            raise ValueError(f"Joint anchor y={anchor[1]} is outside build zone y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]")
         if anchor[1] > self.MAX_STRUCTURE_HEIGHT:
-             raise ValueError(f"Joint anchor y={anchor[1]} exceeds height limit {self.MAX_STRUCTURE_HEIGHT}m")
+            raise ValueError(f"Joint anchor y={anchor[1]} exceeds height limit {self.MAX_STRUCTURE_HEIGHT}m")
 
         if body_b is None: body_b = self._terrain_bodies["floor"]
         joint_def = Box2D.b2WeldJointDef()

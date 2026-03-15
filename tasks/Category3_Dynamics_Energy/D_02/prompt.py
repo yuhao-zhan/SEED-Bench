@@ -23,7 +23,8 @@ Design a jumping mechanism to clear a pit and land on a distant platform by pass
 
 ## Task Environment
 - **Platforms**: A left platform (start) and a right platform (target) separated by a wide pit.
-- **Barriers**: Three vertical barriers with narrow horizontal slots (gaps) are positioned in the pit at approximately x ≈ 17 m, x ≈ 19 m, and x ≈ 21 m. Each barrier has a lower red bar and an upper red bar; the trajectory must pass through the vertical gap between them (jumper center must stay within the gap when crossing each barrier's x-range).
+- **Barriers**: Three vertical barriers with narrow horizontal slots (gaps) are positioned in the pit at approximately x ≈ 17 m, x ≈ 19 m, and x ≈ 21 m. Each barrier has a lower red bar and an upper red bar; the trajectory must pass through the vertical gap between them (jumper center must stay within the gap when crossing each barrier's x-range). Slot vertical gaps (floor to ceiling, y in m): **Slot 1** (x ≈ 17 m): y in [13.2, 14.7]; **Slot 2** (x ≈ 21 m): y in [11.3, 13.3]; **Slot 3** (x ≈ 19 m): y in [12.4, 14.2].
+- **Jumper**: The jumper body has width 0.8 m and height 0.6 m; its center must stay within each slot's gap when crossing.
 - **Pit Failure**: Jumper center must remain at y ≥ 0 m; below y = 0 m is considered in the pit and results in failure.
 - **Build Zone**: x in [1.5, 6.5] m, y in [2.5, 5.5] m. All beam centers must be within this zone.
 - **Beam Dimensions**: Each beam width and height is clamped by the environment to [0.1, 4.0] m.
@@ -37,7 +38,7 @@ Design a controller that:
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Target Reach**: Body reaches the right platform (x >= 26.0m, y >= 1.0m).
+1. **Target Reach**: Body reaches the right platform (x >= 26.0 m, y >= 1.0 m).
 2. **Gap Clearance**: Trajectory successfully passes through all barrier slots without collision.
 
 ## Design Constraints

@@ -7,20 +7,66 @@ The solver is NOT told exact values; it must infer from feedback.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List
+
+# Source (base) slot dimensions used when base_terrain_config does not override
+_DEFAULT_SLOT1_FLOOR, _DEFAULT_SLOT1_CEIL = 13.2, 14.7
+_DEFAULT_SLOT2_FLOOR, _DEFAULT_SLOT2_CEIL = 11.3, 13.3
+_DEFAULT_SLOT3_FLOOR, _DEFAULT_SLOT3_CEIL = 12.4, 14.2
 
 
 def update_task_description_for_visible_changes(
     base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
-    """Update task description for visible changes."""
-    return base_description
+    """Update task description for visible changes using format: [new_value] (originally [old_value] in the source environment)."""
+    description = base_description
+    target = target_terrain_config or {}
+    base = base_terrain_config or {}
+    t_s1_f = target.get("slot1_floor", _DEFAULT_SLOT1_FLOOR)
+    t_s1_c = target.get("slot1_ceil", _DEFAULT_SLOT1_CEIL)
+    t_s2_f = target.get("slot2_floor", _DEFAULT_SLOT2_FLOOR)
+    t_s2_c = target.get("slot2_ceil", _DEFAULT_SLOT2_CEIL)
+    t_s3_f = target.get("slot3_floor", _DEFAULT_SLOT3_FLOOR)
+    t_s3_c = target.get("slot3_ceil", _DEFAULT_SLOT3_CEIL)
+    b_s1_f = base.get("slot1_floor", _DEFAULT_SLOT1_FLOOR)
+    b_s1_c = base.get("slot1_ceil", _DEFAULT_SLOT1_CEIL)
+    b_s2_f = base.get("slot2_floor", _DEFAULT_SLOT2_FLOOR)
+    b_s2_c = base.get("slot2_ceil", _DEFAULT_SLOT2_CEIL)
+    b_s3_f = base.get("slot3_floor", _DEFAULT_SLOT3_FLOOR)
+    b_s3_c = base.get("slot3_ceil", _DEFAULT_SLOT3_CEIL)
+
+    # Update slot vertical gaps if any slot changed
+    if (t_s1_f, t_s1_c) != (b_s1_f, b_s1_c) or (t_s2_f, t_s2_c) != (b_s2_f, b_s2_c) or (t_s3_f, t_s3_c) != (b_s3_f, b_s3_c):
+        # Slot 1: **Slot 1** (x ≈ 17 m): y in [13.2, 14.7];
+        slot1_pattern = r"(\*\*Slot 1\*\* \(x ≈ 17 m\): y in )\[(\d+\.?\d*), (\d+\.?\d*)\]([;.])"
+        if re.search(slot1_pattern, description):
+            description = re.sub(
+                slot1_pattern,
+                lambda m: f"{m.group(1)}[{t_s1_f:.1f}, {t_s1_c:.1f}] (originally [{b_s1_f:.1f}, {b_s1_c:.1f}] in the source environment){m.group(4)}",
+                description,
+            )
+        slot2_pattern = r"(\*\*Slot 2\*\* \(x ≈ 21 m\): y in )\[(\d+\.?\d*), (\d+\.?\d*)\]([;.])"
+        if re.search(slot2_pattern, description):
+            description = re.sub(
+                slot2_pattern,
+                lambda m: f"{m.group(1)}[{t_s2_f:.1f}, {t_s2_c:.1f}] (originally [{b_s2_f:.1f}, {b_s2_c:.1f}] in the source environment){m.group(4)}",
+                description,
+            )
+        slot3_pattern = r"(\*\*Slot 3\*\* \(x ≈ 19 m\): y in )\[(\d+\.?\d*), (\d+\.?\d*)\]([;.])"
+        if re.search(slot3_pattern, description):
+            description = re.sub(
+                slot3_pattern,
+                lambda m: f"{m.group(1)}[{t_s3_f:.1f}, {t_s3_c:.1f}] (originally [{b_s3_f:.1f}, {b_s3_c:.1f}] in the source environment){m.group(4)}",
+                description,
+            )
+    return description
 
 
 def update_success_criteria_for_visible_changes(
     base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
-    """Update success criteria for visible changes."""
+    """Update success criteria for visible changes (slot dimensions are only in task_description; success_criteria has no slot numbers)."""
     return base_success_criteria
 
 
@@ -33,7 +79,7 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Air Resistance**: Atmospheric drag may be altered, affecting momentum over time and jump range.
 - **Terrain Geometry**: The configuration and elevation of obstacle slots may have shifted, requiring a completely different trajectory.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how a body moves or where the trajectory fails) to infer the hidden constraints and adapt your design.
 """
 
 

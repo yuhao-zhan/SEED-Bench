@@ -24,11 +24,16 @@ The structure must extend horizontally to reach the target distance and support 
 
 ## Task Environment
 - **Wall**: A vertical static surface at x=0. You may use a maximum of 2 anchor points on this wall.
+- **Forbidden Anchor Zones**: Wall anchors may be restricted to certain vertical segments (y range). In the source environment there are no restrictions.
 - **Build Zone**: Structure must be built within x = [0, 50] m and y = [-20, 30] m. Beams outside this region violate design constraints.
 - **Beam Limits**: Each beam's width and height are clamped to [0.1 m, 15.0 m] per dimension.
-- **Payloads**: Payloads will be applied to your structure to test its load-bearing capacity and stability.
+- **Payloads**: Payloads will be applied to your structure to test its load-bearing capacity and stability. Each payload has mass **500 kg** (applied at t=5s and t=15s). The first payload attaches to the rightmost (tip) body; the second attaches to the body at median horizontal position (mid-span).
+- **Minimum Tip Height**: The structure must not sag below y = -15.0 m (minimum tip clearance); otherwise the task fails.
+- **Reach Deflection Tolerance**: Under load, the tip may deflect; reach is still satisfied if tip x remains within 1.0 m of the target.
+- **Internal Joint Limits**: Beam-to-beam joints fail if force exceeds **100,000,000 N** or torque exceeds **100,000,000 N·m**.
+- **Wall Anchor Limits**: Wall anchors fail if force exceeds **100,000,000 N** or torque exceeds **100,000,000 N·m** (exceeding causes anchor failure). Segment-specific anchor strength may apply in some environments.
 - **Atmosphere**: The environment exhibits physical properties that will test the structural integrity of your design.
-- **Obstacles**: The build zone may contain static obstructions that your structure must navigate.
+- **Obstacles**: The build zone may contain static obstructions that your structure must navigate (originally none in the source environment).
 
 ## Task Objective
 Design a robust cantilever structure that can:
@@ -44,14 +49,18 @@ Design a robust cantilever structure that can:
 1. **Reach**: Structure reaches the required horizontal distance (Tip reaches x >= 12.0m).
 2. **Load Bearing**: Successfully supports all payloads for the 10s test duration.
 3. **Anchor Integrity**: All wall anchors and joints remain intact.
-4. **Stability**: The structure does not sag below the allowed vertical threshold.
+4. **Stability**: The structure does not sag below the allowed vertical threshold (y >= -15.0 m).
 
 ## Design Constraints
 - **Mass Budget**: < 15,000 kg.
+- **Payload Mass**: 500 kg per applied load.
 - **Anchor Limit**: Maximum 2 anchor points on the wall.
+- **Forbidden Anchor Zones**: None in the source environment.
 - **Build Zone**: x = [0, 50] m, y = [-20, 30] m.
 - **Beam Limits**: Width and height in [0.1, 15.0] m per dimension.
-- **Strength Limits**: Joints and anchors have finite capacity; exceeding these limits will cause failure.
+- **Internal Joint Limits**: Max force 100,000,000 N; max torque 100,000,000 N·m (exceeding causes failure).
+- **Wall Anchor Limits**: Max force 100,000,000 N; max torque 100,000,000 N·m (exceeding causes failure).
+- **Reach Tolerance**: Under load, tip x may be up to 1.0 m short of target and still satisfy reach.
 - **APIs**: Use only the primitives documented below.
 """,
     

@@ -69,8 +69,12 @@ class F01Renderer(Renderer):
                     outline_width=2,
                 )
 
-        # Draw downstream boundary line (Academic Yellow) at x = DOWNSTREAM_X_START
-        if hasattr(sandbox, "DOWNSTREAM_X_START"):
+        # Draw leak boundary at moving wall left edge (matches get_leaked_particle_count)
+        wall = getattr(sandbox, "_terrain_bodies", {}).get("downstream_wall")
+        if wall is not None and hasattr(sandbox, "_downstream_wall_half_w"):
+            leak_x = wall.position.x - sandbox._downstream_wall_half_w
+            self.draw_line(leak_x, 0, leak_x, 12, COLOR_ENVIRONMENT, 3)
+        elif hasattr(sandbox, "DOWNSTREAM_X_START"):
             dx = sandbox.DOWNSTREAM_X_START
             self.draw_line(dx, 0, dx, 12, COLOR_ENVIRONMENT, 3)
 

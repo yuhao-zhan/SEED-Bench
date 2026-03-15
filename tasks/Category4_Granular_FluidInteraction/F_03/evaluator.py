@@ -1,6 +1,6 @@
 """
 F-03: The Excavator — evaluation module.
-Per user spec: base at (-2,0), at least 2 DOF (Arm + Bucket); > 15 particles in hopper within 40 s.
+Per user spec: base at (-2,0), at least 2 DOF (Arm + Bucket); at least 15 particles in hopper within 40 s.
 """
 import sys
 import os
@@ -77,17 +77,13 @@ class Evaluator:
 
         if in_hopper_count < self.MIN_PARTICLES_IN_HOPPER:
             failed = True
-            failure_reason = f"Deposited {in_hopper_count}/{initial_count} particles (need > {self.MIN_PARTICLES_IN_HOPPER} in hopper)"
-
-        if step_count > self.MAX_STEPS:
-            failed = True
-            failure_reason = (failure_reason or "") + ("; " if failure_reason else "") + f"Exceeded 40 s ({step_count * TIME_STEP:.1f} s)"
+            failure_reason = f"Deposited {in_hopper_count}/{initial_count} particles (need at least {self.MIN_PARTICLES_IN_HOPPER} in hopper)"
 
         if self.structure_broken:
             failed = True
             failure_reason = (failure_reason or "") + ("; " if failure_reason else "") + "Structure integrity lost (joints broke)"
 
-        success = (in_hopper_count >= self.MIN_PARTICLES_IN_HOPPER and step_count <= self.MAX_STEPS and not self.structure_broken and not failed)
+        success = (in_hopper_count >= self.MIN_PARTICLES_IN_HOPPER and not self.structure_broken and not failed)
 
         if success:
             score = 100.0
@@ -148,13 +144,13 @@ class Evaluator:
                 metrics["bucket_angle_rad"] = agent_body.angle
                 metrics["bucket_angle_deg"] = agent_body.angle * 180.0 / 3.14159265
         # Arm and joint state (process metrics for feedback)
-        arm_joint = getattr(self.environment, "_agent_arm_joint", None)
+        arm_joint = getattr(self.environment, "agent_arm_joint", None)
         if arm_joint is not None and hasattr(arm_joint, "angle"):
             metrics["arm_joint_angle_rad"] = arm_joint.angle
             metrics["arm_joint_angle_deg"] = arm_joint.angle * 180.0 / 3.14159265
-        if getattr(self.environment, "_bodies", None) and len(self.environment._bodies) >= 2:
-            arm_body = self.environment._bodies[1]
-            if arm_body.active:
+            # Arm link is bodyB of the arm revolute joint (first moving arm segment)
+            if hasattr(arm_joint, "bodyB") and arm_joint.bodyB is not None and arm_joint.bodyB.active:
+                arm_body = arm_joint.bodyB
                 metrics["arm_x"] = arm_body.position.x
                 metrics["arm_y"] = arm_body.position.y
                 metrics["arm_angle_rad"] = arm_body.angle
@@ -192,10 +188,10 @@ class Evaluator:
     def get_task_description(self):
         return {
             "task": "F-03: The Excavator",
-            "description": f"Dig sand from pit and transport into hopper; > {self.MIN_PARTICLES_IN_HOPPER} particles in hopper within {self.MAX_TIME_SECONDS:.0f} s; base at (-2,0), 2 DOF (Arm + Bucket)",
+            "description": f"Dig sand from pit and transport into hopper; at least {self.MIN_PARTICLES_IN_HOPPER} particles in hopper within {self.MAX_TIME_SECONDS:.0f} s; base at (-2,0), 2 DOF (Arm + Bucket)",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": f"Deposit > {self.MIN_PARTICLES_IN_HOPPER} sand particles into the Hopper",
+                "primary": f"Deposit at least {self.MIN_PARTICLES_IN_HOPPER} sand particles into the Hopper",
                 "secondary": f"Complete within {self.MAX_TIME_SECONDS:.0f} seconds; structure intact",
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},

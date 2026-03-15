@@ -70,7 +70,7 @@ def test_stage_with_reference_solution(stage_config, reference_code):
     if metrics:
         print(f"\nKey metrics:")
         for key in ['failed', 'failure_reason', 'max_reach', 'target_reach', 'load_hold_time', 'load2_hold_time',
-                   'anchor_broken', 'max_anchor_torque', 'max_anchor_torque_limit', 'structure_mass']:
+                   'anchor_broken', 'peak_joint_torque', 'max_anchor_torque_limit', 'structure_mass']:
             if key in metrics:
                 print(f"  {key}: {metrics[key]}")
     

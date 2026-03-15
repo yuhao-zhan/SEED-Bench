@@ -28,6 +28,11 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if not metrics:
         return task_metrics
 
+    # Early exit / error state (evaluator returned error only)
+    if "error" in metrics:
+        task_metrics.append(f"EVALUATION_ERROR: {metrics['error']}.")
+        return task_metrics
+
     # Particle removal (only if present)
     if "cleaning_percentage" in metrics:
         task_metrics.append(
@@ -45,6 +50,23 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         task_metrics.append(
             f"PARTICLES_REMOVED: {metrics['particles_removed']} pushed off glass."
         )
+
+    # Residual vs allowed (dynamic threshold from metrics)
+    if "residual_percentage" in metrics and "max_residual_percent" in metrics:
+        try:
+            res = float(metrics["residual_percentage"])
+            max_res = float(metrics["max_residual_percent"])
+            excess = res - max_res
+            if excess > 0:
+                task_metrics.append(
+                    f"RESIDUAL_EXCESS: Residual exceeds allowed by {excess:.2f} percentage points (allowed: {max_res:.2f}%)."
+                )
+            else:
+                task_metrics.append(
+                    f"RESIDUAL_MARGIN: {abs(excess):.2f} percentage points under allowed residual."
+                )
+        except (TypeError, ValueError):
+            pass
 
     # Mass budget (dynamic: limit comes from metrics for stage adaptability)
     if "structure_mass" in metrics and "max_structure_mass" in metrics:
@@ -66,19 +88,6 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         except (TypeError, ValueError):
             pass
 
-    # Removal shortfall vs required residual (dynamic threshold from metrics)
-    if "residual_percentage" in metrics and "max_residual_percent" in metrics:
-        res = metrics["residual_percentage"]
-        max_res = metrics["max_residual_percent"]
-        try:
-            shortfall = float(res) - float(max_res)
-            if shortfall > 0:
-                task_metrics.append(
-                    f"REMOVAL_SHORTFALL: Residual exceeds allowed by {shortfall:.2f} percentage points (allowed residual: {max_res:.2f}%)."
-                )
-        except (TypeError, ValueError):
-            pass
-
     # Time / steps (only if present)
     if "step_count" in metrics:
         task_metrics.append(f"SIMULATION_STEPS: {metrics['step_count']}.")
@@ -86,6 +95,20 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         task_metrics.append(
             f"REQUIRED_STEPS: {metrics['min_simulation_steps_required']} (minimum operational duration)."
         )
+    if "step_count" in metrics and "min_simulation_steps_required" in metrics:
+        try:
+            steps = int(metrics["step_count"])
+            required = int(metrics["min_simulation_steps_required"])
+            if steps < required:
+                task_metrics.append(
+                    f"STEP_SHORTFALL: Simulation ended {required - steps} steps before required duration."
+                )
+            else:
+                task_metrics.append(
+                    f"STEP_MARGIN: {steps - required} steps beyond required duration."
+                )
+        except (TypeError, ValueError):
+            pass
 
     # Wiper position (spatial state; only if present)
     if "wiper_x" in metrics and "wiper_y" in metrics:
@@ -104,7 +127,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         task_metrics.append(
             f"SUCCESS: {metrics['success']}."
         )
-    if "failed" in metrics and metrics.get("failed") and "failure_reason" in metrics and metrics.get("failure_reason"):
+    if metrics.get("failed") and metrics.get("failure_reason"):
         task_metrics.append(
             f"FAILURE_REASON: {metrics['failure_reason']}."
         )
@@ -129,7 +152,14 @@ def get_improvement_suggestions(
     if not metrics:
         return suggestions
 
-    # Dynamic thresholds only from metrics (no hardcoded 15.0, 20.0, etc.)
+    # Early exit: evaluator returned error only (no physical run)
+    if "error" in metrics:
+        suggestions.append(
+            "DIAGNOSTIC: Evaluation could not run; the reported error indicates a setup or environment condition that must be resolved before physical metrics are available."
+        )
+        return suggestions
+
+    # Dynamic thresholds only from metrics (no hardcoded mass, residual, or step limits)
     max_mass = metrics.get("max_structure_mass")
     current_mass = metrics.get("structure_mass")
     max_res = metrics.get("max_residual_percent")
@@ -140,7 +170,10 @@ def get_improvement_suggestions(
     reason = metrics.get("failure_reason") or failure_reason or ""
 
     # --- 1. Physics engine / numerical instability ---
-    numeric_keys = ("structure_mass", "cleaning_percentage", "residual_percentage", "step_count", "wiper_x", "wiper_y", "progress")
+    numeric_keys = (
+        "structure_mass", "cleaning_percentage", "residual_percentage",
+        "step_count", "wiper_x", "wiper_y", "progress"
+    )
     for key in numeric_keys:
         if key in metrics and _is_numerically_invalid(metrics[key]):
             suggestions.append(
@@ -161,11 +194,21 @@ def get_improvement_suggestions(
     # --- 3. Removal / coverage (root-cause: insufficient clearing) ---
     if max_res is not None and res_percent is not None:
         try:
-            if float(res_percent) > float(max_res):
-                if float(res_percent) > 95.0:
-                    suggestions.append(
-                        "DIAGNOSTIC: The mechanism is failing to displace particles toward the glass boundaries; almost no clearing is occurring. Consider whether contact, sweep coverage, or actuation limits prevent effective momentum transfer."
-                    )
+            res_f = float(res_percent)
+            max_res_f = float(max_res)
+            if res_f > max_res_f:
+                # Dynamic "almost no clearing" threshold: residual near 100% of the excess range
+                range_above_max = 100.0 - max_res_f
+                if range_above_max > 0:
+                    threshold_almost_none = max_res_f + range_above_max * 0.9
+                    if res_f >= threshold_almost_none:
+                        suggestions.append(
+                            "DIAGNOSTIC: The mechanism is failing to displace particles toward the glass boundaries; almost no clearing is occurring. Consider whether contact, sweep coverage, or actuation limits prevent effective momentum transfer."
+                        )
+                    else:
+                        suggestions.append(
+                            "DIAGNOSTIC: Coverage or clearing is insufficient; significant particle load remains in the target area. Consider the trade-off between structural capacity (mass, strength) and the impulse or contact needed to move particles off the glass."
+                        )
                 else:
                     suggestions.append(
                         "DIAGNOSTIC: Coverage or clearing is insufficient; significant particle load remains in the target area. Consider the trade-off between structural capacity (mass, strength) and the impulse or contact needed to move particles off the glass."
@@ -184,22 +227,31 @@ def get_improvement_suggestions(
             pass
 
     # --- 5. Multi-objective trade-off paradox ---
-    mass_over = max_mass is not None and current_mass is not None and float(current_mass) > float(max_mass)
-    removal_fail = max_res is not None and res_percent is not None and float(res_percent) > float(max_res)
-    if mass_over and removal_fail:
-        suggestions.append(
-            "DIAGNOSTIC: Multiple constraints are violated (mass budget and removal target). Identify which limit is primary: if mass is over budget, that is typically the first failure; improving cleaning alone will not pass until the mass constraint is satisfied."
+    try:
+        mass_over = (
+            max_mass is not None and current_mass is not None
+            and float(current_mass) > float(max_mass)
         )
-    elif mass_over and not removal_fail:
-        suggestions.append(
-            "DIAGNOSTIC: Cleaning performance may be adequate, but the structure violates the mass budget. The reported failure is due to constraint violation rather than clearing performance; consider the strength-to-weight and actuation-to-weight trade-off."
+        removal_fail = (
+            max_res is not None and res_percent is not None
+            and float(res_percent) > float(max_res)
         )
-    elif not mass_over and removal_fail:
-        suggestions.append(
-            "DIAGNOSTIC: Mass budget is satisfied but particle removal is below the required threshold. The failure is due to insufficient clearing; consider whether sweep coverage, contact force, or environmental conditions (e.g. particle adhesion or mass) limit momentum transfer."
-        )
+        if mass_over and removal_fail:
+            suggestions.append(
+                "DIAGNOSTIC: Multiple constraints are violated (mass budget and removal target). The reported failure reason reflects the first constraint checked in evaluation order (mass budget, then build zone, then particle removal); satisfying the primary failure first is necessary before cleaning performance can count."
+            )
+        elif mass_over and not removal_fail:
+            suggestions.append(
+                "DIAGNOSTIC: Cleaning performance may be adequate, but the structure violates the mass budget. The reported failure is due to constraint violation rather than clearing performance; consider the strength-to-weight and actuation-to-weight trade-off."
+            )
+        elif not mass_over and removal_fail:
+            suggestions.append(
+                "DIAGNOSTIC: Mass budget is satisfied but particle removal is below the required threshold. The failure is due to insufficient clearing; consider whether sweep coverage, contact force, or environmental conditions (e.g. particle adhesion or mass) limit momentum transfer."
+            )
+    except (TypeError, ValueError):
+        pass
 
-    # --- 6. Root-cause chain: surface the evaluator’s primary failure reason (no spoilers) ---
+    # --- 6. Root-cause chain: surface the evaluator's primary failure reason (no spoilers) ---
     if is_failed and reason:
         suggestions.append(
             f"DIAGNOSTIC: {reason}"

@@ -1,7 +1,7 @@
 """
 Task-specific feedback generation for K-01: The Walker.
-Process-aware, diagnostic feedback for Kinematics/Linkages domain.
 Uses only metrics from evaluator.evaluate(); no hardcoded thresholds.
+Strictly diagnostic; no design or API spoilers.
 """
 from typing import Dict, Any, List
 import math
@@ -19,11 +19,11 @@ def _is_finite_number(v: Any) -> bool:
 
 
 def _has_numerical_instability(metrics: Dict[str, Any]) -> bool:
-    """True if any numeric metric is non-finite (NaN/inf)."""
+    """True if any numeric metric in metrics is non-finite (evaluator can return such values)."""
     numeric_keys = (
         'walker_x', 'walker_y', 'distance_traveled', 'max_x_reached',
         'min_torso_y', 'progress', 'step_count', 'structure_mass',
-        'max_structure_mass', 'min_simulation_steps_required'
+        'max_structure_mass', 'min_simulation_steps_required', 'target_x'
     )
     for k in numeric_keys:
         if k in metrics and not _is_finite_number(metrics[k]):
@@ -31,19 +31,27 @@ def _has_numerical_instability(metrics: Dict[str, Any]) -> bool:
     return False
 
 
+def _parse_failure_reasons(failure_reason: str) -> List[str]:
+    """Split concatenated failure_reason (evaluator uses '; ')."""
+    if not failure_reason or not isinstance(failure_reason, str):
+        return []
+    return [s.strip() for s in failure_reason.split(";") if s.strip()]
+
+
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Expose high-resolution physical metrics from the evaluator only.
-    No suggestions; only what is present in metrics. No hallucinated quantities.
+    Expose only physical quantities present in the metrics dict from evaluator.evaluate().
+    No suggestions; no invented metrics or limits.
     """
     parts = []
 
-    # Numerical instability (physics engine limits)
     if _has_numerical_instability(metrics):
-        parts.append("**Numerical Stability**: One or more reported metrics are non-finite (NaN or infinite). The simulation may have encountered numerical instability.")
+        parts.append(
+            "**Numerical Stability**: One or more reported metrics are non-finite (NaN or infinite). "
+            "The simulation may have encountered numerical instability."
+        )
         return parts
 
-    # Kinematic state (only if present)
     if 'walker_x' in metrics and 'walker_y' in metrics:
         x, y = metrics['walker_x'], metrics['walker_y']
         if _is_finite_number(x) and _is_finite_number(y):
@@ -54,23 +62,28 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
                 parts.append(f"- Peak forward reach this run: {metrics['max_x_reached']:.2f}m")
             if 'progress' in metrics and _is_finite_number(metrics['progress']):
                 parts.append(f"- Distance progress toward target: {metrics['progress']:.1f}%")
+            target_x = metrics.get('target_x')
+            if target_x is not None and _is_finite_number(target_x):
+                gap = target_x - x
+                parts.append(f"- Remaining distance to target x: {gap:.2f}m")
 
-    # Structural profile (mass vs budget from metrics only)
     if 'structure_mass' in metrics:
         mass = metrics['structure_mass']
         max_mass = metrics.get('max_structure_mass', float('inf'))
         if _is_finite_number(mass):
             if _is_finite_number(max_mass):
                 status = "EXCEEDED" if mass > max_mass else "WITHIN LIMIT"
-                parts.append(f"**Structural Profile**: Total mass {mass:.2f}kg ({status} vs environment budget)")
+                parts.append(
+                    f"**Structural Profile**: Total mass {mass:.2f}kg ({status} vs environment budget {max_mass:.2f}kg)"
+                )
             else:
                 parts.append(f"**Structural Profile**: Total mass {mass:.2f}kg")
 
-    # Stability (minimum torso height observed)
     if 'min_torso_y' in metrics and _is_finite_number(metrics['min_torso_y']):
-        parts.append(f"**Stability**: Minimum torso height observed this run: {metrics['min_torso_y']:.2f}m")
+        parts.append(
+            f"**Stability**: Minimum torso height observed this run: {metrics['min_torso_y']:.2f}m"
+        )
 
-    # Temporal (step count vs required from metrics)
     if 'step_count' in metrics:
         steps = metrics['step_count']
         req = metrics.get('min_simulation_steps_required')
@@ -79,6 +92,9 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             if req is not None and _is_finite_number(req) and req > 0:
                 ratio = min(steps / req, 1.0) * 100
                 parts.append(f"- Survival duration: {ratio:.1f}% of required steps")
+
+    if metrics.get('failed') and metrics.get('failure_reason'):
+        parts.append(f"**Run Outcome**: Failed — {metrics['failure_reason']}")
 
     return parts
 
@@ -92,69 +108,102 @@ def get_improvement_suggestions(
     error: str = None,
 ) -> List[str]:
     """
-    Generate diagnostic, process-aware feedback. No spoilers; no implementation hints.
-    All thresholds taken from metrics (stage-mutation safe). Root-cause and trade-off aware.
+    Diagnostic feedback from evaluator metrics and failure_reason only.
+    All thresholds from metrics (stage-mutation safe). No design or API spoilers.
     """
     suggestions = []
 
-    # Use dynamic thresholds from metrics only
     max_mass = metrics.get('max_structure_mass', float('inf'))
     structure_mass = metrics.get('structure_mass')
     req_steps = metrics.get('min_simulation_steps_required')
     step_count = metrics.get('step_count', 0)
-    distance_traveled = metrics.get('distance_traveled', 0)
     progress = metrics.get('progress', 0)
-    min_torso_y = metrics.get('min_torso_y')
+    reason = failure_reason or metrics.get('failure_reason') or ""
 
-    # Physics engine / numerical instability
     if _has_numerical_instability(metrics):
-        suggestions.append("DIAGNOSTIC: Numerical instability detected in simulation outputs (non-finite values). Consider whether extreme forces, velocities, or constraints could be driving the solver into an invalid state.")
+        suggestions.append(
+            "DIAGNOSTIC: Numerical instability detected in simulation outputs (non-finite values). "
+            "Consider whether extreme forces, velocities, or constraints could be driving the solver "
+            "into an invalid state."
+        )
         return suggestions
 
-    # Error path (e.g. environment not available, torso not found)
-    if error:
-        suggestions.append("DIAGNOSTIC: The evaluator reported an error. Use the error message and the kinematic/stability metrics above to infer whether the failure is due to missing structure, invalid state, or constraint violation.")
+    err = error or metrics.get('error')
+    if err:
+        suggestions.append(
+            "DIAGNOSTIC: The evaluator reported an error. Use the error message and the kinematic/stability "
+            "metrics above to infer whether the failure is due to missing structure, invalid state, or constraint violation."
+        )
         return suggestions
 
-    # ---- Root-cause and multi-objective (design constraint: mass) ----
+    reasons = _parse_failure_reasons(reason)
+    if failed and len(reasons) > 1:
+        suggestions.append(
+            "DIAGNOSTIC: More than one constraint was violated in this run. Consider which physical limit "
+            "was exceeded first (e.g. loss of vertical support vs. design budget vs. allowed region)."
+        )
+
     mass_exceeded = (
         structure_mass is not None
         and _is_finite_number(max_mass)
         and _is_finite_number(structure_mass)
         and structure_mass > max_mass
     )
-    if failed and failure_reason and "design constraint" in (failure_reason or "").lower():
-        if mass_exceeded or "mass" in (failure_reason or "").lower():
-            suggestions.append("DIAGNOSTIC: The run was terminated due to a design constraint violation: total structure mass exceeds the environment's allowed budget.")
-            suggestions.append("ADVISORY: The physical mechanism is inertia versus available actuation. Consider whether a lower strength-to-weight ratio or a different distribution of mass could satisfy the constraint without prescribing a specific design.")
+    if failed and ("design constraint" in reason.lower() or "mass" in reason.lower() or mass_exceeded):
+        suggestions.append(
+            "DIAGNOSTIC: The run was terminated due to a design constraint violation: total structure mass "
+            "exceeds the environment's allowed budget (reported in metrics)."
+        )
+        suggestions.append(
+            "ADVISORY: The physical mechanism is inertia versus available actuation. Consider how total mass "
+            "and load-carrying capacity interact under the budget."
+        )
         return suggestions
 
-    # ---- Failure: stability (torso collapse) ----
-    if failed and failure_reason and ("collapsed" in failure_reason.lower() or "torso touched" in failure_reason.lower()):
-        suggestions.append("DIAGNOSTIC: The run was terminated because the torso height fell below the survival threshold—vertical support was lost.")
-        suggestions.append("ADVISORY: In linkage-based locomotion, collapse often follows loss of support polygon or poor phase coordination. Infer from the minimum torso height and step count whether the failure was early (e.g. initial tip-over) or late (e.g. gradual drift or resonance).")
-        # Multi-objective: if mass was also near limit, hint at trade-off without spoiling
-        if mass_exceeded or (structure_mass is not None and _is_finite_number(max_mass) and structure_mass > max_mass * 0.9):
-            suggestions.append("ADVISORY: Structural mass is at or near the environment limit; stability and mass budget may be competing objectives.")
+    if failed and ("collapsed" in reason.lower() or "torso touched" in reason.lower() or "height" in reason.lower()):
+        suggestions.append(
+            "DIAGNOSTIC: The run was terminated because the torso height fell below the survival threshold—"
+            "vertical support was lost."
+        )
+        suggestions.append(
+            "ADVISORY: In linkage-based locomotion, collapse often follows loss of support polygon or poor "
+            "phase coordination. Use minimum torso height and step count to infer whether failure was early "
+            "(e.g. initial tip-over) or late (e.g. gradual drift or resonance)."
+        )
+        if mass_exceeded:
+            suggestions.append(
+                "ADVISORY: Structural mass is at or over the environment limit; stability and mass budget "
+                "may be competing objectives."
+            )
         return suggestions
 
-    # ---- Failure: insufficient displacement (no explicit "did not move" in evaluator; use metrics) ----
-    if failed and _is_finite_number(distance_traveled) and distance_traveled < 0.1:
-        suggestions.append("DIAGNOSTIC: The walker did not achieve meaningful horizontal displacement before failure. Traction, momentum transfer, or initial configuration may prevent effective gait.")
-        suggestions.append("ADVISORY: Consider contact mechanics between the terminal links and the ground, and whether the actuation timing and magnitude are sufficient to overcome static friction and inertia.")
+    if failed and "build zone" in reason.lower():
+        suggestions.append(
+            "DIAGNOSTIC: The run was terminated because the torso left the allowed spatial region."
+        )
+        suggestions.append(
+            "ADVISORY: Consider whether the failure was due to trajectory leaving the allowed region "
+            "(e.g. lateral/vertical drift or forward overshoot)."
+        )
         return suggestions
 
-    # ---- Not failed but not success: partial progress ----
+    # Not failed but not success: run ended without meeting success criteria (evaluator: success = distance + duration)
     if not failed and not success:
-        # Premature termination (did not survive required time)
         if req_steps is not None and _is_finite_number(req_steps) and req_steps > 0:
             if _is_finite_number(step_count) and step_count < req_steps:
-                suggestions.append("DIAGNOSTIC: The simulation ended before the required survival duration. The structure either lost stability or violated a constraint before completing the time requirement.")
-        # Good distance but insufficient time (multi-objective)
-        if _is_finite_number(progress) and progress >= 90 and _is_finite_number(step_count) and req_steps is not None and step_count < req_steps:
-            suggestions.append("ADVISORY: Distance goal was nearly or fully met, but the run did not satisfy the duration requirement. The limiting factor may be sustained stability or constraint satisfaction over time, not raw displacement.")
-        # Good time but insufficient distance
-        if _is_finite_number(step_count) and _is_finite_number(req_steps) and step_count >= req_steps and _is_finite_number(progress) and progress < 100:
-            suggestions.append("ADVISORY: The structure survived the required duration but did not reach the distance target. The limiting factor may be net forward momentum transfer or gait efficiency rather than immediate collapse.")
+                suggestions.append(
+                    "DIAGNOSTIC: The simulation ended without meeting the required survival duration."
+                )
+        if _is_finite_number(step_count) and _is_finite_number(req_steps) and req_steps > 0:
+            if step_count >= req_steps and _is_finite_number(progress) and progress < 100:
+                suggestions.append(
+                    "ADVISORY: The structure survived the required duration but did not reach the distance target. "
+                    "The limiting factor may be net forward momentum transfer or gait efficiency."
+                )
+            elif step_count < req_steps and _is_finite_number(progress):
+                suggestions.append(
+                    "ADVISORY: The run did not meet both success criteria (distance and duration). "
+                    "Use the reported progress and survival ratio to identify the limiting factor."
+                )
 
     return suggestions

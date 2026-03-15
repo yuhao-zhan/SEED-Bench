@@ -55,11 +55,14 @@ class Sandbox:
         # 2. Generate terrain (high-friction ground)
         self._create_terrain(terrain_config)
         
-        # 3. Set build zone and constraints
-        self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
-        self.BUILD_ZONE_X_MAX = 15.0  # Build zone x end
-        self.BUILD_ZONE_Y_MIN = 1.5  # Build zone y start (consistent with prompt)
-        self.BUILD_ZONE_Y_MAX = 8.0  # Build zone y end
+        # 3. Set build zone and constraints (build_zone from config so mutations stay in sync with prompt)
+        bz = terrain_config.get("build_zone", {})
+        bz_x = bz.get("x", [0.0, 15.0])
+        bz_y = bz.get("y", [1.5, 8.0])
+        self.BUILD_ZONE_X_MIN = float(bz_x[0]) if isinstance(bz_x, (list, tuple)) and len(bz_x) >= 1 else 0.0
+        self.BUILD_ZONE_X_MAX = float(bz_x[1]) if isinstance(bz_x, (list, tuple)) and len(bz_x) >= 2 else 15.0
+        self.BUILD_ZONE_Y_MIN = float(bz_y[0]) if isinstance(bz_y, (list, tuple)) and len(bz_y) >= 1 else 1.5
+        self.BUILD_ZONE_Y_MAX = float(bz_y[1]) if isinstance(bz_y, (list, tuple)) and len(bz_y) >= 2 else 8.0
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 40.0))  # Maximum total structure mass (kg)
         
         # 4. Create object to push
@@ -166,8 +169,7 @@ class Sandbox:
     MAX_WHEEL_RADIUS = 0.8
     MIN_JOINT_LIMIT = -math.pi  # Minimum joint angle limit (radians)
     MAX_JOINT_LIMIT = math.pi  # Maximum joint angle limit (radians)
-    # BUILD_ZONE_X_MIN, BUILD_ZONE_X_MAX, BUILD_ZONE_Y_MIN, BUILD_ZONE_Y_MAX, MAX_STRUCTURE_MASS
-    # are set in __init__ based on terrain_config
+    # BUILD_ZONE_* and MAX_STRUCTURE_MASS are set in __init__ from terrain_config (build_zone and max_structure_mass)
     BUILD_ZONE_X_MIN = 0.0  # Default, will be updated in __init__
     BUILD_ZONE_X_MAX = 15.0  # Default, will be updated in __init__
     BUILD_ZONE_Y_MIN = 1.5  # Build zone y start

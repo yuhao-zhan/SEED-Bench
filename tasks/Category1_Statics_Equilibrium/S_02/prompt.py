@@ -24,7 +24,7 @@ TASK_PROMPT = {
 
     ## Task Environment
     - **Foundation**: The allowed ground-contact zone is ±4.5 m from the foundation center (x=[-4.5, 4.5] when the foundation is at rest). All ground contact must lie within this zone; the foundation may move during seismic activity, and contact is evaluated relative to its current position. (The physical foundation platform may be smaller than this zone.)
-    - **Seismic Activity**: After an initial period, the foundation will undergo horizontal oscillations. Your structure must survive these vibrations.
+    - **Seismic Activity**: The earthquake starts at t = 2.0 s. From that time, the foundation undergoes horizontal oscillations. Your structure must survive these vibrations.
     - **Wind**: Lateral forces are applied to structural components at various altitudes, simulating wind pressure.
     - **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters. Beams outside this range are rejected.
     - **Joint Strength**: Maximum linear force for a joint is inf; maximum torque is inf.
@@ -32,7 +32,7 @@ TASK_PROMPT = {
 
     ## Task Objective
     Design a stable skyscraper structure that can:
-    1. Reach a peak height greater than 30 m during the stable period before the earthquake (initial height criterion).
+    1. Reach a peak height greater than 30 m during the stable period before the earthquake (initial height criterion). The stable period is from the start of the simulation until t = 2.0 s; the initial height is the maximum top height recorded from step 10 until the earthquake starts (to allow for initial construction and settling).
     2. Maintain its integrity and height during and after the earthquake.
     3. Resist lateral wind forces at high altitudes.
     4. Maintain global stability (the structure's center of mass must remain within a safe lateral range).
@@ -40,14 +40,14 @@ TASK_PROMPT = {
 
     'success_criteria': """
     ## Success Criteria
-    1. **Height**: Peak topmost point during the pre-seismic stable period must exceed 30 m.
-    2. **Survival**: Structure remains standing (top point remains > 5 m) after the earthquake and wind duration.
+    1. **Height**: Peak topmost point during the pre-seismic stable period must exceed 30 m (stable period: from step 10 until the earthquake starts at t = 2.0 s).
+    2. **Survival**: Structure remains standing (top point remains ≥ 5 m) after the earthquake and wind duration.
     3. **Stability**: Global center of mass stays within x=[-300, 300] relative to foundation.
     4. **Physical Limits**: Topmost point must never exceed 150.0 m.
     
     ## Design Constraints
     - **Foundation Contact**: All ground contact must be within ±4.5 m of the foundation center (evaluated relative to foundation position).
-    - **Height Requirement**: Must exceed 30m.
+    - **Height Requirement**: Must exceed 30 m (peak during stable period, step 10 until t = 2.0 s).
     - **Width Limit**: Total structure width cannot exceed 24.0m.
     - **Joint strength**: Limits apply as stated in Task Environment.
     - **APIs**: Use only the primitives documented below.
