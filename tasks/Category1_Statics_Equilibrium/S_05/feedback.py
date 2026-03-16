@@ -74,7 +74,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
             status = "❌" if is_collapse else "✅"
             parts.append(
                 f"{status} **Lowest Beam Height**: {float(min_body_y):.2f} m "
-                "(structural collapse if below ground level)."
+                "(structural collapse if below y=0.3 m)."
             )
 
     # --- Height limit (from metrics; stage-mutation safe) ---
@@ -164,7 +164,7 @@ def get_improvement_suggestions(
     # Diagnostic only: physical mechanism, no design prescription.
     if "collapse" in reason_lower or "below ground" in reason_lower:
         suggestions.append(
-            "-> Root cause: Structural stability failed first. The lowest beam fell below ground level. "
+            "-> Root cause: Structural stability failed first. The lowest beam fell below the collapse threshold (y=0.3 m). "
             "Consider whether dead load, lateral forces, or impact-induced collapse broke the structure "
             "before other limits were reached."
         )

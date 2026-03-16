@@ -24,7 +24,7 @@ The goal is to design a system that maintains a level orientation despite the un
 
 ## Task Environment
 - **Pivot**: A sharp static support at (0, 5).
-- **The Load**: A heavy block (mass: 200.0 kg) located at or near (3, 5.5). It may automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3, 5.5), OR it may be DROPPED from above. When dropped, the load is considered caught when within 0.6 m of any part of your structure. If the load is not caught or falls, the task fails.
+- **The Load**: A heavy block (mass: 200.0 kg) located at or near (3, 5.5). It may automatically attach (weld) to your structure if any part of your design is built within 0.5m of (3, 5.5), OR it may be DROPPED from above, starting at (3, 9). When dropped, the load is considered caught when within 0.6 m of any part of your structure. If the load is not caught or falls, the task fails.
 - **Environmental Anomalies**: The environment may contain static obstacles you must build around, or experience severe lateral wind forces that apply continuous torque to your structure.
 - **Beam Dimensions**: 0.1 <= width <= 7.0 m, 0.1 <= height <= 2.0 m.
 
@@ -33,7 +33,7 @@ Design a balanced structure that:
 1. Extends to x=3.0 to successfully "catch" and support the heavy load.
 2. Connects to the pivot point at (0, 5).
 3. Maintains a level orientation (horizontal angle within ±10 degrees) for 15 seconds. 
-4. The structure must be free to rotate about the pivot; it must rely on active or passive mass balancing, not rigid anchoring to the ground.
+4. The structure connects to the pivot; in this environment the pivot may be a fixed weld or a revolute joint. Your structure should achieve balance through mass distribution.
 
 ## Constraints (must satisfy)
 - **Contact**: The structure should only touch the pivot. Any contact with the ground (y < -5.0 m) will lead to failure.

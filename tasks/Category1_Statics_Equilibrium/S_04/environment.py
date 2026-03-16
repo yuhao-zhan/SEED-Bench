@@ -58,6 +58,7 @@ class DaVinciSandbox:
 
         self._fragile_joints = terrain_config.get("fragile_joints", False)
         self._max_joint_torque = float(terrain_config.get("max_joint_torque", 1000.0))
+        self._pivot_joint_destroyed = False
 
         self.PIVOT_X = 0.0
         self.PIVOT_Y = 5.0
@@ -198,6 +199,7 @@ class DaVinciSandbox:
                         try:
                             self._world.DestroyJoint(j)
                             self._joints.remove(j)
+                            self._pivot_joint_destroyed = True
                         except: pass
 
         self._world.Step(time_step, 60, 60)
@@ -268,4 +270,6 @@ class DaVinciSandbox:
             "max_angle_deviation": self.MAX_ANGLE_DEVIATION * 180 / math.pi,
             "max_beam_width": self.MAX_BEAM_WIDTH,
             "max_beam_height": self.MAX_BEAM_HEIGHT,
+            "balance_time": self.BALANCE_TIME,
+            "ground_y_failure": self.GROUND_Y_FAILURE,
         }

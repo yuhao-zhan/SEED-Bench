@@ -32,11 +32,13 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     target_spawn_interval = int(target_terrain_config.get("meteor_spawn_interval", DEFAULT_METEOR_SPAWN_INTERVAL))
     base_spawn_interval = int(base_terrain_config.get("meteor_spawn_interval", DEFAULT_METEOR_SPAWN_INTERVAL))
     if target_meteor_count != base_meteor_count or target_spawn_interval != base_spawn_interval:
-        boulder_pattern = r"(In the nominal mission, )(\d+)( boulders spawn \(one every )(\d+)( simulation steps\)\.)"
+        boulder_pattern = r"(In the nominal mission, )(\d+)( boulders spawn from above \(one every )(\d+)( simulation steps\))(, and 4 additional boulders spawn from the left and right sides \(every 90 steps\)\.)"
         if re.search(boulder_pattern, description):
+            side_count = target_meteor_count // 3
+            side_interval = target_spawn_interval * 3
             description = re.sub(
                 boulder_pattern,
-                f"\\g<1>{target_meteor_count} boulders spawn (one every {target_spawn_interval} simulation steps) (originally {base_meteor_count} boulders, one every {base_spawn_interval} simulation steps in the source environment). ",
+                f"\\g<1>{target_meteor_count} boulders spawn from above (one every {target_spawn_interval} simulation steps) (originally {base_meteor_count} boulders, one every {base_spawn_interval} simulation steps in the source environment), and {side_count} additional boulders spawn from the left and right sides (every {side_interval} steps).",
                 description,
                 count=1,
             )
@@ -83,7 +85,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_core_force = base_terrain_config.get("max_core_force", DEFAULT_CORE_MAX_FORCE)
     if target_core_force != base_core_force:
         description = re.sub(
-            r"exceeds (\d+\.?\d*) N \(its structural tolerance\)",
+            r"exceeds (\d+\.?\d*) N \(its structural tolerance\)\.",
             f"exceeds {target_core_force:.1f} N (originally {base_core_force:.1f} N in the source environment).",
             description
         )
@@ -154,7 +156,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     if target_core_x != base_core_x or target_core_y != base_core_y:
         koz_criteria_pattern = r"(- \*\*Keep-Out Zone\*\*: Beam center distance to \()(\d+\.?\d*)(, )(\d+\.?\d*)(\) must be >= 1.3m\.)"
         criteria = re.sub(koz_criteria_pattern,
-                         f"\\g<1>{target_core_x:.1f}\\g<3>{target_core_y:.1f}\\g<5> (originally distance to ({base_core_x:.1f}, {base_core_y:.1f}) in the source environment).",
+                         f"\\g<1>{target_core_x:.1f}\\g<3>{target_core_y:.1f}) must be >= 1.3m (originally distance to ({base_core_x:.1f}, {base_core_y:.1f}) in the source environment).",
                          criteria)
 
     # Update Core Force threshold in success criteria
@@ -192,100 +194,75 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     return criteria
 
 # DYNAMICALLY GENERATED UNIFORM_SUFFIX based on the union of all mutated variables in Stages 1-4
-# Tone: warn *what* might change only; never state exact values or direction of change.
+# Union of mutated variables: max_structure_mass, core_x, wind_force, meteor_restitution, has_walls, max_joint_force, gravity, max_core_force
 UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Mass Budget Scarcity**: The total allowed mass for construction may differ from the nominal environment, forcing the use of lightweight materials or minimalist designs.
  - **Core Position**: The location of the protected object may differ from the nominal environment, requiring different structural placement.
  - **Atmospheric Turbulence (Wind)**: Constant lateral forces may be acting on all objects, potentially blowing away unanchored or high-drag structures.
- - **Joint Shear Strength**: Connections may have limited linear load-bearing capacity and can fail under high-speed impacts or extreme lateral forces.
- - **Meteor Elasticity (Restitution)**: Falling debris may be highly elastic, causing unpredictable ricochets that can bypass standard overhead cover.
- - **Surface/Structure Bounciness (Restitution)**: Floor and structure restitution may differ from the nominal environment, affecting how debris and beams bounce.
- - **Bombardment Intensity**: The total number of falling boulders may differ from the nominal environment, affecting duration and cumulative load of the storm.
- - **Bombardment Spread**: The horizontal distribution or velocity range of falling boulders may differ, affecting where impacts occur.
- - **Core Fragility**: The central object may be exceptionally sensitive to even minor impacts, requiring near-perfect isolation.
- - **Mass Budget Scarcity**: The total allowed mass for construction may be restricted, forcing the use of lightweight materials.
- - **Joint Torque Tolerance**: Anchors and connections may have limited resistance to twisting forces, causing collapse under asymmetrical loads.
- - **Surface Friction**: Floor and structure friction coefficients may differ from the nominal environment, affecting slip and stability.
+ - **Meteor Elasticity (Restitution)**: Falling debris elasticity may differ from nominal, causing unpredictable ricochets that can bypass standard overhead cover.
+ - **Lateral Boundaries (Containment)**: The scene may be enclosed by lateral walls, affecting boulder ricochets and horizontal debris velocity.
+ - **Joint Shear Strength**: Connections may have different linear load-bearing capacity and can fail under heavy self-weight or moderate impacts.
  - **Gravitational Constant**: The downward acceleration may differ from the nominal environment, affecting structural stress and impact energy.
- - **Lateral Boundaries (Containment)**: The scene may be enclosed by lateral walls, affecting boulder ricochets and airflow.
+ - **Core Fragility**: The central object's impact tolerance may differ from the nominal environment, requiring robust isolation.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
-# mutation_description is for logs/orchestration only and must NOT be shown to the agent.
 def get_s05_curriculum_stages() -> List[Dict[str, Any]]:
     return [
         {
             "stage_id": "Stage-1",
-            "title": "The Gale Force",
-            "mutation_description": "Strong lateral wind combined with limited joint strength. Massive structures will experience enormous drag and snap their own anchors.",
+            "title": "The Low-Density Canopy",
+            "mutation_description": "Extreme mass budget restrictions. The structure must be built using ultra-lightweight materials or minimalist geometry to avoid exceeding the strict weight limit.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "wind_force": -100.0,
-                "max_joint_force": 350.0,
+                "max_structure_mass": 1.2,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
-            "title": "The Kinetic Ricochet",
-            "mutation_description": "Extreme core sensitivity and a shifted core location. The core has been moved, requiring a completely different structural approach to ensure protection.",
+            "title": "The Shifting Center",
+            "mutation_description": "The protected object is located in an offset position. The standard central structure would violate safety keep-out zones or fail to provide adequate coverage for the new coordinates.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "core_x": 12.0,
-                "core_y": 2.0,
-                "meteor_restitution": 1.0,
-                "floor_restitution": 1.0,
-                "structure_restitution": 1.0,
-                "floor_friction": 0.0,
-                "structure_friction": 0.0,
-                "meteor_vx_range": [-10.0, 10.0],
-                "wind_force": 2.0,
-                "meteor_count": 200,
-                "max_core_force": 0.1,
-                "has_walls": True,
+                "core_x": 8.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "The Gravitational Constraint",
-            "mutation_description": "High gravity combined with a strict mass limit and robust joints. The structure must be incredibly light yet handle its own weight and high-energy impacts.",
+            "title": "The Ricochet Hurricane",
+            "mutation_description": "Intense lateral wind and highly elastic debris. Boulders ricochet off containment walls with minimal energy loss, while constant wind forces all structural elements to the side.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
+                "wind_force": 60.0,
+                "meteor_restitution": 0.95,
+                "has_walls": True,
+                "max_joint_force": 10000.0,
                 "max_structure_mass": 2.0,
-                "max_joint_force": 100000.0,
-                "max_joint_torque": 100000.0,
-                "max_core_force": 300.0,
             },
-            "physics_config": {
-                "gravity": (0, -60.0),
-            },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-4",
-            "title": "The Celestial Infernal",
-            "mutation_description": "Extreme lateral wind, a hyper-fragile core, high gravity, and low mass budget. A shifted core and contained environment make the original solution physically impossible to construct.",
+            "title": "The Gravitational Void",
+            "mutation_description": "Crushing gravity and a hyper-sensitive core in a shifted location. Extreme downward acceleration increases impact energy, while the core's fragility requires perfect vibration isolation and containment within a tight mass budget.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "core_x": 8.0,
-                "core_y": 2.0,
-                "wind_force": 50.0,
-                "max_core_force": 10.0,
-                "meteor_restitution": 0.9,
-                "floor_restitution": 0.9,
-                "structure_restitution": 0.9,
-                "floor_friction": 0.0,
-                "structure_friction": 0.0,
-                "max_structure_mass": 5.0,
-                "max_joint_force": 100000.0,
-                "max_joint_torque": 100000.0,
+                "gravity": (0, -60.0),
+                "max_core_force": 0.1,
+                "max_structure_mass": 4.0,
+                "core_x": 13.0,
+                "wind_force": -40.0,
                 "has_walls": True,
+                "meteor_restitution": 0.9,
             },
             "physics_config": {
-                "gravity": (0, -40.0),
+                "gravity": (0, -60.0),
             },
         },
     ]

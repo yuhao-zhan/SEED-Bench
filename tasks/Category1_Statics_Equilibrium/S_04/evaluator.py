@@ -71,6 +71,11 @@ class Evaluator:
         # Check failures
         failed = False
         failure_reason = None
+
+        # Pivot joint destroyed (fragile_joints: static torque exceeded limit)
+        if getattr(self.environment, "_pivot_joint_destroyed", False):
+            failed = True
+            failure_reason = "Pivot joint snapped (static torque exceeded limit)"
         
         # Check if load touches ground
         load_body = self.environment._terrain_bodies.get("load")

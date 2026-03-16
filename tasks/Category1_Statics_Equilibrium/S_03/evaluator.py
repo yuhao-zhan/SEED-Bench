@@ -121,8 +121,16 @@ class Evaluator:
                 self.max_recorded_torque = max(self.max_recorded_torque, torque)
             except: pass
             
-        # Record both anchor and internal torque limits for accurate feedback (wall vs beam-to-beam joints)
-        self.torque_limit_recorded = self.environment._terrain_config.get("max_anchor_torque", 100000000.0)
+        # Record both anchor and internal torque limits for accurate feedback (wall vs beam-to-beam joints).
+        # When anchor_strength_map applies, use the minimum effective limit (base * t_mult) so the reported
+        # limit matches the physics used for joint break in environment.step().
+        base_anchor_t = self.environment._terrain_config.get("max_anchor_torque", 100000000.0)
+        strength_map = self.environment._terrain_config.get("anchor_strength_map", None)
+        if strength_map and len(strength_map) > 0:
+            min_t_mult = min(float(entry[3]) for entry in strength_map if len(entry) >= 4)
+            self.torque_limit_recorded = base_anchor_t * min_t_mult
+        else:
+            self.torque_limit_recorded = base_anchor_t
         self.internal_torque_limit_recorded = self.environment._terrain_config.get("max_internal_torque", 100000000.0)
 
 
