@@ -74,12 +74,12 @@ _D02_SUFFIX = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Gravity**: Variations in the gravitational field may alter the parabolic trajectory and time-of-flight of the jumper.
-- **Atmospheric Wind**: Strong currents may exert forces in various directions, significantly altering the flight path and momentum.
-- **Air Resistance**: Atmospheric drag may be altered, affecting momentum over time and jump range.
-- **Terrain Geometry**: The configuration and elevation of obstacle slots may have shifted, requiring a completely different trajectory.
+- **Gravitational Flux**: Variations in the gravitational constant may drastically alter the parabolic trajectory and time-of-flight, requiring recalibration of launch force.
+- **Atmospheric Currents**: Significant horizontal or vertical wind vectors may exert continuous forces, causing the jumper to drift or lose forward momentum.
+- **Viscous Air Resistance**: Changes in atmospheric density can cause exponential velocity decay (air resistance), significantly limiting the effective jump range.
+- **Structural Shifts**: The elevation and configuration of barrier slots may have shifted, invalidating trajectories that were previously optimal.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how a body moves or where the trajectory fails) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the jumper moves or where the trajectory fails) to infer the hidden constraints and adapt your design.
 """
 
 
@@ -92,33 +92,33 @@ def get_d02_curriculum_stages() -> List[Dict[str, Any]]:
     return [
         {
             "stage_id": "Stage-1",
-            "title": "Extreme Updraft",
-            "mutation_description": "A powerful upward wind force has been detected; the jumper will fly much higher than usual.",
+            "title": "Viscous Void",
+            "mutation_description": "The atmosphere has become significantly more viscous; the jumper will experience rapid velocity decay due to extreme air resistance.",
             "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "wind": (0.0, 35.0),
+                "linear_damping": 2.0,
             },
         },
         {
             "stage_id": "Stage-2",
-            "title": "Deep Shift",
-            "mutation_description": "Seismic activity has lowered the elevation of all barrier slots; a much lower trajectory is required.",
+            "title": "Abyssal Descent",
+            "mutation_description": "Seismic activity has drastically lowered the elevation of all barrier slots; a precisely controlled, low-altitude trajectory is now required.",
             "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {
-                "slot1_floor": 9.7,
-                "slot1_ceil": 11.2,
-                "slot3_floor": 8.9,
-                "slot3_ceil": 10.7,
-                "slot2_floor": 7.8,
-                "slot2_ceil": 9.8,
+                "slot1_floor": 8.0,
+                "slot1_ceil": 9.5,
+                "slot3_floor": 7.5,
+                "slot3_ceil": 9.0,
+                "slot2_floor": 7.0,
+                "slot2_ceil": 8.5,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "Gale and Gravity",
-            "mutation_description": "Combination of high gravity and a strong headwind; momentum will be lost rapidly.",
+            "title": "Gale-Force Gravity",
+            "mutation_description": "Extreme gravitational pull combined with a powerful headwind will rapidly deplete the jumper's momentum and force it toward the pit.",
             "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {
@@ -128,8 +128,8 @@ def get_d02_curriculum_stages() -> List[Dict[str, Any]]:
         },
         {
             "stage_id": "Stage-4",
-            "title": "Hurricane Tunnel",
-            "mutation_description": "Extreme environment with high gravity, headwind, and air resistance.",
+            "title": "The Perfect Storm",
+            "mutation_description": "A combination of extreme gravity, fierce headwind, and significant air resistance creates a nearly impassable barrier.",
             "task_description_suffix": _D02_SUFFIX,
             "terrain_config": {},
             "physics_config": {

@@ -151,18 +151,18 @@ def get_k02_curriculum_stages() -> List[Dict[str, Any]]:
     Returns ordered stage configs for K-02: The Climber task variants.
     """
     
-    # UNION of all physical variables modified across all stages (none modify wall_oscillation or boulder_interval)
+    # UNION of all physical variables modified across all stages (suffix must list only these)
+    # - build_zone_y_max: Vertical extent of the build zone
     # - max_joint_force: Structural load limit
     # - max_joint_torque: Actuator torque limit
     # - gravity: Base gravitational acceleration
     # - gravity_evolution: Time-dependent gravity shift
-    # - suction_zones: Functional regions for adhesive pads
+    # - suction_zones: Functional regions for adhesive pads (presence of gaps)
     # - min_structure_mass: Stability requirement
     # - wind_force: Constant lateral atmospheric pressure
-    # - wind_oscillation: Pulsing atmospheric turbulence
     # - vortex_y/force: Height-triggered extreme weather phenomena
-    # - build_zone_y_max: Vertical extent of the build zone
-    
+    # (wall_oscillation_amp/freq not modified in any stage -> not in suffix)
+
     task_description_suffix = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
@@ -170,8 +170,8 @@ While the following variables MIGHT have changed from the initial environment, N
  - **Build Zone (Vertical Extent)**: The allowed vertical range for placing and operating the structure may differ from the default.
  - **Structural Integrity Thresholds (Joint Force/Torque)**: Joints may snap if subjected to excessive reaction forces or if motors exert too much torque.
  - **Gravitational Instability (Gravity/Evolution)**: Gravitational acceleration or its variation over time may differ from the default; vertical loads may be significantly different.
- - **Surface Adhesion Gaps (Suction Zones)**: The wall's surface may be slick or non-adhesive in certain altitude bands, requiring long-reach transitions.
- - **Mass Displacement Constraints (Min Mass)**: Certain regions require a minimum structural inertia to remain stable against environmental forces.
+ - **Surface Adhesion Gaps (Suction Zones)**: The wall's surface may be slick or non-adhesive in certain altitude bands, requiring long-reach transitions or robust timing.
+ - **Mass Displacement Constraints (Min Mass)**: Certain regions require a minimum structural inertia or mass to remain stable against environmental forces.
  - **Atmospheric Turbulence (Wind/Vortex)**: Lateral wind forces and height-dependent vortices may attempt to push the climber away from the wall.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
@@ -220,19 +220,20 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
         },
         {
             "stage_id": "Stage-4",
-            "title": "The Vortex Storm",
-            "mutation_description": "Extreme wind, oscillating turbulence, and height-dependent vortex forces in a tiny build zone. Forces ultra-stable compact designs.",
+            "title": "The Resonant Singularity",
+            "mutation_description": "Extreme 2m suction gaps combined with 15N lateral wind and height-triggered vortex forces. Forces ultra-long-reach precision.",
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
-                "build_zone_y_max": 2.5,
-                "wind_force": -30.0,
-                "wind_oscillation": 5.0,
+                "build_zone_y_max": 5.0,
+                "min_structure_mass": 25.0,
+                "wind_force": -15.0,
                 "vortex_y": 5.0,
-                "vortex_force_x": 50.0,
-                "vortex_force_y": -20.0,
+                "vortex_force_x": 15.0,
+                "vortex_force_y": -5.0,
+                "suction_zones": [(0, 7), (9, 16), (18, 25), (27, 35)],
             },
             "physics_config": {
-                "gravity": (0, -20.0),
+                "max_joint_force": 3000.0,
             },
         },
     ]

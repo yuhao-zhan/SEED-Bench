@@ -6,7 +6,9 @@ No spoilers; all thresholds from metrics (stage-mutation adaptable).
 from typing import Dict, Any, List
 import math
 
-# Fallback wall-contact band when not in metrics (e.g. legacy runs)
+# Fallback wall-contact band only when metrics lack wall_contact_x_lo/hi (e.g. legacy or partial runs).
+# Matches default environment (wall_x=5.0 -> [5-1.5, 5+2.5]). For stage-adaptive feedback, callers
+# must pass metrics that include wall_contact_x_lo and wall_contact_x_hi from evaluator/terrain_bounds.
 _DEFAULT_WALL_X_LO = 3.5
 _DEFAULT_WALL_X_HI = 7.5
 

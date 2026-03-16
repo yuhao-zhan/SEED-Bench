@@ -92,17 +92,19 @@ class Evaluator:
             bx_min, bx_max, floor_y, ceil_y = slot
             if bx_min is None or bx_max is None or floor_y is None or ceil_y is None:
                 continue
-            in_x_range = px - self._jumper_half_w <= bx_max and px + self._jumper_half_w >= bx_min
+            # Slot rule applies when jumper center x is within 0.5 m of slot center (match prompt)
+            in_x_range = bx_min <= px <= bx_max
             if not in_x_range:
                 continue
             # In this slot: center must be in (floor+margin, ceil-margin); also avoid touching (bottom/top vs floor/ceiling)
+            slot_num = i + 1
             if py - self._jumper_half_h <= floor_y + SLOT_MARGIN:
                 failed = True
-                failure_reason = "Hit lower red bar or left slot: trajectory must pass through the gap between lower and upper red bars"
+                failure_reason = f"Hit lower red bar in slot {slot_num}: trajectory must pass through the gap between lower and upper red bars"
                 break
             if py + self._jumper_half_h >= ceil_y - SLOT_MARGIN:
                 failed = True
-                failure_reason = "Hit upper red bar or left slot: trajectory must pass through the gap between lower and upper red bars"
+                failure_reason = f"Hit upper red bar in slot {slot_num}: trajectory must pass through the gap between lower and upper red bars"
                 break
 
         # Fall into pit: y below threshold

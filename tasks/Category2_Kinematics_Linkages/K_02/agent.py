@@ -118,23 +118,27 @@ def agent_action_stage_3(sandbox, agent_body, step_count):
     _apply_climb_action(sandbox, step_count)
 
 def build_agent_stage_4(sandbox):
-    x_pos = 4.9
-    base_y = 0.5
-    torso = sandbox.add_beam(x_pos, base_y, 0.05, 0.4, density=20.0)
-    p1 = sandbox.add_pad(x_pos + 0.05, base_y, radius=0.05, density=5.0)
-    sandbox.add_joint(torso, p1, (x_pos + 0.05, base_y), type='rigid')
-    arm = sandbox.add_beam(x_pos, base_y + 0.5, 0.04, 0.6, density=20.0)
-    p2 = sandbox.add_pad(x_pos + 0.05, base_y + 0.8, radius=0.05, density=5.0)
-    sandbox.add_joint(arm, p2, (x_pos + 0.05, base_y + 0.8), type='rigid')
-    joint = sandbox.add_joint(torso, arm, (x_pos, base_y + 0.2), type='pivot', lower_limit=-0.1, upper_limit=2.0)
+    x_pos = 4.8
+    base_y = 1.0
+    torso = sandbox.add_beam(x_pos, base_y, 0.2, 0.8, density=100.0)
+    p1 = sandbox.add_pad(x_pos + 0.1, base_y - 0.2, radius=0.12, density=10.0)
+    p2 = sandbox.add_pad(x_pos + 0.1, base_y + 0.2, radius=0.12, density=10.0)
+    sandbox.add_joint(torso, p1, (x_pos + 0.1, base_y - 0.2), type='rigid')
+    sandbox.add_joint(torso, p2, (x_pos + 0.1, base_y + 0.2), type='rigid')
+    arm = sandbox.add_beam(x_pos, base_y + 1.2, 0.2, 1.8, density=50.0)
+    p3 = sandbox.add_pad(x_pos + 0.1, base_y + 1.8, radius=0.12, density=10.0)
+    p4 = sandbox.add_pad(x_pos + 0.1, base_y + 2.0, radius=0.12, density=10.0)
+    sandbox.add_joint(arm, p3, (x_pos + 0.1, base_y + 1.8), type='rigid')
+    sandbox.add_joint(arm, p4, (x_pos + 0.1, base_y + 2.0), type='rigid')
+    joint = sandbox.add_joint(torso, arm, (x_pos, base_y + 0.4), type='pivot', lower_limit=-0.1, upper_limit=3.5)
     sandbox._climber_joints = {
-        'p_torso': [p1],
-        'p_arm': [p2],
+        'p_torso': [p1, p2],
+        'p_arm': [p3, p4],
         'joint': joint,
-        'cycle': 30,
-        'speed': 40.0,
-        'torque': 50000.0,
-        'overlap': 4
+        'cycle': 150,
+        'speed': 8.0,
+        'torque': 150000.0,
+        'overlap': 40
     }
     return torso
 

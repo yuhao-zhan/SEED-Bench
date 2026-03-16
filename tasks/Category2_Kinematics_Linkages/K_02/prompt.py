@@ -25,7 +25,7 @@ TASK_PROMPT = {
 Design a 2D climber mechanism that can scale a vertical wall using motor-driven segments and adhesive pads.
 
 ## Task Environment
-- **Vertical Wall**: A surface on the right side of the build zone. Wall friction coefficient is 1.0 (for grip).
+- **Vertical Wall**: A surface on the right side of the build zone. Wall height is 30 m; wall friction coefficient is 1.0 (for grip).
 - **Build Zone**: x=[0, 5], y=[0, 25]. All structure components must be placed within this zone.
 - **Wall Contact**: During motion, the climber must remain within x=[3.5, 7.5]m to maintain wall contact (evaluation fails otherwise).
 - **Ground / Fall**: Evaluation fails if the climber's altitude falls below 0.5 m (ground contact).

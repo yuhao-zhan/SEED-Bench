@@ -36,7 +36,7 @@ def build_agent_stage_1(sandbox):
 def agent_action_stage_1(sandbox, agent_body, step_count):
     if step_count != 0:
         return
-    vx, vy = 55.33, 43.95
+    vx, vy = 130.0, 110.0
     sandbox.set_jumper_velocity(vx, vy)
 
 def build_agent_stage_2(sandbox):
@@ -45,7 +45,7 @@ def build_agent_stage_2(sandbox):
 def agent_action_stage_2(sandbox, agent_body, step_count):
     if step_count != 0:
         return
-    vx, vy = 82.95, 44.86
+    vx, vy = 90.0, 35.0
     sandbox.set_jumper_velocity(vx, vy)
 
 def build_agent_stage_3(sandbox):
