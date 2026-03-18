@@ -1,0 +1,38 @@
+{
+  "id": "81059d79-f356-4c98-b27e-2bfd0a50cc0e",
+  "generation": 0,
+  "iteration": 0,
+  "current_iteration": 2,
+  "metrics": {
+    "combined_score": 0.0,
+    "score": 0.0,
+    "success": false,
+    "metrics": {
+      "vehicle_x": 5.0,
+      "vehicle_y": 10.5,
+      "target_x": 30.0,
+      "progress": 0.0,
+      "success": false,
+      "failed": true,
+      "failure_reason": "Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]",
+      "step_count": 0,
+      "structure_mass": 0.30000001192092896,
+      "max_structure_mass": 2000.0,
+      "max_vertical_accel": 0.0,
+      "structure_broken": false,
+      "joint_count": 0,
+      "velocity_x": 5.0,
+      "velocity_y": 0.0,
+      "angular_velocity": 0.0,
+      "angle": 0.0,
+      "normalized_angle": 0.0,
+      "high_angular_velocity_count": 0,
+      "is_airborne": false,
+      "airborne_rotation_accumulated": 0.0
+    },
+    "error": null
+  },
+  "language": "python",
+  "timestamp": 1771594543.27753,
+  "saved_at": 1771594640.8034208
+}

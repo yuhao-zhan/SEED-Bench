@@ -1,0 +1,474 @@
+2026-02-21 23:27:59,233 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/logs/openevolve_20260221_232759.log
+2026-02-21 23:27:59,234 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 23:27:59,234 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-14B (weight: 1.00)
+2026-02-21 23:27:59,256 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 23:27:59,261 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 23:27:59,261 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 23:27:59,264 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_4heishhf/evaluate.py
+2026-02-21 23:27:59,264 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_4heishhf/evaluate.py
+2026-02-21 23:27:59,264 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_4heishhf/initial_program.py
+2026-02-21 23:27:59,264 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 23:27:59,288 - openevolve.evaluator - INFO - Evaluated program 91071bc3-4b73-4c06-9365-85097592aee4 in 0.02s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:27:59,289 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 23:27:59,289 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 23:27:59,291 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 23:27:59,291 - openevolve.database - INFO - Island Status:
+2026-02-21 23:27:59,291 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:27:59,291 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:27:59,291 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:27:59,291 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:27:59,291 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:27:59,291 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:28:40,475 - openevolve.evaluator - INFO - Evaluated program 15736d9f-fc86-4d3e-9050-19c3a3d23b9c in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': "Code syntax error: expected an indented block after 'for' statement on line 15 (<string>, line 16)\nCode snippet (lines 14-16):\n  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))\n  15:     for i in range(n):\n  16: # EVOLVE-BLOCK-END\n\nFull error: expected an indented block after 'for' statement on line 15 (<string>, line 16)", 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: expected an indented block after 'for' statement on line 15 (<string>, line 16)
+Code snippet (lines 14-16):
+  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))
+  15:     for i in range(n):
+  16: # EVOLVE-BLOCK-END
+
+Full error: expected an indented block after 'for' statement on line 15 (<string>, line 16)
+2026-02-21 23:28:40,475 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 5}
+2026-02-21 23:28:40,475 - openevolve.controller - INFO - Iteration 1: Program 15736d9f-fc86-4d3e-9050-19c3a3d23b9c (parent: 91071bc3-4b73-4c06-9365-85097592aee4) completed in 41.18s
+2026-02-21 23:28:40,475 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': "Code syntax error: expected an indented block after 'for' statement on line 15 (<string>, line 16)\nCode snippet (lines 14-16):\n  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))\n  15:     for i in range(n):\n  16: # EVOLVE-BLOCK-END\n\nFull error: expected an indented block after 'for' statement on line 15 (<string>, line 16)", 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: expected an indented block after 'for' statement on line 15 (<string>, line 16)
+Code snippet (lines 14-16):
+  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))
+  15:     for i in range(n):
+  16: # EVOLVE-BLOCK-END
+
+Full error: expected an indented block after 'for' statement on line 15 (<string>, line 16)
+2026-02-21 23:28:40,476 - openevolve.database - INFO - Island Status:
+2026-02-21 23:28:40,476 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=85.40, gen=1 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:28:40,476 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:28:40,476 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:28:40,476 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:28:40,476 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:28:40,497 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_1
+2026-02-21 23:28:40,500 - openevolve.controller - INFO - Saved best program at checkpoint 1 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:28:40,500 - openevolve.controller - INFO - Saved checkpoint at iteration 1 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_1
+2026-02-21 23:28:40,500 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:29:46,129 - openevolve.evaluator - INFO - Evaluated program eafba202-0927-4ba4-97e0-736ec6e7686a in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: unexpected indent (<string>, line 12)\nCode snippet (lines 10-15):\n  10:         # Maximum overhang for block i (from bottom) with friction\n  11:         # Formula accounts for friction and harmonic series\n  12:         shift = block_width / (2 * (n - i) * (1 + 0.5))  # 0.5 is friction coefficient\n  13:         x += shift\n  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))\n  15: \n\nFull error: unexpected indent (<string>, line 12)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: unexpected indent (<string>, line 12)
+Code snippet (lines 10-15):
+  10:         # Maximum overhang for block i (from bottom) with friction
+  11:         # Formula accounts for friction and harmonic series
+  12:         shift = block_width / (2 * (n - i) * (1 + 0.5))  # 0.5 is friction coefficient
+  13:         x += shift
+  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))
+  15: 
+
+Full error: unexpected indent (<string>, line 12)
+2026-02-21 23:29:46,130 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 0}
+2026-02-21 23:29:46,130 - openevolve.controller - INFO - Iteration 2: Program eafba202-0927-4ba4-97e0-736ec6e7686a (parent: 15736d9f-fc86-4d3e-9050-19c3a3d23b9c) completed in 65.63s
+2026-02-21 23:29:46,130 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: unexpected indent (<string>, line 12)\nCode snippet (lines 10-15):\n  10:         # Maximum overhang for block i (from bottom) with friction\n  11:         # Formula accounts for friction and harmonic series\n  12:         shift = block_width / (2 * (n - i) * (1 + 0.5))  # 0.5 is friction coefficient\n  13:         x += shift\n  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))\n  15: \n\nFull error: unexpected indent (<string>, line 12)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: unexpected indent (<string>, line 12)
+Code snippet (lines 10-15):
+  10:         # Maximum overhang for block i (from bottom) with friction
+  11:         # Formula accounts for friction and harmonic series
+  12:         shift = block_width / (2 * (n - i) * (1 + 0.5))  # 0.5 is friction coefficient
+  13:         x += shift
+  14:         blocks.append(sandbox.add_block(x, i * 0.5, block_width, 0.5))
+  15: 
+
+Full error: unexpected indent (<string>, line 12)
+2026-02-21 23:29:46,130 - openevolve.database - INFO - Island Status:
+2026-02-21 23:29:46,130 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=85.40, gen=2 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:29:46,130 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:29:46,130 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:29:46,130 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:29:46,130 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:29:46,140 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_2
+2026-02-21 23:29:46,143 - openevolve.controller - INFO - Saved best program at checkpoint 2 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:29:46,144 - openevolve.controller - INFO - Saved checkpoint at iteration 2 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_2
+2026-02-21 23:29:46,144 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:30:11,025 - openevolve.evaluator - INFO - Evaluated program ded850a1-1769-44eb-9b8c-5e258298a182 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'block_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\nNameError: name \'block_width\' is not defined\n'}, error=Error building agent: name 'block_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+NameError: name 'block_width' is not defined
+
+2026-02-21 23:30:11,025 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 0}
+2026-02-21 23:30:11,025 - openevolve.controller - INFO - Iteration 3: Program ded850a1-1769-44eb-9b8c-5e258298a182 (parent: 91071bc3-4b73-4c06-9365-85097592aee4) completed in 24.88s
+2026-02-21 23:30:11,025 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'block_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\nNameError: name \'block_width\' is not defined\n'}, error=Error building agent: name 'block_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+NameError: name 'block_width' is not defined
+
+2026-02-21 23:30:11,025 - openevolve.database - INFO - Island Status:
+2026-02-21 23:30:11,026 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=85.40, gen=3 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:30:11,026 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:30:11,026 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:30:11,026 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:30:11,026 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:30:11,039 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_3
+2026-02-21 23:30:11,043 - openevolve.controller - INFO - Saved best program at checkpoint 3 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:30:11,043 - openevolve.controller - INFO - Saved checkpoint at iteration 3 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_3
+2026-02-21 23:30:11,043 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:31:33,200 - openevolve.controller - WARNING - Iteration 4 error: No valid diffs found
+2026-02-21 23:31:33,201 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:32:55,346 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-21 23:32:55,347 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:34:15,477 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 23:34:15,478 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:35:32,072 - openevolve.evaluator - INFO - Evaluated program 004d1b00-2995-4ce5-8f8f-3b40812739a3 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 15, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 15, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:35:32,072 - openevolve.controller - INFO - Iteration 7: Program 004d1b00-2995-4ce5-8f8f-3b40812739a3 (parent: eafba202-0927-4ba4-97e0-736ec6e7686a) completed in 76.59s
+2026-02-21 23:35:32,072 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 15, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 15, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:35:32,073 - openevolve.database - INFO - Island Status:
+2026-02-21 23:35:32,073 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=85.40, gen=3 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:35:32,073 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=12.30, gen=1 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:35:32,073 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:35:32,073 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:35:32,073 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:35:32,085 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_7
+2026-02-21 23:35:32,089 - openevolve.controller - INFO - Saved best program at checkpoint 7 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:35:32,089 - openevolve.controller - INFO - Saved checkpoint at iteration 7 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_7
+2026-02-21 23:35:32,089 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:36:00,392 - openevolve.evaluator - INFO - Evaluated program 8f0ba243-a0e3-402e-b60f-538a0490cc4c in 0.18s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 0.0, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': False, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.719198226928711, 'max_y_position': 6.998655796051025, 'center_of_mass_x': -7.41589047908783, 'center_of_mass_y': 2.776977026462555, 'total_kinetic_energy': 197.32846023346187, 'max_velocity': 16.666675567626953, 'current_max_x': -3.5862107276916504}, error=None
+2026-02-21 23:36:00,394 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 5}
+2026-02-21 23:36:00,395 - openevolve.controller - INFO - Iteration 8: Program 8f0ba243-a0e3-402e-b60f-538a0490cc4c (parent: ded850a1-1769-44eb-9b8c-5e258298a182) completed in 28.31s
+2026-02-21 23:36:00,395 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 0.0, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': False, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.719198226928711, 'max_y_position': 6.998655796051025, 'center_of_mass_x': -7.41589047908783, 'center_of_mass_y': 2.776977026462555, 'total_kinetic_energy': 197.32846023346187, 'max_velocity': 16.666675567626953, 'current_max_x': -3.5862107276916504}, error=None
+2026-02-21 23:36:00,395 - openevolve.database - INFO - Island Status:
+2026-02-21 23:36:00,395 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=85.40, gen=3 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:36:00,395 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=12.30, gen=1 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:36:00,395 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=44.10, gen=1 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:36:00,396 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:36:00,396 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:36:00,410 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_8
+2026-02-21 23:36:00,413 - openevolve.controller - INFO - Saved best program at checkpoint 8 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:36:00,413 - openevolve.controller - INFO - Saved checkpoint at iteration 8 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_8
+2026-02-21 23:36:00,414 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:36:33,578 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 23:36:33,580 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:37:23,529 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 23:37:23,532 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:38:02,686 - openevolve.evaluator - INFO - Evaluated program c3cd91b9-dbd0-470a-b9a3-184f296e1315 in 0.16s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 1.1576530933380127, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.269445419311523, 'max_y_position': 6.644627094268799, 'center_of_mass_x': -2.257787572592497, 'center_of_mass_y': 3.0667441219091414, 'total_kinetic_energy': 195.97495897425614, 'max_velocity': 16.666675567626953, 'current_max_x': 1.1576530933380127}, error=None
+2026-02-21 23:38:02,688 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 6}
+2026-02-21 23:38:02,688 - openevolve.controller - INFO - Iteration 11: Program c3cd91b9-dbd0-470a-b9a3-184f296e1315 (parent: 15736d9f-fc86-4d3e-9050-19c3a3d23b9c) completed in 39.16s
+2026-02-21 23:38:02,688 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 1.1576530933380127, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.269445419311523, 'max_y_position': 6.644627094268799, 'center_of_mass_x': -2.257787572592497, 'center_of_mass_y': 3.0667441219091414, 'total_kinetic_energy': 195.97495897425614, 'max_velocity': 16.666675567626953, 'current_max_x': 1.1576530933380127}, error=None
+2026-02-21 23:38:02,689 - openevolve.database - INFO - Island Status:
+2026-02-21 23:38:02,689 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=96.87, gen=4 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:38:02,689 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=12.30, gen=1 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:38:02,689 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=44.10, gen=1 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:38:02,689 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:38:02,689 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:38:02,708 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_11
+2026-02-21 23:38:02,716 - openevolve.controller - INFO - Saved best program at checkpoint 11 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:38:02,716 - openevolve.controller - INFO - Saved checkpoint at iteration 11 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_11
+2026-02-21 23:38:02,718 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:38:34,028 - openevolve.evaluator - INFO - Evaluated program fd021b1c-8d04-41a6-a02f-94207b50d243 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:38:34,029 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 8, 'diversity': 1}
+2026-02-21 23:38:34,029 - openevolve.controller - INFO - Iteration 12: Program fd021b1c-8d04-41a6-a02f-94207b50d243 (parent: eafba202-0927-4ba4-97e0-736ec6e7686a) completed in 31.31s
+2026-02-21 23:38:34,029 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:38:34,029 - openevolve.database - INFO - Island Status:
+2026-02-21 23:38:34,029 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=96.87, gen=4 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:38:34,030 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=21.53, gen=2 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:38:34,030 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=44.10, gen=1 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:38:34,030 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:38:34,030 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:38:34,047 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_12
+2026-02-21 23:38:34,049 - openevolve.controller - INFO - Saved best program at checkpoint 12 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:38:34,050 - openevolve.controller - INFO - Saved checkpoint at iteration 12 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_12
+2026-02-21 23:38:34,050 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:39:56,863 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-21 23:39:56,865 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:41:20,128 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 23:41:20,130 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:42:30,994 - openevolve.evaluator - INFO - Evaluated program 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'block_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\nNameError: name \'block_width\' is not defined\n'}, error=Error building agent: name 'block_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+NameError: name 'block_width' is not defined
+
+2026-02-21 23:42:30,994 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 5, 'diversity': 0}
+2026-02-21 23:42:30,994 - openevolve.controller - INFO - Iteration 15: Program 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0 (parent: 91071bc3-4b73-4c06-9365-85097592aee4) completed in 70.86s
+2026-02-21 23:42:30,994 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'block_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\nNameError: name \'block_width\' is not defined\n'}, error=Error building agent: name 'block_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+NameError: name 'block_width' is not defined
+
+2026-02-21 23:42:30,995 - openevolve.database - INFO - Island Status:
+2026-02-21 23:42:30,995 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=96.87, gen=5 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:42:30,995 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=21.53, gen=2 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:42:30,995 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=44.10, gen=1 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:42:30,995 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:42:30,995 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0)
+2026-02-21 23:42:31,029 - openevolve.database - INFO - Saved database with 9 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_15
+2026-02-21 23:42:31,032 - openevolve.controller - INFO - Saved best program at checkpoint 15 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:42:31,032 - openevolve.controller - INFO - Saved checkpoint at iteration 15 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_15
+2026-02-21 23:42:31,033 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:43:43,390 - openevolve.evaluator - INFO - Evaluated program aa70ca74-92d3-4020-b38b-61171c28932c in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:43:43,390 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 0}
+2026-02-21 23:43:43,390 - openevolve.controller - INFO - Iteration 16: Program aa70ca74-92d3-4020-b38b-61171c28932c (parent: c3cd91b9-dbd0-470a-b9a3-184f296e1315) completed in 72.36s
+2026-02-21 23:43:43,390 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:43:43,391 - openevolve.database - INFO - Island Status:
+2026-02-21 23:43:43,391 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=77.85, gen=6 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:43:43,391 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=21.53, gen=2 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:43:43,391 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=44.10, gen=1 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:43:43,391 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:43:43,391 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0)
+2026-02-21 23:43:43,411 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_16
+2026-02-21 23:43:43,414 - openevolve.controller - INFO - Saved best program at checkpoint 16 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:43:43,414 - openevolve.controller - INFO - Saved checkpoint at iteration 16 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_16
+2026-02-21 23:43:43,415 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:44:41,243 - openevolve.evaluator - INFO - Evaluated program c79c3767-776f-4f82-b2ae-1833a0320901 in 0.16s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 2.2561278343200684, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.268515586853027, 'max_y_position': 8.935583114624023, 'center_of_mass_x': 1.1379594646394253, 'center_of_mass_y': 3.6839555323123934, 'total_kinetic_energy': 121.85989042776204, 'max_velocity': 16.666675567626953, 'current_max_x': 2.2561278343200684}, error=None
+2026-02-21 23:44:41,244 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 8, 'diversity': 0}
+2026-02-21 23:44:41,244 - openevolve.controller - INFO - Iteration 17: Program c79c3767-776f-4f82-b2ae-1833a0320901 (parent: fd021b1c-8d04-41a6-a02f-94207b50d243) completed in 57.83s
+2026-02-21 23:44:41,244 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 2.2561278343200684, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.268515586853027, 'max_y_position': 8.935583114624023, 'center_of_mass_x': 1.1379594646394253, 'center_of_mass_y': 3.6839555323123934, 'total_kinetic_energy': 121.85989042776204, 'max_velocity': 16.666675567626953, 'current_max_x': 2.2561278343200684}, error=None
+2026-02-21 23:44:41,244 - openevolve.database - INFO - Island Status:
+2026-02-21 23:44:41,244 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=77.85, gen=6 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:44:41,245 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=19.45, gen=3 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:44:41,245 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=44.10, gen=1 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:44:41,245 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:44:41,245 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0)
+2026-02-21 23:44:41,268 - openevolve.database - INFO - Saved database with 11 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_17
+2026-02-21 23:44:41,271 - openevolve.controller - INFO - Saved best program at checkpoint 17 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:44:41,271 - openevolve.controller - INFO - Saved checkpoint at iteration 17 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_17
+2026-02-21 23:44:41,272 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:45:32,929 - openevolve.evaluator - INFO - Evaluated program 9dedd91c-5a5e-416c-b1ad-0fbbfe8fe94a in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 0.0, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': False, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.718788146972656, 'max_y_position': 9.013518333435059, 'center_of_mass_x': -8.475944519042969, 'center_of_mass_y': 3.286083233356476, 'total_kinetic_energy': 149.09085527337757, 'max_velocity': 16.666675567626953, 'current_max_x': -6.369956016540527}, error=None
+2026-02-21 23:45:32,931 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 6, 'diversity': 0}
+2026-02-21 23:45:32,931 - openevolve.controller - INFO - Iteration 18: Program 9dedd91c-5a5e-416c-b1ad-0fbbfe8fe94a (parent: ded850a1-1769-44eb-9b8c-5e258298a182) completed in 51.66s
+2026-02-21 23:45:32,931 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 0.0, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': False, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -14.718788146972656, 'max_y_position': 9.013518333435059, 'center_of_mass_x': -8.475944519042969, 'center_of_mass_y': 3.286083233356476, 'total_kinetic_energy': 149.09085527337757, 'max_velocity': 16.666675567626953, 'current_max_x': -6.369956016540527}, error=None
+2026-02-21 23:45:32,931 - openevolve.database - INFO - Island Status:
+2026-02-21 23:45:32,931 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=77.85, gen=6 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:45:32,932 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=19.45, gen=3 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:45:32,932 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=29.40, gen=2 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:45:32,932 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:45:32,932 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0)
+2026-02-21 23:45:32,962 - openevolve.database - INFO - Saved database with 12 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_18
+2026-02-21 23:45:32,966 - openevolve.controller - INFO - Saved best program at checkpoint 18 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:45:32,966 - openevolve.controller - INFO - Saved checkpoint at iteration 18 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_18
+2026-02-21 23:45:32,967 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:46:17,229 - openevolve.evaluator - INFO - Evaluated program de2ed7d5-5b64-4fd1-9828-a0636f619b33 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "cannot access local variable 'blocks' where it is not associated with a value", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nUnboundLocalError: cannot access local variable \'blocks\' where it is not associated with a value\n'}, error=Error building agent: cannot access local variable 'blocks' where it is not associated with a value
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+UnboundLocalError: cannot access local variable 'blocks' where it is not associated with a value
+
+2026-02-21 23:46:17,229 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 9}
+2026-02-21 23:46:17,230 - openevolve.controller - INFO - Iteration 19: Program de2ed7d5-5b64-4fd1-9828-a0636f619b33 (parent: aa70ca74-92d3-4020-b38b-61171c28932c) completed in 44.26s
+2026-02-21 23:46:17,230 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "cannot access local variable 'blocks' where it is not associated with a value", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nUnboundLocalError: cannot access local variable \'blocks\' where it is not associated with a value\n'}, error=Error building agent: cannot access local variable 'blocks' where it is not associated with a value
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+UnboundLocalError: cannot access local variable 'blocks' where it is not associated with a value
+
+2026-02-21 23:46:17,230 - openevolve.database - INFO - Island Status:
+2026-02-21 23:46:17,230 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=77.85, gen=7 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:46:17,230 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=19.45, gen=3 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:46:17,230 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=29.40, gen=2 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:46:17,231 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: de2ed7d5-5b64-4fd1-9828-a0636f619b33)
+2026-02-21 23:46:17,231 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0)
+2026-02-21 23:46:17,256 - openevolve.database - INFO - Saved database with 13 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_19
+2026-02-21 23:46:17,258 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:46:17,259 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_19
+2026-02-21 23:46:17,259 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:46:55,997 - openevolve.evaluator - INFO - Evaluated program 71387c0f-8629-450e-bda9-95b56fd4274b in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 15, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 15, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:46:55,998 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 4, 'diversity': 0}
+2026-02-21 23:46:55,998 - openevolve.controller - INFO - Iteration 20: Program 71387c0f-8629-450e-bda9-95b56fd4274b (parent: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0) completed in 38.74s
+2026-02-21 23:46:55,998 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 15, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 15, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 23:46:55,999 - openevolve.database - INFO - Island Status:
+2026-02-21 23:46:55,999 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=77.85, gen=7 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:46:55,999 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=19.45, gen=3 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:46:55,999 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=29.40, gen=2 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:46:55,999 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: de2ed7d5-5b64-4fd1-9828-a0636f619b33)
+2026-02-21 23:46:55,999 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=10.30, gen=1 (best: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0)
+2026-02-21 23:46:56,044 - openevolve.database - INFO - Saved database with 14 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 23:46:56,048 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:46:56,048 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 23:46:56,071 - openevolve.database - INFO - Saved database with 14 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 23:46:56,074 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:46:56,074 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 23:46:56,074 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': 'Code syntax error: invalid syntax (<string>, line 10)\nCode snippet (lines 8-11):\n   8:     blocks = []\n   9:     x = x_initial\n  10:     for i in\n  11: # EVOLVE-BLOCK-END\n\nFull error: invalid syntax (<string>, line 10)', 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: invalid syntax (<string>, line 10)
+Code snippet (lines 8-11):
+   8:     blocks = []
+   9:     x = x_initial
+  10:     for i in
+  11: # EVOLVE-BLOCK-END
+
+Full error: invalid syntax (<string>, line 10)
+2026-02-21 23:46:56,078 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/best/best_program_info.json
+2026-02-21 23:46:56,082 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 23:46:56,083 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 23:46:56,083 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 23:46:56,092 - openevolve.database - INFO - Reconstructed islands: restored 14 programs to islands
+2026-02-21 23:46:56,092 - openevolve.database - INFO - Loaded database with 14 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 23:46:56,093 - openevolve.database - INFO - Island Status:
+2026-02-21 23:46:56,093 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=77.85, gen=7 (best: 91071bc3-4b73-4c06-9365-85097592aee4)
+2026-02-21 23:46:56,093 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=19.45, gen=3 (best: eafba202-0927-4ba4-97e0-736ec6e7686a)
+2026-02-21 23:46:56,093 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=29.40, gen=2 (best: ded850a1-1769-44eb-9b8c-5e258298a182)
+2026-02-21 23:46:56,093 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: de2ed7d5-5b64-4fd1-9828-a0636f619b33)
+2026-02-21 23:46:56,093 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=10.30, gen=1 (best: 3e2738cc-a2e0-4aa2-8d86-2d1ddc194dc0)
+2026-02-21 23:46:56,126 - openevolve.database - INFO - Saved database with 14 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_06/Qwen3-14B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

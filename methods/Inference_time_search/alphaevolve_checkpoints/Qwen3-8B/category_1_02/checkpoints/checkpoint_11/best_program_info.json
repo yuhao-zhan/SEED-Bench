@@ -1,0 +1,57 @@
+{
+  "id": "1328c9a1-d3de-4ff1-a2dd-0536332a5228",
+  "generation": 0,
+  "iteration": 0,
+  "current_iteration": 11,
+  "metrics": {
+    "combined_score": 0.0,
+    "score": 0.0,
+    "success": false,
+    "metrics": {
+      "initial_height": 0.0,
+      "current_height": -53.33330535888672,
+      "min_height_during_quake": -53.33330535888672,
+      "height_loss": 0.0,
+      "target_height": 30.0,
+      "survival_height": 25.0,
+      "survival_tolerance": 3.0,
+      "center_of_mass_x": 5.0,
+      "center_of_mass_y": -54.33330535888672,
+      "center_of_mass_x_range": [
+        0.0,
+        5.0
+      ],
+      "center_of_mass_displacement": 5.0,
+      "stability_x_min": -4.0,
+      "stability_x_max": 4.0,
+      "structure_mass": 0.30000001192092896,
+      "structure_width": 2.0,
+      "num_beams": 1,
+      "num_joints": 0,
+      "num_springs": 0,
+      "initial_joint_count": 0,
+      "initial_spring_count": 0,
+      "structure_broken": false,
+      "max_velocity_x": 0.0,
+      "max_velocity_y": 33.33329391479492,
+      "max_angular_velocity": 0.0,
+      "height_history": [
+        [
+          0,
+          2.5
+        ]
+      ],
+      "center_of_mass_history": [],
+      "step_count": 200,
+      "quake_start_step": 120,
+      "is_during_quake": true,
+      "success": false,
+      "failed": true,
+      "failure_reason": "Top point fell below 22.00m during quake (min: -53.33m)"
+    },
+    "error": null
+  },
+  "language": "python",
+  "timestamp": 1771596304.3023267,
+  "saved_at": 1771596814.9693167
+}

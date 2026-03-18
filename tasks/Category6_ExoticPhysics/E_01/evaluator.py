@@ -37,7 +37,7 @@ class Evaluator:
         self.BUILD_ZONE_X_MAX = float(build_zone.get("x", [12.0, 28.0])[1])
         self.BUILD_ZONE_Y_MIN = float(build_y[0])
         self.BUILD_ZONE_Y_MAX = float(build_y[1])
-        self.MAX_BEAM_COUNT = getattr(type(environment), "MAX_BEAM_COUNT", 99)
+        self.MAX_BEAM_COUNT = getattr(environment, "MAX_BEAM_COUNT", getattr(type(environment), "MAX_BEAM_COUNT", 99))
         # Obstacle zones (list): agent body center in any zone -> failure
         obs_list = terrain_bounds.get("obstacles", [])
         self.obstacle_zones = []

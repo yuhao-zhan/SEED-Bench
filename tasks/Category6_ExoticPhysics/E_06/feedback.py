@@ -73,8 +73,9 @@ def get_improvement_suggestions(
         if torque_load > 100:
             suggestions.append("- **Primary Anchor Torque Breach**: Overturning moment at the support anchor exceeded capacity. The cantilever span is generating excessive torque at the root.")
 
-        if metrics.get("tip_stability_ratio", 1.0) < metrics.get("tip_stability_required", 0.0):
-             suggestions.append("- **Stability-Mass Interaction**: The tip is oscillating outside the target band. Increased mass for strength may be increasing the dynamic response to noise.")
+        req = metrics.get("tip_stability_required", 0.0)
+        if req > 0 and metrics.get("tip_stability_ratio", 1.0) < req:
+            suggestions.append("- **Stability-Mass Interaction**: The tip is oscillating outside the target band. Increased mass for strength may be increasing the dynamic response to noise.")
 
         suggestions.append("- **Dynamic Load Scaling**: External shocks generate significantly higher stress at the cantilever tip than at the support anchor.")
 

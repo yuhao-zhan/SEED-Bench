@@ -76,12 +76,9 @@ class E04Renderer(Renderer):
                         outline_width=1,
                     )
 
-        # Build zone outline
-        if hasattr(sandbox, "BUILD_ZONE_X_MIN"):
-            x_min = sandbox.BUILD_ZONE_X_MIN
-            x_max = sandbox.BUILD_ZONE_X_MAX
-            y_min = sandbox.BUILD_ZONE_Y_MIN
-            y_max = sandbox.BUILD_ZONE_Y_MAX
+        # Build zone outline (use instance bounds from get_build_zone for consistency with evaluator)
+        if hasattr(sandbox, "get_build_zone"):
+            x_min, x_max, y_min, y_max = sandbox.get_build_zone()
             self.draw_line(x_min, y_min, x_max, y_min, COLOR_GUIDE, 1)
             self.draw_line(x_max, y_min, x_max, y_max, COLOR_GUIDE, 1)
             self.draw_line(x_max, y_max, x_min, y_max, COLOR_GUIDE, 1)

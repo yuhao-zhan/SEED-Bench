@@ -126,6 +126,31 @@ def format_reflections_str(reflections: List[str]) -> str:
 _format_reflections_str = format_reflections_str
 
 
+def inject_reflexion_before_your_task(prompt: str, reflections_str: str) -> str:
+    """
+    Place reflexion content after prior-attempt / feedback sections and immediately
+    before the final instruction block — not at the top of the prompt.
+
+    Used for cross-mutated / mutated prompts where the full task setting and
+    history appear first; reflections should sit right before \"Your Task\".
+    """
+    if not (reflections_str and str(reflections_str).strip()):
+        return prompt
+    block = (
+        "# Reflections from Previous Attempts\n\n"
+        + str(reflections_str).strip()
+        + "\n\n"
+    )
+    for marker in (
+        "# Your Task: Diagnose and Adapt",
+        "# Your Task: Diagnose and Fix",
+    ):
+        idx = prompt.find(marker)
+        if idx != -1:
+            return prompt[:idx] + block + prompt[idx:]
+    return block + prompt
+
+
 # --------------------------------------------------------------------------- #
 # Revision prompts with reflections (for the main solver)
 # --------------------------------------------------------------------------- #

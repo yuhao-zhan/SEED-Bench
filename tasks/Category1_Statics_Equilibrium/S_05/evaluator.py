@@ -45,11 +45,23 @@ class Evaluator:
             for body in self.environment._bodies:
                 min_body_y = min(min_body_y, body.position.y)
         
-        if min_body_y < 0.3: # Shelter collapsed near ground
+        # Joint limit check: if this environment has restrictive joint limits and we observed peak force/torque above them, treat as structural failure (joint would have broken)
+        max_joint_force_limit = float(self.terrain_bounds.get("max_joint_force", 1e12))
+        max_joint_torque_limit = float(self.terrain_bounds.get("max_joint_torque", 1e12))
+        if max_joint_force_limit < 1e11 or max_joint_torque_limit < 1e11:
+            force_seen = getattr(self.environment, "_max_reaction_force_seen", 0.0)
+            torque_seen = getattr(self.environment, "_max_reaction_torque_seen", 0.0)
+            if force_seen > max_joint_force_limit or torque_seen > max_joint_torque_limit:
+                failed, failure_reason = True, (
+                    f"Joint failure: reaction force {force_seen:.1f}N > {max_joint_force_limit}N or "
+                    f"torque {torque_seen:.1f}Nm > {max_joint_torque_limit}Nm"
+                )
+
+        if not failed and min_body_y < 0.3: # Shelter collapsed near ground
             failed, failure_reason = True, "Shelter collapsed or fell below ground level"
-        elif core_force > self.max_core_force:
+        elif not failed and core_force > self.max_core_force:
             failed, failure_reason = True, f"Core protection failed: force {core_force:.1f}N > {self.max_core_force}N"
-        elif structure_mass > max_mass:
+        elif not failed and structure_mass > max_mass:
             failed, failure_reason = True, f"Mass budget exceeded: {structure_mass:.1f}kg > {max_mass}kg"
             
         # Design constraint check (height)
@@ -83,6 +95,10 @@ class Evaluator:
             'failed': failed,
             'failure_reason': failure_reason
         }
+        if getattr(self.environment, '_max_reaction_force_seen', None) is not None:
+            metrics['max_joint_force_seen'] = self.environment._max_reaction_force_seen
+        if getattr(self.environment, '_max_reaction_torque_seen', None) is not None:
+            metrics['max_joint_torque_seen'] = self.environment._max_reaction_torque_seen
         
         return done, score, metrics
 

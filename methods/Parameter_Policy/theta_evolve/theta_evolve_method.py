@@ -195,7 +195,10 @@ def _run_theta_evolve_train(
         )
         print(f"[theta_evolve] ImportError: {e}")
         return 1
-    # Build argv from scripts_evolve/Nemotron-Research-Reasoning-Qwen-1.5B/general.sh style
+    # Build argv aligned to official ThetaEvolve scripts (scripts_evolve/*/general.sh):
+    # Nemotron-1.5B/general.sh: num_rollout 10k, rollout_batch_size 32, n_samples_per_prompt 16,
+    #   rollout_max_response_len 16384, rollout_temperature 1.0, save_interval 10.
+    # DeepSeek-R1-Qwen3-8B/general.sh: same except num_rollout 1M, save_interval 5.
     # Use --colocate so actor+rollout share GPU(s). When device is cuda:0,1 (2 GPUs), use 2 GPUs per node.
     # With 2 GPUs use tensor parallel (TP=2) so model is sharded across cards; otherwise each rank loads full 9B and OOMs.
     _num_gpus = 2 if (device and "," in device) else 1
@@ -207,6 +210,9 @@ def _run_theta_evolve_train(
     ]
     if _num_gpus == 2:
         argv += ["--tensor-model-parallel-size", "2", "--pipeline-model-parallel-size", "1"]
+    # Official slime/utils/arguments.py defaults: evolving_gym_max_concurrent_evals=8,
+    # evolving_gym_lazy_output_penalty_level=2, evolving_gym_reward_process_type=original_reward.
+    save_interval_official = 10  # match Nemotron general.sh; DeepSeek uses 5
     argv += [
         "--colocate",
         "--no-rope-fusion",  # avoid requiring Transformer Engine (TE >= 1.4)
@@ -230,14 +236,14 @@ def _run_theta_evolve_train(
         "--reward-key", "reward",
         "--num-rollout", str(num_rollout),
         "--rollout-batch-size", str(rollout_batch_size),
-        "--n-samples-per-prompt", "8",
-        "--rollout-max-response-len", "8192",
-        "--rollout-temperature", "0.8",
+        "--n-samples-per-prompt", "16",  # official scripts_evolve/*/general.sh use 16
+        "--rollout-max-response-len", "16384",  # official scripts use 16384
+        "--rollout-temperature", "1.0",  # official scripts use 1.0
         "--num-steps-per-rollout", "1",
         "--hf-checkpoint", hf_checkpoint,
         "--load", os.path.join(save_dir, "checkpoint"),
         "--save", save_dir,
-        "--save-interval", str(max(1, num_rollout // 10)),
+        "--save-interval", str(save_interval_official),
     ]
     env = os.environ.copy()
     # Ray workers must see the same CUDA/nvidia libs as this process when importing torch.
@@ -286,6 +292,47 @@ def _run_theta_evolve_train(
         return 1
 
 
+def _write_theta_evolve_training_log(
+    training_log_dir: str,
+    task_name: str,
+    model_name: str,
+    exit_code: int,
+    num_rollout: int,
+    rollout_batch_size: int,
+    seed: int,
+    report: Dict[str, Any],
+) -> None:
+    """Write training_config.json and training_summary.txt for theta_evolve run."""
+    import os
+    os.makedirs(training_log_dir, exist_ok=True)
+    config = {
+        "method": "theta_evolve",
+        "task_name": task_name,
+        "model_name": model_name,
+        "exit_code": exit_code,
+        "num_rollout": num_rollout,
+        "rollout_batch_size": rollout_batch_size,
+        "seed": seed,
+        "success": report.get("success", False),
+        "best_score": report.get("best_score", 0.0),
+    }
+    config_path = os.path.join(training_log_dir, "training_config.json")
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+    lines = [
+        "Method: theta_evolve",
+        f"Task: {task_name}",
+        f"Exit code: {exit_code}",
+        f"Num rollout: {num_rollout}",
+        f"Rollout batch size: {rollout_batch_size}",
+        f"Success: {report.get('success')}",
+        f"Best score: {report.get('best_score')}",
+    ]
+    summary_path = os.path.join(training_log_dir, "training_summary.txt")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
 def run_single_task(
     task_name: str,
     run_number: int,
@@ -300,8 +347,9 @@ def run_single_task(
     model_path: Optional[str] = None,
     device: Optional[str] = None,
     env_overrides: Optional[Dict[str, Any]] = None,
-    theta_evolve_num_rollout: int = 3000,
+    theta_evolve_num_rollout: int = 10000,
     theta_evolve_rollout_batch_size: int = 32,
+    training_log_dir: Optional[str] = None,
 ) -> Tuple[int, Dict[str, Any]]:
     """
     Run ThetaEvolve for one (task_name, run_number). Returns (exit_code, report).
@@ -337,7 +385,7 @@ def run_single_task(
             os.environ["DAVINCI_ENV_OVERRIDES"] = json.dumps(env_overrides)
         else:
             os.environ.pop("DAVINCI_ENV_OVERRIDES", None)
-        seed = 42 + run_number
+        seed = 1234 + run_number  # official parser default 1234; add run_number for per-run reproducibility
         print(f"[theta_evolve] Starting ThetaEvolve: task={task_name}, run={run_number}, num_rollout={theta_evolve_num_rollout}, seed={seed}")
         exit_code = _run_theta_evolve_train(
             work_dir=work_dir,
@@ -387,6 +435,12 @@ def run_single_task(
             "iteration_history": [],
             "timestamp": datetime.now().isoformat(),
         }
+        if training_log_dir:
+            _write_theta_evolve_training_log(
+                training_log_dir, task_name, model_name,
+                exit_code, theta_evolve_num_rollout, theta_evolve_rollout_batch_size,
+                1234 + run_number, report,
+            )
         shutil.rmtree(work_dir, ignore_errors=True)
         return (1 if exit_code != 0 else 1, report)
     verifier = CodeVerifier(task_name=task_name, max_steps=max_steps, env_overrides=env_overrides or {})
@@ -443,5 +497,11 @@ def run_single_task(
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     print(f"Evaluation report saved: {report_path}")
+    if training_log_dir:
+        _write_theta_evolve_training_log(
+            training_log_dir, task_name, model_name,
+            0, theta_evolve_num_rollout, theta_evolve_rollout_batch_size,
+            1234 + run_number, report,
+        )
     shutil.rmtree(work_dir, ignore_errors=True)
     return (0, report)

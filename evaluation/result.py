@@ -26,9 +26,10 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from evaluation.utils import get_evaluation_results_dir
+from evaluation.utils import get_evaluation_results_dir, get_evaluation_results_scratch_dir
 
 RESULTS_DIR = get_evaluation_results_dir()
+SCRATCH_DIR = get_evaluation_results_scratch_dir()
 
 # discovery@T: k values
 DISCOVERY_K_VALUES = (3, 5, 10, 15, 20)
@@ -154,6 +155,58 @@ def load_results(results_dir, task_filter='all'):
     return results, sorted(list(all_file_ids))
 
 
+def load_results_scratch(results_dir, task_filter='all'):
+    """Load results from evaluation_results_scratch (single-env JSONs: all_Initial.json, all_Stage-1.json, etc.)."""
+    results = defaultdict(lambda: defaultdict(dict))
+    all_file_ids = set()
+
+    for root, dirs, files in os.walk(results_dir):
+        path_parts = root.split(os.sep)
+        if len(path_parts) < 2:
+            continue
+
+        method = path_parts[-1]
+        model = path_parts[-2]
+
+        if method in _IGNORED_METHODS or _should_ignore_model(model):
+            continue
+
+        task_match = False
+        if task_filter == 'all':
+            task_match = True
+        else:
+            for part in path_parts:
+                if task_filter.startswith('category_') and part.startswith(task_filter):
+                    task_match = True
+                    break
+                if part == task_filter:
+                    task_match = True
+                    break
+
+        if not task_match:
+            continue
+
+        for fn in files:
+            if not fn.endswith('.json') or not fn.startswith('all_') or '_pseudo' in fn:
+                continue
+            # Scratch: only single-env files (exclude pair files all_*_to_*.json)
+            if re.match(r'^all_.+_to_.+.*\.json$', fn):
+                continue
+
+            file_path = os.path.join(root, fn)
+            try:
+                task_name = path_parts[-3]
+                file_id = f"{task_name}/{fn}"
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                results[model][method][file_id] = data
+                all_file_ids.add(file_id)
+            except Exception:
+                pass
+
+    return results, sorted(list(all_file_ids))
+
+
 def compute_metrics(model_method_results, all_file_ids):
     n_total = len(all_file_ids)
     if n_total == 0:
@@ -226,8 +279,9 @@ _MODEL_NAME_ABBREV = {
     'gemini-3-flash-preview-thinking': 'gemini-3-think',
     'gemini-3-pro-preview': 'gemini-3-pro'
 }
-_IGNORED_MODELS = {'gpt-4o', 'gpt-oss-20b', 'gemini-3-flash-preview-thinking', 'o3-mini', 'Qwen3-1.7B', 'Qwen3-4B'}
-_IGNORED_METHODS = {'absolute_zero', 'self_refine_inner_only', 'baseline_backup', 'sys_feedback_backup', 'a_mem_sys'}
+# _IGNORED_MODELS = {'gpt-4o', 'gpt-oss-20b', 'gemini-3-flash-preview-thinking', 'o3-mini', 'Qwen3-1.7B', 'Qwen3-4B'}
+_IGNORED_MODELS = {'gpt-4o', 'gpt-oss-20b', 'gemini-3-flash-preview-thinking', 'o3-mini'}
+_IGNORED_METHODS = {'self_refine_inner_only', 'baseline_backup', 'sys_feedback_backup', 'a_mem_sys'}
 
 MODEL_COLUMN_ORDER = [
     'Qwen3-8B', 'Qwen3-14B', 'Qwen3-32B',
@@ -456,8 +510,9 @@ def plot_results(tables, models, methods, output_dir):
         plt.close(fig)
 
 
-def plot_task_env_heatmaps(results, models, methods, base_output_dir):
-    """Draws heatmaps for score_avg and pass rate on each task intersecting its env."""
+def plot_task_env_heatmaps(results, models, methods, base_output_dir, scratch_mode=False):
+    """Draws heatmaps for score_avg and pass rate on each task intersecting its env.
+    scratch_mode: if True, fn is single-env (all_Initial.json, all_Stage-1.json); pair = env name."""
     if not HAS_MATPLOTLIB:
         return
     
@@ -480,20 +535,21 @@ def plot_task_env_heatmaps(results, models, methods, base_output_dir):
                     continue
                 task_name, fn = fid.split('/', 1)
                 
-                # Extract pair from fn: all_{source}_to_{target}.json
-                # regex: all_(.+)_to_([^.]+)
-                match = re.match(r'all_(.+)_to_([^.]+)', fn)
-                if not match:
-                    continue
-                
-                source = match.group(1).lower()
-                target = match.group(2).lower()
-                
-                # Clean up names (e.g. stage-1_v2 -> stage-1)
-                if '_' in source and not source.startswith('stage-'): source = source.split('_')[0]
-                if '_' in target and not target.startswith('stage-'): target = target.split('_')[0]
-                
-                pair = f"{source}_to_{target}"
+                if scratch_mode:
+                    # Scratch: all_Initial.json -> Initial, all_Stage-1.json -> Stage-1
+                    if not fn.startswith('all_') or not fn.endswith('.json'):
+                        continue
+                    pair = fn[4:-5]  # strip "all_" and ".json"
+                else:
+                    # Pair files: all_{source}_to_{target}.json
+                    match = re.match(r'all_(.+)_to_([^.]+)', fn)
+                    if not match:
+                        continue
+                    source = match.group(1).lower()
+                    target = match.group(2).lower()
+                    if '_' in source and not source.startswith('stage-'): source = source.split('_')[0]
+                    if '_' in target and not target.startswith('stage-'): target = target.split('_')[0]
+                    pair = f"{source}_to_{target}"
                 
                 task_env_data[task_name][pair]['scores'].append(data.get('best_score', 0.0))
                 task_env_data[task_name][pair]['successes'].append(1.0 if data.get('success', False) else 0.0)
@@ -507,18 +563,24 @@ def plot_task_env_heatmaps(results, models, methods, base_output_dir):
             for t in task_env_data:
                 all_pairs_set.update(task_env_data[t].keys())
             
-            def pair_sort_key(p):
-                def stage_to_val(s):
-                    if s == 'initial': return (0, 0)
-                    m = re.search(r'stage-(\d+)', s)
+            if scratch_mode:
+                def env_sort_key(p):
+                    if p == 'Initial': return (0, 0)
+                    m = re.search(r'Stage-(\d+)', p, re.I)
                     if m: return (1, int(m.group(1)))
-                    return (2, s)
-                
-                if '_to_' not in p: return (3, p)
-                parts = p.split('_to_', 1)
-                return stage_to_val(parts[0]) + stage_to_val(parts[1])
-            
-            sorted_pairs = sorted(list(all_pairs_set), key=pair_sort_key)
+                    return (2, p)
+                sorted_pairs = sorted(list(all_pairs_set), key=env_sort_key)
+            else:
+                def pair_sort_key(p):
+                    def stage_to_val(s):
+                        if s == 'initial': return (0, 0)
+                        m = re.search(r'stage-(\d+)', s)
+                        if m: return (1, int(m.group(1)))
+                        return (2, s)
+                    if '_to_' not in p: return (3, p)
+                    parts = p.split('_to_', 1)
+                    return stage_to_val(parts[0]) + stage_to_val(parts[1])
+                sorted_pairs = sorted(list(all_pairs_set), key=pair_sort_key)
             
             model_short = short_model_name(model)
             method_disp = method_display_name(method)
@@ -571,34 +633,23 @@ def plot_task_env_heatmaps(results, models, methods, base_output_dir):
                 plt.close(fig)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--task', type=str, default='all')
-    parser.add_argument('--format', choices=('latex', 'markdown'), default='markdown')
-    parser.add_argument('--no-per-task', action='store_true', help='Disable per-task statistics output')
-    args = parser.parse_args()
-
-    results, all_file_ids = load_results(RESULTS_DIR, args.task)
-    if not all_file_ids:
-        print(f"No results found for filter: {args.task}")
-        return
-
+def _run_evaluation(results, all_file_ids, plot_base_dir, scratch_mode, label, task_filter, args):
+    """Compute metrics, print tables, and save plots for one results set."""
     models = _get_ordered_models(list(results.keys()))
     methods = _get_ordered_methods({m for model in results for m in results[model]})
 
     metric_names = ['Pass@1', 'Score-Avg', 'Iteration-Avg', 'Efficiency-Avg', 'CodeUsage-Avg']
     metric_names += [f'Discovery@{k}' for k in DISCOVERY_K_VALUES]
 
-    # --- 1. Aggregated Statistics (Current logic) ---
     tables = {mn: {} for mn in metric_names}
     for model in models:
         for method in methods:
-            if method not in results[model]: continue
+            if method not in results[model]:
+                continue
             metrics = compute_metrics(results[model][method], all_file_ids)
             for mn in metric_names:
                 tables[mn][(model, method)] = metrics.get(mn, float('nan'))
 
-    # Efficiency Normalization (Global)
     eff_key = 'Efficiency-Avg'
     all_eff = [v for v in tables[eff_key].values() if not math.isnan(v)]
     if all_eff:
@@ -608,8 +659,8 @@ def main():
                 if not math.isnan(tables[eff_key][k]):
                     tables[eff_key][k] /= max_eff
 
-    print(f"\n# Evaluation Results for {args.task}\n")
-    print(f"Filter: {args.task} | Unique transitions: {len(all_file_ids)}")
+    print(f"\n# {label} Results for {task_filter}\n")
+    print(f"Filter: {task_filter} | Unique files: {len(all_file_ids)}")
 
     print(f"\n## Aggregated Statistics (All Tasks Combined)\n")
     for mn in metric_names:
@@ -618,46 +669,60 @@ def main():
         else:
             print_markdown_table(mn, models, methods, tables[mn])
 
-    # --- 2. Per-Task Statistics (New logic) ---
     if not args.no_per_task:
-        # Group file_ids by task
         task_groups = defaultdict(list)
         for fid in all_file_ids:
             task_name = fid.split('/')[0]
             task_groups[task_name].append(fid)
-        
-        # Sort task names
         sorted_tasks = sorted(task_groups.keys())
-        
-        if len(sorted_tasks) > 1: # Only output per-task if there is more than 1 task or if specifically requested
+        if len(sorted_tasks) > 1:
             print(f"\n## Per-Task Statistics\n")
             for task_name in sorted_tasks:
                 task_fids = task_groups[task_name]
                 print(f"\n### Task: {task_name} ({len(task_fids)} transitions)\n")
-                
-                # Compute metrics for this specific task
                 task_tables = {mn: {} for mn in metric_names}
                 for model in models:
                     for method in methods:
-                        if method not in results[model]: continue
+                        if method not in results[model]:
+                            continue
                         task_metrics = compute_metrics(results[model][method], task_fids)
                         for mn in metric_names:
                             task_tables[mn][(model, method)] = task_metrics.get(mn, float('nan'))
-                
-                # Output tables for each metric
                 for mn in metric_names:
-                    # Skip efficiency normalization here or keep it consistent? 
-                    # For simplicity, we skip per-task efficiency normalization or keep it absolute
                     if args.format == 'latex':
                         print_latex_table(mn, models, methods, task_tables[mn])
                     else:
                         print_markdown_table(mn, models, methods, task_tables[mn])
 
-    # --- 3. Plots ---
-    plot_dir = os.path.join(RESULTS_DIR, "plots", args.task)
+    plot_dir = os.path.join(plot_base_dir, "plots", task_filter)
     plot_results(tables, models, methods, plot_dir)
-    plot_task_env_heatmaps(results, models, methods, plot_dir)
+    plot_task_env_heatmaps(results, models, methods, plot_dir, scratch_mode=scratch_mode)
     print(f"\nPlots saved to: {plot_dir}")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--task', type=str, default='all')
+    parser.add_argument('--format', choices=('latex', 'markdown'), default='markdown')
+    parser.add_argument('--no-per-task', action='store_true', help='Disable per-task statistics output')
+    args = parser.parse_args()
+
+    # 1. evaluation_results (pair transitions: all_*_to_*.json)
+    results, all_file_ids = load_results(RESULTS_DIR, args.task)
+    if all_file_ids:
+        _run_evaluation(results, all_file_ids, RESULTS_DIR, scratch_mode=False,
+                        label="Evaluation", task_filter=args.task, args=args)
+    else:
+        print(f"No results found in evaluation_results for filter: {args.task}")
+
+    # 2. evaluation_results_scratch (single-env: all_Initial.json, all_Stage-1.json, ...)
+    results_scratch, all_file_ids_scratch = load_results_scratch(SCRATCH_DIR, args.task)
+    if all_file_ids_scratch:
+        _run_evaluation(results_scratch, all_file_ids_scratch, SCRATCH_DIR, scratch_mode=True,
+                        label="Scratch", task_filter=args.task, args=args)
+    else:
+        print(f"No results found in evaluation_results_scratch for filter: {args.task}")
+
 
 if __name__ == '__main__':
     main()

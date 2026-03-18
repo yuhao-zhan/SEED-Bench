@@ -1,0 +1,862 @@
+2026-02-20 17:17:29,532 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/logs/openevolve_20260220_171729.log
+2026-02-20 17:17:29,544 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-20 17:18:22,292 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-20 17:18:22,298 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-20 17:18:22,303 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-20 17:18:22,303 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 17:18:22,305 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_qa1w_5t0/evaluate.py
+2026-02-20 17:18:22,305 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_qa1w_5t0/evaluate.py
+2026-02-20 17:18:22,305 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_qa1w_5t0/initial_program.py
+2026-02-20 17:18:22,305 - openevolve.controller - INFO - Adding initial program to database
+2026-02-20 17:18:22,490 - openevolve.evaluator - INFO - Evaluated program 1e162f01-38b4-4034-8234-c544e2f2aad9 in 0.18s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:18:22,490 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-20 17:18:22,490 - openevolve.controller - INFO - Running evolution in-process (parallel_evaluations=1): LLM loaded once, all iterations in this process.
+2026-02-20 17:18:22,490 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-20 17:18:22,490 - openevolve.database - INFO - Island Status:
+2026-02-20 17:18:22,490 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:18:22,490 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:22,490 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:22,490 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:22,490 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:22,490 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:18:39,314 - openevolve.evaluator - INFO - Evaluated program 5d475184-590b-4b64-a59d-a1395365a9de in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'Sandbox' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'Sandbox\' object has no attribute \'apply_force\'\n'}, error=Verification process error: 'Sandbox' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'Sandbox' object has no attribute 'apply_force'
+
+2026-02-20 17:18:39,315 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 5}
+2026-02-20 17:18:39,315 - openevolve.controller - INFO - Iteration 1: Program 5d475184-590b-4b64-a59d-a1395365a9de (parent: 1e162f01-38b4-4034-8234-c544e2f2aad9) completed in 16.82s
+2026-02-20 17:18:39,315 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'Sandbox' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'Sandbox\' object has no attribute \'apply_force\'\n'}, error=Verification process error: 'Sandbox' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'Sandbox' object has no attribute 'apply_force'
+
+2026-02-20 17:18:39,315 - openevolve.database - INFO - Island Status:
+2026-02-20 17:18:39,315 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=34.80, gen=1 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:18:39,315 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:39,315 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:39,315 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:39,315 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:39,322 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_1
+2026-02-20 17:18:39,325 - openevolve.controller - INFO - Saved best program at checkpoint 1 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:18:39,326 - openevolve.controller - INFO - Saved checkpoint at iteration 1 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_1
+2026-02-20 17:18:39,326 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:18:56,385 - openevolve.evaluator - INFO - Evaluated program bc920a8b-70bc-4c27-9692-3fdd2790ec11 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:18:56,386 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 0}
+2026-02-20 17:18:56,386 - openevolve.controller - INFO - Iteration 2: Program bc920a8b-70bc-4c27-9692-3fdd2790ec11 (parent: 5d475184-590b-4b64-a59d-a1395365a9de) completed in 17.06s
+2026-02-20 17:18:56,386 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:18:56,386 - openevolve.database - INFO - Island Status:
+2026-02-20 17:18:56,387 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=34.80, gen=2 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:18:56,387 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:18:56,387 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:56,387 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:56,387 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:18:56,396 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_2
+2026-02-20 17:18:56,399 - openevolve.controller - INFO - Saved best program at checkpoint 2 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:18:56,399 - openevolve.controller - INFO - Saved checkpoint at iteration 2 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_2
+2026-02-20 17:18:56,399 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:19:13,581 - openevolve.evaluator - INFO - Evaluated program 67f41100-b5e5-481b-b92b-f4907847aef7 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:13,581 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 6, 'diversity': 0}
+2026-02-20 17:19:13,581 - openevolve.controller - INFO - Iteration 3: Program 67f41100-b5e5-481b-b92b-f4907847aef7 (parent: 1e162f01-38b4-4034-8234-c544e2f2aad9) completed in 17.18s
+2026-02-20 17:19:13,582 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:13,582 - openevolve.database - INFO - Island Status:
+2026-02-20 17:19:13,582 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=34.80, gen=3 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:19:13,582 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:19:13,582 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:19:13,582 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:19:13,582 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:19:13,594 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_3
+2026-02-20 17:19:13,597 - openevolve.controller - INFO - Saved best program at checkpoint 3 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:19:13,597 - openevolve.controller - INFO - Saved checkpoint at iteration 3 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_3
+2026-02-20 17:19:13,597 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:19:27,387 - openevolve.evaluator - INFO - Evaluated program 522a1206-dc6f-4c15-a1f8-713c3ab36410 in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:27,388 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 7, 'diversity': 0}
+2026-02-20 17:19:27,388 - openevolve.controller - INFO - Iteration 4: Program 522a1206-dc6f-4c15-a1f8-713c3ab36410 (parent: 5d475184-590b-4b64-a59d-a1395365a9de) completed in 13.79s
+2026-02-20 17:19:27,388 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:27,389 - openevolve.database - INFO - Island Status:
+2026-02-20 17:19:27,389 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=34.80, gen=4 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:19:27,389 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:19:27,389 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:19:27,389 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:19:27,389 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 17:19:27,403 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_4
+2026-02-20 17:19:27,406 - openevolve.controller - INFO - Saved best program at checkpoint 4 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:19:27,407 - openevolve.controller - INFO - Saved checkpoint at iteration 4 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_4
+2026-02-20 17:19:27,407 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:19:46,282 - openevolve.evaluator - INFO - Evaluated program d5f8449c-aaf6-45c8-a636-3e55a96e3e5b in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:46,283 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 9, 'diversity': 0}
+2026-02-20 17:19:46,284 - openevolve.controller - INFO - Iteration 5: Program d5f8449c-aaf6-45c8-a636-3e55a96e3e5b (parent: 5d475184-590b-4b64-a59d-a1395365a9de) completed in 18.88s
+2026-02-20 17:19:46,284 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:46,284 - openevolve.database - INFO - Island Status:
+2026-02-20 17:19:46,284 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=34.80, gen=5 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:19:46,284 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:19:46,284 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:19:46,284 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:19:46,285 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:19:46,301 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_5
+2026-02-20 17:19:46,305 - openevolve.controller - INFO - Saved best program at checkpoint 5 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:19:46,305 - openevolve.controller - INFO - Saved checkpoint at iteration 5 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_5
+2026-02-20 17:19:46,305 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:19:59,817 - openevolve.evaluator - INFO - Evaluated program e109fa37-cb00-452d-a6c0-08d6ef0f72b6 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:59,818 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 0}
+2026-02-20 17:19:59,818 - openevolve.controller - INFO - Iteration 6: Program e109fa37-cb00-452d-a6c0-08d6ef0f72b6 (parent: 5d475184-590b-4b64-a59d-a1395365a9de) completed in 13.51s
+2026-02-20 17:19:59,818 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2Body' object has no attribute 'apply_force'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'b2Body\' object has no attribute \'apply_force\'. Did you mean: \'ApplyForce\'?\n'}, error=Verification process error: 'b2Body' object has no attribute 'apply_force'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'b2Body' object has no attribute 'apply_force'. Did you mean: 'ApplyForce'?
+
+2026-02-20 17:19:59,818 - openevolve.database - INFO - Island Status:
+2026-02-20 17:19:59,819 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=26.20, gen=6 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:19:59,819 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:19:59,819 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:19:59,819 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:19:59,819 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:19:59,839 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_6
+2026-02-20 17:19:59,843 - openevolve.controller - INFO - Saved best program at checkpoint 6 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:19:59,843 - openevolve.controller - INFO - Saved checkpoint at iteration 6 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_6
+2026-02-20 17:19:59,844 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:20:08,279 - openevolve.evaluator - INFO - Evaluated program 65397112-131f-4a9f-90a9-4e549d54aaeb in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 16, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 16, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:08,280 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 9}
+2026-02-20 17:20:08,280 - openevolve.controller - INFO - Iteration 7: Program 65397112-131f-4a9f-90a9-4e549d54aaeb (parent: bc920a8b-70bc-4c27-9692-3fdd2790ec11) completed in 8.44s
+2026-02-20 17:20:08,280 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 16, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 16, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:08,281 - openevolve.database - INFO - Island Status:
+2026-02-20 17:20:08,281 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=26.20, gen=6 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:20:08,281 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=87.30, gen=1 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:20:08,281 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:20:08,281 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:20:08,281 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:20:08,315 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_7
+2026-02-20 17:20:08,318 - openevolve.controller - INFO - Saved best program at checkpoint 7 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:20:08,318 - openevolve.controller - INFO - Saved checkpoint at iteration 7 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_7
+2026-02-20 17:20:08,318 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:20:16,718 - openevolve.evaluator - INFO - Evaluated program bdb3d7f6-a76d-4f69-9e7c-0eed110762be in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:16,719 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 2, 'diversity': 1}
+2026-02-20 17:20:16,719 - openevolve.controller - INFO - Iteration 8: Program bdb3d7f6-a76d-4f69-9e7c-0eed110762be (parent: 67f41100-b5e5-481b-b92b-f4907847aef7) completed in 8.40s
+2026-02-20 17:20:16,720 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:16,720 - openevolve.database - INFO - Island Status:
+2026-02-20 17:20:16,720 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=26.20, gen=6 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:20:16,720 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=87.30, gen=1 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:20:16,720 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:20:16,720 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:20:16,721 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:20:16,739 - openevolve.database - INFO - Saved database with 9 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_8
+2026-02-20 17:20:16,743 - openevolve.controller - INFO - Saved best program at checkpoint 8 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:20:16,743 - openevolve.controller - INFO - Saved checkpoint at iteration 8 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_8
+2026-02-20 17:20:16,743 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:20:31,241 - openevolve.evaluator - INFO - Evaluated program 25fef723-e76d-438b-aae0-795889a0570c in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:31,242 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 2, 'diversity': 0}
+2026-02-20 17:20:31,243 - openevolve.controller - INFO - Iteration 9: Program 25fef723-e76d-438b-aae0-795889a0570c (parent: 522a1206-dc6f-4c15-a1f8-713c3ab36410) completed in 14.50s
+2026-02-20 17:20:31,243 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:31,243 - openevolve.database - INFO - Island Status:
+2026-02-20 17:20:31,243 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=26.20, gen=6 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:20:31,243 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=87.30, gen=1 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:20:31,244 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:20:31,244 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:20:31,244 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:20:31,268 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_9
+2026-02-20 17:20:31,271 - openevolve.controller - INFO - Saved best program at checkpoint 9 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:20:31,271 - openevolve.controller - INFO - Saved checkpoint at iteration 9 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_9
+2026-02-20 17:20:31,272 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:20:40,807 - openevolve.evaluator - INFO - Evaluated program 8be6afa8-2ff5-4690-adc7-635ff0e67911 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:40,808 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 5, 'diversity': 1}
+2026-02-20 17:20:40,809 - openevolve.controller - INFO - Iteration 10: Program 8be6afa8-2ff5-4690-adc7-635ff0e67911 (parent: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b) completed in 9.54s
+2026-02-20 17:20:40,809 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:20:40,809 - openevolve.database - INFO - Island Status:
+2026-02-20 17:20:40,809 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=26.20, gen=6 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:20:40,809 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=87.30, gen=1 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:20:40,809 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:20:40,809 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:20:40,809 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=6.50, gen=1 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:20:40,835 - openevolve.database - INFO - Saved database with 11 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_10
+2026-02-20 17:20:40,838 - openevolve.controller - INFO - Saved best program at checkpoint 10 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:20:40,838 - openevolve.controller - INFO - Saved checkpoint at iteration 10 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_10
+2026-02-20 17:20:40,839 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:21:00,090 - openevolve.evaluator - INFO - Evaluated program 3d8b7e3c-b921-43fe-a411-11a10ac6aead in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:21:00,091 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 3, 'diversity': 0}
+2026-02-20 17:21:00,091 - openevolve.controller - INFO - Iteration 11: Program 3d8b7e3c-b921-43fe-a411-11a10ac6aead (parent: e109fa37-cb00-452d-a6c0-08d6ef0f72b6) completed in 19.25s
+2026-02-20 17:21:00,091 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'force' (pos 2)
+
+2026-02-20 17:21:00,092 - openevolve.database - INFO - Island Status:
+2026-02-20 17:21:00,092 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=20.45, gen=7 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:21:00,092 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=87.30, gen=1 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:21:00,092 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:21:00,092 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:21:00,092 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=6.50, gen=1 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:21:00,119 - openevolve.database - INFO - Saved database with 12 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_11
+2026-02-20 17:21:00,122 - openevolve.controller - INFO - Saved best program at checkpoint 11 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:21:00,122 - openevolve.controller - INFO - Saved checkpoint at iteration 11 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_11
+2026-02-20 17:21:00,123 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:21:14,629 - openevolve.evaluator - INFO - Evaluated program e0afd513-4215-4489-8d8e-3ab80792076f in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': "Code syntax error: expected an indented block after 'if' statement on line 13 (<string>, line 15)\nCode snippet (lines 13-18):\n  13:         if distance > 0:\n  14:         # Calculate proportional force towards target_x (30.0)\n  15:         target_x = 30.0\n  16:         distance = target_x - agent_body.position.x\n  17:         if distance > 0:\n  18:             force_x = 0.1 * distance\n\nFull error: expected an indented block after 'if' statement on line 13 (<string>, line 15)", 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: expected an indented block after 'if' statement on line 13 (<string>, line 15)
+Code snippet (lines 13-18):
+  13:         if distance > 0:
+  14:         # Calculate proportional force towards target_x (30.0)
+  15:         target_x = 30.0
+  16:         distance = target_x - agent_body.position.x
+  17:         if distance > 0:
+  18:             force_x = 0.1 * distance
+
+Full error: expected an indented block after 'if' statement on line 13 (<string>, line 15)
+2026-02-20 17:21:14,630 - openevolve.controller - INFO - Iteration 12: Program e0afd513-4215-4489-8d8e-3ab80792076f (parent: bc920a8b-70bc-4c27-9692-3fdd2790ec11) completed in 14.51s
+2026-02-20 17:21:14,630 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'syntax_error', 'error_stage': 'code_compilation', 'error_message': "Code syntax error: expected an indented block after 'if' statement on line 13 (<string>, line 15)\nCode snippet (lines 13-18):\n  13:         if distance > 0:\n  14:         # Calculate proportional force towards target_x (30.0)\n  15:         target_x = 30.0\n  16:         distance = target_x - agent_body.position.x\n  17:         if distance > 0:\n  18:             force_x = 0.1 * distance\n\nFull error: expected an indented block after 'if' statement on line 13 (<string>, line 15)", 'error_line': None, 'error_text': None}, error=Code syntax error: Code syntax error: expected an indented block after 'if' statement on line 13 (<string>, line 15)
+Code snippet (lines 13-18):
+  13:         if distance > 0:
+  14:         # Calculate proportional force towards target_x (30.0)
+  15:         target_x = 30.0
+  16:         distance = target_x - agent_body.position.x
+  17:         if distance > 0:
+  18:             force_x = 0.1 * distance
+
+Full error: expected an indented block after 'if' statement on line 13 (<string>, line 15)
+2026-02-20 17:21:14,630 - openevolve.database - INFO - Island Status:
+2026-02-20 17:21:14,630 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=20.45, gen=7 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:21:14,630 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=74.33, gen=2 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:21:14,630 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:21:14,630 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:21:14,630 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=6.50, gen=1 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:21:14,658 - openevolve.database - INFO - Saved database with 13 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_12
+2026-02-20 17:21:14,661 - openevolve.controller - INFO - Saved best program at checkpoint 12 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:21:14,661 - openevolve.controller - INFO - Saved checkpoint at iteration 12 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_12
+2026-02-20 17:21:14,661 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:21:36,667 - openevolve.evaluator - INFO - Evaluated program 959bf21b-8a06-4655-8545-7d0bc843f664 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForceToCenter() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+
+2026-02-20 17:21:36,669 - openevolve.controller - INFO - Iteration 13: Program 959bf21b-8a06-4655-8545-7d0bc843f664 (parent: bdb3d7f6-a76d-4f69-9e7c-0eed110762be) completed in 22.01s
+2026-02-20 17:21:36,669 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForceToCenter() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+
+2026-02-20 17:21:36,670 - openevolve.database - INFO - Island Status:
+2026-02-20 17:21:36,670 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=20.45, gen=7 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:21:36,670 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=74.33, gen=2 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:21:36,670 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=0.87, gen=2 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:21:36,670 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=1 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:21:36,670 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=6.50, gen=1 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:21:36,698 - openevolve.database - INFO - Saved database with 14 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_13
+2026-02-20 17:21:36,701 - openevolve.controller - INFO - Saved best program at checkpoint 13 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:21:36,701 - openevolve.controller - INFO - Saved checkpoint at iteration 13 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_13
+2026-02-20 17:21:36,702 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:22:16,872 - openevolve.evaluator - INFO - Evaluated program a5a4626e-7269-4abe-b02c-9eb0e453948e in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForceToCenter() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+
+2026-02-20 17:22:16,872 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 3, 'diversity': 1}
+2026-02-20 17:22:16,873 - openevolve.controller - INFO - Iteration 14: Program a5a4626e-7269-4abe-b02c-9eb0e453948e (parent: 25fef723-e76d-438b-aae0-795889a0570c) completed in 40.17s
+2026-02-20 17:22:16,873 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForceToCenter() missing required argument \'force\' (pos 2)\n'}, error=Verification process error: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForceToCenter() missing required argument 'force' (pos 2)
+
+2026-02-20 17:22:16,873 - openevolve.database - INFO - Island Status:
+2026-02-20 17:22:16,873 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=20.45, gen=7 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:22:16,874 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=74.33, gen=2 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:22:16,874 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=0.87, gen=2 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:22:16,874 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=2.27, gen=2 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:22:16,874 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=6.50, gen=1 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:22:16,923 - openevolve.database - INFO - Saved database with 15 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_14
+2026-02-20 17:22:16,926 - openevolve.controller - INFO - Saved best program at checkpoint 14 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:22:16,926 - openevolve.controller - INFO - Saved checkpoint at iteration 14 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_14
+2026-02-20 17:22:16,926 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:22:29,602 - openevolve.evaluator - INFO - Evaluated program bd10fe25-4a8a-4454-a91f-4fdb5929be56 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:22:29,603 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 4, 'diversity': 1}
+2026-02-20 17:22:29,603 - openevolve.controller - INFO - Iteration 15: Program bd10fe25-4a8a-4454-a91f-4fdb5929be56 (parent: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b) completed in 12.68s
+2026-02-20 17:22:29,603 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:22:29,604 - openevolve.database - INFO - Island Status:
+2026-02-20 17:22:29,604 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=20.45, gen=7 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:22:29,604 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=74.33, gen=2 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:22:29,604 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=0.87, gen=2 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:22:29,604 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=2.27, gen=2 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:22:29,604 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=4.33, gen=2 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:22:29,637 - openevolve.database - INFO - Saved database with 16 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_15
+2026-02-20 17:22:29,640 - openevolve.controller - INFO - Saved best program at checkpoint 15 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:22:29,640 - openevolve.controller - INFO - Saved checkpoint at iteration 15 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_15
+2026-02-20 17:22:29,641 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:22:53,196 - openevolve.evaluator - INFO - Evaluated program 9b0138fd-a8bd-466d-9ba2-5c6f4d9654a8 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:22:53,197 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 2, 'diversity': 0}
+2026-02-20 17:22:53,197 - openevolve.controller - INFO - Iteration 16: Program 9b0138fd-a8bd-466d-9ba2-5c6f4d9654a8 (parent: 5d475184-590b-4b64-a59d-a1395365a9de) completed in 23.56s
+2026-02-20 17:22:53,197 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:22:53,198 - openevolve.database - INFO - Island Status:
+2026-02-20 17:22:53,198 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=26.02, gen=8 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:22:53,198 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=74.33, gen=2 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:22:53,198 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=0.87, gen=2 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:22:53,198 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=2.27, gen=2 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:22:53,198 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=4.33, gen=2 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:22:53,250 - openevolve.database - INFO - Saved database with 17 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_16
+2026-02-20 17:22:53,253 - openevolve.controller - INFO - Saved best program at checkpoint 16 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:22:53,253 - openevolve.controller - INFO - Saved checkpoint at iteration 16 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_16
+2026-02-20 17:22:53,253 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:23:16,752 - openevolve.evaluator - INFO - Evaluated program a9dc8399-d8a1-4675-bcbe-8b92e0cc9146 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 15, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 15, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:23:16,753 - openevolve.controller - INFO - Iteration 17: Program a9dc8399-d8a1-4675-bcbe-8b92e0cc9146 (parent: bc920a8b-70bc-4c27-9692-3fdd2790ec11) completed in 23.50s
+2026-02-20 17:23:16,754 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 15, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 15, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:23:16,755 - openevolve.database - INFO - Island Status:
+2026-02-20 17:23:16,755 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=26.02, gen=8 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:23:16,755 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=66.28, gen=3 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:23:16,755 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=0.87, gen=2 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:23:16,755 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=2.27, gen=2 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:23:16,755 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=4.33, gen=2 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:23:16,793 - openevolve.database - INFO - Saved database with 18 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_17
+2026-02-20 17:23:16,795 - openevolve.controller - INFO - Saved best program at checkpoint 17 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:23:16,795 - openevolve.controller - INFO - Saved checkpoint at iteration 17 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_17
+2026-02-20 17:23:16,796 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:23:24,697 - openevolve.evaluator - INFO - Evaluated program 72732bdf-eccc-4721-a913-85e9968995e5 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'Sandbox' object has no attribute 'Vec2'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'Sandbox\' object has no attribute \'Vec2\'\n'}, error=Verification process error: 'Sandbox' object has no attribute 'Vec2'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'Sandbox' object has no attribute 'Vec2'
+
+2026-02-20 17:23:24,698 - openevolve.controller - INFO - Iteration 18: Program 72732bdf-eccc-4721-a913-85e9968995e5 (parent: 959bf21b-8a06-4655-8545-7d0bc843f664) completed in 7.90s
+2026-02-20 17:23:24,698 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'Sandbox' object has no attribute 'Vec2'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nAttributeError: \'Sandbox\' object has no attribute \'Vec2\'\n'}, error=Verification process error: 'Sandbox' object has no attribute 'Vec2'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+AttributeError: 'Sandbox' object has no attribute 'Vec2'
+
+2026-02-20 17:23:24,699 - openevolve.database - INFO - Island Status:
+2026-02-20 17:23:24,699 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=26.02, gen=8 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:23:24,699 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=66.28, gen=3 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:23:24,699 - openevolve.database - INFO -    Island 2: 4 programs, best=0.0000, avg=0.0000, diversity=7.32, gen=3 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:23:24,699 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=2.27, gen=2 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:23:24,699 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=4.33, gen=2 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:23:24,740 - openevolve.database - INFO - Saved database with 19 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_18
+2026-02-20 17:23:24,742 - openevolve.controller - INFO - Saved best program at checkpoint 18 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:23:24,742 - openevolve.controller - INFO - Saved checkpoint at iteration 18 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_18
+2026-02-20 17:23:24,743 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:23:44,129 - openevolve.evaluator - INFO - Evaluated program f43eb839-fd56-46d6-88f1-76393757cc45 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:23:44,130 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 2, 'diversity': 1}
+2026-02-20 17:23:44,130 - openevolve.controller - INFO - Iteration 19: Program f43eb839-fd56-46d6-88f1-76393757cc45 (parent: 522a1206-dc6f-4c15-a1f8-713c3ab36410) completed in 19.39s
+2026-02-20 17:23:44,130 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'point' (pos 3)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'point\' (pos 3)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'point' (pos 3)
+
+2026-02-20 17:23:44,131 - openevolve.database - INFO - Island Status:
+2026-02-20 17:23:44,131 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=26.02, gen=8 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:23:44,131 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=66.28, gen=3 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:23:44,131 - openevolve.database - INFO -    Island 2: 4 programs, best=0.0000, avg=0.0000, diversity=7.32, gen=3 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:23:44,131 - openevolve.database - INFO -    Island 3: 4 programs, best=0.0000, avg=0.0000, diversity=1.90, gen=3 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:23:44,131 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=4.33, gen=2 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:23:44,172 - openevolve.database - INFO - Saved database with 20 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_19
+2026-02-20 17:23:44,175 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:23:44,175 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_19
+2026-02-20 17:23:44,175 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 17:23:59,616 - openevolve.evaluator - INFO - Evaluated program 6062b888-77b0-4ed8-9df2-af3953c148bd in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'wake' (pos 4)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'wake\' (pos 4)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'wake' (pos 4)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'wake' (pos 4)
+
+2026-02-20 17:23:59,617 - openevolve.controller - INFO - Iteration 20: Program 6062b888-77b0-4ed8-9df2-af3953c148bd (parent: 8be6afa8-2ff5-4690-adc7-635ff0e67911) completed in 15.44s
+2026-02-20 17:23:59,618 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "b2Body_ApplyForce() missing required argument 'wake' (pos 4)", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 11, in agent_action\nTypeError: b2Body_ApplyForce() missing required argument \'wake\' (pos 4)\n'}, error=Verification process error: b2Body_ApplyForce() missing required argument 'wake' (pos 4)
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 11, in agent_action
+TypeError: b2Body_ApplyForce() missing required argument 'wake' (pos 4)
+
+2026-02-20 17:23:59,619 - openevolve.database - INFO - Island Status:
+2026-02-20 17:23:59,619 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=26.02, gen=8 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:23:59,619 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=66.28, gen=3 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:23:59,619 - openevolve.database - INFO -    Island 2: 4 programs, best=0.0000, avg=0.0000, diversity=7.32, gen=3 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:23:59,619 - openevolve.database - INFO -    Island 3: 4 programs, best=0.0000, avg=0.0000, diversity=1.90, gen=3 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:23:59,619 - openevolve.database - INFO -    Island 4: 4 programs, best=0.0000, avg=0.0000, diversity=6.87, gen=3 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:23:59,660 - openevolve.database - INFO - Saved database with 21 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 17:23:59,662 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:23:59,662 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 17:23:59,693 - openevolve.database - INFO - Saved database with 21 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 17:23:59,695 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:23:59,695 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 17:23:59,695 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 17:23:59,697 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/best/best_program_info.json
+2026-02-20 17:23:59,700 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 17:23:59,701 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-20 17:23:59,701 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-20 17:23:59,712 - openevolve.database - INFO - Reconstructed islands: restored 21 programs to islands
+2026-02-20 17:23:59,712 - openevolve.database - INFO - Loaded database with 24 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 17:23:59,712 - openevolve.database - INFO - Island Status:
+2026-02-20 17:23:59,713 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=26.02, gen=8 (best: 1e162f01-38b4-4034-8234-c544e2f2aad9)
+2026-02-20 17:23:59,713 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=66.28, gen=3 (best: bc920a8b-70bc-4c27-9692-3fdd2790ec11)
+2026-02-20 17:23:59,713 - openevolve.database - INFO -    Island 2: 4 programs, best=0.0000, avg=0.0000, diversity=7.32, gen=3 (best: 67f41100-b5e5-481b-b92b-f4907847aef7)
+2026-02-20 17:23:59,713 - openevolve.database - INFO -    Island 3: 4 programs, best=0.0000, avg=0.0000, diversity=1.90, gen=3 (best: 522a1206-dc6f-4c15-a1f8-713c3ab36410)
+2026-02-20 17:23:59,713 - openevolve.database - INFO -    Island 4: 4 programs, best=0.0000, avg=0.0000, diversity=6.87, gen=3 (best: d5f8449c-aaf6-45c8-a636-3e55a96e3e5b)
+2026-02-20 17:23:59,759 - openevolve.database - INFO - Saved database with 24 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_01/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260220_pseudo

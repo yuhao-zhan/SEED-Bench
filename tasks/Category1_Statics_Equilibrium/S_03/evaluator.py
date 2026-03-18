@@ -54,8 +54,11 @@ class Evaluator:
         self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', 30.0)
         
         self.max_recorded_torque = 0.0
+        self.max_recorded_force = 0.0
         self.torque_limit_recorded = 0.0
         self.internal_torque_limit_recorded = 0.0
+        self.force_limit_recorded = 0.0
+        self.internal_force_limit_recorded = 0.0
         self.external_force_y = 0.0
         
         self.design_constraints_checked = False
@@ -112,26 +115,33 @@ class Evaluator:
 
         self.external_force_y = total_ext_force_y / len(self.environment._bodies) if self.environment._bodies else 0.0
 
-        # Record max torque usage (same frequency as environment joint checks: 1/TIME_STEP)
+        # Record max torque and force usage (same frequency as environment joint checks: 1/TIME_STEP)
         inv_dt = 1.0 / TIME_STEP
         for joint in self.environment._joints:
             try:
                 force = joint.GetReactionForce(inv_dt)
                 torque = abs(joint.GetReactionTorque(inv_dt))
+                fm = math.sqrt(force.x**2 + force.y**2)
                 self.max_recorded_torque = max(self.max_recorded_torque, torque)
+                self.max_recorded_force = max(self.max_recorded_force, fm)
             except: pass
             
-        # Record both anchor and internal torque limits for accurate feedback (wall vs beam-to-beam joints).
-        # When anchor_strength_map applies, use the minimum effective limit (base * t_mult) so the reported
+        # Record both anchor and internal torque/force limits for accurate feedback (wall vs beam-to-beam joints).
+        # When anchor_strength_map applies, use the minimum effective limit (base * mult) so the reported
         # limit matches the physics used for joint break in environment.step().
         base_anchor_t = self.environment._terrain_config.get("max_anchor_torque", 100000000.0)
+        base_anchor_f = self.environment._terrain_config.get("max_anchor_force", 100000000.0)
         strength_map = self.environment._terrain_config.get("anchor_strength_map", None)
         if strength_map and len(strength_map) > 0:
             min_t_mult = min(float(entry[3]) for entry in strength_map if len(entry) >= 4)
+            min_f_mult = min(float(entry[2]) for entry in strength_map if len(entry) >= 4)
             self.torque_limit_recorded = base_anchor_t * min_t_mult
+            self.force_limit_recorded = base_anchor_f * min_f_mult
         else:
             self.torque_limit_recorded = base_anchor_t
+            self.force_limit_recorded = base_anchor_f
         self.internal_torque_limit_recorded = self.environment._terrain_config.get("max_internal_torque", 100000000.0)
+        self.internal_force_limit_recorded = self.environment._terrain_config.get("max_internal_force", 100000000.0)
 
 
         # Structural integrity check
@@ -186,9 +196,9 @@ class Evaluator:
             if not self.reach_satisfied_initially:
                 failed, failure_reason = True, f"Structure never reached target x={self.target_reach}m"
             elif self.load_1_held_steps < self.load_duration_steps:
-                 failed, failure_reason = True, f"Failed to hold first load for required duration (held {self.load_1_held_steps * TIME_STEP:.2f}s / {self.load_duration}s)"
+                failed, failure_reason = True, f"Failed to hold first load for required duration (held {self.load_1_held_steps * TIME_STEP:.2f}s / {self.load_duration}s)"
             elif self.load_2_held_steps < self.load_duration_steps:
-                 failed, failure_reason = True, f"Failed to hold second load for required duration (held {self.load_2_held_steps * TIME_STEP:.2f}s / {self.load_duration}s)"
+                failed, failure_reason = True, f"Failed to hold second load for required duration (held {self.load_2_held_steps * TIME_STEP:.2f}s / {self.load_duration}s)"
             else:
                 success = True
         
@@ -215,8 +225,11 @@ class Evaluator:
             'structure_mass': current_mass,
             'max_structure_mass': self.MAX_STRUCTURE_MASS,
             'peak_joint_torque': self.max_recorded_torque,
+            'peak_joint_force': self.max_recorded_force,
             'max_anchor_torque_limit': self.torque_limit_recorded,
             'max_internal_torque_limit': self.internal_torque_limit_recorded,
+            'max_anchor_force_limit': self.force_limit_recorded,
+            'max_internal_force_limit': self.internal_force_limit_recorded,
             'anchor_count': len([j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]]),
             'max_anchor_points': 2,
             'max_anchors_limit': 2,

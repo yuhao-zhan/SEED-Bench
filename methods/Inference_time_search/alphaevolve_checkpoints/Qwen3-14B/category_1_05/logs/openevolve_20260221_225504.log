@@ -1,0 +1,317 @@
+2026-02-21 22:55:04,221 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/logs/openevolve_20260221_225504.log
+2026-02-21 22:55:04,222 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 22:55:04,223 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-14B (weight: 1.00)
+2026-02-21 22:55:04,228 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 22:55:04,233 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 22:55:04,233 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 22:55:04,236 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_17ziwrch/evaluate.py
+2026-02-21 22:55:04,236 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_17ziwrch/evaluate.py
+2026-02-21 22:55:04,236 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_17ziwrch/initial_program.py
+2026-02-21 22:55:04,236 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 22:55:04,262 - openevolve.evaluator - INFO - Evaluated program b0b1e078-51da-44ea-9d8f-e799563f0a69 in 0.03s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:55:04,263 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 22:55:04,263 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 22:55:04,264 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 22:55:04,264 - openevolve.database - INFO - Island Status:
+2026-02-21 22:55:04,264 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 22:55:04,264 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:04,264 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:04,264 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:04,264 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:04,265 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:55:39,090 - openevolve.evaluator - INFO - Evaluated program deedbb88-c2c7-4d05-abac-65589c102df5 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:55:39,092 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 5}
+2026-02-21 22:55:39,092 - openevolve.controller - INFO - Iteration 1: Program deedbb88-c2c7-4d05-abac-65589c102df5 (parent: b0b1e078-51da-44ea-9d8f-e799563f0a69) completed in 34.83s
+2026-02-21 22:55:39,092 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:55:39,092 - openevolve.database - INFO - Island Status:
+2026-02-21 22:55:39,092 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=4.90, gen=1 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 22:55:39,093 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:39,093 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:39,093 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:39,093 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:55:39,100 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_1
+2026-02-21 22:55:39,103 - openevolve.controller - INFO - Saved best program at checkpoint 1 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:55:39,103 - openevolve.controller - INFO - Saved checkpoint at iteration 1 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_1
+2026-02-21 22:55:39,104 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:56:49,621 - openevolve.evaluator - INFO - Evaluated program e093cf3a-934c-47dc-a683-167c184f9c8b in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:56:49,623 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 0}
+2026-02-21 22:56:49,623 - openevolve.controller - INFO - Iteration 2: Program e093cf3a-934c-47dc-a683-167c184f9c8b (parent: deedbb88-c2c7-4d05-abac-65589c102df5) completed in 70.52s
+2026-02-21 22:56:49,623 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:56:49,623 - openevolve.database - INFO - Island Status:
+2026-02-21 22:56:49,623 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=4.90, gen=2 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 22:56:49,623 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e093cf3a-934c-47dc-a683-167c184f9c8b)
+2026-02-21 22:56:49,624 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:56:49,624 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:56:49,624 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:56:49,633 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_2
+2026-02-21 22:56:49,636 - openevolve.controller - INFO - Saved best program at checkpoint 2 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:56:49,636 - openevolve.controller - INFO - Saved checkpoint at iteration 2 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_2
+2026-02-21 22:56:49,636 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:58:12,829 - openevolve.evaluator - INFO - Evaluated program aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:58:12,830 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 0, 'diversity': 4}
+2026-02-21 22:58:12,830 - openevolve.controller - INFO - Iteration 3: Program aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c (parent: b0b1e078-51da-44ea-9d8f-e799563f0a69) completed in 83.19s
+2026-02-21 22:58:12,830 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:58:12,830 - openevolve.database - INFO - Island Status:
+2026-02-21 22:58:12,830 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=4.90, gen=3 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 22:58:12,830 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e093cf3a-934c-47dc-a683-167c184f9c8b)
+2026-02-21 22:58:12,830 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c)
+2026-02-21 22:58:12,830 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:58:12,830 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:58:12,841 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_3
+2026-02-21 22:58:12,845 - openevolve.controller - INFO - Saved best program at checkpoint 3 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:58:12,846 - openevolve.controller - INFO - Saved checkpoint at iteration 3 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_3
+2026-02-21 22:58:12,847 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:59:19,292 - openevolve.evaluator - INFO - Evaluated program df82227f-78b1-4c33-a93d-65075ce7cd57 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:59:19,293 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 0}
+2026-02-21 22:59:19,293 - openevolve.controller - INFO - Iteration 4: Program df82227f-78b1-4c33-a93d-65075ce7cd57 (parent: deedbb88-c2c7-4d05-abac-65589c102df5) completed in 66.45s
+2026-02-21 22:59:19,293 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:59:19,293 - openevolve.database - INFO - Island Status:
+2026-02-21 22:59:19,293 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=4.90, gen=4 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 22:59:19,293 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e093cf3a-934c-47dc-a683-167c184f9c8b)
+2026-02-21 22:59:19,293 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c)
+2026-02-21 22:59:19,293 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: df82227f-78b1-4c33-a93d-65075ce7cd57)
+2026-02-21 22:59:19,294 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:59:19,306 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_4
+2026-02-21 22:59:19,309 - openevolve.controller - INFO - Saved best program at checkpoint 4 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 22:59:19,309 - openevolve.controller - INFO - Saved checkpoint at iteration 4 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_4
+2026-02-21 22:59:19,310 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:00:42,657 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-21 23:00:42,659 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:02:06,004 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 23:02:06,005 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:03:28,660 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-21 23:03:28,661 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:04:51,285 - openevolve.evaluator - INFO - Evaluated program 16a234d3-7653-41a6-b3e7-8599c0409eb6 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:04:51,285 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 2, 'diversity': 2}
+2026-02-21 23:04:51,285 - openevolve.controller - INFO - Iteration 8: Program 16a234d3-7653-41a6-b3e7-8599c0409eb6 (parent: aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c) completed in 82.62s
+2026-02-21 23:04:51,285 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:04:51,286 - openevolve.database - INFO - Island Status:
+2026-02-21 23:04:51,286 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=4.90, gen=4 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 23:04:51,286 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e093cf3a-934c-47dc-a683-167c184f9c8b)
+2026-02-21 23:04:51,286 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.80, gen=1 (best: aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c)
+2026-02-21 23:04:51,286 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: df82227f-78b1-4c33-a93d-65075ce7cd57)
+2026-02-21 23:04:51,286 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:04:51,300 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_8
+2026-02-21 23:04:51,303 - openevolve.controller - INFO - Saved best program at checkpoint 8 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:04:51,303 - openevolve.controller - INFO - Saved checkpoint at iteration 8 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_8
+2026-02-21 23:04:51,304 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:06:14,045 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 23:06:14,047 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:07:37,385 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 23:07:37,386 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:09:00,721 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 23:09:00,722 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:10:23,074 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 23:10:23,076 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:11:33,988 - openevolve.evaluator - INFO - Evaluated program 9f138f15-05d1-4966-b6b6-23c3135bdcf8 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:11:33,989 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 2, 'diversity': 0}
+2026-02-21 23:11:33,989 - openevolve.controller - INFO - Iteration 13: Program 9f138f15-05d1-4966-b6b6-23c3135bdcf8 (parent: aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c) completed in 70.91s
+2026-02-21 23:11:33,989 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:11:33,989 - openevolve.database - INFO - Island Status:
+2026-02-21 23:11:33,990 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=4.90, gen=4 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 23:11:33,990 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e093cf3a-934c-47dc-a683-167c184f9c8b)
+2026-02-21 23:11:33,990 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=2 (best: aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c)
+2026-02-21 23:11:33,990 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: df82227f-78b1-4c33-a93d-65075ce7cd57)
+2026-02-21 23:11:33,990 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:11:34,009 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_13
+2026-02-21 23:11:34,012 - openevolve.controller - INFO - Saved best program at checkpoint 13 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:11:34,012 - openevolve.controller - INFO - Saved checkpoint at iteration 13 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_13
+2026-02-21 23:11:34,012 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:12:56,455 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 23:12:56,457 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:14:19,545 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 23:14:19,546 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:15:42,896 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 23:15:42,899 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:17:05,264 - openevolve.controller - WARNING - Iteration 17 error: No valid diffs found
+2026-02-21 23:17:05,266 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:18:30,191 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-21 23:18:30,192 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:19:52,629 - openevolve.controller - WARNING - Iteration 19 error: No valid diffs found
+2026-02-21 23:19:52,631 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 23:21:15,719 - openevolve.controller - WARNING - Iteration 20 error: No valid diffs found
+2026-02-21 23:21:15,739 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 23:21:15,741 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:21:15,741 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 23:21:15,742 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Cannot build within 1.3m of core', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam\n    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")\nValueError: Cannot build within 1.3m of core\n'}, error=Error building agent: Cannot build within 1.3m of core
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 217, in add_beam
+    raise ValueError(f"Cannot build within {self.KEEP_OUT_RADIUS}m of core")
+ValueError: Cannot build within 1.3m of core
+
+2026-02-21 23:21:15,745 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/best/best_program_info.json
+2026-02-21 23:21:15,750 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 23:21:15,751 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 23:21:15,751 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 23:21:15,757 - openevolve.database - INFO - Reconstructed islands: restored 7 programs to islands
+2026-02-21 23:21:15,757 - openevolve.database - INFO - Loaded database with 7 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 23:21:15,757 - openevolve.database - INFO - Island Status:
+2026-02-21 23:21:15,758 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=4.90, gen=4 (best: b0b1e078-51da-44ea-9d8f-e799563f0a69)
+2026-02-21 23:21:15,758 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e093cf3a-934c-47dc-a683-167c184f9c8b)
+2026-02-21 23:21:15,758 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=0.60, gen=2 (best: aa8e9a24-6159-4fd1-bf3e-a5f657cdf14c)
+2026-02-21 23:21:15,758 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: df82227f-78b1-4c33-a93d-65075ce7cd57)
+2026-02-21 23:21:15,758 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 23:21:15,775 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_05/Qwen3-14B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

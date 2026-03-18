@@ -82,6 +82,12 @@ class Sandbox:
         if "build_zone_y_max" in terrain_config:
             self.BUILD_ZONE_Y_MAX = float(terrain_config["build_zone_y_max"])
 
+        # Mutations can override mass and beam count
+        if "max_structure_mass" in physics_config:
+            self.MAX_STRUCTURE_MASS = float(physics_config["max_structure_mass"])
+        if "max_beam_count" in physics_config:
+            self.MAX_BEAM_COUNT = int(physics_config["max_beam_count"])
+
         # Gravity: can be a fixed tuple or a callable (t) -> (gx, gy). Default for E-01: oscillating.
         gravity_spec = physics_config.get("gravity", default_gravity_function)
         if callable(gravity_spec):
@@ -96,6 +102,8 @@ class Sandbox:
         self._default_linear_damping = float(physics_config.get("linear_damping", 0.0))
         self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
         self._beam_density_scale = float(physics_config.get("beam_density_scale", 1.0))
+        self._joint_force_limit = float(physics_config.get("joint_force_limit", float('inf')))
+        self._terrain_friction = float(terrain_config.get("friction", 0.6))
 
         self._bodies = []
         self._joints = []
@@ -112,13 +120,14 @@ class Sandbox:
         """Create bounded arena: floor, ceiling, left and right walls."""
         w = self.ARENA_X_MAX - self.ARENA_X_MIN
         h_half = 0.5
+        friction = self._terrain_friction
 
         # Floor at y = 0
         floor = self._world.CreateStaticBody(
             position=(self.ARENA_X_MIN + w / 2, h_half / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(w / 2, h_half / 2)),
-                friction=0.6,
+                friction=friction,
             ),
         )
         self._terrain_bodies["floor"] = floor
@@ -129,7 +138,7 @@ class Sandbox:
             position=(self.ARENA_X_MIN + w / 2, ceiling_y + h_half / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(w / 2, h_half / 2)),
-                friction=0.6,
+                friction=friction,
             ),
         )
         self._terrain_bodies["ceiling"] = ceiling
@@ -140,7 +149,7 @@ class Sandbox:
             position=(h_half / 2, wall_h / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(h_half / 2, wall_h / 2)),
-                friction=0.6,
+                friction=friction,
             ),
         )
         self._terrain_bodies["left_wall"] = left_wall
@@ -151,7 +160,7 @@ class Sandbox:
             position=(right_x - h_half / 2, wall_h / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(h_half / 2, wall_h / 2)),
-                friction=0.6,
+                friction=friction,
             ),
         )
         self._terrain_bodies["right_wall"] = right_wall
@@ -163,7 +172,7 @@ class Sandbox:
             position=(obs1_cx, obs1_cy),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(self.OBSTACLE1_HALF_W, self.OBSTACLE1_HALF_H)),
-                friction=0.4,
+                friction=friction,
             ),
         )
         self._terrain_bodies["obstacle_1"] = obstacle1
@@ -174,7 +183,7 @@ class Sandbox:
             position=(obs2_cx, obs2_cy),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(self.OBSTACLE2_HALF_W, self.OBSTACLE2_HALF_H)),
-                friction=0.4,
+                friction=friction,
             ),
         )
         self._terrain_bodies["obstacle_2"] = obstacle2
@@ -185,7 +194,7 @@ class Sandbox:
             position=(obs3_cx, obs3_cy),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(self.OBSTACLE3_HALF_W, self.OBSTACLE3_HALF_H)),
-                friction=0.4,
+                friction=friction,
             ),
         )
         self._terrain_bodies["obstacle_3"] = obstacle3
@@ -217,6 +226,23 @@ class Sandbox:
         gx, gy = self._gravity_function(self._time)
         self._world.gravity = (float(gx), float(gy))
         self._world.Step(time_step, 10, 10)
+
+        # Joint breaking logic: check reaction forces
+        if self._joint_force_limit < float('inf'):
+            to_break = []
+            for j in self._joints:
+                try:
+                    # Reaction force is returned for the given time step
+                    force = j.GetReactionForce(1.0 / time_step).length
+                    if force > self._joint_force_limit:
+                        to_break.append(j)
+                except Exception:
+                    continue
+            
+            for j in to_break:
+                self._world.DestroyJoint(j)
+                if j in self._joints:
+                    self._joints.remove(j)
 
     def add_beam(self, x, y, width, height, angle=0, density=1.0):
         """Add a beam (rigid rectangular body). Constrained to MIN/MAX size."""

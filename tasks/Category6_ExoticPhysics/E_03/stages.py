@@ -2,7 +2,7 @@
 E-03: Slippery World task curriculum stages (mutations).
 
 All mutations change INVISIBLE physics parameters (global friction, gravity,
-linear/angular damping, momentum drain, thrust-scale zone, speed penalty).
+linear/angular damping, momentum drain, thrust-scale zone).
 The solver agent is NOT told the exact parameter changes; it must infer from feedback.
 
 Stages ordered by difficulty: Stage-1 (easiest, one param) -> Stage-4 (hardest, multiple params).
@@ -23,7 +23,7 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Atmospheric Damping**: Air resistance and motion drag may vary.
 - **Propulsion Efficiency**: The scaling factor affecting thrust output may be adjusted.
 
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., how the sled loses speed, fails to reach a checkpoint, or overshoots the target) to infer the hidden constraints and adapt your design.
 """
 
 
@@ -40,7 +40,8 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 def get_e03_curriculum_stages() -> List[Dict[str, Any]]:
     """
     Returns ordered stage configs for E-03 variants.
-    Each stage: terrain_config, physics_config. No task_description_suffix (invisible params).
+    Each stage: terrain_config, physics_config, task_description_suffix (uniform warning;
+    only invisible params are mutated, so no visible prompt updates).
     Stage-1/2: one physical parameter change each (hard enough so ref fails).
     Stage-3/4: multiple parameter changes (increasing difficulty).
     """

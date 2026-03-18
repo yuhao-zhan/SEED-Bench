@@ -4,7 +4,9 @@ Resilient Data-Parallel Evaluator.
 Optimized for visibility during local model loading and stability under heavy simulation.
 """
 import os
+import re
 import sys
+import json
 import subprocess
 import argparse
 import threading
@@ -116,6 +118,47 @@ def collect_work_items(task_list, model_type, model_name, method, context):
                     
     return work_items
 
+
+def collect_8B_success_pairs():
+    """
+    Scan evaluation_results for Qwen3-8B/baseline dirs; for each pair JSON with success=True,
+    return a set of (task_path, source, target) so we can filter work_items by 8B baseline success.
+    task_path is e.g. 'Category1_Statics_Equilibrium/S_01' (same as parse_task_name(task_name)[0]).
+    """
+    from evaluation.utils import get_evaluation_results_dir
+    results_root = get_evaluation_results_dir()
+    eight_b_baseline = "Qwen3-8B"
+    method = "baseline"
+    pattern = re.compile(r"^all_(.+)_to_(.+)\.json$")
+    out = set()
+    for root, dirs, files in os.walk(results_root, topdown=True):
+        # Only process dirs that are exactly .../Qwen3-8B/baseline
+        if os.path.basename(root) != method or os.path.basename(os.path.dirname(root)) != eight_b_baseline:
+            continue
+        # root is like .../evaluation_results/Category1_Statics_Equilibrium/S_01/Qwen3-8B/baseline
+        rel = os.path.relpath(root, results_root)
+        parts = rel.split(os.sep)
+        if len(parts) >= 2:
+            task_path = f"{parts[0]}/{parts[1]}"
+        else:
+            task_path = rel
+        for fn in files:
+            m = pattern.match(fn)
+            if not m:
+                continue
+            source, target = m.group(1), m.group(2)
+            p = os.path.join(root, fn)
+            try:
+                with open(p, "r") as f:
+                    data = json.load(f)
+                if data.get("success") is True:
+                    out.add((task_path, source, target))
+            except Exception:
+                pass
+        dirs.clear()  # do not recurse under baseline
+    return out
+
+
 def _run_single_task_resilient(cmd, env, task_name, pair_label, worker_pbar, print_lock, max_retries=5):
     """Internal helper to run a task with auto-restart on Segfault and live log monitoring"""
     last_successful_iter = 0
@@ -137,13 +180,21 @@ def _run_single_task_resilient(cmd, env, task_name, pair_label, worker_pbar, pri
                         sys.stdout.flush()
                 init_lines_captured += 1
 
+            # Always echo iteration progress and save confirmation (so redirect to file still shows them)
             if "Iteration " in line and "/" in line:
+                with print_lock:
+                    sys.stdout.write(f"\033[K[{task_name[-8:]}] {line}")
+                    sys.stdout.flush()
                 try:
                     current_iter = int(line.split("Iteration ")[1].split("/")[0])
                     if current_iter > last_successful_iter:
                         worker_pbar.update(current_iter - last_successful_iter)
                         last_successful_iter = current_iter
                 except: pass
+            if "Evaluation report saved:" in line or "✅ Task" in line:
+                with print_lock:
+                    sys.stdout.write(f"\033[K[{task_name[-8:]}] {line}")
+                    sys.stdout.flush()
             
             # Fatal API check
             if any(k in line for k in ["Insufficient quota", "Rate limit reached", "insufficient_quota", " 429 "]):
@@ -198,6 +249,8 @@ def run_api_parallel(work_items, args, scripts_dir):
     base_cmd = [sys.executable, evaluate_script, "--model-type", args.model_type, "--model-name", args.model_name,
                 "--max-iterations", str(args.max_iterations), "--method", args.method, "--context", args.context]
     if args.api_key: base_cmd += ["--api-key", args.api_key]
+    if getattr(args, "method", None) == "reflexion" and getattr(args, "reflect_model_name", None):
+        base_cmd += ["--reflect-model-name", args.reflect_model_name]
     
     max_workers = min(len(work_items), args.api_parallel)
     stop_event = threading.Event()
@@ -249,13 +302,74 @@ def main():
     parser.add_argument("--context", type=str, default="all")
     parser.add_argument("--api-key", type=str, default=None)
     parser.add_argument("--save-gif", action="store_true", default=True)
-    
+    parser.add_argument(
+        "--skip-8B-success",
+        type=str,
+        default="none",
+        choices=["skip", "only", "none"],
+        help="Filter by Qwen3-8B baseline success: skip=skip pairs that 8B already passed; only=only run those pairs; none=no filter (default)",
+    )
+    parser.add_argument("--genome-best-lora-path", type=str, default=None, dest="genome_best_lora_path",
+                        help="GENOME: path to Phase 1 best LoRA. Passed to workers when --method genome.")
+    parser.add_argument("--reflect-model-name", type=str, default="deepseek-v3.2", dest="reflect_model_name",
+                        help="Reflexion: reflection LLM model name (API). Passed to workers when --method reflexion. Default: deepseek-v3.2.")
+
     args = parser.parse_args()
     if args.method.endswith('_CE'):
         print(f"📡 Change Exposed (CE) Mode detected for method: {args.method[:-3]}")
     task_list = resolve_task_list(args.task)
     work_items = collect_work_items(task_list, args.model_type, args.model_name, args.method, args.context)
     if not work_items: print("✅ All runs complete."); return 0
+
+    # Optional filter by Qwen3-8B baseline success (skip / only / none)
+    if args.skip_8B_success != "none":
+        from evaluation.prompt import parse_task_name
+        eight_b_success = collect_8B_success_pairs()
+        n_before = len(work_items)
+        filtered = []
+        for item in work_items:
+            task_name, src, tgt = item
+            try:
+                task_path, _ = parse_task_name(task_name)
+            except Exception:
+                task_path = task_name
+            key = (task_path, src, tgt)
+            in_8b = key in eight_b_success
+            if args.skip_8B_success == "skip":
+                if not in_8b:
+                    filtered.append(item)
+            else:  # "only"
+                if in_8b:
+                    filtered.append(item)
+        work_items = filtered
+        print(f"🔀 8B filter ({args.skip_8B_success}): {n_before} -> {len(work_items)} pairs (8B_success set size: {len(eight_b_success)})")
+        if not work_items:
+            print("✅ No work items after 8B filter.")
+            return 0
+
+    # REMEMBERER / EXPEL (pair-based): ensure memory data from evaluation_results_scratch for each pair's source env
+    base_method = args.method[:-3] if args.method.endswith("_CE") else args.method
+    if base_method in ("rememberer", "expel"):
+        from evaluation.utils import get_model_identifier, get_evaluation_results_scratch_dir
+        model_identifier = get_model_identifier(args.model_type, args.model_name)
+        scratch_base = get_evaluation_results_scratch_dir()
+        for item in work_items:
+            task_name, src, tgt = item
+            if src and tgt:
+                if base_method == "rememberer":
+                    from methods.Memory.rememberer_method import ensure_rememberer_data_from_scratch
+                    ensure_rememberer_data_from_scratch(task_name, src, model_identifier, scratch_base)
+                else:
+                    from methods.Memory.expel_method import ensure_expel_data_from_scratch
+                    from evaluation.solver_interface import get_aux_llm_credentials
+                    import os as _os
+                    _k, _u = get_aux_llm_credentials(getattr(args, "api_key", None))
+                    ensure_expel_data_from_scratch(
+                        task_name, src, model_identifier, scratch_base,
+                        api_key=_k,
+                        base_url=_u,
+                        insight_model=_os.environ.get("EXPEL_INSIGHT_MODEL"),
+                    )
 
     scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
@@ -280,6 +394,10 @@ def main():
         base_argv = [sys.executable, os.path.join(scripts_dir, "evaluation", "evaluate.py"), 
                      "--model-type", "local", "--model-name", args.model_name, 
                      "--max-iterations", str(args.max_iterations), "--method", args.method, "--context", args.context]
+        if getattr(args, "method", None) == "genome" and getattr(args, "genome_best_lora_path", None):
+            base_argv += ["--genome-best-lora-path", args.genome_best_lora_path]
+        if getattr(args, "method", None) == "reflexion" and getattr(args, "reflect_model_name", None):
+            base_argv += ["--reflect-model-name", args.reflect_model_name]
         run_local_workers(gpu_groups, work_chunks, scripts_dir, base_argv, args.max_iterations)
     else:
         run_api_parallel(work_items, args, scripts_dir)

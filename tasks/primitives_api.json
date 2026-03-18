@@ -34,20 +34,20 @@
         "GET_SEEKER_POSITION": "### Get Seeker Position\n```python\npos = sandbox.get_seeker_position()\n```\n- **Returns**: `(x, y)` position of the seeker.",
         "GET_SEEKER_VELOCITY": "### Get Seeker Velocity\n```python\nvel = sandbox.get_seeker_velocity()\n```\n- **Returns**: `(vx, vy)` velocity vector.",
         "GET_TARGET_POSITION": "### Get Target Position\n```python\npos = sandbox.get_target_position()\n```\n- **Returns**: `(x, y)` coordinates of the target (may be delayed).",
+        "GET_RENDEZVOUS_SLOTS": "### Get Rendezvous Slots\n```python\nslots = sandbox.get_rendezvous_slots()\n```\n- **Returns**: List of `(step_lo, step_hi)` intervals (phase-1 bands then phase-2 bands) that count toward rendezvous; matches the evaluator for this run (including curriculum mutations).",
         "GET_TERRAIN_OBSTACLES": "### Get Terrain Obstacles\n```python\nobstacles = sandbox.get_terrain_obstacles()\n```\n- **Returns**: A list of current obstacles.",
         "GET_LINEAR_DAMPING": "### Get Linear Damping\n- `agent_body.linearDamping`: The coefficient of environmental resistance to translation.",
         "GET_ANGULAR_DAMPING": "### Get Angular Damping\n- `agent_body.angularDamping`: The coefficient of environmental resistance to rotation.",
         "GET_WORLD": "### Get Physics World\n```python\nworld = sandbox.world\n```\n- **Returns**: The `b2World` object. Access `world.gravity.y` to check environmental gravity."
     },
     "C_04": {
-        "APPLY_AGENT_FORCE": "### Apply Agent Force\n```python\nsandbox.apply_agent_force(fx, fy)\n```\n- `fx, fy`: Force components (Newtons).\n- **Function**: Standard movement control for the bot.",
+        "APPLY_AGENT_FORCE": "### Apply Agent Force\n```python\nsandbox.apply_agent_force(fx, fy)\n```\n- `fx, fy`: Force components (Newtons). No explicit clamp in this task; use reasonable magnitudes to respect the structural impulse limit.\n- **Function**: Standard movement control for the bot.",
         "GET_AGENT_BODY": "### Get Agent Body\n```python\nagent = sandbox.get_agent_body()\n```\n- **Returns**: The main Box2D body object of the agent.",
-        "GET_AGENT_POSITION": "### Get Agent Position\n```python\npos = sandbox.get_agent_position()\n```\n- **Returns**: `(x, y)` coordinate tuple.",
-        "GET_WHISKER_READINGS": "### Get Whisker Readings\n```python\nfront, left, right = sandbox.get_whisker_readings()\n```\n- **Returns**: Proximity readings from three sensors. Lower values mean obstacles are closer.",
-        "GET_MOMENTUM_DRAIN_DAMPING": "### Get Momentum Drain Damping\n- `sandbox._momentum_drain_damping`: The coefficient of kinetic energy loss in the maze.",
-        "GET_WHISKER_DELAY": "### Get Whisker Delay\n- `sandbox._whisker_delay_steps`: The latency in obstacle detection feedback.",
-        "GET_BACKWARD_STEPS_REQUIRED": "### Get Backward Steps Required\n- `sandbox._backward_steps_required`: The count of consecutive slow-backward steps needed to unlock passage.",
-        "GET_LINEAR_DAMPING": "### Get Linear Damping\n- `agent_body.linearDamping`: The coefficient of environmental resistance to translation."
+        "GET_AGENT_POSITION": "### Get Agent Position\n```python\npos = sandbox.get_agent_position()\n```\n- **Returns**: `(x, y)` **reported** coordinates (may lag true pose when position report delay > 0; matches exit/unlock evaluation).",
+        "GET_AGENT_VELOCITY": "### Get Agent Velocity\n```python\nvel = sandbox.get_agent_velocity()\n```\n- **Returns**: `(vx, vy)` **instantaneous** linear velocity of the agent body.",
+        "GET_WHISKER_READINGS": "### Get Whisker Readings\n```python\nfront, up, down = sandbox.get_whisker_readings()\n```\n- **Returns**: Three distances (m) along **+x**, **+y**, **-y** from the agent center to the nearest wall (max range 3 m). Lower values mean obstacles are closer. In whisker-blind x-bands (if configured), readings may be saturated.",
+        "GET_LINEAR_DAMPING": "### Get Linear Damping\n- `agent_body.linearDamping`: The coefficient of environmental resistance to translation.",
+        "GET_WORLD": "### Get Physics World\n```python\nworld = sandbox.world\n```\n- **Returns**: The `b2World` object. Access `world.gravity.y` for nominal gravity when needed."
     },
     "C_05": {
         "APPLY_AGENT_FORCE": "### Apply Agent Force\n```python\nsandbox.apply_agent_force(fx, fy)\n```\n- `fx, fy`: Force components (Newtons).\n- **Function**: Standard movement control for the bot.",
@@ -59,10 +59,9 @@
         "GET_COOLDOWN_REMAINING": "### Get Cooldown Remaining\n```python\ntime = sandbox.get_cooldown_remaining()\n```\n- **Returns**: Steps remaining before the next interaction is permitted."
     },
     "C_06": {
-        "APPLY_MOTOR_TORQUE": "### Apply Motor Torque\n```python\nsandbox.apply_motor_torque(torque)\n```\n- `torque`: Control input in N\u00b7m.\n- **Function**: Applies torque to the wheel to reach target angular velocity.",
-        "GET_TARGET_SPEED": "### Get Target Speed\n```python\ntarget = sandbox.get_target_speed()\n```\n- **Returns**: The desired setpoint for angular velocity (rad/s).",
-        "GET_WHEEL_ANGULAR_VELOCITY": "### Get Wheel Angular Velocity\n```python\nomega = sandbox.get_wheel_angular_velocity()\n```\n- **Returns**: Current rotation speed (may be delayed).",
-        "GET_WHEEL_BODY": "### Get Wheel Body\n```python\nwheel = sandbox.get_wheel_body()\n```\n- **Returns**: The Box2D body object of the wheel."
+        "APPLY_MOTOR_TORQUE": "### Apply Motor Torque\n```python\nsandbox.apply_motor_torque(torque)\n```\n- `torque`: Requested torque in N\u00b7m; magnitude is clamped to the actuator limit for that step.\n- **Function**: Applies the requested torque to the wheel for that step; close the loop using `get_target_speed()` and the angular velocity API.",
+        "GET_TARGET_SPEED": "### Get Target Speed\n```python\ntarget = sandbox.get_target_speed()\n```\n- **Returns**: The desired setpoint for angular velocity (rad/s); may change over the episode\u2014query each step.",
+        "GET_WHEEL_ANGULAR_VELOCITY": "### Get Wheel Angular Velocity\n```python\nomega = sandbox.get_wheel_angular_velocity()\n```\n- **Returns**: Reported wheel angular velocity (rad/s) for use in your controller."
     },
     "D_01": {
         "ADD_BEAM": "### Add Beam\n```python\nbeam = sandbox.add_beam(x, y, width, height, angle=0, density=1.0)\n```\n- `x, y`: The coordinates (meters) for the center of the beam.\n- `width, height`: The full width and height (meters) of the rectangular beam. **Enforced by environment**: each dimension is clamped to [0.1, 5.0] m.\n- `angle`: The initial rotation of the beam in radians (clockwise is positive).\n- `density`: The material density in kg/m\u00b3. Mass is automatically calculated based on area.\n- **Function**: Creates a dynamic rectangular body that responds to gravity and collisions.\n- **Returns**: A Box2D body object.",
@@ -147,12 +146,14 @@
     },
     "E_03": {
         "APPLY_THRUST": "### Apply Thrust\n```python\nsandbox.apply_thrust(f1, f2)\n```\n- `f1, f2`: Control inputs.\n- **Usage**:\n  - In Lunar Lander: `f1` is main engine thrust (vertical), `f2` is steering torque.\n  - In Exotic Racer: `f1, f2` are horizontal and vertical thrust components.\n- **Function**: Task-specific abstraction for agent propulsion.",
-        "GET_CHECKPOINT_B_REACHED": "### Get Checkpoint B Reached\n```python\nstatus = sandbox.get_checkpoint_b_reached()\n```\n- **Returns**: `True` if the intermediate goal has been satisfied.",
+        "GET_CHECKPOINT_A_REACHED": "### Get Checkpoint A Reached\n```python\nstatus = sandbox.get_checkpoint_a_reached()\n```\n- **Returns**: `True` if the first intermediate goal (Checkpoint A) has been satisfied.",
+        "GET_CHECKPOINT_B_REACHED": "### Get Checkpoint B Reached\n```python\nstatus = sandbox.get_checkpoint_b_reached()\n```\n- **Returns**: `True` if the second intermediate goal (Checkpoint B) has been satisfied.",
+        "GET_CHECKPOINT_REACHED": "### Get Checkpoint Reached\n```python\nstatus = sandbox.get_checkpoint_reached()\n```\n- **Returns**: `True` only if both checkpoint A and B have been reached in order.",
         "GET_SLED_POSITION": "### Get Sled Position\n```python\npos = sandbox.get_sled_position()\n```\n- **Returns**: `(x, y)` position of the sled.",
         "GET_SLED_VELOCITY": "### Get Sled Velocity\n```python\nvel = sandbox.get_sled_velocity()\n```\n- **Returns**: `(vx, vy)` velocity vector."
     },
     "E_04": {
-        "ADD_BEAM": "### Add Beam\n```python\nbeam = sandbox.add_beam(x, y, width, height, angle=0, density=1.0)\n```\n- `x, y`: The coordinates (meters) for the center of the beam.\n- `width, height`: The full width and height (meters) of the rectangular beam.\n- `angle`: The initial rotation of the beam in radians (clockwise is positive).\n- `density`: The material density in kg/m\u00b3. Mass is automatically calculated based on area.\n- **Function**: Creates a dynamic rectangular body that responds to gravity and collisions.\n- **Returns**: A Box2D body object.",
+        "ADD_BEAM": "### Add Beam\n```python\nbeam = sandbox.add_beam(x, y, width, height, angle=0, density=1.0)\n```\n- `x, y`: The coordinates (meters) for the center of the beam.\n- `width, height`: The full width and height (meters) of the rectangular beam. **Enforced by environment**: each dimension is clamped to [0.1, 4.0] m.\n- `angle`: The initial rotation of the beam in radians (clockwise is positive).\n- `density`: The material density in kg/m\u00b3. Mass is automatically calculated based on area.\n- **Function**: Creates a dynamic rectangular body that responds to gravity and collisions.\n- **Returns**: A Box2D body object.",
         "ADD_JOINT_RIGID": "### Add Joint (Rigid)\n```python\njoint = sandbox.add_joint(body_a, body_b, anchor_point, type='rigid')\n```\n- `body_a`: The first body to connect.\n- `body_b`: The second body to connect. If `None`, the joint anchors `body_a` to the static environment.\n- `anchor_point`: The (x, y) coordinates in the world where the connection occurs.\n- `type`: Must be `'rigid'`.\n- **Function**: Creates a Weld joint that prevents all relative motion between the two bodies.\n- **Returns**: A Box2D joint object.",
         "ADD_JOINT_PIVOT": "### Add Joint (Pivot)\n```python\njoint = sandbox.add_joint(body_a, body_b, anchor_point, type='pivot', **kwargs)\n```\n- `body_a, body_b`: The two bodies to connect.\n- `anchor_point`: The (x, y) coordinates of the rotation axis.\n- `type`: Must be `'pivot'`.\n- `**kwargs`:\n  - `lower_limit, upper_limit`: (Optional) Rotation limits in radians.\n  - `enable_motor`: (Optional) Set to `True` to enable the motor.\n  - `motor_speed`: (Optional) Target angular velocity (rad/s).\n  - `max_motor_torque`: (Optional) Maximum torque (N\u00b7m).\n- **Function**: Creates a Revolute joint allowing rotation about the anchor point.\n- **Returns**: A Box2D joint object.",
         "GET_BUILD_ZONE": "### Get Build Zone\n```python\nmin_x, max_x, min_y, max_y = sandbox.get_build_zone()\n```\n- **Returns**: Four floats defining the bounding box of the construction area.",

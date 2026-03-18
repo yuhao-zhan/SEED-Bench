@@ -26,7 +26,7 @@ from evaluation.prompt import (
     format_revision_prompt,
     format_revision_prompt_chat,
 )
-from methods.Context.reflexion_method import format_reflections_str
+from methods.Context.reflexion_method import format_reflections_str, inject_reflexion_before_your_task
 from evaluation.feedback import format_feedback
 from evaluation.solver_interface import SolverInterface
 from evaluation.verifier import CodeVerifier
@@ -413,7 +413,7 @@ def run_mutation_sequence(base_task_name: str, model_type: str, model_name: str,
         # For local model without solver_override (standalone run_mutation_from_log): create shared solver
         # so all mutations reuse ONE vLLM instance instead of reloading per mutation (avoids OOM)
         can_parallel = model_type not in ('local', 'huggingface') and len(mutations_to_run) > 1
-        METHODS_WITH_CUSTOM_SOLVER = {'absolute_zero', 'absolute_zero_iter', 'seal', 'ragen', 'soar', 'discover', 'genome'}
+        METHODS_WITH_CUSTOM_SOLVER = {'absolute_zero_iter', 'seal', 'ragen', 'soar', 'discover', 'genome'}
         uses_vllm = model_type == 'local' and method not in METHODS_WITH_CUSTOM_SOLVER
         shared_solver = None
         try:
@@ -770,7 +770,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
             model_path=model_path,
             device=device,
             env_overrides=te_env_overrides if te_env_overrides else None,
-            theta_evolve_num_rollout=3000,
+            theta_evolve_num_rollout=10000,
             theta_evolve_rollout_batch_size=32,
         )
         return {
@@ -1395,7 +1395,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                 
                 # Reflexion: prepend reflections to prompt when using reflexion method
                 if evaluator.method == 'reflexion' and evaluator.reflections_str:
-                    prompt = "# Reflections from Previous Attempts\n\n" + evaluator.reflections_str + "\n\n" + prompt
+                    prompt = inject_reflexion_before_your_task(prompt, evaluator.reflections_str)
                 
                 # Call solver
                 print("🤖 Calling solver agent...")

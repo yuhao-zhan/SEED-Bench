@@ -227,7 +227,7 @@ Examples:
     parser.add_argument('--max-steps', type=int, default=10000,
                        help='Override max simulation steps from log file')
     parser.add_argument('--method', type=str, default='baseline',
-                       choices=['baseline', 'sys_feedback', 'reflexion', 'textgrad', 'self_refine', 'self_refine_inner_only', 'a_mem_sys', 'memento_nonparametric', 'rememberer', 'expel', 'ace', 'tree_of_thought', 'reasoning_bank', 'absolute_zero', 'absolute_zero_iter', 'science_codeevolve', 'alpha_evolve', 'theta_evolve', 'genome', 'seal', 'ragen', 'soar', 'discover'],
+                       choices=['baseline', 'sys_feedback', 'reflexion', 'textgrad', 'self_refine', 'self_refine_inner_only', 'a_mem_sys', 'memento_nonparametric', 'rememberer', 'expel', 'ace', 'tree_of_thought', 'reasoning_bank', 'absolute_zero_iter', 'science_codeevolve', 'alpha_evolve', 'theta_evolve', 'genome', 'seal', 'ragen', 'soar', 'discover'],
                        help='Override evaluation method from log file')
     parser.add_argument('--n-select-sample', type=int, default=None, dest='n_select_sample',
                        help='ToT: beams to keep per round (b). Default: from log or 3')

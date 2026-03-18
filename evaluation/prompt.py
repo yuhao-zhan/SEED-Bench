@@ -1357,6 +1357,7 @@ def format_mutated_revision_prompt_best_plus_previous(
     best_iteration=None,
     previous_iteration=None,
     current_iteration=None,
+    rememberer_memory_block=None,
 ):
     """
     Mutated task revision prompt: same structure as format_revision_prompt_best_plus_previous
@@ -1368,6 +1369,8 @@ def format_mutated_revision_prompt_best_plus_previous(
         if best_iteration is not None and previous_iteration is not None
         else True
     )
+
+    _mem = f"\n\n{rememberer_memory_block.strip()}\n\n" if rememberer_memory_block else ""
 
     prompt = f"""{MUTATED_TASK_SETTING}
 
@@ -1400,8 +1403,7 @@ The physics environment has been modified. Your previously successful design NO 
 {feedback_from_running_original_in_new_env}
 
 You must **infer what changed** from the feedback above and adapt.
-
-# Best-Scoring Attempt So Far (in New Environment)
+{_mem}# Best-Scoring Attempt So Far (in New Environment)
 
 ```python
 {best_code}
@@ -1446,11 +1448,14 @@ def format_mutated_revision_prompt(
     previous_code,
     previous_feedback,
     last_feedback,
+    rememberer_memory_block=None,
 ):
     """
     Mutated task revision prompt (previous attempt only): env change + original code + its feedback,
     then previous attempt + latest feedback. One whole prompt.
     """
+    _mem = f"\n\n{rememberer_memory_block.strip()}\n\n" if rememberer_memory_block else ""
+
     prompt = f"""{MUTATED_TASK_SETTING}
 
 # Task Description
@@ -1480,8 +1485,7 @@ The physics environment has been modified. Your previously successful design NO 
 # Feedback from Running in the NEW Environment (Iteration 1)
 
 {feedback_from_running_original_in_new_env}
-
-# Previous Attempt (in New Environment)
+{_mem}# Previous Attempt (in New Environment)
 
 ```python
 {previous_code}
@@ -1559,12 +1563,14 @@ Begin with your analysis, then provide the code.
     return prompt
 
 
-def format_mutated_prompt(task_prompt, previous_successful_code, feedback):
+def format_mutated_prompt(task_prompt, previous_successful_code, feedback, rememberer_memory_block=None):
     """
     Prompt for every round of mutated task. Mutated has no separate "initial" — each round
     is a revision/adaptation given previous successful code and its feedback in the new environment.
     Self-contained: task description, success criteria, API, env-change notice, previous code, feedback.
     """
+    _mem = f"\n\n{rememberer_memory_block.strip()}\n\n" if rememberer_memory_block else ""
+
     prompt = f"""{MUTATED_TASK_SETTING}
 
 # Task Description
@@ -1597,8 +1603,7 @@ The physics environment has been modified. Your previously successful design NO 
 {feedback}
 
 You must **infer what changed** from the feedback above and adapt.
-
-# Your Task: Diagnose and Adapt
+{_mem}# Your Task: Diagnose and Adapt
 
 ## Step 1: Environment Change Diagnosis (Required)
 

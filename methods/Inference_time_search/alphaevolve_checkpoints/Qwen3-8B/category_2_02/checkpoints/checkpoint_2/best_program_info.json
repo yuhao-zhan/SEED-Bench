@@ -1,0 +1,37 @@
+{
+  "id": "d7761695-97f7-4043-94b7-82d3d5456902",
+  "generation": 0,
+  "iteration": 0,
+  "current_iteration": 2,
+  "metrics": {
+    "combined_score": 30.0,
+    "score": 30.0,
+    "success": false,
+    "metrics": {
+      "climber_x": 5.716982841491699,
+      "climber_y": 1.4817023277282715,
+      "target_y": 3.5,
+      "height_gained": -0.018297672271728516,
+      "max_height_reached": 1.5,
+      "progress": 0.0,
+      "success": false,
+      "failed": false,
+      "failure_reason": null,
+      "step_count": 960,
+      "structure_mass": 0.30000001192092896,
+      "max_structure_mass": 50.0,
+      "min_height_seen": 1.4817023277282715,
+      "climber_fell": false,
+      "steps_with_motion": 0,
+      "min_simulation_steps_required": 90,
+      "velocity_x": 0.0,
+      "velocity_y": 0.0,
+      "angular_velocity": 0.0,
+      "speed": 0.0
+    },
+    "error": null
+  },
+  "language": "python",
+  "timestamp": 1771603693.75429,
+  "saved_at": 1771603769.7005863
+}

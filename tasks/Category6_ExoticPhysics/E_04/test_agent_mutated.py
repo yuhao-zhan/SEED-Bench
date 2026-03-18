@@ -22,7 +22,7 @@ def load_stages():
 
 def main():
     task_name = "Category6_ExoticPhysics/E_04"
-    max_steps = 10000
+    max_steps = 12000  # align with prompt and environment.MAX_STEPS
     agent_path = os.path.join(os.path.dirname(__file__), "agent.py")
     with open(agent_path, "r") as f:
         code = f.read()

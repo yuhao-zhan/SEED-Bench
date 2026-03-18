@@ -4,7 +4,7 @@ Responsible for interacting with solver agent (LLM), sending prompts and getting
 """
 import re
 import os
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from evaluation.utils import clean_special_tags, is_cuda_oom
 
 
@@ -563,3 +563,13 @@ def agent_action(sandbox, agent_body, step_count):
                 vehicle.linearVelocity = (curr_vx + 0.1, vehicle.linearVelocity.y)
 """
         return code, code
+
+
+def get_aux_llm_credentials(explicit_api_key: Optional[str] = None) -> Tuple[str, str]:
+    """
+    API key and base URL for auxiliary OpenAI-compatible calls (ACE, A-mem-sys, ReasoningBank,
+    ExpeL insights, TextGrad, Reflexion API solver, etc.). Same gateway as the default openai solver.
+    Resolution: explicit_api_key → OPENAI_API_KEY → SolverInterface.API_KEY; base_url is always BASE_URL.
+    """
+    key = explicit_api_key or os.environ.get("OPENAI_API_KEY") or SolverInterface.API_KEY
+    return key, SolverInterface.BASE_URL

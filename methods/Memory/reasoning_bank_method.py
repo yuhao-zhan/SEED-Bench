@@ -163,8 +163,57 @@ def retrieve_for_prompt(
 
 
 def judge_success(score: float, success: bool) -> bool:
-    """Use verifier outcome as judge (no LLM). Paper uses LLM-as-judge; we use task success for simplicity."""
+    """Fallback when LLM judge not used: verifier outcome or score >= 99."""
     return success or (score >= 99.0)
+
+
+def judge_success_llm(
+    task_description: str,
+    code: str,
+    feedback: str,
+    score: float,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    model: str = "deepseek-v3.2",
+) -> bool:
+    """
+    LLM-as-judge: decide whether this attempt counts as success for memory (paper-aligned).
+    Returns True if the attempt is deemed a success for learning/distillation.
+    """
+    try:
+        import openai
+        from evaluation.solver_interface import get_aux_llm_credentials
+        k, u = get_aux_llm_credentials(api_key)
+        if base_url:
+            u = base_url
+        client = openai.OpenAI(api_key=k, base_url=u)
+    except Exception:
+        return judge_success(score, False)
+    prompt = f"""You are judging one attempt at a physics/code task for a memory system. Decide if this attempt should be treated as a SUCCESS (valuable for learning) or FAILURE (pitfall to avoid).
+
+Task (summary): {task_description}
+
+Attempt:
+- Score: {score:.1f}/100
+- Code (excerpt): {(code[:2000] + '...') if len(code) > 2000 else code or '(none)'}
+- Feedback: {(feedback[:1500] + '...') if len(feedback) > 1500 else (feedback or '(none)')}
+
+Answer with a single JSON object: {{"success": true}} or {{"success": false}}. No other text."""
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=64,
+        )
+        text = (resp.choices[0].message.content or "").strip()
+        if "{" in text:
+            text = text[text.index("{"):]
+        if "}" in text:
+            text = text[: text.rindex("}") + 1]
+        obj = json.loads(text)
+        return bool(obj.get("success", False))
+    except Exception:
+        return judge_success(score, False)
 
 
 def extract_memory_items_llm(
@@ -180,7 +229,11 @@ def extract_memory_items_llm(
     """Use LLM to extract 1-3 (title, description, content) memory items from one trajectory."""
     try:
         import openai
-        client = openai.OpenAI(api_key=api_key or os.environ.get("OPENAI_API_KEY"), base_url=base_url)
+        from evaluation.solver_interface import get_aux_llm_credentials
+        k, u = get_aux_llm_credentials(api_key)
+        if base_url:
+            u = base_url
+        client = openai.OpenAI(api_key=k, base_url=u)
     except Exception as e:
         print(f"[WARN] ReasoningBank extract LLM not available: {e}", flush=True)
         return _extract_memory_items_fallback(task_description, code, feedback, score, success)
@@ -257,18 +310,30 @@ def contrast_and_distill(
     api_key: Optional[str] = None,
     base_url: Optional[str] = None,
     judge_model: str = "deepseek-v3.2",
+    use_llm_judge: bool = True,
 ) -> List[Dict[str, str]]:
     """
-    Self-contrast across K trajectories and distill consolidated memory items.
+    Self-contrast across K trajectories and distill consolidated memory items (MaTTS).
     trajectories: list of {code, feedback, score, success}.
+    When use_llm_judge and api_key available, uses LLM-as-judge for success (paper-aligned).
     Returns list of (title, description, content) items to add to bank.
     """
     if not trajectories:
         return []
-    # Option A: extract from each trajectory and merge (no extra contrast LLM)
     all_items = []
     for t in trajectories:
-        success = judge_success(t.get("score", 0), t.get("success", False))
+        if use_llm_judge:
+            success = judge_success_llm(
+                task_description,
+                t.get("code") or "",
+                t.get("feedback") or "",
+                t.get("score", 0),
+                api_key=api_key,
+                base_url=base_url,
+                model=judge_model,
+            )
+        else:
+            success = judge_success(t.get("score", 0), t.get("success", False))
         items = extract_memory_items_llm(
             task_description,
             t.get("code") or "",

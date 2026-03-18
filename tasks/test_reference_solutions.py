@@ -10,6 +10,13 @@ Execution: All tests use CodeVerifier + get_reference_solution(task_name, stage_
 - Correct reference in correct env: ref_stage_id and env_stage are always matched (Initial ref on Initial env,
   Stage-k ref on Stage-k env). get_reference_solution extracts that stage's code; env_overrides come from that stage.
 
+Evaluation alignment with run_evaluate_parallel / evaluate.py:
+- Stages: get_all_stages(task_name) (same as evaluate_cross_mutated), which injects target_rng_seed=123 for determinism (except C_02 physics not overridden).
+- max_steps: get_max_steps_for_task(task_name) (single source of truth in evaluation/utils.py).
+- env_overrides: terrain_config and physics_config from the stage dict only (no extra keys).
+- Random: random.seed(123) before each run for non-C_02; C_02 omitted so Initial ref can fail on Stage-1 (different trajectory).
+- Solver runs in evaluate.py use the same CodeVerifier(max_steps=..., env_overrides=...) and verify_code(); run_single_pair sets random.seed(123) for non-C_02 so iteration 0 matches this script.
+
 Usage:
   python test_reference_solutions.py --task all
   python test_reference_solutions.py --task S_01
@@ -26,25 +33,7 @@ if SCRIPTS_DIR not in sys.path:
 
 from evaluation.verifier import CodeVerifier
 from evaluation.evaluate_cross_mutated import get_all_stages, get_reference_solution
-
-
-# Per-task max_steps overrides (task_id or full task name). Default used otherwise.
-DEFAULT_MAX_STEPS = 15000
-MAX_STEPS_OVERRIDES = {
-    "K_04": 60000,
-    "K_06": 150000,
-    "K_02": 30000,
-    "K_01": 200000,
-    "F_06": 200000,
-    "F_03": 2400,  # 40 s at 60 fps, same as F_03/test_stage_solutions.py
-    "F_04": 10000,  # same as F_04/test_agent.py, test_stage_solutions.py
-    "S_03": 1800,
-    "D_05": 1000,
-    "D_01": 6000,
-    "D_02": 1000,
-    "D_04": 15000,
-    "D_06": 15000,
-}
+from evaluation.utils import get_max_steps_for_task
 
 
 def discover_tasks(tasks_root: str):
@@ -81,12 +70,6 @@ def task_matches_filter(task_name: str, task_filter: str) -> bool:
     return False
 
 
-def get_max_steps(task_name: str) -> int:
-    """Return max_steps for this task (override or default)."""
-    task_id = task_name.split('/')[-1] if '/' in task_name else task_name
-    return MAX_STEPS_OVERRIDES.get(task_id, DEFAULT_MAX_STEPS)
-
-
 def run_single_test(
     task_name: str,
     ref_stage_id: str,
@@ -98,6 +81,9 @@ def run_single_test(
     Run one verification: reference solution for ref_stage_id on environment env_stage.
     Uses CodeVerifier + get_reference_solution so the correct ref runs in the correct env.
     """
+    # C_02: no seed so Initial ref can fail on Stage-1 (different trajectory). Others: deterministic.
+    if "C_02" not in task_name:
+        random.seed(123)
     try:
         code = get_reference_solution(task_name, ref_stage_id)
     except Exception as e:
@@ -106,7 +92,7 @@ def run_single_test(
         "terrain_config": env_stage.get("terrain_config", {}),
         "physics_config": env_stage.get("physics_config", {}),
     }
-    max_steps = get_max_steps(task_name)
+    max_steps = get_max_steps_for_task(task_name)
     try:
         verifier = CodeVerifier(
             task_name=task_name,
@@ -114,10 +100,14 @@ def run_single_test(
             env_overrides=env_overrides,
         )
         success, score, metrics, error = verifier.verify_code(code=code, headless=headless)
+        if not success:
+            print(f"\n    DEBUG: task={task_name}, ref={ref_stage_id}, score={score}, metrics={metrics}, error={error}")
         return success, score, error
     except Exception as e:
         return False, 0.0, str(e)
 
+
+import random
 
 def test_task(task_name: str, verbose: bool = True) -> dict:
     """
@@ -128,6 +118,7 @@ def test_task(task_name: str, verbose: bool = True) -> dict:
       - stage_k_on_stage_k: bool for k=1..4
       - mutated_stage_ids: list of stage ids (e.g. ["Stage-1", "Stage-2", "Stage-3", "Stage-4"])
     """
+    random.seed(123)
     all_stages = get_all_stages(task_name)
     if len(all_stages) < 2:
         return {
@@ -137,6 +128,8 @@ def test_task(task_name: str, verbose: bool = True) -> dict:
             "mutated_stage_ids": [],
             "error": "No mutated stages",
         }
+    
+    # get_all_stages already injects target_rng_seed=123 for deterministic evaluation (same as run_evaluate_parallel)
     initial_env = all_stages[0]  # Initial
     mutated = [s for s in all_stages[1:] if s["stage_id"] != "Initial"]
     mutated_stage_ids = [s["stage_id"] for s in mutated]

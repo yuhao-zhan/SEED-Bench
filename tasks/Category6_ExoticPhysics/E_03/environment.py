@@ -5,7 +5,7 @@ Friction is near zero; movement requires thrust. The path contains:
 - A checkpoint zone: sled must enter it before the final target counts (sequence constraint).
 - A speed-penalty zone: excessive speed is heavily damped (discoverable).
 - A vertical-thrust-reverse zone: vertical thrust effect is negated near the final target (discoverable).
-Exact zone bounds are not given in the task text; agent must infer from feedback.
+Checkpoint and target zone bounds are stated in the task prompt; path effects (momentum drain, thrust scale, etc.) are discoverable from feedback.
 """
 import math
 import Box2D

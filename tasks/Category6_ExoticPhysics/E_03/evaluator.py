@@ -5,7 +5,6 @@ Success: sled enters target zone. Failure: cannot get traction (never reach targ
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
-from common.simulator import TIME_STEP
 
 
 class Evaluator:
@@ -59,9 +58,9 @@ class Evaluator:
 
         if failed:
             if not checkpoint_a:
-                failure_reason = "First checkpoint (A) not reached: sled did not pass through the required intermediate zone before time ran out (sequence constraint)"
+                failure_reason = "First checkpoint (Alpha) not reached: sled did not pass through the required intermediate zone before time ran out (sequence constraint)"
             elif not checkpoint_b:
-                failure_reason = "Second checkpoint (B) not reached: sled must pass through both intermediate zones in order before final target"
+                failure_reason = "Second checkpoint (Beta) not reached: sled must pass through both intermediate zones in order before final target"
             else:
                 failure_reason = "Sled did not reach the final target zone before time ran out"
         else:

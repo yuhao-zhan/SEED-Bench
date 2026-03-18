@@ -41,17 +41,17 @@ def get_initial_playbook() -> str:
 
 
 def _get_ace_clients(api_key: Optional[str] = None, base_url: Optional[str] = None):
-    """Create OpenAI clients for Reflector/Curator. If api_key is None, use ACE's initialize_clients('openai')."""
+    """Create OpenAI clients for Reflector/Curator (same gateway as SolverInterface by default)."""
     try:
         import openai
     except ImportError:
         raise ImportError("ACE method requires 'openai'. Install with: pip install openai")
-    if api_key is not None:
-        url = base_url if base_url else "https://api.openai.com/v1"
-        client = openai.OpenAI(api_key=api_key, base_url=url)
-        return client, client, client
-    from utils import initialize_clients
-    return initialize_clients("openai")
+    from evaluation.solver_interface import get_aux_llm_credentials
+    k, u = get_aux_llm_credentials(api_key)
+    if base_url:
+        u = base_url
+    client = openai.OpenAI(api_key=k, base_url=u)
+    return client, client, client
 
 
 def build_ace_reflector_curator(
@@ -154,6 +154,49 @@ def update_playbook_after_iteration(
         next_global_id=next_global_id,
     )
     return updated_playbook, next_global_id
+
+
+def get_playbook_bullet_ids(playbook: str) -> List[str]:
+    """Extract all bullet IDs from playbook (for prompt so model can cite them). Aligned with baseline playbook format."""
+    from playbook_utils import parse_playbook_line
+    ids = []
+    for line in playbook.strip().split("\n"):
+        parsed = parse_playbook_line(line)
+        if parsed and parsed.get("id"):
+            ids.append(parsed["id"])
+    return ids
+
+
+def parse_bullet_ids_from_output(raw_output: str) -> List[str]:
+    """
+    Parse bullet_ids from generator output (official ACE: Generator returns JSON with bullet_ids).
+    If output contains JSON with 'bullet_ids' key, return it; else return [].
+    """
+    if not raw_output or not isinstance(raw_output, str):
+        return []
+    import json
+    import re
+    text = raw_output.strip()
+    # Try ```json ... ``` block first
+    for block in re.findall(r"```(?:json)?\s*([\s\S]*?)```", text):
+        block = block.strip()
+        if block.startswith("{"):
+            try:
+                obj = json.loads(block)
+                if isinstance(obj.get("bullet_ids"), list):
+                    return [str(x) for x in obj["bullet_ids"]]
+            except json.JSONDecodeError:
+                pass
+    # Try first JSON object in text
+    match = re.search(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", text)
+    if match:
+        try:
+            obj = json.loads(match.group(0))
+            if isinstance(obj.get("bullet_ids"), list):
+                return [str(x) for x in obj["bullet_ids"]]
+        except json.JSONDecodeError:
+            pass
+    return []
 
 
 def extract_playbook_bullets(playbook: str, bullet_ids: List[str]) -> str:

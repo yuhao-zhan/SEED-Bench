@@ -24,21 +24,16 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
     Trainer,
+    TrainerCallback,
 )
 from datasets import Dataset
 
 # ---------------------------------------------------------------------------
-# We import SEAL's TTT class if possible (for provenance), but fall back to
-# a compatible re-implementation when the original repo's ARC-specific
-# dependencies are not available.
+# Official reference: DaVinciBench/baseline/Parameter_Policy/SEAL/few-shot/
+# - arclib/update_model.py: TTT class (reset_lora, _tokenize_and_process, _train_model)
+# - ttt.py: LoraConfig r=128, alpha=16; training batch_size=2, lr=1e-4, epochs=2, cosine.
+# We do not import (official TTT depends on ARC arclib). Logic and params aligned exactly.
 # ---------------------------------------------------------------------------
-_SEAL_FEWSHOT_DIR = os.path.normpath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..", "..", "..", "..",
-        "baseline", "Parameter_Policy", "SEAL", "few-shot",
-    )
-)
 
 # System prompt — identical to the one used by SolverInterface / AbsoluteZeroSolver.
 SYSTEM_PROMPT = (
@@ -201,9 +196,6 @@ class SEALSolver:
             if "lora_A" in name:
                 self.initial_lora_A[name] = param.data.clone().detach()
 
-        # Pre-compute assistant-header token pattern for loss masking
-        self._assistant_header_ids = self._detect_assistant_header_ids()
-
     # ------------------------------------------------------------------
     # SolverInterface-compatible API
     # ------------------------------------------------------------------
@@ -348,25 +340,51 @@ class SEALSolver:
         self,
         solutions: List[Dict[str, Any]],
         output_dir: Optional[str] = None,
+        training_log_dir: Optional[str] = None,
+        max_iterations: Optional[int] = None,
+        max_steps_verifier: Optional[int] = None,
     ) -> bool:
         """
         SEAL TTT step: reset LoRA, retrain on accumulated best solutions.
 
-        Follows SEAL ``TTT.update_model`` pattern:
-            1. reset_lora()
-            2. tokenize + mask labels
-            3. Trainer.train()
-
         Args:
             solutions: list of dicts with keys ``prompt``, ``code``/``raw_output``, ``score``
             output_dir: optional directory to persist LoRA weights
+            training_log_dir: optional directory for training logs (config, loss curve, warnings)
+            max_iterations: benchmark max_iterations (for config log)
+            max_steps_verifier: verifier max_steps (for config log)
 
         Returns:
             True if training ran, False if skipped (no valid data).
         """
+        logger = None
+        if training_log_dir:
+            try:
+                from methods.Parameter_Policy.common.training_logger import TrainingLogger
+                logger = TrainingLogger(
+                    training_log_dir, method_name="seal", task_name="",
+                    max_iterations=max_iterations, max_steps_verifier=max_steps_verifier,
+                )
+                logger.log_config(
+                    num_train_epochs=self.num_train_epochs,
+                    train_batch_size=self.train_batch_size,
+                    learning_rate=self.learning_rate,
+                    lora_rank=getattr(self, "model", None) and getattr(
+                        getattr(self.model, "peft_config", None) or {},
+                        "r",
+                        None,
+                    ),
+                    n_solutions=len(solutions),
+                )
+            except Exception as e:
+                print(f"🔧 SEAL TTT: could not init training logger: {e}")
+
         # Filter by score threshold
         valid = [s for s in solutions if s.get("score", 0) > self.min_score_threshold]
         if not valid:
+            if logger:
+                logger.log_warning("No positive-score solutions, skipping training")
+                logger.finalize({"skipped": True, "reason": "no positive-score solutions"})
             print("🔧 SEAL TTT: no positive-score solutions, skipping training")
             return False
 
@@ -378,7 +396,6 @@ class SEALSolver:
         system_prompt = self.get_system_prompt()
         training_texts: List[str] = []
         for sol in valid:
-            # Use raw_llm_output (analysis + code) when available; fall back to code-only
             assistant_content = sol.get("raw_output") or sol.get("code", "")
             if not assistant_content:
                 continue
@@ -391,6 +408,9 @@ class SEALSolver:
             training_texts.append(text)
 
         if not training_texts:
+            if logger:
+                logger.log_warning("No training texts after formatting, skipping")
+                logger.finalize({"skipped": True, "reason": "no training texts"})
             print("🔧 SEAL TTT: no training texts after formatting, skipping")
             return False
 
@@ -406,6 +426,18 @@ class SEALSolver:
         # 2. Tokenize + mask (loss only on assistant response tokens)
         tokenized = self._tokenize_and_mask(training_texts)
 
+        # Callback to record loss for logger
+        class _LossCallback(TrainerCallback):
+            def __init__(self, tl):
+                self.tl = tl
+                self.global_step = 0
+            def on_log(self, args, state, control, logs=None, **kwargs):
+                if logs and "loss" in logs and self.tl:
+                    self.global_step = state.global_step
+                    self.tl.log_loss_step(step=state.global_step, loss=float(logs["loss"]))
+
+        callbacks = [ _LossCallback(logger) ] if logger else []
+
         # 3. Train
         self.model.config.use_cache = False
         self.model.train()
@@ -415,7 +447,6 @@ class SEALSolver:
         effective_dir = output_dir or "/tmp/seal_ttt_temp"
         os.makedirs(effective_dir, exist_ok=True)
 
-        # SEAL's training args (update_model.py lines 227-241)
         training_args = TrainingArguments(
             output_dir=effective_dir,
             per_device_train_batch_size=self.train_batch_size,
@@ -429,17 +460,30 @@ class SEALSolver:
             bf16=True,
             remove_unused_columns=False,
             optim="adamw_torch",
-            warmup_steps=min(11, len(training_texts)),
-            gradient_checkpointing=True,
+            warmup_steps=11,
         )
 
         trainer = Trainer(
             model=self.model,
             args=training_args,
             train_dataset=ds,
+            callbacks=callbacks,
         )
-        trainer.train()
+        try:
+            trainer.train()
+        except Exception as e:
+            if logger:
+                logger.log_error(str(e))
+                logger.finalize({"error": str(e)})
+            raise
         self._train_count += 1
+
+        if logger:
+            logger.finalize({
+                "train_count": self._train_count,
+                "n_solutions": len(training_texts),
+                "skipped": False,
+            })
 
         # Restore inference mode
         self.model.config.use_cache = True
@@ -447,7 +491,6 @@ class SEALSolver:
 
         print(f"🔧 SEAL TTT: training complete (step {self._train_count})")
 
-        # Optionally persist LoRA adapter
         if output_dir:
             self.model.save_pretrained(output_dir)
             self.tokenizer.save_pretrained(output_dir)
@@ -456,76 +499,17 @@ class SEALSolver:
         return True
 
     # ------------------------------------------------------------------
-    # Loss masking — model-agnostic approach
+    # Tokenize and mask (aligned with official update_model._tokenize_and_process)
     # ------------------------------------------------------------------
-    def _detect_assistant_header_ids(self) -> Optional[List[int]]:
-        """
-        Detect the token-ID pattern that marks the start of an assistant turn
-        for the loaded tokenizer's chat template.  Returns a short list of IDs
-        or ``None`` if detection fails.
-        """
-        # Build a tiny 2-turn message and find the assistant-response boundary
-        probe_msgs = [
-            {"role": "system", "content": "S"},
-            {"role": "user", "content": "U"},
-            {"role": "assistant", "content": "ASSISTANT_MARKER_XYZ"},
-        ]
-        try:
-            probe_text = self.tokenizer.apply_chat_template(probe_msgs, tokenize=False)
-        except Exception:
-            return None
-
-        # Tokenize
-        probe_ids = self.tokenizer.encode(probe_text, add_special_tokens=False)
-
-        # Tokenize the marker to find where assistant body starts
-        marker_ids = self.tokenizer.encode("ASSISTANT_MARKER_XYZ", add_special_tokens=False)
-
-        # Find marker in probe_ids
-        for i in range(len(probe_ids) - len(marker_ids) + 1):
-            if probe_ids[i : i + len(marker_ids)] == marker_ids:
-                # The assistant header ends just before the marker
-                # Grab a few tokens before the marker as the header pattern
-                header_start = max(0, i - 4)
-                header_ids = probe_ids[header_start:i]
-                if header_ids:
-                    return header_ids
-        return None
-
-    def _find_last_assistant_start(self, token_ids: List[int]) -> Optional[int]:
-        """
-        Find the token index where the **last** assistant response begins.
-        Returns the index of the first token of the response body (after the
-        header), or ``None`` on failure.
-        """
-        header = self._assistant_header_ids
-        if header:
-            hlen = len(header)
-            # Scan backwards for the last occurrence
-            for i in range(len(token_ids) - hlen, -1, -1):
-                if token_ids[i : i + hlen] == header:
-                    return i + hlen  # first response-body token
-        # Fallback: decode and search for common markers
-        text = self.tokenizer.decode(token_ids, skip_special_tokens=False)
-        for marker in (
-            "<|im_start|>assistant\n",        # Qwen / ChatML
-            "<|start_header_id|>assistant<|end_header_id|>\n\n",  # Llama-3
-        ):
-            pos = text.rfind(marker)
-            if pos >= 0:
-                prefix_text = text[: pos + len(marker)]
-                prefix_ids = self.tokenizer.encode(prefix_text, add_special_tokens=False)
-                return len(prefix_ids)
-        return None
-
     def _tokenize_and_mask(self, texts: List[str]) -> Dict[str, Any]:
         """
-        Tokenize texts and create labels with loss masking.
-        Only tokens belonging to the last assistant turn are trained on;
-        everything else is set to ``-100``.
+        Tokenize and create labels. Only assistant-response tokens are trained on; rest set to -100.
 
-        Follows the masking strategy from SEAL ``TTT._tokenize_and_process``
-        (update_model.py lines 142-195) but uses a model-agnostic header detector.
+        Aligned with official SEAL TTT._tokenize_and_process (update_model.py lines 140-195):
+        - max_length=65536, padding="longest", return_tensors="pt"
+        - Label masking: find token sequence 128007, 271 (Llama-3 assistant header); if 4 occurrences
+          use second-to-last (special_indices[-2]); if 1 occurrence use that (our format); else 80% fallback.
+        - Mask positions 0..special_index inclusive with -100 (first predicted token at special_index+1).
         """
         outputs = self.tokenizer(
             texts,
@@ -536,26 +520,35 @@ class SEALSolver:
         )
         input_ids = outputs["input_ids"]
         labels = input_ids.clone()
+        batch_size = input_ids.shape[0]
 
-        for i in range(input_ids.shape[0]):
-            sample_ids = input_ids[i].tolist()
-            resp_start = self._find_last_assistant_start(sample_ids)
+        for i in range(batch_size):
+            sample_input_ids = input_ids[i].tolist()
+            # Official: find "<|start_header_id|>assistant<|end_header_id|>" = token 128007 then 271
+            special_indices = []
+            for j in range(len(sample_input_ids) - 1):
+                if sample_input_ids[j] == 128007 and sample_input_ids[j + 1] == 271:
+                    special_indices.append(j + 1)  # include 271 in conditioning (official)
 
-            if resp_start is not None:
-                for j in range(resp_start):
-                    labels[i, j] = -100
+            if len(special_indices) == 4:
+                special_index = special_indices[-2]  # official ARC format
+            elif len(special_indices) == 1:
+                special_index = special_indices[0]   # our format: system + user + assistant
+            elif len(special_indices) > 0:
+                special_index = special_indices[-1]  # use last occurrence
             else:
-                # Fallback: mask first 80 % (same spirit as SEAL)
-                cutoff = int(len(sample_ids) * 0.8)
-                for j in range(cutoff):
-                    labels[i, j] = -100
-                print(f"⚠️  SEAL: assistant-start not found in sample {i}, using 80 % fallback mask")
+                print(f"Warning: Special sequence (128007, 271) not found in sample {i}, using fallback")
+                special_index = int(len(sample_input_ids) * 0.8)
 
-            # Mask padding
+            for j in range(special_index + 1):
+                labels[i, j] = -100
+
+            # Mask padding tokens
             pad_id = self.tokenizer.pad_token_id
-            for j in range(input_ids.shape[1]):
-                if input_ids[i, j] == pad_id and labels[i, j] != -100:
-                    labels[i, j] = -100
+            if pad_id is not None:
+                for j in range(input_ids.shape[1]):
+                    if input_ids[i, j] == pad_id and labels[i, j] != -100:
+                        labels[i, j] = -100
 
         outputs["labels"] = labels
         return {k: v for k, v in outputs.items()}

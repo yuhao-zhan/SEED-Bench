@@ -1,0 +1,328 @@
+2026-02-20 23:53:53,480 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/logs/openevolve_20260220_235353.log
+2026-02-20 23:53:53,491 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-20 23:54:48,082 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-20 23:54:48,110 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-20 23:54:48,128 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-20 23:54:48,129 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 23:54:48,132 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_26twc9cg/evaluate.py
+2026-02-20 23:54:48,132 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_26twc9cg/evaluate.py
+2026-02-20 23:54:48,132 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_26twc9cg/initial_program.py
+2026-02-20 23:54:48,132 - openevolve.controller - INFO - Adding initial program to database
+2026-02-20 23:54:48,400 - openevolve.evaluator - INFO - Evaluated program b2122342-934c-4259-9df8-cf2c7ff7b7ab in 0.27s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:54:48,401 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-20 23:54:48,401 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-20 23:54:48,402 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-20 23:54:48,402 - openevolve.database - INFO - Island Status:
+2026-02-20 23:54:48,402 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:54:48,402 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:54:48,402 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:54:48,402 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:54:48,402 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:54:48,402 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:55:33,926 - openevolve.evaluator - INFO - Evaluated program 67910c82-dee1-4be4-8290-df49842a0661 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'body' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 6, in build_agent\nNameError: name \'body\' is not defined\n'}, error=Error building agent: name 'body' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 6, in build_agent
+NameError: name 'body' is not defined
+
+2026-02-20 23:55:33,926 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 5}
+2026-02-20 23:55:33,927 - openevolve.controller - INFO - Iteration 1: Program 67910c82-dee1-4be4-8290-df49842a0661 (parent: b2122342-934c-4259-9df8-cf2c7ff7b7ab) completed in 45.52s
+2026-02-20 23:55:33,927 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'body' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 6, in build_agent\nNameError: name \'body\' is not defined\n'}, error=Error building agent: name 'body' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 6, in build_agent
+NameError: name 'body' is not defined
+
+2026-02-20 23:55:33,927 - openevolve.database - INFO - Island Status:
+2026-02-20 23:55:33,927 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=103.90, gen=1 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:55:33,927 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:55:33,927 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:55:33,927 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:55:33,927 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:55:33,935 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_1
+2026-02-20 23:55:33,940 - openevolve.controller - INFO - Saved best program at checkpoint 1 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:55:33,940 - openevolve.controller - INFO - Saved checkpoint at iteration 1 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_1
+2026-02-20 23:55:33,940 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:55:50,918 - openevolve.evaluator - INFO - Evaluated program 5fc9c8ea-d138-4d46-976e-10c3ba572ebd in 0.15s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-20 23:55:50,919 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 0}
+2026-02-20 23:55:50,919 - openevolve.controller - INFO - Iteration 2: Program 5fc9c8ea-d138-4d46-976e-10c3ba572ebd (parent: 67910c82-dee1-4be4-8290-df49842a0661) completed in 16.98s
+2026-02-20 23:55:50,919 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-20 23:55:50,919 - openevolve.database - INFO - Island Status:
+2026-02-20 23:55:50,919 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=103.90, gen=2 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:55:50,919 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-20 23:55:50,919 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:55:50,919 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:55:50,919 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:55:50,927 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_2
+2026-02-20 23:55:50,930 - openevolve.controller - INFO - Saved best program at checkpoint 2 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:55:50,930 - openevolve.controller - INFO - Saved checkpoint at iteration 2 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_2
+2026-02-20 23:55:50,930 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:56:13,409 - openevolve.evaluator - INFO - Evaluated program 3d90c35a-6893-4a05-81d3-16c8d0473d42 in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 9, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 9, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:56:13,409 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 9}
+2026-02-20 23:56:13,409 - openevolve.controller - INFO - Iteration 3: Program 3d90c35a-6893-4a05-81d3-16c8d0473d42 (parent: b2122342-934c-4259-9df8-cf2c7ff7b7ab) completed in 22.48s
+2026-02-20 23:56:13,409 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 9, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 9, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:56:13,410 - openevolve.database - INFO - Island Status:
+2026-02-20 23:56:13,410 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=103.90, gen=3 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:56:13,410 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-20 23:56:13,410 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-20 23:56:13,410 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:56:13,410 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:56:13,434 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_3
+2026-02-20 23:56:13,438 - openevolve.controller - INFO - Saved best program at checkpoint 3 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:56:13,438 - openevolve.controller - INFO - Saved checkpoint at iteration 3 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_3
+2026-02-20 23:56:13,438 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:57:03,073 - openevolve.evaluator - INFO - Evaluated program 2c7cec83-eb62-4b84-b2ff-273056bc5683 in 0.03s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-20 23:57:03,073 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 3, 'diversity': 1}
+2026-02-20 23:57:03,073 - openevolve.controller - INFO - Iteration 4: Program 2c7cec83-eb62-4b84-b2ff-273056bc5683 (parent: 67910c82-dee1-4be4-8290-df49842a0661) completed in 49.63s
+2026-02-20 23:57:03,073 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-20 23:57:03,073 - openevolve.database - INFO - Island Status:
+2026-02-20 23:57:03,073 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=103.90, gen=4 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:57:03,073 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-20 23:57:03,073 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-20 23:57:03,073 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-20 23:57:03,073 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 23:57:03,086 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_4
+2026-02-20 23:57:03,091 - openevolve.controller - INFO - Saved best program at checkpoint 4 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:57:03,091 - openevolve.controller - INFO - Saved checkpoint at iteration 4 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_4
+2026-02-20 23:57:03,091 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:57:46,969 - openevolve.evaluator - INFO - Evaluated program b0abd81d-0250-4135-8d61-47a6c81cf9ae in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 7, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 7, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:57:46,969 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 7, 'diversity': 3}
+2026-02-20 23:57:46,969 - openevolve.controller - INFO - Iteration 5: Program b0abd81d-0250-4135-8d61-47a6c81cf9ae (parent: 67910c82-dee1-4be4-8290-df49842a0661) completed in 43.88s
+2026-02-20 23:57:46,969 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 7, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 7, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:57:46,969 - openevolve.database - INFO - Island Status:
+2026-02-20 23:57:46,969 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=103.90, gen=5 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:57:46,969 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-20 23:57:46,969 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-20 23:57:46,969 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-20 23:57:46,969 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-20 23:57:46,997 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_5
+2026-02-20 23:57:47,009 - openevolve.controller - INFO - Saved best program at checkpoint 5 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:57:47,009 - openevolve.controller - INFO - Saved checkpoint at iteration 5 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_5
+2026-02-20 23:57:47,010 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:58:02,982 - openevolve.evaluator - INFO - Evaluated program 368cd86f-a4ef-4484-b7b5-1f5967cda277 in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 8, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 8, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:58:02,983 - openevolve.controller - INFO - Iteration 6: Program 368cd86f-a4ef-4484-b7b5-1f5967cda277 (parent: 67910c82-dee1-4be4-8290-df49842a0661) completed in 15.97s
+2026-02-20 23:58:02,983 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 8, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 8, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:58:02,983 - openevolve.database - INFO - Island Status:
+2026-02-20 23:58:02,983 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=218.53, gen=6 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:58:02,983 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-20 23:58:02,983 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-20 23:58:02,983 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-20 23:58:02,983 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-20 23:58:03,000 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_6
+2026-02-20 23:58:03,003 - openevolve.controller - INFO - Saved best program at checkpoint 6 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:58:03,003 - openevolve.controller - INFO - Saved checkpoint at iteration 6 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_6
+2026-02-20 23:58:03,004 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:58:52,419 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-20 23:58:52,419 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 23:59:11,884 - openevolve.evaluator - INFO - Evaluated program 285ee7d0-86d6-45af-9d78-bd57cb2328b2 in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 9, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 9, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:59:11,884 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 7}
+2026-02-20 23:59:11,884 - openevolve.controller - INFO - Iteration 8: Program 285ee7d0-86d6-45af-9d78-bd57cb2328b2 (parent: 3d90c35a-6893-4a05-81d3-16c8d0473d42) completed in 19.46s
+2026-02-20 23:59:11,884 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 9, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 9, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-20 23:59:11,884 - openevolve.database - INFO - Island Status:
+2026-02-20 23:59:11,885 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=218.53, gen=6 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-20 23:59:11,885 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-20 23:59:11,885 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=42.30, gen=1 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-20 23:59:11,885 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-20 23:59:11,885 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-20 23:59:11,905 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_8
+2026-02-20 23:59:11,907 - openevolve.controller - INFO - Saved best program at checkpoint 8 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-20 23:59:11,907 - openevolve.controller - INFO - Saved checkpoint at iteration 8 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_8
+2026-02-20 23:59:11,908 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:00:00,908 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 00:00:00,908 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:00:42,574 - openevolve.evaluator - INFO - Evaluated program 68003c96-9feb-42c9-afaf-6de0895ecf01 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-21 00:00:42,575 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 8, 'diversity': 3}
+2026-02-21 00:00:42,575 - openevolve.controller - INFO - Iteration 10: Program 68003c96-9feb-42c9-afaf-6de0895ecf01 (parent: b0abd81d-0250-4135-8d61-47a6c81cf9ae) completed in 41.67s
+2026-02-21 00:00:42,575 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-21 00:00:42,575 - openevolve.database - INFO - Island Status:
+2026-02-21 00:00:42,576 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=218.53, gen=6 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:00:42,576 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:00:42,576 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=42.30, gen=1 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:00:42,576 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:00:42,576 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=59.40, gen=1 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:00:42,593 - openevolve.database - INFO - Saved database with 9 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_10
+2026-02-21 00:00:42,613 - openevolve.controller - INFO - Saved best program at checkpoint 10 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:00:42,613 - openevolve.controller - INFO - Saved checkpoint at iteration 10 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_10
+2026-02-21 00:00:42,614 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:01:23,623 - openevolve.evaluator - INFO - Evaluated program 3602bc2a-3014-481b-add5-e31e5d3d1b46 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:01:23,625 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 2}
+2026-02-21 00:01:23,625 - openevolve.controller - INFO - Iteration 11: Program 3602bc2a-3014-481b-add5-e31e5d3d1b46 (parent: b2122342-934c-4259-9df8-cf2c7ff7b7ab) completed in 41.01s
+2026-02-21 00:01:23,625 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:01:23,626 - openevolve.database - INFO - Island Status:
+2026-02-21 00:01:23,626 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=183.30, gen=7 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:01:23,626 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:01:23,626 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=42.30, gen=1 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:01:23,626 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:01:23,626 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=59.40, gen=1 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:01:23,652 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_11
+2026-02-21 00:01:23,655 - openevolve.controller - INFO - Saved best program at checkpoint 11 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:01:23,655 - openevolve.controller - INFO - Saved checkpoint at iteration 11 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_11
+2026-02-21 00:01:23,655 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:02:12,905 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 00:02:12,907 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:02:38,454 - openevolve.evaluator - INFO - Evaluated program 4e36680c-31f3-4ad2-85fb-969b648b98e3 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'math' is not defined"}, error=Code name error: name 'math' is not defined
+2026-02-21 00:02:38,455 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 5}
+2026-02-21 00:02:38,455 - openevolve.controller - INFO - Iteration 13: Program 4e36680c-31f3-4ad2-85fb-969b648b98e3 (parent: 3d90c35a-6893-4a05-81d3-16c8d0473d42) completed in 25.55s
+2026-02-21 00:02:38,455 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'math' is not defined"}, error=Code name error: name 'math' is not defined
+2026-02-21 00:02:38,456 - openevolve.database - INFO - Island Status:
+2026-02-21 00:02:38,456 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=183.30, gen=7 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:02:38,456 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:02:38,456 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=35.20, gen=2 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:02:38,456 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:02:38,456 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=59.40, gen=1 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:02:38,480 - openevolve.database - INFO - Saved database with 11 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_13
+2026-02-21 00:02:38,484 - openevolve.controller - INFO - Saved best program at checkpoint 13 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:02:38,485 - openevolve.controller - INFO - Saved checkpoint at iteration 13 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_13
+2026-02-21 00:02:38,485 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:03:27,405 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 00:03:27,406 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:04:17,746 - openevolve.evaluator - INFO - Evaluated program fb40cd02-6959-4343-a85f-78d14ffbb6b6 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Sandbox.set_material_properties() got an unexpected keyword argument 'density'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\nTypeError: Sandbox.set_material_properties() got an unexpected keyword argument \'density\'\n'}, error=Error building agent: Sandbox.set_material_properties() got an unexpected keyword argument 'density'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+TypeError: Sandbox.set_material_properties() got an unexpected keyword argument 'density'
+
+2026-02-21 00:04:17,747 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 9, 'diversity': 2}
+2026-02-21 00:04:17,747 - openevolve.controller - INFO - Iteration 15: Program fb40cd02-6959-4343-a85f-78d14ffbb6b6 (parent: 68003c96-9feb-42c9-afaf-6de0895ecf01) completed in 50.34s
+2026-02-21 00:04:17,747 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Sandbox.set_material_properties() got an unexpected keyword argument 'density'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 14, in build_agent\nTypeError: Sandbox.set_material_properties() got an unexpected keyword argument \'density\'\n'}, error=Error building agent: Sandbox.set_material_properties() got an unexpected keyword argument 'density'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 14, in build_agent
+TypeError: Sandbox.set_material_properties() got an unexpected keyword argument 'density'
+
+2026-02-21 00:04:17,748 - openevolve.database - INFO - Island Status:
+2026-02-21 00:04:17,748 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=183.30, gen=7 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:04:17,748 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:04:17,748 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=35.20, gen=2 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:04:17,748 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:04:17,748 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=47.20, gen=2 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:04:17,773 - openevolve.database - INFO - Saved database with 12 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_15
+2026-02-21 00:04:17,776 - openevolve.controller - INFO - Saved best program at checkpoint 15 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:04:17,776 - openevolve.controller - INFO - Saved checkpoint at iteration 15 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_15
+2026-02-21 00:04:17,777 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:04:36,247 - openevolve.evaluator - INFO - Evaluated program 4ac4aad7-91d9-4aa0-8728-cf391b6a3bcc in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 8, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 8, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:04:36,248 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 9}
+2026-02-21 00:04:36,248 - openevolve.controller - INFO - Iteration 16: Program 4ac4aad7-91d9-4aa0-8728-cf391b6a3bcc (parent: 3602bc2a-3014-481b-add5-e31e5d3d1b46) completed in 18.47s
+2026-02-21 00:04:36,248 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 8, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 8, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:04:36,249 - openevolve.database - INFO - Island Status:
+2026-02-21 00:04:36,249 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=183.83, gen=8 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:04:36,249 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:04:36,249 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=35.20, gen=2 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:04:36,249 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:04:36,249 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=47.20, gen=2 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:04:36,280 - openevolve.database - INFO - Saved database with 13 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_16
+2026-02-21 00:04:36,282 - openevolve.controller - INFO - Saved best program at checkpoint 16 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:04:36,282 - openevolve.controller - INFO - Saved checkpoint at iteration 16 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_16
+2026-02-21 00:04:36,283 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:05:25,560 - openevolve.controller - WARNING - Iteration 17 error: No valid diffs found
+2026-02-21 00:05:25,561 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:05:48,030 - openevolve.evaluator - INFO - Evaluated program 6e215a24-89c2-4292-a109-d7cd41b376e8 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'math' is not defined"}, error=Code name error: name 'math' is not defined
+2026-02-21 00:05:48,031 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 8}
+2026-02-21 00:05:48,031 - openevolve.controller - INFO - Iteration 18: Program 6e215a24-89c2-4292-a109-d7cd41b376e8 (parent: 4e36680c-31f3-4ad2-85fb-969b648b98e3) completed in 22.47s
+2026-02-21 00:05:48,031 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'math' is not defined"}, error=Code name error: name 'math' is not defined
+2026-02-21 00:05:48,032 - openevolve.database - INFO - Island Status:
+2026-02-21 00:05:48,032 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=183.83, gen=8 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:05:48,033 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:05:48,033 - openevolve.database - INFO -    Island 2: 4 programs, best=0.0000, avg=0.0000, diversity=70.88, gen=3 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:05:48,033 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:05:48,033 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=47.20, gen=2 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:05:48,068 - openevolve.database - INFO - Saved database with 14 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_18
+2026-02-21 00:05:48,070 - openevolve.controller - INFO - Saved best program at checkpoint 18 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:05:48,070 - openevolve.controller - INFO - Saved checkpoint at iteration 18 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_18
+2026-02-21 00:05:48,071 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:06:37,003 - openevolve.controller - WARNING - Iteration 19 error: No valid diffs found
+2026-02-21 00:06:37,005 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:07:15,815 - openevolve.evaluator - INFO - Evaluated program 227baa10-b707-40aa-ae03-8d968e74b18c in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-21 00:07:15,816 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 7, 'diversity': 2}
+2026-02-21 00:07:15,816 - openevolve.controller - INFO - Iteration 20: Program 227baa10-b707-40aa-ae03-8d968e74b18c (parent: fb40cd02-6959-4343-a85f-78d14ffbb6b6) completed in 38.81s
+2026-02-21 00:07:15,817 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint_left' is not defined"}, error=Code name error: name 'joint_left' is not defined
+2026-02-21 00:07:15,818 - openevolve.database - INFO - Island Status:
+2026-02-21 00:07:15,818 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=183.83, gen=8 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:07:15,818 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:07:15,818 - openevolve.database - INFO -    Island 2: 4 programs, best=0.0000, avg=0.0000, diversity=70.88, gen=3 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:07:15,818 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:07:15,818 - openevolve.database - INFO -    Island 4: 4 programs, best=0.0000, avg=0.0000, diversity=36.53, gen=3 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:07:15,866 - openevolve.database - INFO - Saved database with 15 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_20
+2026-02-21 00:07:15,869 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:07:15,870 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_20
+2026-02-21 00:07:15,891 - openevolve.database - INFO - Saved database with 15 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_20
+2026-02-21 00:07:15,893 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:07:15,893 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_20
+2026-02-21 00:07:15,893 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'walker_x': 5.0, 'walker_y': 1.5, 'target_x': 20.0, 'distance_traveled': 0.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 100.0, 'min_torso_y': 1.5, 'torso_touched_ground': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 300, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:07:15,896 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/best/best_program_info.json
+2026-02-21 00:07:15,900 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 00:07:15,900 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 00:07:15,901 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 00:07:15,910 - openevolve.database - INFO - Reconstructed islands: restored 15 programs to islands
+2026-02-21 00:07:15,910 - openevolve.database - INFO - Loaded database with 15 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_01/checkpoints/checkpoint_20
+2026-02-21 00:07:15,911 - openevolve.database - INFO - Island Status:
+2026-02-21 00:07:15,911 - openevolve.database - INFO -  * Island 0: 5 programs, best=0.0000, avg=0.0000, diversity=183.83, gen=8 (best: b2122342-934c-4259-9df8-cf2c7ff7b7ab)
+2026-02-21 00:07:15,911 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fc9c8ea-d138-4d46-976e-10c3ba572ebd)
+2026-02-21 00:07:15,911 - openevolve.database - INFO -    Island 2: 4 programs, best=0.0000, avg=0.0000, diversity=70.88, gen=3 (best: 3d90c35a-6893-4a05-81d3-16c8d0473d42)
+2026-02-21 00:07:15,911 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 2c7cec83-eb62-4b84-b2ff-273056bc5683)
+2026-02-21 00:07:15,911 - openevolve.database - INFO -    Island 4: 4 programs, best=0.0000, avg=0.0000, diversity=36.53, gen=3 (best: b0abd81d-0250-4135-8d61-47a6c81cf9ae)
+2026-02-21 00:07:15,944 - openevolve.database - INFO - Saved database with 15 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_2_01/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

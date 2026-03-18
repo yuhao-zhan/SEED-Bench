@@ -64,6 +64,9 @@ class Sandbox:
     TARGET_Y_MIN = 6.0   # Unified with evaluator/prompt
     TARGET_Y_MAX = 9.0
 
+    # Single source of truth for step limit; prompt time budget should match (see main.py when max_steps is None).
+    MAX_STEPS = 10000
+
     # Minimum distance for force computation (avoid singularity)
     MAGNET_R_MIN = 0.5
 

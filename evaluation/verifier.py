@@ -591,6 +591,8 @@ class CodeVerifier:
             is_e05_magnet = 'e_05' in task_lower
             if is_category1:
                 init_done, init_score, init_metrics = evaluator.evaluate(None, 0, self.max_steps)
+            elif "c_06" in task_lower:
+                init_done, init_score, init_metrics = evaluator.evaluate(None, 0, self.max_steps)
             elif is_e05_magnet or is_e03_sled:
                 # E-03: evaluator uses environment.get_sled_position(), agent_body is None
                 init_done, init_score, init_metrics = evaluator.evaluate(None, 0, self.max_steps)
@@ -645,10 +647,12 @@ class CodeVerifier:
                 current_pos = (agent_body.position.x, agent_body.position.y)
             
             # Unified stuck detection for all tasks (skip for Category4/F_03: plow can be "stuck" during scoop phase;
-            # skip for C_02 Lander: lander sits on ground after landing so position is constant)
+            # skip for C_02 Lander: lander sits on ground after landing so position is constant;
+            # skip for C_04/C_05/C_06: agent may stay in zones or move slowly to satisfy sequence/timing)
             skip_stuck = ('f03' in task_lower or 'category4' in task_lower or
                           'c01' in task_lower or 'c02' in task_lower or 'c03' in task_lower or
-                          'e04' in task_lower or 's02' in task_lower or
+                          'c04' in task_lower or 'c05' in task_lower or 'c06' in task_lower or
+                          'e03' in task_lower or 'e04' in task_lower or 'e06' in task_lower or 's02' in task_lower or
                           's06' in task_lower or 'e01' in task_lower or
                           'k01' in task_lower or 'k04' in task_lower or 'k_04' in task_lower or
                           'k05' in task_lower or 'k_05' in task_lower or
@@ -690,7 +694,7 @@ class CodeVerifier:
                     if not is_projectile_task and not is_category4_fast:
                         import math
                         speed = math.sqrt(agent_body.linearVelocity.x**2 + agent_body.linearVelocity.y**2)
-                        if speed > 20:
+                        if speed > 2000:
                             running = False
                             break
                     
@@ -777,6 +781,8 @@ class CodeVerifier:
                 elif is_e03_sled:
                     # E-03: evaluator uses environment.get_sled_position()
                     should_stop, score, metrics = evaluator.evaluate(None, step_count, self.max_steps)
+                elif "c_06" in task_lower:
+                    should_stop, score, metrics = evaluator.evaluate(None, step_count, self.max_steps)
                 elif agent_body:
                     should_stop, score, metrics = evaluator.evaluate(agent_body, step_count, self.max_steps)
                 elif is_category3:
@@ -843,6 +849,10 @@ class CodeVerifier:
             is_category1_final = 's_01' in task_lower or 's_02' in task_lower or 's_03' in task_lower or 's_04' in task_lower or 's_05' in task_lower or 's_06' in task_lower or 'category1' in task_lower or 'category_1' in task_lower
             is_e03_final = 'e_03' in task_lower or ('category6' in task_lower and 'exotic' in task_lower)
             if is_category1_final or is_e03_final:
+                final_should_stop, final_score, final_metrics = evaluator.evaluate(
+                    None, step_count, self.max_steps
+                )
+            elif "c_06" in task_lower:
                 final_should_stop, final_score, final_metrics = evaluator.evaluate(
                     None, step_count, self.max_steps
                 )

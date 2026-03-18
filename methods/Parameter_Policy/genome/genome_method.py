@@ -36,6 +36,11 @@ def _run_genome_phase1_2d(
     """
     Run GENOME GA with 2D fitness for a single task. Returns best LoRA path (directory).
     Uses GENOME raw repo for init, crossover, mutation, selection; replaces evaluate with genome_fitness_2d.
+
+    Alignment with official GENOME (baseline/Parameter_Policy/GENOME):
+    - Genome, GenomeConfig, Individual, get_lora_pools are imported from official repo; no reimplementation.
+    - max_valid_samples=1 is intentional: 2D fitness is one rollout per individual (official uses max_valid_samples for per-task sample count).
+    - We match official behavior: selection in each _step uses "tournament" (official Genome._step hardcodes it). config.method is used only for crossover parent selection. No change to the official repo; this reimplementation inherits that behavior.
     """
     from src.utils import get_lora_pools
     from src.genome import Genome, GenomeConfig, Individual
@@ -46,7 +51,10 @@ def _run_genome_phase1_2d(
     llm_base_url = [f"http://localhost:{p}/v1" for p in dummy_ports]
     pools = get_lora_pools(lora_dir)
     if len(pools) < 2:
-        raise ValueError(f"lora_dir must have at least 2 expert subdirs (got {len(pools)}). Run bootstrap_lora_dir.py first.")
+        raise ValueError(
+            f"lora_dir must have at least 2 expert subdirs (got {len(pools)}). "
+            "See methods/Parameter_Policy/genome/README.md and run bootstrap_lora_dir.py in that directory."
+        )
 
     config = GenomeConfig(
         tasks=[task_name],
@@ -65,7 +73,7 @@ def _run_genome_phase1_2d(
         seed=seed,
         method="roulette",
         workspace_prefix=workspace_prefix,
-        max_valid_samples=1,
+        max_valid_samples=1,  # 2D: one rollout per individual; official default 200 is for multi-sample benchmarks
         cross_rate=cross_rate,
         individual_mutation_rate=individual_mutation_rate,
         gene_mutation_rate=gene_mutation_rate,
@@ -108,6 +116,44 @@ def _run_genome_phase1_2d(
     return best_path
 
 
+def _write_genome_phase1_training_log(
+    training_log_dir: str,
+    task_name: str,
+    model_path: str,
+    best_lora_path: str,
+    population_size: int,
+    genome_iters: int,
+    seed: int,
+    max_steps: int,
+) -> None:
+    """Write training_config.json and training_summary.txt for GENOME Phase 1 run."""
+    os.makedirs(training_log_dir, exist_ok=True)
+    config = {
+        "method": "genome",
+        "phase": "phase1",
+        "task_name": task_name,
+        "model_path": model_path,
+        "best_lora_path": best_lora_path,
+        "population_size": population_size,
+        "genome_iters": genome_iters,
+        "seed": seed,
+        "max_steps": max_steps,
+    }
+    config_path = os.path.join(training_log_dir, "training_config.json")
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+    lines = [
+        "Method: genome (Phase 1 GA)",
+        f"Task: {task_name}",
+        f"Best LoRA path: {best_lora_path}",
+        f"Population size: {population_size}",
+        f"Max iter: {genome_iters}",
+    ]
+    summary_path = os.path.join(training_log_dir, "training_summary.txt")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
 def run_genome_phase1(
     task_name: str,
     model_path: str,
@@ -118,6 +164,7 @@ def run_genome_phase1(
     population_size: int = 10,
     genome_iters: int = 50,
     seed: int = 42,
+    training_log_dir: str = None,  # optional: scripts/training_log/.../genome/
     **kwargs,
 ) -> str:
     """
@@ -144,6 +191,11 @@ def run_genome_phase1(
         workspace_prefix=workspace_prefix,
         **kwargs,
     )
+    if training_log_dir:
+        _write_genome_phase1_training_log(
+            training_log_dir, task_name, model_path, best_lora_path or "",
+            population_size, genome_iters, seed, max_steps,
+        )
     if cache_path:
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
         with open(cache_path, "w") as f:

@@ -38,7 +38,7 @@ import sys
 import copy
 import math
 import random
-from typing import List, Optional, Dict, Tuple, Any
+from typing import List, Optional, Dict, Tuple, Any, Callable
 
 import numpy as np
 import torch
@@ -49,6 +49,7 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
     Trainer,
+    TrainerCallback,
 )
 from datasets import Dataset
 
@@ -182,11 +183,12 @@ def select_sampling_data_greedy_div(
 
     # Diverse: remaining entries, prefer lower scores for diversity
     remaining = [e for e in valid if id(e) not in greedy_ids]
-    # Categorize: zero (score=0), low (0-30), medium (30-70)
+    # Categorize: zero (score=0), low (0, 34], medium (34, 98), high [98, 100]
+    # Ref: process_sample_for_training.py greedy_div; process_repair_for_training.py uses 0, 0.34, 0.98
     zero = [e for e in remaining if e.get("score", 0) == 0]
-    low = [e for e in remaining if 0 < e.get("score", 0) <= 30]
-    medium = [e for e in remaining if 30 < e.get("score", 0) <= 70]
-    high = [e for e in remaining if e.get("score", 0) > 70]
+    low = [e for e in remaining if 0 < e.get("score", 0) <= 34]
+    medium = [e for e in remaining if 34 < e.get("score", 0) <= 98]
+    high = [e for e in remaining if e.get("score", 0) > 98]
 
     diverse: List[Dict[str, Any]] = []
     for bucket in [zero, low, medium, high]:
@@ -244,11 +246,12 @@ def select_repair_data(
     if not pairs:
         return []
 
-    # Sample by parent correctness category (SOAR diverse strategy)
+    # Sample by parent correctness category (SOAR: sampling_given_initial_correctness)
+    # Ref: process_repair_for_training.py get_category_correctness — 0, 0.34, 0.98 (score/100 → 0, 34, 98)
     zero = [p for p in pairs if p["parent_score"] == 0]
-    low = [p for p in pairs if 0 < p["parent_score"] <= 30]
-    medium = [p for p in pairs if 30 < p["parent_score"] <= 70]
-    high = [p for p in pairs if p["parent_score"] > 70]
+    low = [p for p in pairs if 0 < p["parent_score"] <= 34]
+    medium = [p for p in pairs if 34 < p["parent_score"] <= 98]
+    high = [p for p in pairs if p["parent_score"] > 98]
 
     selected: List[Dict[str, Any]] = []
     per_cat = max(max_samples // 4, 1)
@@ -286,6 +289,10 @@ class SOARSolver:
         5. cleanup():                 Free GPU memory.
 
     Config defaults follow SOAR paper and soar/training/train_unsloth.py.
+
+    GPU: Official SOAR uses 1 GPU for inference (sglang/vLLM) and 1 GPU for training (Unsloth).
+    This reimplementation uses a single device (e.g. cuda:0) for both. For 14B/32B with SFT,
+    reduce gradient_accumulation_steps (e.g. to 4) or use a machine with more VRAM.
     """
 
     def __init__(
@@ -301,11 +308,11 @@ class SOARSolver:
         sft_epochs: int = 3,
         learning_rate: float = 5e-5,
         train_batch_size: int = 1,
-        gradient_accumulation_steps: int = 4,
+        gradient_accumulation_steps: int = 32,  # Official train_unsloth.py --grad_acc 32; use 4 if OOM
         lr_scheduler_type: str = "cosine",
         warmup_ratio: float = 0.1,
         weight_decay: float = 0.05,
-        max_training_samples: int = 50,
+        max_training_samples: int = 50,  # N_sample_task in official process_*_for_training.py
         # Test-time search config
         k_candidates: int = 4,
         search_temperature: float = 1.0,
@@ -313,10 +320,12 @@ class SOARSolver:
         thompson_C: float = 20.0,
         # Evaluation
         eval_temperature: float = 0.7,
+        soar_generations: int = 2,
     ):
         self.model_type = "local"
         self.model_name = model_name
         self.device = device
+        self.soar_generations = soar_generations
 
         # SFT training config
         self.sft_epochs = sft_epochs
@@ -637,11 +646,243 @@ class SOARSolver:
         return best_entry
 
     # ==================================================================
+    # run_pretrain — full SOAR loop (G generations × search + SFT), align with official
+    # ==================================================================
+    def run_pretrain(
+        self,
+        task_prompt: Dict[str, Any],
+        verifier: Any,
+        max_iterations: int = 20,
+        task_name: Optional[str] = None,
+        get_initial_prompt: Optional[Callable[[], str]] = None,
+        get_revision_prompt: Optional[Callable[[Dict, List, int], str]] = None,
+        training_log_dir: Optional[str] = None,
+        max_steps_verifier: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Run full SOAR algorithm: G generations, each with search (K candidates + REX refinement) then SFT.
+
+        Official flow (qwen.sh): sample → refine (REX) → process → train → next gen.
+        This runs in-process: for each generation, max_iterations search steps (iter 1: K candidates;
+        iter 2+: Thompson select → 1 refinement), then sft_train_on_archive().
+
+        Optional get_initial_prompt / get_revision_prompt: when provided (e.g. cross-mutation path
+        via run_single_pair), use them instead of format_initial_prompt/format_revision_prompt so
+        the same SOAR loop runs with mutation prompts.
+        get_initial_prompt() -> str.
+        get_revision_prompt(selected_entry, iteration_history, step) -> str.
+
+        Returns dict with success, best_score, best_code, best_metrics, iteration_history,
+        stop_reason, soar_generations, soar_sft_runs.
+        """
+        from evaluation.prompt import format_initial_prompt, format_revision_prompt
+        from evaluation.feedback import format_feedback
+
+        logger = None
+        if training_log_dir:
+            try:
+                from methods.Parameter_Policy.common.training_logger import TrainingLogger
+                logger = TrainingLogger(
+                    training_log_dir, method_name="soar", task_name=task_name or "",
+                    max_iterations=max_iterations, max_steps_verifier=max_steps_verifier,
+                )
+                logger.log_config(
+                    soar_generations=self.soar_generations,
+                    k_candidates=self.k_candidates,
+                    sft_epochs=self.sft_epochs,
+                    max_iterations=max_iterations,
+                )
+            except Exception as e:
+                print(f"[SOAR] Could not init training logger: {e}")
+
+        self.reset_conversation()
+        self.archive = []
+        self._next_uid = 0
+
+        best_score = -1.0
+        best_code: Optional[str] = None
+        best_metrics: Dict[str, Any] = {}
+        iteration_history: List[Dict[str, Any]] = []
+        step = 0
+        sft_runs = 0
+        task_label = task_name or ""
+
+        for gen in range(1, self.soar_generations + 1):
+            print(f"[SOAR] Generation {gen}/{self.soar_generations} (archive size {len(self.archive)})")
+            for iteration in range(1, max_iterations + 1):
+                step += 1
+                if iteration == 1:
+                    if get_initial_prompt is not None:
+                        prompt = get_initial_prompt()
+                    else:
+                        prompt = format_initial_prompt(task_prompt)
+                    candidates = self.generate_k_candidates(prompt, k=self.k_candidates)
+                    best_this_round_score = -1.0
+                    best_this_round = None
+                    for cand_idx, (code, raw_output, token_usage) in enumerate(candidates):
+                        if not code:
+                            if logger:
+                                logger.log_rollout_llm_call(
+                                    generation=gen, iteration=iteration, candidate_idx=cand_idx,
+                                    prompt_text=prompt, raw_output=raw_output or "", extracted_code=None,
+                                    score=None, success=False, error="no code extracted",
+                                    token_usage=token_usage,
+                                )
+                            continue
+                        success, score, metrics, error = verifier.verify_code(
+                            code, headless=True, save_gif_path=None
+                        )
+                        failed = metrics.get("failed", False)
+                        failure_reason = metrics.get("failure_reason", "Unknown failure")
+                        feedback = format_feedback(
+                            metrics, score, success, failed, failure_reason,
+                            iteration=step, error=error, task_name=task_label,
+                        )
+                        if logger:
+                            logger.log_rollout_llm_call(
+                                generation=gen, iteration=iteration, candidate_idx=cand_idx,
+                                prompt_text=prompt, raw_output=raw_output, extracted_code=code,
+                                score=score, success=success, error=error, feedback=feedback,
+                                token_usage=token_usage,
+                            )
+                        uid = self.add_to_archive(
+                            code=code,
+                            raw_output=raw_output,
+                            score=score,
+                            success=success,
+                            prompt=prompt,
+                            feedback=feedback,
+                            iteration=iteration,
+                            generation=gen,
+                            parent_uid=None,
+                        )
+                        if score > best_this_round_score:
+                            best_this_round_score = score
+                            best_this_round = {
+                                "iteration": step,
+                                "prompt": prompt,
+                                "code": code,
+                                "success": success,
+                                "score": score,
+                                "metrics": metrics,
+                                "error": error,
+                                "feedback": feedback,
+                                "raw_llm_output": raw_output,
+                                "token_usage": token_usage or {},
+                            }
+                    if best_this_round is not None:
+                        iteration_history.append(best_this_round)
+                        if best_this_round_score > best_score:
+                            best_score = best_this_round_score
+                            best_code = best_this_round["code"]
+                            best_metrics = best_this_round.get("metrics", {})
+                            print(f"  [SOAR] Step {step} (gen {gen} iter {iteration}): best of K → {best_score:.1f}/100")
+                        if best_this_round.get("success"):
+                            break
+                else:
+                    selected = self.thompson_select_best()
+                    if selected is None:
+                        break
+                    if get_revision_prompt is not None:
+                        rev_prompt = get_revision_prompt(selected, iteration_history, step)
+                    else:
+                        rev_prompt = format_revision_prompt(
+                            task_prompt, selected["code"], selected["feedback"]
+                        )
+                    code, raw_output, token_usage = self.generate_code(rev_prompt)
+                    if not code:
+                        if logger:
+                            logger.log_rollout_llm_call(
+                                generation=gen, iteration=iteration,
+                                prompt_text=rev_prompt, raw_output=raw_output or "", extracted_code=None,
+                                score=None, success=False, error="no code extracted",
+                                token_usage=token_usage,
+                            )
+                        continue
+                    success, score, metrics, error = verifier.verify_code(
+                        code, headless=True, save_gif_path=None
+                    )
+                    failed = metrics.get("failed", False)
+                    failure_reason = metrics.get("failure_reason", "Unknown failure")
+                    feedback = format_feedback(
+                        metrics, score, success, failed, failure_reason,
+                        iteration=step, error=error, task_name=task_label,
+                    )
+                    if logger:
+                        logger.log_rollout_llm_call(
+                            generation=gen, iteration=iteration,
+                            prompt_text=rev_prompt, raw_output=raw_output, extracted_code=code,
+                            score=score, success=success, error=error, feedback=feedback,
+                            token_usage=token_usage,
+                        )
+                    self.add_to_archive(
+                        code=code,
+                        raw_output=raw_output,
+                        score=score,
+                        success=success,
+                        prompt=rev_prompt,
+                        feedback=feedback,
+                        iteration=iteration,
+                        generation=gen,
+                        parent_uid=selected.get("unique_id"),
+                    )
+                    iteration_history.append({
+                        "iteration": step,
+                        "prompt": rev_prompt,
+                        "code": code,
+                        "success": success,
+                        "score": score,
+                        "metrics": metrics,
+                        "error": error,
+                        "feedback": feedback,
+                        "raw_llm_output": raw_output,
+                        "token_usage": token_usage or {},
+                    })
+                    if score > best_score:
+                        best_score = score
+                        best_code = code
+                        best_metrics = metrics
+                        print(f"  [SOAR] Step {step} (gen {gen} iter {iteration}): refinement → {best_score:.1f}/100")
+                    if success:
+                        break
+            if best_score >= 100.0:
+                break
+            if logger:
+                logger.log_rollout_generation(gen, iteration_history)
+            # SFT on archive after each generation (sft_train_on_archive resets LoRA then trains)
+            if self.archive:
+                stats = self.sft_train_on_archive(
+                    training_logger=logger,
+                    sft_run_index=sft_runs,
+                )
+                if not stats.get("skipped", True):
+                    sft_runs += 1
+
+        stop_reason = "success" if (best_code and best_score >= 100.0) else "exhausted"
+        result = {
+            "success": best_score >= 100.0,
+            "best_score": best_score,
+            "best_code": best_code,
+            "best_metrics": best_metrics,
+            "iteration_history": iteration_history,
+            "stop_reason": stop_reason,
+            "soar_generations": self.soar_generations,
+            "soar_sft_runs": sft_runs,
+        }
+        if logger:
+            try:
+                logger.finalize(summary_extra=result)
+            except Exception:
+                pass
+        return result
+
+    # ==================================================================
     # SFT Training (from soar/training/train_unsloth.py)
     # ==================================================================
     def sft_train_on_archive(
         self,
         output_dir: Optional[str] = None,
+        training_logger: Optional[Any] = None,
+        sft_run_index: int = 0,
     ) -> Dict[str, Any]:
         """SFT fine-tune LoRA on accumulated archive data.
 
@@ -666,6 +907,8 @@ class SOARSolver:
         )
 
         if not sampling_data and not repair_data:
+            if training_logger:
+                training_logger.log_warning("No training data available; skipping SFT.")
             print("[SOAR] No training data available; skipping SFT.")
             return {"skipped": True}
 
@@ -704,6 +947,8 @@ class SOARSolver:
             training_texts.append(text)
 
         if not training_texts:
+            if training_logger:
+                training_logger.log_warning("No training texts after formatting; skipping SFT.")
             print("[SOAR] No training texts after formatting; skipping SFT.")
             return {"skipped": True}
 
@@ -725,6 +970,19 @@ class SOARSolver:
         effective_dir = output_dir or "/tmp/soar_sft_temp"
         os.makedirs(effective_dir, exist_ok=True)
 
+        class _LossCallback(TrainerCallback):
+            def __init__(self, tl, run_offset):
+                self.tl = tl
+                self.run_offset = run_offset
+            def on_log(self, args, state, control, logs=None, **kwargs):
+                if logs and "loss" in logs and self.tl:
+                    self.tl.log_loss_step(
+                        step=self.run_offset + state.global_step,
+                        loss=float(logs["loss"]),
+                        sft_run=sft_run_index,
+                    )
+        callbacks = [_LossCallback(training_logger, sft_run_index * 1000)] if training_logger else []
+
         # SOAR training args (train_unsloth.py defaults)
         training_args = TrainingArguments(
             output_dir=effective_dir,
@@ -740,14 +998,15 @@ class SOARSolver:
             report_to="none",
             bf16=True,
             remove_unused_columns=False,
-            optim="adamw_torch",
-            gradient_checkpointing=True,
+        optim="adamw_torch",  # Official uses adamw_8bit (Unsloth); we use HF Trainer without Unsloth
+        gradient_checkpointing=True,
         )
 
         trainer = Trainer(
             model=self.model,
             args=training_args,
             train_dataset=ds,
+            callbacks=callbacks,
         )
         trainer.train()
         self._train_count += 1
@@ -859,11 +1118,16 @@ def get_soar_solver(
     soar_k_candidates: int = 4,
     **kwargs,
 ) -> SOARSolver:
-    """Create and return a :class:`SOARSolver` instance."""
+    """Create and return a :class:`SOARSolver` instance.
+
+    Pipeline passes soar_generations and soar_k_candidates from evaluate.py.
+    The evaluator calls run_pretrain() to run the full SOAR loop (G generations × search + SFT).
+    """
     return SOARSolver(
         model_name=model_name,
         model_path=model_path,
         device=device,
         k_candidates=soar_k_candidates,
+        soar_generations=soar_generations,
         **kwargs,
     )

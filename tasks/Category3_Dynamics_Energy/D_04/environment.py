@@ -43,6 +43,8 @@ class Sandbox:
         self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 10.0))
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 100.0))
         self.MAX_PUMP_FORCE = float(terrain_config.get("max_pump_force", 42.0))
+        # Single source of truth for step limit; prompt and runner should align (see main.py when max_steps is None).
+        self.MAX_STEPS = 15000
         # Wind: periodic + random gusts (applied to swing seat each step)
         self._wind_strength = float(terrain_config.get("wind_strength", 12.0))  # N
         self._wind_period = float(terrain_config.get("wind_period", 2.8))
@@ -247,9 +249,17 @@ class Sandbox:
 
             dead_zone = self._terrain_config.get("dead_zone")
             if dead_zone:
-                if dead_zone[0] <= seat.position.x <= dead_zone[1]:
-                    fx = 0.0
-                    fy = 0.0
+                in_dz = dead_zone[0] <= seat.position.x <= dead_zone[1]
+                if in_dz:
+                    min_speed = self._terrain_config.get("dead_zone_min_speed")
+                    if min_speed is not None:
+                        vx = seat.linearVelocity.x
+                        if abs(vx) < float(min_speed):
+                            fx = 0.0
+                            fy = 0.0
+                    else:
+                        fx = 0.0
+                        fy = 0.0
 
             try:
                 seat.ApplyForceToCenter((fx, fy), True)
@@ -271,9 +281,17 @@ class Sandbox:
 
             dead_zone = self._terrain_config.get("dead_zone")
             if dead_zone:
-                if dead_zone[0] <= seat.position.x <= dead_zone[1]:
-                    ix = 0.0
-                    iy = 0.0
+                in_dz = dead_zone[0] <= seat.position.x <= dead_zone[1]
+                if in_dz:
+                    min_speed = self._terrain_config.get("dead_zone_min_speed")
+                    if min_speed is not None:
+                        vx = seat.linearVelocity.x
+                        if abs(vx) < float(min_speed):
+                            ix = 0.0
+                            iy = 0.0
+                    else:
+                        ix = 0.0
+                        iy = 0.0
 
             try:
                 seat.ApplyLinearImpulse((ix, iy), seat.worldCenter, True)

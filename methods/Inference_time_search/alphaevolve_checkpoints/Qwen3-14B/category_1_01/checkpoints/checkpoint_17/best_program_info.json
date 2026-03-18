@@ -1,0 +1,38 @@
+{
+  "id": "c265625d-e19d-441f-809e-b9c77423408b",
+  "generation": 0,
+  "iteration": 0,
+  "current_iteration": 17,
+  "metrics": {
+    "combined_score": 0.0,
+    "score": 0.0,
+    "success": false,
+    "metrics": {
+      "vehicle_x": 13.705486297607422,
+      "vehicle_y": 2.9840822219848633,
+      "target_x": 30.0,
+      "progress": 34.82194519042969,
+      "success": false,
+      "failed": true,
+      "failure_reason": "Vehicle flipped: angle 172.1\u00b0 exceeds 90\u00b0 limit",
+      "step_count": 200,
+      "structure_mass": 7.5,
+      "max_structure_mass": 2000.0,
+      "max_vertical_accel": 5.936800539493561,
+      "structure_broken": false,
+      "joint_count": 4,
+      "velocity_x": 2.756324291229248,
+      "velocity_y": -10.814126968383789,
+      "angular_velocity": -1.783371925354004,
+      "angle": -3.278878688812256,
+      "normalized_angle": 3.0043066183673304,
+      "high_angular_velocity_count": 0,
+      "is_airborne": false,
+      "airborne_rotation_accumulated": 0.0
+    },
+    "error": null
+  },
+  "language": "python",
+  "timestamp": 1771678504.254471,
+  "saved_at": 1771679831.5339649
+}

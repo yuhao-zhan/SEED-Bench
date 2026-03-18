@@ -1,0 +1,394 @@
+2026-02-21 17:09:49,962 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/logs/openevolve_20260221_170949.log
+2026-02-21 17:09:49,963 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 17:09:49,963 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 17:09:49,969 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 17:09:49,973 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 17:09:49,974 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 17:09:49,976 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_fk3d37_1/evaluate.py
+2026-02-21 17:09:49,976 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_fk3d37_1/evaluate.py
+2026-02-21 17:09:49,976 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_fk3d37_1/initial_program.py
+2026-02-21 17:09:49,976 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 17:09:50,049 - openevolve.evaluator - INFO - Evaluated program 19ac22a0-768e-4832-9be0-235af5c27d02 in 0.07s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:09:50,050 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 17:09:50,050 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 17:09:50,051 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 17:09:50,051 - openevolve.database - INFO - Island Status:
+2026-02-21 17:09:50,051 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:09:50,051 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:09:50,051 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:09:50,051 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:09:50,051 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:09:50,052 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:10:39,057 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-21 17:10:39,059 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:11:27,730 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-21 17:11:27,732 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:12:12,155 - openevolve.evaluator - INFO - Evaluated program 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'last_beam_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nNameError: name \'last_beam_width\' is not defined\n'}, error=Error building agent: name 'last_beam_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+NameError: name 'last_beam_width' is not defined
+
+2026-02-21 17:12:12,156 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 5}
+2026-02-21 17:12:12,156 - openevolve.controller - INFO - Iteration 3: Program 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8 (parent: 19ac22a0-768e-4832-9be0-235af5c27d02) completed in 44.42s
+2026-02-21 17:12:12,156 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'last_beam_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nNameError: name \'last_beam_width\' is not defined\n'}, error=Error building agent: name 'last_beam_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+NameError: name 'last_beam_width' is not defined
+
+2026-02-21 17:12:12,156 - openevolve.database - INFO - Island Status:
+2026-02-21 17:12:12,156 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:12:12,156 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:12:12,156 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:12:12,156 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:12:12,157 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:12:12,164 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_3
+2026-02-21 17:12:12,167 - openevolve.controller - INFO - Saved best program at checkpoint 3 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:12:12,167 - openevolve.controller - INFO - Saved checkpoint at iteration 3 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_3
+2026-02-21 17:12:12,168 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:13:00,837 - openevolve.evaluator - INFO - Evaluated program 8761614c-2810-4721-aa3b-31e5c16625be in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 19, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 19, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:13:00,839 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 9}
+2026-02-21 17:13:00,839 - openevolve.controller - INFO - Iteration 4: Program 8761614c-2810-4721-aa3b-31e5c16625be (parent: 19ac22a0-768e-4832-9be0-235af5c27d02) completed in 48.67s
+2026-02-21 17:13:00,840 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 19, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 19, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:13:00,840 - openevolve.database - INFO - Island Status:
+2026-02-21 17:13:00,840 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=2 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:13:00,840 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:13:00,840 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:13:00,840 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:13:00,840 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:13:00,849 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_4
+2026-02-21 17:13:00,852 - openevolve.controller - INFO - Saved best program at checkpoint 4 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:13:00,852 - openevolve.controller - INFO - Saved checkpoint at iteration 4 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_4
+2026-02-21 17:13:00,853 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:13:41,546 - openevolve.evaluator - INFO - Evaluated program 359dc635-910a-4c9a-b97c-571337532f6b in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 19, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 19, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:13:41,546 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 9, 'diversity': 9}
+2026-02-21 17:13:41,546 - openevolve.controller - INFO - Iteration 5: Program 359dc635-910a-4c9a-b97c-571337532f6b (parent: 19ac22a0-768e-4832-9be0-235af5c27d02) completed in 40.69s
+2026-02-21 17:13:41,546 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 19, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 19, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:13:41,547 - openevolve.database - INFO - Island Status:
+2026-02-21 17:13:41,547 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=3 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:13:41,547 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 17:13:41,547 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:13:41,547 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:13:41,547 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:13:41,557 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_5
+2026-02-21 17:13:41,561 - openevolve.controller - INFO - Saved best program at checkpoint 5 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:13:41,561 - openevolve.controller - INFO - Saved checkpoint at iteration 5 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_5
+2026-02-21 17:13:41,561 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:14:30,230 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 17:14:30,231 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:14:48,897 - openevolve.evaluator - INFO - Evaluated program 847bb37d-a303-4734-b1de-8bb420f2e708 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'last_beam_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nNameError: name \'last_beam_width\' is not defined\n'}, error=Error building agent: name 'last_beam_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+NameError: name 'last_beam_width' is not defined
+
+2026-02-21 17:14:48,898 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 0, 'diversity': 5}
+2026-02-21 17:14:48,899 - openevolve.controller - INFO - Iteration 7: Program 847bb37d-a303-4734-b1de-8bb420f2e708 (parent: 19ac22a0-768e-4832-9be0-235af5c27d02) completed in 18.67s
+2026-02-21 17:14:48,899 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'last_beam_width' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nNameError: name \'last_beam_width\' is not defined\n'}, error=Error building agent: name 'last_beam_width' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+NameError: name 'last_beam_width' is not defined
+
+2026-02-21 17:14:48,899 - openevolve.database - INFO - Island Status:
+2026-02-21 17:14:48,899 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=4 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:14:48,899 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:14:48,899 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:14:48,900 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:14:48,900 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:14:48,914 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_7
+2026-02-21 17:14:48,917 - openevolve.controller - INFO - Saved best program at checkpoint 7 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:14:48,917 - openevolve.controller - INFO - Saved checkpoint at iteration 7 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_7
+2026-02-21 17:14:48,917 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:15:33,600 - openevolve.evaluator - INFO - Evaluated program 70a363c3-8d27-45ad-810a-fe530ba6a8a1 in 0.19s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 27.449420928955078, 'min_height_during_quake': 27.449420928955078, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 53.642250056809615, 'center_of_mass_y': -18.402229952992712, 'center_of_mass_x_range': [0.0, 53.642250056809615], 'center_of_mass_displacement': 53.642250056809615, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 14.700000040233135, 'structure_width': 402.39434337615967, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.99539947509766, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 89.3061294555664, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 53.64])'}, error=None
+2026-02-21 17:15:33,601 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 9}
+2026-02-21 17:15:33,601 - openevolve.controller - INFO - Iteration 8: Program 70a363c3-8d27-45ad-810a-fe530ba6a8a1 (parent: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8) completed in 44.68s
+2026-02-21 17:15:33,601 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 27.449420928955078, 'min_height_during_quake': 27.449420928955078, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 53.642250056809615, 'center_of_mass_y': -18.402229952992712, 'center_of_mass_x_range': [0.0, 53.642250056809615], 'center_of_mass_displacement': 53.642250056809615, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 14.700000040233135, 'structure_width': 402.39434337615967, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.99539947509766, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 89.3061294555664, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 53.64])'}, error=None
+2026-02-21 17:15:33,602 - openevolve.database - INFO - Island Status:
+2026-02-21 17:15:33,602 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=4 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:15:33,602 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:15:33,602 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=18.20, gen=1 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:15:33,602 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:15:33,602 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:15:33,622 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_8
+2026-02-21 17:15:33,626 - openevolve.controller - INFO - Saved best program at checkpoint 8 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:15:33,626 - openevolve.controller - INFO - Saved checkpoint at iteration 8 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_8
+2026-02-21 17:15:33,627 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:16:22,501 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 17:16:22,503 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:17:11,464 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 17:17:11,465 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:18:00,125 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 17:18:00,127 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:18:48,935 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 17:18:48,937 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:19:38,948 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-21 17:19:38,950 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:20:14,399 - openevolve.evaluator - INFO - Evaluated program 4c83b7ec-e2f4-41dd-9fc2-54448b9257db in 0.17s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 26.684497833251953, 'min_height_during_quake': 26.684497833251953, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 16.777263744932664, 'center_of_mass_y': 1.2878353779973157, 'center_of_mass_x_range': [0.0, 16.777263744932664], 'center_of_mass_displacement': 16.777263744932664, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 44.10000006109476, 'structure_width': 395.868796043098, 'num_beams': 32, 'num_joints': 0, 'num_springs': 2, 'initial_joint_count': 0, 'initial_spring_count': 2, 'structure_broken': False, 'max_velocity_x': 119.99385833740234, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 7.899157524108887, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 16.78])'}, error=None
+2026-02-21 17:20:14,400 - openevolve.controller - INFO - Iteration 14: Program 4c83b7ec-e2f4-41dd-9fc2-54448b9257db (parent: 8761614c-2810-4721-aa3b-31e5c16625be) completed in 35.45s
+2026-02-21 17:20:14,401 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 26.684497833251953, 'min_height_during_quake': 26.684497833251953, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 16.777263744932664, 'center_of_mass_y': 1.2878353779973157, 'center_of_mass_x_range': [0.0, 16.777263744932664], 'center_of_mass_displacement': 16.777263744932664, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 44.10000006109476, 'structure_width': 395.868796043098, 'num_beams': 32, 'num_joints': 0, 'num_springs': 2, 'initial_joint_count': 0, 'initial_spring_count': 2, 'structure_broken': False, 'max_velocity_x': 119.99385833740234, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 7.899157524108887, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 16.78])'}, error=None
+2026-02-21 17:20:14,401 - openevolve.database - INFO - Island Status:
+2026-02-21 17:20:14,401 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=4 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:20:14,401 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:20:14,401 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=18.20, gen=1 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:20:14,401 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=66.50, gen=1 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:20:14,401 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:20:14,417 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_14
+2026-02-21 17:20:14,420 - openevolve.controller - INFO - Saved best program at checkpoint 14 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:20:14,420 - openevolve.controller - INFO - Saved checkpoint at iteration 14 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_14
+2026-02-21 17:20:14,421 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:20:48,511 - openevolve.evaluator - INFO - Evaluated program f819b9ee-e18e-475e-a5bd-072b4bdcadba in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 19, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 19, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:20:48,513 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 3, 'diversity': 2}
+2026-02-21 17:20:48,513 - openevolve.controller - INFO - Iteration 15: Program f819b9ee-e18e-475e-a5bd-072b4bdcadba (parent: 359dc635-910a-4c9a-b97c-571337532f6b) completed in 34.09s
+2026-02-21 17:20:48,513 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 19, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 19, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:20:48,513 - openevolve.database - INFO - Island Status:
+2026-02-21 17:20:48,513 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=4 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:20:48,513 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:20:48,513 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=18.20, gen=1 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:20:48,513 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=66.50, gen=1 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:20:48,513 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=1.60, gen=1 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:20:48,533 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_15
+2026-02-21 17:20:48,537 - openevolve.controller - INFO - Saved best program at checkpoint 15 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:20:48,537 - openevolve.controller - INFO - Saved checkpoint at iteration 15 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_15
+2026-02-21 17:20:48,537 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:21:24,762 - openevolve.evaluator - INFO - Evaluated program 8234f40a-4d1f-4058-9036-ebb96dacc396 in 0.15s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 24.54953956604004, 'min_height_during_quake': 24.54953956604004, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 52.42100014405661, 'center_of_mass_y': -18.413290870561298, 'center_of_mass_x_range': [0.0, 52.42100014405661], 'center_of_mass_displacement': 52.42100014405661, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 14.700000040233135, 'structure_width': 402.3830852508545, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.99456787109375, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 94.2477798461914, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 52.42])'}, error=None
+2026-02-21 17:21:24,764 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 1, 'diversity': 2}
+2026-02-21 17:21:24,764 - openevolve.controller - INFO - Iteration 16: Program 8234f40a-4d1f-4058-9036-ebb96dacc396 (parent: 19ac22a0-768e-4832-9be0-235af5c27d02) completed in 36.23s
+2026-02-21 17:21:24,764 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 24.54953956604004, 'min_height_during_quake': 24.54953956604004, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 52.42100014405661, 'center_of_mass_y': -18.413290870561298, 'center_of_mass_x_range': [0.0, 52.42100014405661], 'center_of_mass_displacement': 52.42100014405661, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 14.700000040233135, 'structure_width': 402.3830852508545, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.99456787109375, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 94.2477798461914, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 52.42])'}, error=None
+2026-02-21 17:21:24,765 - openevolve.database - INFO - Island Status:
+2026-02-21 17:21:24,765 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=12.60, gen=5 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:21:24,765 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:21:24,765 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=18.20, gen=1 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:21:24,765 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=66.50, gen=1 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:21:24,766 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=1.60, gen=1 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:21:24,804 - openevolve.database - INFO - Saved database with 9 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_16
+2026-02-21 17:21:24,807 - openevolve.controller - INFO - Saved best program at checkpoint 16 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:21:24,807 - openevolve.controller - INFO - Saved checkpoint at iteration 16 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_16
+2026-02-21 17:21:24,807 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:22:03,345 - openevolve.evaluator - INFO - Evaluated program e54b0267-597f-4c7a-bacd-26736b23861e in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 26.71512794494629, 'min_height_during_quake': 26.71512794494629, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 50.50328423694641, 'center_of_mass_y': -17.557599175172793, 'center_of_mass_x_range': [0.0, 50.50328423694641], 'center_of_mass_displacement': 50.50328423694641, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 13.700000040233135, 'structure_width': 402.35452461242676, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.9939193725586, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 15.024215698242188, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 50.50])'}, error=None
+2026-02-21 17:22:03,347 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 1, 'diversity': 1}
+2026-02-21 17:22:03,347 - openevolve.controller - INFO - Iteration 17: Program e54b0267-597f-4c7a-bacd-26736b23861e (parent: 847bb37d-a303-4734-b1de-8bb420f2e708) completed in 38.54s
+2026-02-21 17:22:03,347 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 26.71512794494629, 'min_height_during_quake': 26.71512794494629, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 50.50328423694641, 'center_of_mass_y': -17.557599175172793, 'center_of_mass_x_range': [0.0, 50.50328423694641], 'center_of_mass_displacement': 50.50328423694641, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 13.700000040233135, 'structure_width': 402.35452461242676, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.9939193725586, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 15.024215698242188, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 50.50])'}, error=None
+2026-02-21 17:22:03,348 - openevolve.database - INFO - Island Status:
+2026-02-21 17:22:03,348 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=12.60, gen=5 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:22:03,348 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=13.20, gen=1 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:22:03,348 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=18.20, gen=1 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:22:03,348 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=66.50, gen=1 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:22:03,348 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=1.60, gen=1 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:22:03,369 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_17
+2026-02-21 17:22:03,371 - openevolve.controller - INFO - Saved best program at checkpoint 17 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:22:03,372 - openevolve.controller - INFO - Saved checkpoint at iteration 17 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_17
+2026-02-21 17:22:03,372 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:22:28,043 - openevolve.evaluator - INFO - Evaluated program 46bd5e0f-7cf4-4dd7-9395-6717ac77b9fe in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:22:28,044 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 7, 'diversity': 2}
+2026-02-21 17:22:28,044 - openevolve.controller - INFO - Iteration 18: Program 46bd5e0f-7cf4-4dd7-9395-6717ac77b9fe (parent: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8) completed in 24.67s
+2026-02-21 17:22:28,044 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:22:28,045 - openevolve.database - INFO - Island Status:
+2026-02-21 17:22:28,045 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=12.60, gen=5 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:22:28,045 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=13.20, gen=1 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:22:28,045 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=16.07, gen=2 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:22:28,045 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=66.50, gen=1 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:22:28,045 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=1.60, gen=1 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:22:28,068 - openevolve.database - INFO - Saved database with 11 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_18
+2026-02-21 17:22:28,071 - openevolve.controller - INFO - Saved best program at checkpoint 18 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:22:28,071 - openevolve.controller - INFO - Saved checkpoint at iteration 18 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_18
+2026-02-21 17:22:28,072 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:22:57,860 - openevolve.evaluator - INFO - Evaluated program 20416403-12d4-4021-a4ac-67d4e097ce02 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 20, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 20, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:22:57,861 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 5, 'diversity': 3}
+2026-02-21 17:22:57,861 - openevolve.controller - INFO - Iteration 19: Program 20416403-12d4-4021-a4ac-67d4e097ce02 (parent: 8761614c-2810-4721-aa3b-31e5c16625be) completed in 29.79s
+2026-02-21 17:22:57,861 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 20, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 20, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:22:57,862 - openevolve.database - INFO - Island Status:
+2026-02-21 17:22:57,862 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=12.60, gen=5 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:22:57,862 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=13.20, gen=1 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:22:57,862 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=16.07, gen=2 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:22:57,862 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=44.33, gen=2 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:22:57,862 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=1.60, gen=1 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:22:57,889 - openevolve.database - INFO - Saved database with 12 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_19
+2026-02-21 17:22:57,893 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:22:57,893 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_19
+2026-02-21 17:22:57,893 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 17:23:31,127 - openevolve.evaluator - INFO - Evaluated program 26f84e24-dd49-4577-a6c2-2e34507337a1 in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 26.331806182861328, 'min_height_during_quake': 26.331806182861328, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 50.49064247271904, 'center_of_mass_y': -17.533543791110066, 'center_of_mass_x_range': [0.0, 50.49064247271904], 'center_of_mass_displacement': 50.49064247271904, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 13.700000040233135, 'structure_width': 402.3740358352661, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.99392700195312, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 46.20349884033203, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 50.49])'}, error=None
+2026-02-21 17:23:31,128 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 3, 'diversity': 1}
+2026-02-21 17:23:31,129 - openevolve.controller - INFO - Iteration 20: Program 26f84e24-dd49-4577-a6c2-2e34507337a1 (parent: f819b9ee-e18e-475e-a5bd-072b4bdcadba) completed in 33.24s
+2026-02-21 17:23:31,129 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'initial_height': 0.0, 'current_height': 26.331806182861328, 'min_height_during_quake': 26.331806182861328, 'height_loss': 0.0, 'target_height': 30.0, 'survival_height': 25.0, 'survival_tolerance': 3.0, 'center_of_mass_x': 50.49064247271904, 'center_of_mass_y': -17.533543791110066, 'center_of_mass_x_range': [0.0, 50.49064247271904], 'center_of_mass_displacement': 50.49064247271904, 'stability_x_min': -4.0, 'stability_x_max': 4.0, 'structure_mass': 13.700000040233135, 'structure_width': 402.3740358352661, 'num_beams': 32, 'num_joints': 0, 'num_springs': 1, 'initial_joint_count': 0, 'initial_spring_count': 1, 'structure_broken': False, 'max_velocity_x': 119.99392700195312, 'max_velocity_y': 33.33329391479492, 'max_angular_velocity': 46.20349884033203, 'height_history': [(0, 32.0)], 'center_of_mass_history': [], 'step_count': 200, 'quake_start_step': 120, 'is_during_quake': True, 'success': False, 'failed': True, 'failure_reason': 'Center of mass exceeded stability bounds x=[-4.0, 4.0] (range: [0.00, 50.49])'}, error=None
+2026-02-21 17:23:31,129 - openevolve.database - INFO - Island Status:
+2026-02-21 17:23:31,129 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=12.60, gen=5 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:23:31,129 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=13.20, gen=1 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:23:31,129 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=16.07, gen=2 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:23:31,129 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=44.33, gen=2 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:23:31,129 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=1.07, gen=2 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:23:31,159 - openevolve.database - INFO - Saved database with 13 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_20
+2026-02-21 17:23:31,163 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:23:31,163 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_20
+2026-02-21 17:23:31,185 - openevolve.database - INFO - Saved database with 13 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_20
+2026-02-21 17:23:31,189 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:23:31,189 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_20
+2026-02-21 17:23:31,189 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "'b2Body' object has no attribute 'width'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nAttributeError: \'b2Body\' object has no attribute \'width\'\n'}, error=Error building agent: 'b2Body' object has no attribute 'width'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+AttributeError: 'b2Body' object has no attribute 'width'
+
+2026-02-21 17:23:31,193 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/best/best_program_info.json
+2026-02-21 17:23:31,196 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 17:23:31,197 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 17:23:31,197 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 17:23:31,395 - openevolve.database - INFO - Reconstructed islands: restored 13 programs to islands
+2026-02-21 17:23:31,395 - openevolve.database - INFO - Loaded database with 26 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_02/checkpoints/checkpoint_20
+2026-02-21 17:23:31,396 - openevolve.database - INFO - Island Status:
+2026-02-21 17:23:31,396 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=12.60, gen=5 (best: 19ac22a0-768e-4832-9be0-235af5c27d02)
+2026-02-21 17:23:31,396 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=13.20, gen=1 (best: 847bb37d-a303-4734-b1de-8bb420f2e708)
+2026-02-21 17:23:31,396 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=16.07, gen=2 (best: 76c018f1-1fce-4d4a-acf6-ab7b1872a2d8)
+2026-02-21 17:23:31,396 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=44.33, gen=2 (best: 8761614c-2810-4721-aa3b-31e5c16625be)
+2026-02-21 17:23:31,396 - openevolve.database - INFO -    Island 4: 3 programs, best=0.0000, avg=0.0000, diversity=1.07, gen=2 (best: 359dc635-910a-4c9a-b97c-571337532f6b)
+2026-02-21 17:23:31,450 - openevolve.database - INFO - Saved database with 26 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_02/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

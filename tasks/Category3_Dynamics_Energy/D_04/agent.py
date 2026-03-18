@@ -31,19 +31,28 @@ def agent_action_stage_1(sandbox, agent_body, step_count):
     v_sq = vx**2 + vy**2
     expected_y = pos.y + v_sq / 20.0
     in_target = pos.y >= 11.7 and 9.35 <= pos.x <= 10.65
-    if expected_y > 14.1 or in_target:
+    dead_zone_left, dead_zone_right = 9.5, 11.0
+    in_dead_zone = dead_zone_left <= pos.x <= dead_zone_right
+    min_speed_in_zone = 14.0
+    if in_target:
         fx = max(-42.0, min(42.0, -vx * 100.0))
         fy = max(-42.0, min(42.0, -vy * 100.0))
         sandbox.apply_force_to_seat(fx, fy)
-    elif expected_y > 13.95:
-        sandbox.apply_force_to_seat(0, 0)
+    elif expected_y > 14.2:
+        sandbox.apply_force_to_seat(max(-42.0, min(42.0, -vx * 80.0)), max(-42.0, min(42.0, -vy * 80.0)))
     else:
-        if pos.x < 9.8 or pos.x > 10.2:
+        if not in_dead_zone:
             if abs(vx) > 0.05:
                 fx = 42.0 if vx > 0 else -42.0
             else:
                 fx = 42.0 if pos.x < 10.0 else -42.0
             sandbox.apply_force_to_seat(fx, 0)
+        else:
+            if abs(vx) >= min_speed_in_zone:
+                fx = 42.0 if vx > 0 else -42.0
+                sandbox.apply_force_to_seat(fx, 0)
+            else:
+                sandbox.apply_force_to_seat(0, 0)
 
 def build_agent_stage_2(sandbox):
     return None

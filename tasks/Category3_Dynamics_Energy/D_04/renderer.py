@@ -12,6 +12,7 @@ class D04Renderer(Renderer):
     """D-04: The Swing task renderer."""
 
     def render(self, sandbox, agent_body, target_x, camera_offset_x):
+        # target_x is kept for API compatibility with main/generic renderer signature; target zone is taken from sandbox.
         # Enforce 16:9 aspect ratio
         if self.simulator.screen_width != 800 or self.simulator.screen_height != 450:
             self.simulator.screen_width = 800
@@ -20,11 +21,14 @@ class D04Renderer(Renderer):
                 import pygame
                 self.simulator.screen = pygame.Surface((800, 450))
 
-        # Panoramic Camera Viewport
+        # Panoramic Camera Viewport (derived from sandbox so mutations stay consistent)
         self.simulator.ppm = 40.0
-        center_x_world = 10.0
-        center_y_world = 6.5
-        
+        bounds = sandbox.get_terrain_bounds() if hasattr(sandbox, "get_terrain_bounds") else {}
+        center_x_world = float(bounds.get("pivot_x", 10.0))
+        pivot_y = float(bounds.get("pivot_y", 10.0))
+        rope_length = float(bounds.get("rope_length", 4.0))
+        center_y_world = pivot_y - rope_length / 2.0  # midpoint between pivot and swing bottom
+
         cam_x = center_x_world * self.simulator.ppm - self.simulator.screen_width / 2
         cam_y = self.simulator.screen_height / 2 - center_y_world * self.simulator.ppm
         self.set_camera_offset(cam_x, cam_y)

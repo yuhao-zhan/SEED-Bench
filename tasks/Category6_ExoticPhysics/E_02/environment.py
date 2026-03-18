@@ -24,6 +24,9 @@ class Sandbox:
 
     OVERHEAT_LIMIT = 72000.0  # Hard but solvable with efficient trajectory
 
+    # Single source of truth for step limit; prompt time budget should match (see main.py when max_steps is None).
+    MAX_STEPS = 10000
+
     DEFAULT_LINEAR_DAMPING = 4.0
     DEFAULT_ANGULAR_DAMPING = 3.0
 
@@ -56,6 +59,11 @@ class Sandbox:
         self._wind_amplitude = float(physics_config.get("wind_amplitude", self.WIND_AMPLITUDE))
         self._wind_omega = float(physics_config.get("wind_omega", self.WIND_OMEGA))
         self._overheat_limit = float(physics_config.get("overheat_limit", self.OVERHEAT_LIMIT))
+        
+        # New environmental forces
+        self._constant_force_x = float(physics_config.get("constant_force_x", 0.0))
+        self._constant_force_y = float(physics_config.get("constant_force_y", 0.0))
+
         self._world = world(gravity=gravity, doSleep=True)
         self._terrain_bodies = {}
         self._heat = 0.0
@@ -145,11 +153,16 @@ class Sandbox:
 
         if not self._overheated:
             fx, fy = self._pending_thrust
-            craft.ApplyForceToCenter((fx, fy), wake=True)
+            # Apply thrust + constant environmental forces
+            craft.ApplyForceToCenter((fx + self._constant_force_x, fy + self._constant_force_y), wake=True)
             thrust_mag = math.sqrt(fx * fx + fy * fy)
             self._heat += thrust_mag * time_step
             if self._heat >= self._overheat_limit:
                 self._overheated = True
+        else:
+            # Still apply environmental forces even if overheated (craft just drifts)
+            craft.ApplyForceToCenter((self._constant_force_x, self._constant_force_y), wake=True)
+        
         self._pending_thrust = (0.0, 0.0)
 
         # Momentum-drain zone: velocity heavily reduced each step

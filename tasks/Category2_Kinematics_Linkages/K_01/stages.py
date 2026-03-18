@@ -119,19 +119,20 @@ def get_k01_curriculum_stages() -> List[Dict[str, Any]]:
                 "angular_damping": 2.5,
             },
         },
-        # Stage-3: Low ground friction 0.04 + body friction cap 0.12 + ±π/6 + damping 3.0; continuous rotation slips and fails.
+        # Stage-3: Lower friction + body friction cap + ±π/6 + higher damping so that with unified max_steps (350k)
+        # the Initial reference solution still fails here while Stage-3 ref passes.
         {
             "stage_id": "Stage-3",
             "title": "Low Friction + Restricted Joints + Damping",
-            "mutation_description": "Ground friction 0.04, max body friction 0.12, joint limits ±π/6 (30°), linear and angular damping 3.0. Balancing traction, range, and energy loss.",
+            "mutation_description": "Ground friction 0.02, max body friction 0.08, joint limits ±π/6 (30°), linear and angular damping 3.5. Balancing traction, range, and energy loss.",
             "task_description_suffix": _UNIFORM_SUFFIX,
-            "terrain_config": {"ground_friction": 0.04},
+            "terrain_config": {"ground_friction": 0.02},
             "physics_config": {
-                "max_body_friction": 0.12,
+                "max_body_friction": 0.08,
                 "default_joint_lower_limit": -math.pi / 6,
                 "default_joint_upper_limit": math.pi / 6,
-                "linear_damping": 3.0,
-                "angular_damping": 3.0,
+                "linear_damping": 3.5,
+                "angular_damping": 3.5,
             },
         },
         # Stage-4: Extreme – reduced gravity -12, low friction, body friction cap, ±π/6 joints, damping 2.8, tight mass budget 3 kg (baseline exceeds).

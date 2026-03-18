@@ -1,0 +1,353 @@
+2026-02-21 18:04:06,995 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/logs/openevolve_20260221_180406.log
+2026-02-21 18:04:06,996 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 18:04:06,996 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 18:04:07,002 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 18:04:07,008 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 18:04:07,008 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 18:04:07,011 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_hil1jqup/evaluate.py
+2026-02-21 18:04:07,011 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_hil1jqup/evaluate.py
+2026-02-21 18:04:07,011 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_hil1jqup/initial_program.py
+2026-02-21 18:04:07,011 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 18:04:07,051 - openevolve.evaluator - INFO - Evaluated program 601c737f-88db-4bb3-8d83-7396253a6b21 in 0.04s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:04:07,052 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 18:04:07,052 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 18:04:07,053 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 18:04:07,054 - openevolve.database - INFO - Island Status:
+2026-02-21 18:04:07,054 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:04:07,054 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:07,054 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:07,054 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:07,054 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:07,055 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:04:35,859 - openevolve.evaluator - INFO - Evaluated program 5243f225-f4d7-450e-a0eb-e2db87e486ba in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:04:35,860 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 5}
+2026-02-21 18:04:35,860 - openevolve.controller - INFO - Iteration 1: Program 5243f225-f4d7-450e-a0eb-e2db87e486ba (parent: 601c737f-88db-4bb3-8d83-7396253a6b21) completed in 28.80s
+2026-02-21 18:04:35,860 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:04:35,860 - openevolve.database - INFO - Island Status:
+2026-02-21 18:04:35,860 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:04:35,860 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:35,860 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:35,860 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:35,861 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:04:35,870 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_1
+2026-02-21 18:04:35,873 - openevolve.controller - INFO - Saved best program at checkpoint 1 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:04:35,873 - openevolve.controller - INFO - Saved checkpoint at iteration 1 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_1
+2026-02-21 18:04:35,875 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:05:26,226 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-21 18:05:26,229 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:06:16,203 - openevolve.controller - WARNING - Iteration 3 error: No valid diffs found
+2026-02-21 18:06:16,204 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:06:36,136 - openevolve.evaluator - INFO - Evaluated program b8ce80f4-d8cf-479c-9ab9-879f6212ccec in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:06:36,136 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 5, 'diversity': 5}
+2026-02-21 18:06:36,137 - openevolve.controller - INFO - Iteration 4: Program b8ce80f4-d8cf-479c-9ab9-879f6212ccec (parent: 601c737f-88db-4bb3-8d83-7396253a6b21) completed in 19.93s
+2026-02-21 18:06:36,137 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:06:36,137 - openevolve.database - INFO - Island Status:
+2026-02-21 18:06:36,137 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=2 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:06:36,137 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:06:36,137 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:06:36,137 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b8ce80f4-d8cf-479c-9ab9-879f6212ccec)
+2026-02-21 18:06:36,137 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:06:36,148 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_4
+2026-02-21 18:06:36,151 - openevolve.controller - INFO - Saved best program at checkpoint 4 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:06:36,151 - openevolve.controller - INFO - Saved checkpoint at iteration 4 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_4
+2026-02-21 18:06:36,151 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:06:57,143 - openevolve.evaluator - INFO - Evaluated program 5fb2ebee-af90-4bda-adef-f64c3ef3960f in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:06:57,144 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 5, 'diversity': 5}
+2026-02-21 18:06:57,144 - openevolve.controller - INFO - Iteration 5: Program 5fb2ebee-af90-4bda-adef-f64c3ef3960f (parent: 601c737f-88db-4bb3-8d83-7396253a6b21) completed in 20.99s
+2026-02-21 18:06:57,144 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:06:57,144 - openevolve.database - INFO - Island Status:
+2026-02-21 18:06:57,144 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=3 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:06:57,144 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:06:57,144 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:06:57,145 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b8ce80f4-d8cf-479c-9ab9-879f6212ccec)
+2026-02-21 18:06:57,145 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fb2ebee-af90-4bda-adef-f64c3ef3960f)
+2026-02-21 18:06:57,154 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_5
+2026-02-21 18:06:57,157 - openevolve.controller - INFO - Saved best program at checkpoint 5 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:06:57,157 - openevolve.controller - INFO - Saved checkpoint at iteration 5 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_5
+2026-02-21 18:06:57,157 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:07:36,105 - openevolve.evaluator - INFO - Evaluated program fad9a878-1874-48ca-8f25-a8e849144618 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:07:36,105 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 9}
+2026-02-21 18:07:36,105 - openevolve.controller - INFO - Iteration 6: Program fad9a878-1874-48ca-8f25-a8e849144618 (parent: 601c737f-88db-4bb3-8d83-7396253a6b21) completed in 38.95s
+2026-02-21 18:07:36,106 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:07:36,106 - openevolve.database - INFO - Island Status:
+2026-02-21 18:07:36,106 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=0.67, gen=4 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:07:36,106 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:07:36,106 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:07:36,106 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b8ce80f4-d8cf-479c-9ab9-879f6212ccec)
+2026-02-21 18:07:36,106 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fb2ebee-af90-4bda-adef-f64c3ef3960f)
+2026-02-21 18:07:36,120 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_6
+2026-02-21 18:07:36,124 - openevolve.controller - INFO - Saved best program at checkpoint 6 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:07:36,124 - openevolve.controller - INFO - Saved checkpoint at iteration 6 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_6
+2026-02-21 18:07:36,125 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:08:27,328 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-21 18:08:27,330 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:09:18,013 - openevolve.controller - WARNING - Iteration 8 error: No valid diffs found
+2026-02-21 18:09:18,014 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:10:07,441 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 18:10:07,442 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:10:56,906 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 18:10:56,908 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:11:29,563 - openevolve.evaluator - INFO - Evaluated program 81385ca7-e5b7-4429-bbae-499f6ad88d26 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:11:29,563 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 0, 'diversity': 0}
+2026-02-21 18:11:29,563 - openevolve.controller - INFO - Iteration 11: Program 81385ca7-e5b7-4429-bbae-499f6ad88d26 (parent: 601c737f-88db-4bb3-8d83-7396253a6b21) completed in 32.66s
+2026-02-21 18:11:29,563 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:11:29,564 - openevolve.database - INFO - Island Status:
+2026-02-21 18:11:29,564 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=0.50, gen=5 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:11:29,564 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:11:29,564 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:11:29,564 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b8ce80f4-d8cf-479c-9ab9-879f6212ccec)
+2026-02-21 18:11:29,564 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fb2ebee-af90-4bda-adef-f64c3ef3960f)
+2026-02-21 18:11:29,595 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_11
+2026-02-21 18:11:29,598 - openevolve.controller - INFO - Saved best program at checkpoint 11 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:11:29,599 - openevolve.controller - INFO - Saved checkpoint at iteration 11 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_11
+2026-02-21 18:11:29,601 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:12:21,570 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 18:12:21,571 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:13:13,024 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-21 18:13:13,025 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:14:02,271 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 18:14:02,272 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:14:51,560 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 18:14:51,561 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:15:42,840 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 18:15:42,842 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:16:34,158 - openevolve.evaluator - INFO - Evaluated program 8099baf9-d92e-4e64-95e3-163dbb4378dc in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:16:34,158 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 1, 'diversity': 2}
+2026-02-21 18:16:34,158 - openevolve.controller - INFO - Iteration 17: Program 8099baf9-d92e-4e64-95e3-163dbb4378dc (parent: 81385ca7-e5b7-4429-bbae-499f6ad88d26) completed in 51.32s
+2026-02-21 18:16:34,158 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:16:34,159 - openevolve.database - INFO - Island Status:
+2026-02-21 18:16:34,159 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=0.50, gen=6 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:16:34,159 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8099baf9-d92e-4e64-95e3-163dbb4378dc)
+2026-02-21 18:16:34,159 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:16:34,159 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b8ce80f4-d8cf-479c-9ab9-879f6212ccec)
+2026-02-21 18:16:34,159 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fb2ebee-af90-4bda-adef-f64c3ef3960f)
+2026-02-21 18:16:34,179 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_17
+2026-02-21 18:16:34,183 - openevolve.controller - INFO - Saved best program at checkpoint 17 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:16:34,183 - openevolve.controller - INFO - Saved checkpoint at iteration 17 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_17
+2026-02-21 18:16:34,184 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:17:17,967 - openevolve.evaluator - INFO - Evaluated program ead8f9b1-e474-430c-b334-952a294b2f43 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:17:17,968 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 1, 'diversity': 7}
+2026-02-21 18:17:17,968 - openevolve.controller - INFO - Iteration 18: Program ead8f9b1-e474-430c-b334-952a294b2f43 (parent: 5243f225-f4d7-450e-a0eb-e2db87e486ba) completed in 43.78s
+2026-02-21 18:17:17,968 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:17:17,969 - openevolve.database - INFO - Island Status:
+2026-02-21 18:17:17,969 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=0.50, gen=7 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:17:17,969 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8099baf9-d92e-4e64-95e3-163dbb4378dc)
+2026-02-21 18:17:17,969 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: ead8f9b1-e474-430c-b334-952a294b2f43)
+2026-02-21 18:17:17,969 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b8ce80f4-d8cf-479c-9ab9-879f6212ccec)
+2026-02-21 18:17:17,969 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fb2ebee-af90-4bda-adef-f64c3ef3960f)
+2026-02-21 18:17:17,989 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_18
+2026-02-21 18:17:18,008 - openevolve.controller - INFO - Saved best program at checkpoint 18 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:17:18,009 - openevolve.controller - INFO - Saved checkpoint at iteration 18 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_18
+2026-02-21 18:17:18,009 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:18:07,272 - openevolve.controller - WARNING - Iteration 19 error: No valid diffs found
+2026-02-21 18:18:07,273 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:18:56,564 - openevolve.controller - WARNING - Iteration 20 error: No valid diffs found
+2026-02-21 18:18:56,587 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 18:18:56,590 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:18:56,590 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 18:18:56,590 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Structure height limit: no beam may extend above y=4.5m', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 13, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam\n    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")\nValueError: Structure height limit: no beam may extend above y=4.5m\n'}, error=Error building agent: Structure height limit: no beam may extend above y=4.5m
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 13, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_05/environment.py", line 224, in add_beam
+    raise ValueError(f"Structure height limit: no beam may extend above y={self.MAX_STRUCTURE_HEIGHT}m")
+ValueError: Structure height limit: no beam may extend above y=4.5m
+
+2026-02-21 18:18:56,595 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/best/best_program_info.json
+2026-02-21 18:18:56,598 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 18:18:56,598 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 18:18:56,598 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 18:18:56,669 - openevolve.database - INFO - Reconstructed islands: restored 8 programs to islands
+2026-02-21 18:18:56,670 - openevolve.database - INFO - Loaded database with 11 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 18:18:56,670 - openevolve.database - INFO - Island Status:
+2026-02-21 18:18:56,670 - openevolve.database - INFO -  * Island 0: 4 programs, best=0.0000, avg=0.0000, diversity=0.50, gen=7 (best: 601c737f-88db-4bb3-8d83-7396253a6b21)
+2026-02-21 18:18:56,670 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8099baf9-d92e-4e64-95e3-163dbb4378dc)
+2026-02-21 18:18:56,670 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: ead8f9b1-e474-430c-b334-952a294b2f43)
+2026-02-21 18:18:56,670 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: b8ce80f4-d8cf-479c-9ab9-879f6212ccec)
+2026-02-21 18:18:56,670 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5fb2ebee-af90-4bda-adef-f64c3ef3960f)
+2026-02-21 18:18:56,700 - openevolve.database - INFO - Saved database with 11 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_05/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

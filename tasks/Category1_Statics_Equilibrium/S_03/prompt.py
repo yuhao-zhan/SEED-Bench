@@ -28,7 +28,7 @@ The structure must extend horizontally to reach the target distance and support 
 - **Build Zone**: Structure must be built within x = [0, 50] m and y = [-20, 30] m. Beams outside this region violate design constraints.
 - **Beam Limits**: Each beam's width and height are clamped to [0.1 m, 15.0 m] per dimension.
 - **Payloads**: Payloads will be applied to your structure to test its load-bearing capacity and stability. Each payload has mass **500 kg** (applied at t=5s and t=15s). The first payload attaches to the rightmost (tip) body; the second attaches to the body at median horizontal position (mid-span). Payload application is either **static** (placed on the structure at the given times) or **dropped** from a specified height; in the source environment payloads are placed statically (no drop).
-- **Minimum Tip Height**: The structure must not sag below y = -15.0 m (minimum tip clearance); otherwise the task fails.
+- **Minimum Tip Height**: The structure must not sag below y = -15.0 m (no part of the structure may go below this level); otherwise the task fails.
 - **Reach Deflection Tolerance**: Under load, the tip may deflect; reach is still satisfied if tip x remains within 1.0 m of the target.
 - **Internal Joint Limits**: Beam-to-beam joints fail if force exceeds **100,000,000 N** or torque exceeds **100,000,000 N·m**.
 - **Wall Anchor Limits**: Wall anchors fail if force exceeds **100,000,000 N** or torque exceeds **100,000,000 N·m** (exceeding causes anchor failure). When segment-specific anchor strength applies, the vertical segment (y range) and force/torque multipliers are stated explicitly.
@@ -49,7 +49,7 @@ Design a robust cantilever structure that can:
 1. **Reach**: Structure reaches the required horizontal distance (Tip reaches x >= 12.0m).
 2. **Load Bearing**: Successfully supports all payloads for the 10s test duration.
 3. **Anchor Integrity**: All wall anchors and joints remain intact.
-4. **Stability**: The structure does not sag below the allowed vertical threshold (y >= -15.0 m).
+4. **Stability**: No part of the structure may go below the allowed vertical threshold (y >= -15.0 m).
 
 ## Design Constraints
 - **Mass Budget**: < 15,000 kg.

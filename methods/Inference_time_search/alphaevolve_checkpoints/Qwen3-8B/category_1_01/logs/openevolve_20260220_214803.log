@@ -1,0 +1,161 @@
+2026-02-20 21:48:03,653 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/logs/openevolve_20260220_214803.log
+2026-02-20 21:48:03,664 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-20 21:48:55,392 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-20 21:48:55,398 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-20 21:48:55,402 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-20 21:48:55,402 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 21:48:55,404 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_cvzca1mv/evaluate.py
+2026-02-20 21:48:55,404 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_cvzca1mv/evaluate.py
+2026-02-20 21:48:55,404 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_cvzca1mv/initial_program.py
+2026-02-20 21:48:55,404 - openevolve.controller - INFO - Adding initial program to database
+2026-02-20 21:48:55,570 - openevolve.evaluator - INFO - Evaluated program 6de6e5c0-82c7-49fa-bb20-b75ac3006b15 in 0.17s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 21:48:55,571 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-20 21:48:55,571 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-20 21:48:55,572 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-20 21:48:55,572 - openevolve.database - INFO - Island Status:
+2026-02-20 21:48:55,572 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15)
+2026-02-20 21:48:55,572 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:48:55,572 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:48:55,572 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:48:55,572 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:48:55,572 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:49:44,521 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-20 21:49:44,522 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:50:33,133 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-20 21:50:33,134 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:51:21,736 - openevolve.controller - WARNING - Iteration 3 error: No valid diffs found
+2026-02-20 21:51:21,737 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:52:10,331 - openevolve.controller - WARNING - Iteration 4 error: No valid diffs found
+2026-02-20 21:52:10,332 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:52:58,936 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-20 21:52:58,937 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:53:47,539 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-20 21:53:47,540 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:54:36,147 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-20 21:54:36,148 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:55:24,745 - openevolve.controller - WARNING - Iteration 8 error: No valid diffs found
+2026-02-20 21:55:24,746 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:56:13,353 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-20 21:56:13,355 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:57:01,955 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-20 21:57:01,955 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:57:50,560 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-20 21:57:50,561 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:58:39,155 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-20 21:58:39,156 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:59:27,760 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-20 21:59:27,761 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:00:16,357 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-20 22:00:16,358 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:00:34,137 - openevolve.evaluator - INFO - Evaluated program 7fc9f439-2ad5-45b4-8550-0c4eb7715ced in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'body' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 9, in build_agent\nNameError: name \'body\' is not defined\n'}, error=Error building agent: name 'body' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 9, in build_agent
+NameError: name 'body' is not defined
+
+2026-02-20 22:00:34,137 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 9, 'diversity': 5}
+2026-02-20 22:00:34,138 - openevolve.controller - INFO - Iteration 15: Program 7fc9f439-2ad5-45b4-8550-0c4eb7715ced (parent: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15) completed in 17.78s
+2026-02-20 22:00:34,138 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'body' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 9, in build_agent\nNameError: name \'body\' is not defined\n'}, error=Error building agent: name 'body' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 9, in build_agent
+NameError: name 'body' is not defined
+
+2026-02-20 22:00:34,138 - openevolve.database - INFO - Island Status:
+2026-02-20 22:00:34,138 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15)
+2026-02-20 22:00:34,138 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:00:34,138 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:00:34,138 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:00:34,138 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 7fc9f439-2ad5-45b4-8550-0c4eb7715ced)
+2026-02-20 22:00:34,144 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_15
+2026-02-20 22:00:34,149 - openevolve.controller - INFO - Saved best program at checkpoint 15 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:00:34,149 - openevolve.controller - INFO - Saved checkpoint at iteration 15 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_15
+2026-02-20 22:00:34,149 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:01:22,891 - openevolve.evaluator - INFO - Evaluated program 26a31224-bfe1-48da-8201-e93e6faaef0f in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 12.698328018188477, 'vehicle_y': 7.5522332191467285, 'target_x': 30.0, 'progress': 30.79331207275391, 'success': False, 'failed': True, 'failure_reason': 'Vehicle flipped: angle 119.6° exceeds 90° limit', 'step_count': 100, 'structure_mass': 1.5, 'max_structure_mass': 2000.0, 'max_vertical_accel': 4.752608871459961, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 4.515499591827393, 'velocity_y': -7.921014785766602, 'angular_velocity': -3.659623384475708, 'angle': -2.0879318714141846, 'normalized_angle': -2.0879318714141846, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:01:22,892 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 4, 'diversity': 0}
+2026-02-20 22:01:22,892 - openevolve.controller - INFO - Iteration 16: Program 26a31224-bfe1-48da-8201-e93e6faaef0f (parent: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15) completed in 48.74s
+2026-02-20 22:01:22,893 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 12.698328018188477, 'vehicle_y': 7.5522332191467285, 'target_x': 30.0, 'progress': 30.79331207275391, 'success': False, 'failed': True, 'failure_reason': 'Vehicle flipped: angle 119.6° exceeds 90° limit', 'step_count': 100, 'structure_mass': 1.5, 'max_structure_mass': 2000.0, 'max_vertical_accel': 4.752608871459961, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 4.515499591827393, 'velocity_y': -7.921014785766602, 'angular_velocity': -3.659623384475708, 'angle': -2.0879318714141846, 'normalized_angle': -2.0879318714141846, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:01:22,893 - openevolve.database - INFO - Island Status:
+2026-02-20 22:01:22,893 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=29.60, gen=2 (best: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15)
+2026-02-20 22:01:22,893 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:01:22,893 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:01:22,893 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:01:22,893 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 7fc9f439-2ad5-45b4-8550-0c4eb7715ced)
+2026-02-20 22:01:22,901 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_16
+2026-02-20 22:01:22,904 - openevolve.controller - INFO - Saved best program at checkpoint 16 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:01:22,904 - openevolve.controller - INFO - Saved checkpoint at iteration 16 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_16
+2026-02-20 22:01:22,905 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:01:43,790 - openevolve.evaluator - INFO - Evaluated program 01db16db-a47a-4c61-94ed-d007fc271dbe in 0.00s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Sandbox.set_material_properties() got an unexpected keyword argument 'friction'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 24, in build_agent\nTypeError: Sandbox.set_material_properties() got an unexpected keyword argument \'friction\'\n'}, error=Error building agent: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 24, in build_agent
+TypeError: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+
+2026-02-20 22:01:43,790 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 9}
+2026-02-20 22:01:43,790 - openevolve.controller - INFO - Iteration 17: Program 01db16db-a47a-4c61-94ed-d007fc271dbe (parent: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15) completed in 20.89s
+2026-02-20 22:01:43,790 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Sandbox.set_material_properties() got an unexpected keyword argument 'friction'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 24, in build_agent\nTypeError: Sandbox.set_material_properties() got an unexpected keyword argument \'friction\'\n'}, error=Error building agent: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 24, in build_agent
+TypeError: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+
+2026-02-20 22:01:43,790 - openevolve.database - INFO - Island Status:
+2026-02-20 22:01:43,790 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=29.60, gen=3 (best: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15)
+2026-02-20 22:01:43,791 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 01db16db-a47a-4c61-94ed-d007fc271dbe)
+2026-02-20 22:01:43,791 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:01:43,791 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:01:43,791 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 7fc9f439-2ad5-45b4-8550-0c4eb7715ced)
+2026-02-20 22:01:43,800 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_17
+2026-02-20 22:01:43,803 - openevolve.controller - INFO - Saved best program at checkpoint 17 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:01:43,803 - openevolve.controller - INFO - Saved checkpoint at iteration 17 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_17
+2026-02-20 22:01:43,804 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:02:33,022 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-20 22:02:33,022 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:03:20,356 - openevolve.evaluator - INFO - Evaluated program 9344a64c-f1ee-40b8-9c0a-c59e68d1eb28 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Sandbox.set_material_properties() got an unexpected keyword argument 'friction'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 12, in build_agent\nTypeError: Sandbox.set_material_properties() got an unexpected keyword argument \'friction\'\n'}, error=Error building agent: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 12, in build_agent
+TypeError: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+
+2026-02-20 22:03:20,357 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 3, 'diversity': 3}
+2026-02-20 22:03:20,357 - openevolve.controller - INFO - Iteration 19: Program 9344a64c-f1ee-40b8-9c0a-c59e68d1eb28 (parent: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15) completed in 47.33s
+2026-02-20 22:03:20,357 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Sandbox.set_material_properties() got an unexpected keyword argument 'friction'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 12, in build_agent\nTypeError: Sandbox.set_material_properties() got an unexpected keyword argument \'friction\'\n'}, error=Error building agent: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 12, in build_agent
+TypeError: Sandbox.set_material_properties() got an unexpected keyword argument 'friction'
+
+2026-02-20 22:03:20,357 - openevolve.database - INFO - Island Status:
+2026-02-20 22:03:20,358 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=29.60, gen=4 (best: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15)
+2026-02-20 22:03:20,358 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 01db16db-a47a-4c61-94ed-d007fc271dbe)
+2026-02-20 22:03:20,358 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:03:20,358 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 9344a64c-f1ee-40b8-9c0a-c59e68d1eb28)
+2026-02-20 22:03:20,358 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 7fc9f439-2ad5-45b4-8550-0c4eb7715ced)
+2026-02-20 22:03:20,369 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_19
+2026-02-20 22:03:20,372 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:03:20,372 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_19
+2026-02-20 22:03:20,372 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:04:09,129 - openevolve.controller - WARNING - Iteration 20 error: No valid diffs found
+2026-02-20 22:04:09,140 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 22:04:09,142 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:04:09,143 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 22:04:09,143 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 22:04:09,145 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/best/best_program_info.json
+2026-02-20 22:04:09,147 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 22:04:09,148 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-20 22:04:09,148 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-20 22:04:09,163 - openevolve.database - INFO - Reconstructed islands: restored 5 programs to islands
+2026-02-20 22:04:09,163 - openevolve.database - INFO - Loaded database with 33 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 22:04:09,163 - openevolve.database - INFO - Island Status:
+2026-02-20 22:04:09,163 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=29.60, gen=4 (best: 6de6e5c0-82c7-49fa-bb20-b75ac3006b15)
+2026-02-20 22:04:09,163 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 01db16db-a47a-4c61-94ed-d007fc271dbe)
+2026-02-20 22:04:09,163 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:04:09,163 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 9344a64c-f1ee-40b8-9c0a-c59e68d1eb28)
+2026-02-20 22:04:09,163 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 7fc9f439-2ad5-45b4-8550-0c4eb7715ced)
+2026-02-20 22:04:09,216 - openevolve.database - INFO - Saved database with 33 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_01/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260220_pseudo

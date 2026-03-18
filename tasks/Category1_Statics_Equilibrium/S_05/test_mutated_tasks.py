@@ -68,7 +68,8 @@ def test_stage_with_agent_code(stage_config, agent_code):
     if metrics:
         print(f"\nKey metrics:")
         for key in ['failed', 'failure_reason', 'core_force', 'max_core_force', 
-                   'structure_stable', 'structure_mass', 'max_mass', 'meteor_count']:
+                   'structure_stable', 'structure_mass', 'max_mass', 'meteor_count',
+                   'max_joint_force_seen', 'max_joint_torque_seen']:
             if key in metrics:
                 print(f"  {key}: {metrics[key]}")
     

@@ -1,0 +1,41 @@
+2026-02-20 21:34:29,347 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/logs/openevolve_20260220_213429.log
+2026-02-20 21:34:29,357 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-20 21:35:42,974 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-20 21:35:43,025 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-20 21:35:43,044 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-20 21:35:43,044 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 21:35:43,054 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_b6ojebgz/evaluate.py
+2026-02-20 21:35:43,054 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_b6ojebgz/evaluate.py
+2026-02-20 21:35:43,054 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_b6ojebgz/initial_program.py
+2026-02-20 21:35:43,054 - openevolve.controller - INFO - Adding initial program to database
+2026-02-20 21:35:43,277 - openevolve.evaluator - INFO - Evaluated program 81059d79-f356-4c98-b27e-2bfd0a50cc0e in 0.22s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 21:35:43,277 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-20 21:35:43,277 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-20 21:35:43,278 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-20 21:35:43,278 - openevolve.database - INFO - Island Status:
+2026-02-20 21:35:43,278 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 81059d79-f356-4c98-b27e-2bfd0a50cc0e)
+2026-02-20 21:35:43,278 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:35:43,278 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:35:43,278 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:35:43,278 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:35:43,278 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:36:32,217 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-20 21:36:32,217 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 21:37:20,795 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-20 21:37:20,800 - openevolve.database - INFO - Saved database with 1 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_2
+2026-02-20 21:37:20,803 - openevolve.controller - INFO - Saved best program at checkpoint 2 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 21:37:20,803 - openevolve.controller - INFO - Saved checkpoint at iteration 2 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_2
+2026-02-20 21:37:20,803 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'vehicle_x': 5.0, 'vehicle_y': 10.5, 'target_x': 30.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[10.0, 25.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 2000.0, 'max_vertical_accel': 0.0, 'structure_broken': False, 'joint_count': 0, 'velocity_x': 5.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'angle': 0.0, 'normalized_angle': 0.0, 'high_angular_velocity_count': 0, 'is_airborne': False, 'airborne_rotation_accumulated': 0.0}, error=None
+2026-02-20 21:37:20,806 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/best/best_program_info.json
+2026-02-20 21:37:20,808 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 21:37:20,809 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-20 21:37:20,809 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-20 21:37:20,827 - openevolve.database - INFO - Reconstructed islands: restored 3 programs to islands
+2026-02-20 21:37:20,827 - openevolve.database - INFO - Loaded database with 28 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-20 21:37:20,827 - openevolve.database - INFO - Island Status:
+2026-02-20 21:37:20,827 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=29.60, gen=2 (best: 36796856-411f-47a0-8d1a-c814a40ba87c)
+2026-02-20 21:37:20,827 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:37:20,827 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:37:20,827 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 21:37:20,827 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 3d09df04-41a1-42f4-9305-1195fc827991)
+2026-02-20 21:37:20,901 - openevolve.database - INFO - Saved database with 28 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_01/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260220_pseudo

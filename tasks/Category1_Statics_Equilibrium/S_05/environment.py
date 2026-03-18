@@ -58,6 +58,8 @@ class DaVinciSandbox:
         self._max_joint_torque = float(terrain_config.get("max_joint_torque", 1e12))
         self._has_walls = terrain_config.get("has_walls", False)
         self._step_count = 0
+        self._max_reaction_force_seen = 0.0
+        self._max_reaction_torque_seen = 0.0
 
         self._create_terrain(terrain_config)
         self._create_core(terrain_config)
@@ -227,20 +229,23 @@ class DaVinciSandbox:
         # 6 sub-steps (1/360s) is generally more stable than 10 for older solvers
         sub_steps = 6
         sub_dt = time_step / sub_steps
+        broken_joints = []
         for _ in range(sub_steps):
             self._world.Step(sub_dt, 30, 30)
-        
-        # Joint damage tracking
-        inv_dt = 1.0 / time_step
-        broken_joints = []
-        for j in list(self._joints):
-            try:
-                force = j.GetReactionForce(inv_dt).length
-                torque = abs(j.GetReactionTorque(inv_dt))
-                if force > self._max_joint_force or torque > self._max_joint_torque:
-                    broken_joints.append(j)
-            except:
-                continue
+            # Joint damage tracking: check after each sub-step to catch peak forces (e.g. during impact)
+            inv_sub_dt = 1.0 / sub_dt if sub_dt > 0 else 0.0
+            for j in list(self._joints):
+                if j in broken_joints:
+                    continue
+                try:
+                    force = j.GetReactionForce(inv_sub_dt).length
+                    torque = abs(j.GetReactionTorque(inv_sub_dt))
+                    self._max_reaction_force_seen = max(self._max_reaction_force_seen, force)
+                    self._max_reaction_torque_seen = max(self._max_reaction_torque_seen, torque)
+                    if force > self._max_joint_force or torque > self._max_joint_torque:
+                        broken_joints.append(j)
+                except Exception:
+                    continue
         
         for j in broken_joints:
             self._world.DestroyJoint(j)
@@ -276,7 +281,7 @@ class DaVinciSandbox:
         self._max_force_on_core = 0.0
 
     def get_terrain_bounds(self):
-        return {
+        out = {
             "core": {"x": self.CORE_X, "y": self.CORE_Y, "radius": self.CORE_RADIUS},
             "build_zone": {"x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX], "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]},
             "core_max_force": self.CORE_MAX_FORCE,
@@ -285,3 +290,6 @@ class DaVinciSandbox:
             "meteor_count": self._meteor_count,
             "meteor_spawn_interval": self._meteor_spawn_interval,
         }
+        out["max_joint_force"] = self._max_joint_force
+        out["max_joint_torque"] = self._max_joint_torque
+        return out

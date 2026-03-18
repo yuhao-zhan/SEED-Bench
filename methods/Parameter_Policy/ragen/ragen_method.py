@@ -194,13 +194,15 @@ def grpo_advantages(
         for i in range(len(rewards)):
             id2score[episode_indices[i]].append(rewards[i])
         for idx in id2score:
-            if len(id2score[idx]) <= 1:
+            if len(id2score[idx]) == 1:
                 id2mean[idx] = torch.tensor(0.0, device=rewards.device)
                 id2std[idx] = torch.tensor(1.0, device=rewards.device)
-            else:
+            elif len(id2score[idx]) > 1:
                 stacked = torch.stack(id2score[idx])
                 id2mean[idx] = stacked.mean()
                 id2std[idx] = stacked.std()
+            else:
+                raise ValueError(f"no score in prompt index: {idx}")
         adv = rewards.clone()
         for i in range(len(adv)):
             adv[i] = (adv[i] - id2mean[episode_indices[i]]) / (
@@ -256,7 +258,7 @@ def _ragen_reward(code: Optional[str], score: float) -> float:
 
 def filter_rollouts_by_reward(
     episode_rewards: List[float],
-    keep_ratio: float = 0.5,
+    keep_ratio: float = 0.25,
     filter_type: str = "largest",
 ) -> List[int]:
     """Return indices of episodes to keep, filtering by total reward.
@@ -292,6 +294,7 @@ class RAGENSolver:
         4. cleanup():          Free GPU memory.
 
     Config defaults follow RAGEN config/base.yaml and the StarPO-S paper.
+    For large models or OOM, set micro_batch_size=1.
     """
 
     def __init__(
@@ -299,29 +302,29 @@ class RAGENSolver:
         model_name: str,
         model_path: Optional[str] = None,
         device: str = "cuda:0",
-        # LoRA config (RAGEN defaults: config/base.yaml lora.rank=64, alpha=64)
+        # LoRA config (base.yaml has rank=0; we use 64 for per-task LoRA adaptation)
         lora_rank: int = 64,
         lora_alpha: int = 64,
         lora_target_modules: str = "all-linear",
-        # Rollout config
+        # Rollout config (official agent_proxy.max_turn: 5)
         n_rollout_episodes: int = 8,
-        max_turns_per_episode: int = 20,
+        max_turns_per_episode: int = 5,
         rollout_temperature: float = 1.0,
-        # RL training config (StarPO-S defaults)
+        # RL training config (StarPO-S defaults; official micro_batch_size_per_gpu: 4)
         ppo_epochs: int = 2,
         learning_rate: float = 1e-6,
         clip_ratio_low: float = 0.2,
         clip_ratio_high: float = 0.28,
         entropy_coeff: float = 0.001,
-        micro_batch_size: int = 1,
+        micro_batch_size: int = 4,
         grad_clip: float = 1.0,
-        # StarPO-S rollout filtering
-        rollout_filter_ratio: float = 0.5,
+        # StarPO-S rollout filtering (official config/base.yaml: rollout_filter_ratio: 0.25)
+        rollout_filter_ratio: float = 0.25,
         rollout_filter_type: str = "largest",
         # RAGEN format penalty (es_manager.format_penalty)
         format_penalty: float = -0.1,
-        # Evaluation generation config
-        eval_temperature: float = 0.7,
+        # Evaluation generation config (official val_kwargs.temperature: 0.5)
+        eval_temperature: float = 0.5,
     ):
         self.model_type = "local"
         self.model_name = model_name
@@ -548,8 +551,10 @@ class RAGENSolver:
         self,
         task_prompt: Dict[str, Any],
         verifier: Any,
-        max_turns: int = 20,
+        max_turns: int = 5,
         enable_feedback: bool = False,
+        rollout_logger: Optional[Any] = None,
+        episode_idx: int = 0,
     ) -> Dict[str, Any]:
         """Run one complete multi-turn episode (faithful to RAGEN's K-turn rollout).
 
@@ -667,6 +672,20 @@ class RAGENSolver:
                 "response_tokens": r_len,
             }
             turns.append(turn_data)
+            if rollout_logger:
+                rollout_logger.log_rollout_llm_call(
+                    episode=episode_idx,
+                    turn=turn_idx,
+                    prompt_text=prompt_text,
+                    messages=messages,
+                    raw_output=raw_output,
+                    extracted_code=code,
+                    score=score,
+                    success=success,
+                    error=error,
+                    feedback=feedback_text,
+                    token_usage={"prompt_tokens": p_len, "response_tokens": r_len},
+                )
             total_reward += turn_reward
 
             # 6. Update best
@@ -700,6 +719,7 @@ class RAGENSolver:
         verifier: Any,
         n_episodes: Optional[int] = None,
         max_turns: Optional[int] = None,
+        training_logger: Optional[Any] = None,
     ) -> List[Dict[str, Any]]:
         """Collect N complete rollout episodes.
 
@@ -716,9 +736,13 @@ class RAGENSolver:
             print(f"  [RAGEN rollout] Episode {ep_idx + 1}/{n}")
             episode = self.run_rollout_episode(
                 task_prompt, verifier, max_turns=mt,
+                rollout_logger=training_logger,
+                episode_idx=ep_idx,
             )
             episode["episode_idx"] = ep_idx
             episodes.append(episode)
+            if training_logger:
+                training_logger.log_rollout_episode(ep_idx, episode)
 
             # Print summary
             print(f"    reward={episode['total_reward']:.3f}  "
@@ -736,7 +760,11 @@ class RAGENSolver:
     # ==================================================================
     # RL Training (GRPO + PPO-clip on LoRA)
     # ==================================================================
-    def rl_train(self, episodes: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def rl_train(
+        self,
+        episodes: List[Dict[str, Any]],
+        training_logger: Optional[Any] = None,
+    ) -> Dict[str, Any]:
         """Train LoRA using GRPO + PPO-clip on collected rollout episodes.
 
         Algorithm (StarPO / StarPO-S):
@@ -755,6 +783,8 @@ class RAGENSolver:
         Returns training statistics dict.
         """
         if len(episodes) < 2:
+            if training_logger:
+                training_logger.log_warning("Need at least 2 episodes for GRPO; skipping training.")
             print("[RAGEN] Need at least 2 episodes for GRPO; skipping training.")
             return {"skipped": True}
 
@@ -771,6 +801,8 @@ class RAGENSolver:
               f"(keep_ratio={self.rollout_filter_ratio})")
 
         if len(filtered) < 2:
+            if training_logger:
+                training_logger.log_warning("Too few episodes after filtering; skipping training.")
             print("[RAGEN] Too few episodes after filtering; skipping training.")
             return {"skipped": True}
 
@@ -795,6 +827,8 @@ class RAGENSolver:
                 })
 
         if len(samples) < 2:
+            if training_logger:
+                training_logger.log_warning("Too few valid training samples; skipping training.")
             print("[RAGEN] Too few valid training samples; skipping training.")
             return {"skipped": True}
 
@@ -806,6 +840,8 @@ class RAGENSolver:
         #    Response mask = 1 for assistant response tokens, 0 for prompt tokens.
         tokenized = self._tokenize_training_samples(samples)
         if tokenized is None:
+            if training_logger:
+                training_logger.log_warning("Tokenization returned None; skipping training.")
             return {"skipped": True}
 
         input_ids = tokenized["input_ids"]        # (N, L)
@@ -817,8 +853,16 @@ class RAGENSolver:
         n_samples = input_ids.shape[0]
 
         # 4. GRPO advantages (per-episode, expanded to per-token)
-        #    Ref: ragen/trainer/core_algos.py compute_grpo_outcome_advantage
-        advantages = grpo_advantages(episode_rewards, episode_indices)
+        #    Use official ragen.trainer.core_algos.compute_grpo_outcome_advantage when available
+        if _HAS_RAGEN_CORE:
+            token_level_rewards = episode_rewards.unsqueeze(1)  # (N, 1) for official API
+            resp_mask_1 = torch.ones_like(token_level_rewards, device=episode_rewards.device, dtype=torch.float)
+            advantages, _ = _ragen_grpo_advantage(
+                token_level_rewards, resp_mask_1, episode_indices, epsilon=1e-6,
+            )
+            advantages = advantages.squeeze(-1)  # (N,)
+        else:
+            advantages = grpo_advantages(episode_rewards, episode_indices)
         # Expand per-sample advantage to per-token
         token_advantages = advantages.unsqueeze(1).expand_as(response_mask) * response_mask
 
@@ -886,6 +930,10 @@ class RAGENSolver:
                     mb_loss = mb_loss - self.entropy_coeff * entropy
 
                 mb_loss = mb_loss / n_micro_steps
+                # When all advantages are zero (e.g. all rollouts failed), loss can be constant
+                # and lose grad_fn under gradient checkpointing. Tie loss to new_lp so backward() works.
+                if not mb_loss.requires_grad:
+                    mb_loss = mb_loss + 0.0 * new_lp.sum()
                 mb_loss.backward()
                 epoch_loss += mb_loss.item() * n_micro_steps
 
@@ -897,6 +945,8 @@ class RAGENSolver:
             optimizer.zero_grad()
             n_updates += 1
             total_loss_sum += epoch_loss
+            if training_logger:
+                training_logger.log_loss_step(step=epoch + 1, loss=epoch_loss, epoch=epoch + 1)
             print(f"  [RAGEN PPO] Epoch {epoch + 1}/{self.ppo_epochs}: "
                   f"loss={epoch_loss:.4f}")
 
@@ -929,11 +979,38 @@ class RAGENSolver:
         verifier: Any,
         n_episodes: Optional[int] = None,
         max_turns: Optional[int] = None,
+        training_log_dir: Optional[str] = None,
+        max_iterations: Optional[int] = None,
+        max_steps_verifier: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Full RAGEN pre-training: reset LoRA, collect rollouts, train, return stats.
 
         This is called once per task before the standard evaluation loop.
         """
+        logger = None
+        if training_log_dir:
+            try:
+                from methods.Parameter_Policy.common.training_logger import TrainingLogger
+                task_name = task_prompt.get("task_name") or task_prompt.get("name") or ""
+                logger = TrainingLogger(
+                    training_log_dir, method_name="ragen", task_name=task_name,
+                    max_iterations=max_iterations, max_steps_verifier=max_steps_verifier,
+                )
+                logger.log_config(
+                    n_rollouts=n_episodes or self.n_rollout_episodes,
+                    max_turns=max_turns or self.max_turns_per_episode,
+                    ppo_epochs=self.ppo_epochs,
+                    rollout_filter_ratio=self.rollout_filter_ratio,
+                    clip_ratio_low=self.clip_ratio_low,
+                    clip_ratio_high=self.clip_ratio_high,
+                )
+                if task_prompt.get("initial_prompt_text") or task_prompt.get("description"):
+                    from evaluation.prompt import format_initial_prompt
+                    prompt_sample = format_initial_prompt(task_prompt)
+                    logger.log_prompt_sample("initial_prompt", prompt_sample)
+            except Exception as e:
+                print(f"[RAGEN] Could not init training logger: {e}")
+
         # Reset LoRA to blank state
         self.reset_lora()
         print("[RAGEN] LoRA reset for fresh per-task training")
@@ -943,10 +1020,16 @@ class RAGENSolver:
             task_prompt, verifier,
             n_episodes=n_episodes,
             max_turns=max_turns,
+            training_logger=logger,
         )
 
         # RL training
-        stats = self.rl_train(episodes)
+        stats = self.rl_train(episodes, training_logger=logger)
+        if logger:
+            try:
+                logger.finalize(summary_extra=stats)
+            except Exception:
+                pass
         return stats
 
     # ==================================================================

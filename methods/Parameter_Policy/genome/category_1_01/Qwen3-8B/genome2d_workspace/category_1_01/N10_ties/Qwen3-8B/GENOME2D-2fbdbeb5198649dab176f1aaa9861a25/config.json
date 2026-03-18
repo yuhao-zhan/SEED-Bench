@@ -1,0 +1,36 @@
+{
+    "model_name_or_path": "/home/test/testdata/models/Qwen3-8B",
+    "pools": [
+        "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/experts/code_alpaca",
+        "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/experts/gpt4_alpaca"
+    ],
+    "llm_base_url": [
+        "http://localhost:18177/v1",
+        "http://localhost:36048/v1"
+    ],
+    "tasks": [
+        "category_1_01"
+    ],
+    "test_tasks": [
+        "category_1_01"
+    ],
+    "task_weights": [
+        1.0
+    ],
+    "combine_method": "ties",
+    "plot_enabled": false,
+    "early_stop": false,
+    "early_stop_iter": 5,
+    "seed": 42,
+    "workspace_prefix": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B",
+    "max_valid_samples": 1,
+    "N": 10,
+    "max_iter": 50,
+    "cross_rate": 0.8,
+    "cross_method": "ties",
+    "individual_mutation_rate": 0.15,
+    "gene_mutation_rate": 0.01,
+    "sigma": 0.01,
+    "elite_percent": 0.02,
+    "method": "roulette"
+}

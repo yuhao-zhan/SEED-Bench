@@ -2,13 +2,20 @@
 E-06: The Brownian task curriculum stages (mutations).
 
 All mutations use invisible physics parameters (noise strength, impact frequency,
-joint/damage thresholds, beam fatigue, etc.). No task_description_suffix — agent
-must infer changes from environment feedback.
+joint/damage thresholds, beam fatigue, etc.). Visible mutations (joint_break_force,
+joint_break_torque, damage_limit) are synced into the prompt via update_*_for_visible_changes.
 
 Stages ordered by difficulty: Stage-1 (single param) -> Stage-4 (multiple params).
 """
 from __future__ import annotations
+import re
 from typing import Any, Dict, List
+
+
+# Base (source) values from environment.py — used when base_physics_config omits a key
+DEFAULT_JOINT_BREAK_FORCE = 78.0
+DEFAULT_JOINT_BREAK_TORQUE = 115.0
+DEFAULT_DAMAGE_LIMIT = 100.0
 
 
 TASK_DESCRIPTION_SUFFIX = """
@@ -27,14 +34,102 @@ While the following variables **MIGHT** have changed from the initial environmen
 """
 
 
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update task description for visible changes."""
-    return base_description
+def update_task_description_for_visible_changes(
+    base_description: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+) -> str:
+    """
+    Update task description with visible physics changes.
+    Format: [new_value] (originally [old_value] in the source environment).
+    """
+    description = base_description
+    target_physics_config = target_physics_config or {}
+    base_physics_config = base_physics_config or {}
+
+    target_force = target_physics_config.get("joint_break_force", DEFAULT_JOINT_BREAK_FORCE)
+    base_force = base_physics_config.get("joint_break_force", DEFAULT_JOINT_BREAK_FORCE)
+    target_torque = target_physics_config.get("joint_break_torque", DEFAULT_JOINT_BREAK_TORQUE)
+    base_torque = base_physics_config.get("joint_break_torque", DEFAULT_JOINT_BREAK_TORQUE)
+    target_damage = target_physics_config.get("damage_limit", DEFAULT_DAMAGE_LIMIT)
+    base_damage = base_physics_config.get("damage_limit", DEFAULT_DAMAGE_LIMIT)
+
+    if target_force != base_force:
+        pattern = r"(Joints fail above )(\d+\.?\d*)( N reaction force)"
+        if re.search(pattern, description):
+            description = re.sub(
+                pattern,
+                f"\\g<1>{target_force:.0f} N (originally {base_force:.0f} N in the source environment) reaction force",
+                description,
+            )
+    if target_torque != base_torque:
+        pattern = r"(or )(\d+\.?\d*)( N·m reaction torque)"
+        if re.search(pattern, description):
+            description = re.sub(
+                pattern,
+                f"\\g<1>{target_torque:.0f} N·m (originally {base_torque:.0f} N·m in the source environment) reaction torque",
+                description,
+            )
+    if target_damage != base_damage:
+        pattern = r"(cumulative damage fails at )(\d+\.?\d*)( pts\.)"
+        if re.search(pattern, description):
+            description = re.sub(
+                pattern,
+                f"\\g<1>{target_damage:.0f} pts (originally {base_damage:.0f} pts in the source environment).",
+                description,
+            )
+    return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update success criteria for visible changes."""
-    return base_success_criteria
+def update_success_criteria_for_visible_changes(
+    base_success_criteria: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+) -> str:
+    """
+    Update success criteria with visible physics changes.
+    Format: [new_value] (originally [old_value] in the source environment).
+    """
+    criteria = base_success_criteria
+    target_physics_config = target_physics_config or {}
+    base_physics_config = base_physics_config or {}
+
+    target_force = target_physics_config.get("joint_break_force", DEFAULT_JOINT_BREAK_FORCE)
+    base_force = base_physics_config.get("joint_break_force", DEFAULT_JOINT_BREAK_FORCE)
+    target_torque = target_physics_config.get("joint_break_torque", DEFAULT_JOINT_BREAK_TORQUE)
+    base_torque = base_physics_config.get("joint_break_torque", DEFAULT_JOINT_BREAK_TORQUE)
+    target_damage = target_physics_config.get("damage_limit", DEFAULT_DAMAGE_LIMIT)
+    base_damage = base_physics_config.get("damage_limit", DEFAULT_DAMAGE_LIMIT)
+
+    if target_force != base_force:
+        pattern = r"(force > )(\d+\.?\d*)( N or)"
+        if re.search(pattern, criteria):
+            criteria = re.sub(
+                pattern,
+                f"\\g<1>{target_force:.0f} N (originally {base_force:.0f} N in the source environment) or",
+                criteria,
+            )
+    if target_torque != base_torque:
+        pattern = r"(torque > )(\d+\.?\d*)( N·m;)"
+        if re.search(pattern, criteria):
+            criteria = re.sub(
+                pattern,
+                f"\\g<1>{target_torque:.0f} N·m (originally {base_torque:.0f} N·m in the source environment);",
+                criteria,
+            )
+    if target_damage != base_damage:
+        pattern = r"(damage failure at )(\d+\.?\d*)( pts\.)"
+        if re.search(pattern, criteria):
+            criteria = re.sub(
+                pattern,
+                f"\\g<1>{target_damage:.0f} pts (originally {base_damage:.0f} pts in the source environment).",
+                criteria,
+            )
+    return criteria
 
 
 def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
@@ -53,26 +148,26 @@ def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "noise_strength": 100.0,
-                "joint_break_force": 38.0,
-                "joint_break_torque": 54.0,
-                "damage_limit": 22.0,
+                "noise_strength": 120.0,
+                "joint_break_force": 42.0,
+                "joint_break_torque": 64.0,
+                "damage_limit": 25.0,
                 "damage_force_thresh": 7.0,
             },
         },
-        # Stage-2: Frequent coherent pulses — ref fails
+        # Stage-2: Frequent coherent pulses — Initial ref fails; Stage-2 ref (sturdier) passes
         {
             "stage_id": "Stage-2",
             "title": "Higher impact frequency",
-            "mutation_description": "Coherent pulse much more frequent; joint/damage limits lowered so ref fails.",
+            "mutation_description": "Coherent pulse much more frequent; joint/damage limits lowered so Initial ref fails.",
             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "noise_strength": 95.0,
+                "noise_strength": 115.0,
                 "coherent_pulse_interval": 1,
-                "coherent_pulse_force": 85.0,
-                "joint_break_force": 22.0,
-                "joint_break_torque": 35.0,
+                "coherent_pulse_force": 108.0,
+                "joint_break_force": 30.0,
+                "joint_break_torque": 44.0,
                 "damage_limit": 12.0,
             },
         },
@@ -84,12 +179,12 @@ def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "noise_strength": 90.0,
-                "coherent_pulse_interval": 8,
-                "coherent_pulse_force": 65.0,
-                "joint_break_force": 36.0,
-                "joint_break_torque": 52.0,
-                "damage_limit": 20.0,
+                "noise_strength": 125.0,
+                "coherent_pulse_interval": 5,
+                "coherent_pulse_force": 105.0,
+                "joint_break_force": 44.0,
+                "joint_break_torque": 68.0,
+                "damage_limit": 25.0,
             },
         },
         # Stage-4: Multiple harsher params — ref solution should fail
@@ -103,17 +198,17 @@ def get_e06_curriculum_stages() -> List[Dict[str, Any]]:
                 "noise_strength": 72.0,
                 "coherent_pulse_interval": 22,
                 "coherent_pulse_force": 50.0,
-                "angular_damping": 0.9,           # default 1.8 — less dissipation
+                "angular_damping": 0.9,           # default 1.6 — less dissipation
                 "joint_break_force": 52.0,
                 "joint_break_torque": 82.0,
                 "damage_limit": 48.0,
-                "damage_force_thresh": 9.0,      # default 13
-                "damage_torque_thresh": 14.0,    # default 20
-                "cascade_shock_damage": 38.0,    # default 24
-                "beam_angvel_thresh": 1.6,       # default 2.4
-                "beam_angvel_tolerance_steps": 5, # default 12
-                "phased_storm_mult": 2.6,        # default 1.85
-                "burst_prob": 0.048,             # default ~0.022
+                "damage_force_thresh": 9.0,      # default 12.0
+                "damage_torque_thresh": 14.0,    # default 18.0
+                "cascade_shock_damage": 38.0,    # default 26.0
+                "beam_angvel_thresh": 1.6,       # default 2.2
+                "beam_angvel_tolerance_steps": 5, # default 10
+                "phased_storm_mult": 2.6,        # default 1.9
+                "burst_prob": 0.048,             # default 0.026
             },
         },
     ]

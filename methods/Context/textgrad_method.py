@@ -18,6 +18,7 @@ import os
 import sys
 import re
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -56,19 +57,15 @@ def _ensure_textgrad_importable():
 # Engine creation
 # --------------------------------------------------------------------------- #
 
-def create_textgrad_engine(engine_name: str = 'deepseek-v3.2'):
+def create_textgrad_engine(engine_name: str = 'deepseek-v3.2', api_key: Optional[str] = None):
     """
     Create a TextGrad engine for gradient computation and optimization.
-
-    Uses the same API gateway (key + base_url) as ``SolverInterface`` so that
-    no extra environment variables are needed.
+    Uses ``get_aux_llm_credentials`` (explicit key → env → SolverInterface), same base URL as main openai solver.
     """
     _ensure_textgrad_importable()
 
-    # Import the shared API credentials from the solver (evaluation package)
-    from evaluation.solver_interface import SolverInterface
-    api_key = SolverInterface.API_KEY
-    base_url = SolverInterface.BASE_URL
+    from evaluation.solver_interface import get_aux_llm_credentials
+    api_key, base_url = get_aux_llm_credentials(api_key)
 
     from openai import OpenAI
     from textgrad.engine.local_model_openai_api import ChatExternalClient

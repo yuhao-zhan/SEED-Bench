@@ -1,7 +1,7 @@
 """
 D-04: The Swing task evaluation module
 Success: (1) Apex in zone — seat is in target zone with speed ≈ 0 (at highest point), OR
-         (2) Vertical fall into zone — after an apex (speed ≈ 0), seat is in zone falling vertically (vy < 0, |vx| small).
+         (2) Vertical fall into zone — after an apex (speed ≈ 0), seat is in zone falling vertically (vy <= 0, |vx| small).
 Failure: did not satisfy either condition.
 """
 import math
@@ -72,7 +72,7 @@ class Evaluator:
             failure_reason = (
                 f"Did not succeed: seat must (1) be at rest (speed < {APEX_SPEED_THRESHOLD} m/s) at apex inside "
                 f"target zone (y >= {self._target_y_min} m, x in [{self._target_x_min}, {self._target_x_max}] m), "
-                f"or (2) fall vertically (|vx| < {VERTICAL_FALL_VX_THRESHOLD} m/s, vy < 0) into the zone after an apex."
+                f"or (2) fall vertically (|vx| < {VERTICAL_FALL_VX_THRESHOLD} m/s, vy <= 0) into the zone after an apex."
             )
         done = failed or success or step_count >= max_steps - 1
         score = 100.0 if success else (0.0 if failed else 0.0)
@@ -86,7 +86,7 @@ class Evaluator:
         mass = self.environment.get_structure_mass()
         if mass > self.MAX_STRUCTURE_MASS:
             violations.append(f"Structure mass {mass:.2f} kg exceeds maximum {self.MAX_STRUCTURE_MASS} kg")
-        for body in self.environment._bodies:
+        for body in self.environment.bodies:
             x, y = body.position.x, body.position.y
             if not (self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX and
                     self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
@@ -140,7 +140,7 @@ class Evaluator:
             "task": "D-04: The Swing",
             "description": "Pump swing so apex (v≈0) is in target zone or seat falls vertically into zone; wind/damping/force limit.",
             "success_criteria": {
-                "primary": f"(1) Apex in zone: seat in zone (y>={self._target_y_min}, x in [{self._target_x_min},{self._target_x_max}]) with speed < {APEX_SPEED_THRESHOLD} m/s, OR (2) After apex, fall vertically (|vx|<{VERTICAL_FALL_VX_THRESHOLD}, vy<0) into zone",
+                "primary": f"(1) Apex in zone: seat in zone (y>={self._target_y_min}, x in [{self._target_x_min},{self._target_x_max}]) with speed < {APEX_SPEED_THRESHOLD} m/s, OR (2) After apex, fall vertically (|vx|<{VERTICAL_FALL_VX_THRESHOLD}, vy<=0) into zone",
                 "failure": "Did not satisfy apex-in-zone or vertical-fall-into-zone",
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},

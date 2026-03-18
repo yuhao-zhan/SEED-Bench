@@ -1,7 +1,15 @@
 """
-ExpeL method for 2D_exploration: experience replay + LLM-extracted rules from same-category other tasks.
-Uses DaVinciBench/baseline/Memory/ExpeL's EMBEDDERS, parse_rules, update_rules, and RULE_TEMPLATE.
-Test-time memory is READ-ONLY (per original ExpeL eval config).
+ExpeL method for 2D_exploration: **insight extraction** (official compare/all-success prompts +
+parse_rules/update_rules) then **rule retrieval** at test time — not raw episode replay only.
+
+- **Pair-based (cross-mutation)**: after copying baseline scratch to
+  ``expel/.../{task}__{source_env}.json``, runs LLM extraction and writes
+  ``{task}__{source_env}.insights.json`` with distilled ``rules``.
+- **Category-wide**: rollouts are backfilled from ``evaluation_results/.../baseline`` only; then
+  ``ensure_expel_data`` builds ``insights.json`` (ExpeL insight extraction) when missing.
+
+Uses ``get_aux_llm_credentials`` (same as ``SolverInterface``): key from arg / ``OPENAI_API_KEY`` / ``SolverInterface.API_KEY``,
+base ``SolverInterface.BASE_URL``. Insight model: ``EXPEL_INSIGHT_MODEL`` or default ``deepseek-v3.2``.
 """
 import os
 import sys
@@ -63,6 +71,26 @@ def get_rollout_path(model_identifier: str, category_spec: str, task_name: str) 
     return os.path.join(root, model_identifier, category_spec, f"{task_name}.json")
 
 
+def get_expel_pair_path(
+    model_identifier: str, category_spec: str, task_name: str, source_env: str
+) -> str:
+    """Path to pair-based memory JSON: expel/{model}/{category}/{task_name}__{source_env}.json"""
+    root = get_expel_root()
+    safe_env = source_env.replace("/", "_").strip() or "Initial"
+    return os.path.join(root, model_identifier, category_spec, f"{task_name}__{safe_env}.json")
+
+
+def get_expel_pair_insights_path(
+    model_identifier: str, category_spec: str, task_name: str, source_env: str
+) -> str:
+    """LLM-extracted rules for this (task, source_env) rollout — ExpeL insight extraction output."""
+    root = get_expel_root()
+    safe_env = source_env.replace("/", "_").strip() or "Initial"
+    return os.path.join(
+        root, model_identifier, category_spec, f"{task_name}__{safe_env}.insights.json"
+    )
+
+
 def _rollout_path_exists(model_identifier: str, task_name: str) -> bool:
     cat_spec = _category_spec_from_task(task_name)
     if not cat_spec:
@@ -85,12 +113,16 @@ def ensure_expel_data(
     expel_max_num_rules: Optional[int] = None,
 ) -> None:
     """
-    Ensure rollout + insights exist for all categories covered by task_list.
-    Missing rollout JSONs → run baseline and save; missing insights.json → run insight extraction.
-    Called automatically when running evaluate with --method expel so one command does everything.
+    Ensure category rollout JSONs under expel/ + insights.json exist (same spirit as Rememberer).
+
+    - Rollout: **only** from existing ``evaluation_results/.../{model}/baseline`` (non-pair JSONs
+      with ``iteration_history``). Missing files are copied into ``expel/{model}/{category}/``.
+      **Never** runs a live baseline eval here — if nothing to backfill, raises RuntimeError.
+    - Insights: if ``insights.json`` is missing, runs official ExpeL-style insight extraction
+      (or writes a stub if deps/API fail).
     """
-    _ensure_expel_full_import()
-    from evaluation.prompt import get_all_tasks_in_category
+    from evaluation.prompt import get_all_tasks_in_category, parse_task_name
+    from evaluation.utils import get_evaluation_results_dir
 
     categories = set()
     for t in task_list:
@@ -105,42 +137,169 @@ def ensure_expel_data(
         if cat_num < 1:
             continue
         all_tasks = get_all_tasks_in_category(cat_num)
-        # Rollout: prefer backfill from evaluation_results/.../baseline (best of 1st/2nd/3rd by best_score); else run baseline
-        from methods.Memory.expel.run_rollout import run_rollout_one_task, try_backfill_one_task
+        from methods.Memory.expel.run_rollout import try_backfill_one_task
 
-        class _Args:
-            pass
-
-        args = _Args()
-        args.model_type = model_type
-        args.model_name = model_name
-        args.model_path = model_path
-        args.api_key = api_key
-        args.max_iterations = 20  # Rollout always 20 iterations (or until success); ignore caller max_iterations
-        args.context = context
-        args.device = device
-        args.max_steps = max_steps
         for task_name in all_tasks:
             if _rollout_path_exists(model_identifier, task_name):
                 continue
             if try_backfill_one_task(task_name, model_identifier, context):
                 continue
-            run_rollout_one_task(task_name, args)
+            try:
+                task_path, _ = parse_task_name(task_name)
+                parts = task_path.split("/")
+                baseline_hint = (
+                    os.path.join(
+                        get_evaluation_results_dir(),
+                        parts[0],
+                        parts[1],
+                        model_identifier,
+                        "baseline",
+                    )
+                    if len(parts) >= 2
+                    else "(parse task path failed)"
+                )
+            except Exception:
+                baseline_hint = f"{get_evaluation_results_dir()}/<category>/<task>/{model_identifier}/baseline"
+            expel_dst = get_rollout_path(model_identifier, cat_spec, task_name)
+            raise RuntimeError(
+                f"[ExpeL] No rollout JSON for {task_name!r} under expel, and could not backfill "
+                f"from evaluation_results.\n"
+                f"  Look under: {baseline_hint} and sibling dirs (expel, rememberer, …) for any "
+                f".json with non-empty iteration_history.\n"
+                f"  Or write rollout manually: {expel_dst}"
+            )
         # Insights: run once per category after all rollout for that category (missing only)
         insights_path = os.path.join(get_expel_root(), model_identifier, cat_spec, "insights.json")
         if not os.path.isfile(insights_path):
-            from methods.Memory.expel.run_insight_extraction import (
-                run_insight_extraction_for_category,
-                DEFAULT_MAX_ROUNDS,
-                DEFAULT_MAX_NUM_RULES,
-            )
+            try:
+                from methods.Memory.expel.insight_extraction import (
+                    run_insight_extraction_for_category,
+                    DEFAULT_MAX_ROUNDS,
+                    DEFAULT_MAX_NUM_RULES,
+                )
+                from evaluation.solver_interface import get_aux_llm_credentials
 
-            run_insight_extraction_for_category(
-                cat_spec, model_identifier, model_type, model_name,
-                model_path=model_path, api_key=api_key, device=device,
-                max_rounds=expel_max_rounds if expel_max_rounds is not None else DEFAULT_MAX_ROUNDS,
-                max_num_rules=expel_max_num_rules if expel_max_num_rules is not None else DEFAULT_MAX_NUM_RULES,
+                _ek, _eu = get_aux_llm_credentials(api_key)
+                run_insight_extraction_for_category(
+                    cat_spec,
+                    model_identifier,
+                    model_type,
+                    model_name,
+                    model_path=model_path,
+                    api_key=_ek,
+                    device=device,
+                    max_rounds=expel_max_rounds
+                    if expel_max_rounds is not None
+                    else DEFAULT_MAX_ROUNDS,
+                    max_num_rules=expel_max_num_rules
+                    if expel_max_num_rules is not None
+                    else DEFAULT_MAX_NUM_RULES,
+                    base_url=_eu,
+                    insight_model=os.environ.get("EXPEL_INSIGHT_MODEL"),
+                )
+            except Exception as e:
+                print(
+                    f"[ExpeL] Category insight extraction skipped (non-fatal): {e}",
+                    flush=True,
+                )
+                os.makedirs(os.path.dirname(insights_path), exist_ok=True)
+                stub = {
+                    "rules": [],
+                    "insights_by_task": {},
+                    "note": "insight_extraction_skipped",
+                    "error": str(e)[:800],
+                    "hint": "Install: pip install -r DaVinciBench/baseline/Memory/ExpeL/requirements.txt "
+                    "then delete this insights.json to regenerate.",
+                }
+                with open(insights_path, "w", encoding="utf-8") as f:
+                    json.dump(stub, f, ensure_ascii=False, indent=2)
+
+
+def ensure_expel_data_from_scratch(
+    task_name: str,
+    source_env: str,
+    model_identifier: str,
+    results_scratch_base: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    insight_model: Optional[str] = None,
+) -> bool:
+    """
+    Pair-based protocol: ensure memory data for (task, source_env) from evaluation_results_scratch.
+    Copies .../baseline/all_{source_env}.json into expel/{model}/{category}/{task_name}__{source_env}.json.
+    No fallback: raises FileNotFoundError if scratch file is missing.
+    Returns True if data was copied or already present.
+    """
+    from evaluation.utils import get_scratch_pair_path
+    from methods.Memory.expel.run_rollout import build_rollout_json_from_report
+
+    cat_spec = _category_spec_from_task(task_name)
+    if not cat_spec:
+        raise ValueError(
+            f"ExpeL pair-based: task_name {task_name!r} does not map to a category (e.g. category_1_01)."
+        )
+    scratch_path = get_scratch_pair_path(task_name, source_env, model_identifier, results_scratch_base)
+    pair_path = get_expel_pair_path(model_identifier, cat_spec, task_name, source_env)
+    insights_path = get_expel_pair_insights_path(
+        model_identifier, cat_spec, task_name, source_env
+    )
+
+    def _ensure_pair_insights() -> None:
+        if os.path.isfile(insights_path):
+            return
+        if not os.path.isfile(pair_path):
+            return
+        print(
+            f"[ExpeL] Running pair insight extraction → {os.path.basename(insights_path)}",
+            flush=True,
+        )
+        try:
+            from methods.Memory.expel.insight_extraction import run_pair_insight_extraction
+
+            from evaluation.solver_interface import get_aux_llm_credentials
+            _pk, _pu = get_aux_llm_credentials(api_key)
+            run_pair_insight_extraction(
+                pair_path,
+                insights_path,
+                api_key=_pk,
+                base_url=base_url or _pu,
+                model=insight_model or os.environ.get("EXPEL_INSIGHT_MODEL"),
             )
+        except Exception as e:
+            print(f"[ExpeL] Pair insight extraction failed (non-fatal): {e}", flush=True)
+
+    if os.path.isfile(pair_path):
+        if os.path.isfile(insights_path):
+            print(
+                f"[ExpeL] Pair insights already exist, skip extraction: {insights_path}",
+                flush=True,
+            )
+        _ensure_pair_insights()
+        return True
+    if not os.path.isfile(scratch_path):
+        raise FileNotFoundError(
+            f"ExpeL pair-based: required scratch file not found: {scratch_path!s}. "
+            "Run baseline for this (task, source_env, model) and save under evaluation_results_scratch; no fallback."
+        )
+    try:
+        with open(scratch_path, "r", encoding="utf-8") as f:
+            report = json.load(f)
+        if not report.get("task_prompt"):
+            from evaluation.prompt import load_task_prompt
+            report["task_prompt"] = load_task_prompt(task_name)
+        report["iteration_history"] = report.get("iteration_history") or report.get("history") or []
+        rollout_data = build_rollout_json_from_report(
+            report, task_name, model_identifier, "baseline", "all"
+        )
+        os.makedirs(os.path.dirname(pair_path), exist_ok=True)
+        with open(pair_path, "w", encoding="utf-8") as f:
+            json.dump(rollout_data, f, ensure_ascii=False, indent=2)
+        _ensure_pair_insights()
+        return True
+    except Exception as e:
+        raise RuntimeError(
+            f"ExpeL: failed to copy scratch to {pair_path!s}: {e}"
+        ) from e
 
 
 def _get_expel_embedder(embedder_type: str = "huggingface", embedder_path: Optional[str] = None):
@@ -187,11 +346,13 @@ def load_expel_memory_for_task(
     task_name: str,
     model_identifier: str,
     expel_root: Optional[str] = None,
+    source_env: Optional[str] = None,
 ) -> Tuple[List[dict], List[str], Any]:
     """
-    Load rollout data and insights from same-category other tasks (exclude task_name).
-    Returns (items, rule_strings, embedder) where items are trajectory records for retrieval,
-    rule_strings from insights.json, embedder from ExpeL EMBEDDERS (for retrieve_for_prompt).
+    Load rollout data and insights for retrieval.
+    - If source_env is set (pair-based): load only from expel/.../task_name__source_env.json (same task, original env).
+    - Else: load from same-category other tasks (exclude task_name), as before.
+    Returns (items, rule_strings, embedder).
     """
     from evaluation.prompt import get_all_tasks_in_category
 
@@ -199,6 +360,53 @@ def load_expel_memory_for_task(
     cat_spec = _category_spec_from_task(task_name)
     if not cat_spec:
         return [], [], None
+
+    # Pair-based: single file for (task, source_env)
+    if source_env:
+        pair_path = get_expel_pair_path(model_identifier, cat_spec, task_name, source_env)
+        if not os.path.isfile(pair_path):
+            return [], [], None
+        try:
+            with open(pair_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            return [], [], None
+        hist = data.get("iteration_history") or []
+        task_desc = (data.get("task_prompt") or {}).get("task_description") or ""
+        if not task_desc and hist:
+            task_desc = (hist[0].get("task_description") or "").strip()
+        items = []
+        for it in hist:
+            items.append({
+                "task_name": task_name,
+                "task_description": (it.get("task_description") or task_desc).strip(),
+                "code": (it.get("code") or "").strip(),
+                "feedback": (it.get("feedback") or "").strip(),
+                "score": float(it.get("score", 0)),
+                "success": bool(it.get("success", False)),
+            })
+        rule_strings = []
+        insights_path = get_expel_pair_insights_path(
+            model_identifier, cat_spec, task_name, source_env
+        )
+        if os.path.isfile(insights_path):
+            try:
+                with open(insights_path, "r", encoding="utf-8") as f:
+                    insights_data = json.load(f)
+                rule_strings = insights_data.get("rules") or insights_data.get("rule_strings") or []
+                if isinstance(rule_strings, list) and rule_strings and not isinstance(rule_strings[0], str):
+                    rule_strings = [r.get("text", r) if isinstance(r, dict) else str(r) for r in rule_strings]
+            except Exception:
+                pass
+        embedder = _get_expel_embedder()
+        if embedder is None:
+            raise RuntimeError(
+                "ExpeL embedder is None after _get_expel_embedder(). "
+                "Set EXPEL_EMBEDDER to a valid local path or HuggingFace model name and ensure langchain is installed."
+            )
+        return items, rule_strings, embedder
+
+    # Original: same-category other tasks
     m = re.match(r"^category_(\d+)(?:_\d+)?(?:_.*)?$", task_name.lower())
     cat_num = int(m.group(1)) if m else 0
     if cat_num < 1:
@@ -324,11 +532,26 @@ def retrieve_for_prompt(
         idx = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k_trajectories]
         selected_items = [items[i] for i in idx]
         exp_parts = []
+        # Do NOT paste stored task_description into snippets: it often matches Initial env while
+        # the live prompt is Stage-* (mutated limits). That contradicts "(originally …)" specs.
+        traj_header = (
+            "**Constraint notice:** Trajectories below omit full task specs (they often match Initial/source "
+            "environments and would contradict mutated limits). "
+            "**Use only the Task Description and Success Criteria at the top of this message** for joint/anchor "
+            "strength, gap geometry, mass budget, and all other numbers.\n\n"
+            "Relevant experience (code + feedback from related rollouts):"
+        )
         for it in selected_items:
-            snip = f"[Task: {it.get('task_description', '')}]\nCode:\n{it.get('code', '')}\nFeedback: {it.get('feedback', '')}"
+            tn = (it.get("task_name") or "").strip() or "related rollout"
+            code = (it.get("code") or "").strip()
+            fb = (it.get("feedback") or "").strip()
+            snip = (
+                f"[Source: {tn} — same-category or prior-env attempt; specs above override.]\n"
+                f"Code:\n{code}\nFeedback: {fb}"
+            )
             exp_parts.append(snip)
         if exp_parts:
-            parts.append("Relevant experience from same-category tasks:\n" + "\n\n".join(exp_parts))
+            parts.append(traj_header + "\n\n" + "\n\n".join(exp_parts))
 
     if not parts:
         return ""

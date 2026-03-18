@@ -53,6 +53,9 @@ class Sandbox:
     JOINT_BREAK_TORQUE = 10.0
     FATIGUE_TAU_SECONDS = 100.0   # stricter decay
 
+    # Simulation length (single source of truth; prompt and main.py use this when max_steps is None)
+    MAX_STEPS = 12000
+
     def __init__(self, *, terrain_config=None, physics_config=None):
         terrain_config = terrain_config or {}
         physics_config = physics_config or {}
@@ -77,9 +80,11 @@ class Sandbox:
         self.BASE_EXCITATION_FREQUENCY = physics_config.get(
             "base_excitation_frequency", self.BASE_EXCITATION_FREQUENCY
         )
+        # Force limits and fatigue
         self.JOINT_BREAK_FORCE = physics_config.get("joint_break_force", self.JOINT_BREAK_FORCE)
         self.JOINT_BREAK_TORQUE = physics_config.get("joint_break_torque", self.JOINT_BREAK_TORQUE)
         self.FATIGUE_TAU_SECONDS = physics_config.get("fatigue_tau_seconds", self.FATIGUE_TAU_SECONDS)
+        self.WIND_PRESSURE = float(physics_config.get("wind_pressure", 0.0))
 
         # Instance-specific constraints (overridable via terrain_config)
         self._build_zone_x_min = float(terrain_config.get("build_zone_x_min", self.BUILD_ZONE_X_MIN))
@@ -149,6 +154,13 @@ class Sandbox:
                 for fixture in body.fixtures:
                     fixture.density = base * factor
                 body.ResetMassData()
+            
+            # Apply constant lateral wind force based on area
+            if self.WIND_PRESSURE != 0.0:
+                area = getattr(body, "_area", 0.1)
+                force_x = self.WIND_PRESSURE * area
+                body.ApplyForceToCenter((force_x, 0.0), True)
+
         # Base excitation: 2D (horizontal + vertical) — ground velocity
         ground = self._terrain_bodies.get("ground")
         if ground is not None:
@@ -157,7 +169,11 @@ class Sandbox:
             vy = self.BASE_EXCITATION_VERTICAL_AMPLITUDE * omega * math.cos(omega * t)
             ground.linearVelocity = (vx, vy)
         self._time += time_step
-        self._world.Step(time_step, 10, 10)
+        try:
+            self._world.Step(time_step, 10, 10)
+        except Exception as e:
+            print(f"CRASH at step {t}: {e}")
+            raise e
 
         # Joint breaking with time-dependent (fatigue) limits
         force_limit = self._effective_joint_force_limit(self._time)
@@ -207,6 +223,7 @@ class Sandbox:
         )
         body._base_density = density
         body._mass_phase = (x - self._build_zone_x_min) * self.MASS_PHASE_GRADIENT
+        body._area = width * height
         body.linearDamping = self._linear_damping
         body.angularDamping = self._angular_damping
         self._bodies.append(body)

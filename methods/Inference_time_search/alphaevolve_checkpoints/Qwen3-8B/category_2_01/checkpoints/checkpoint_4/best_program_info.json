@@ -1,0 +1,36 @@
+{
+  "id": "b2122342-934c-4259-9df8-cf2c7ff7b7ab",
+  "generation": 0,
+  "iteration": 0,
+  "current_iteration": 4,
+  "metrics": {
+    "combined_score": 0.0,
+    "score": 0.0,
+    "success": false,
+    "metrics": {
+      "walker_x": 5.0,
+      "walker_y": 1.5,
+      "target_x": 20.0,
+      "distance_traveled": 0.0,
+      "progress": 0.0,
+      "success": false,
+      "failed": true,
+      "failure_reason": "Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 50.0], y=[2.0, 10.0]",
+      "step_count": 0,
+      "structure_mass": 0.30000001192092896,
+      "max_structure_mass": 100.0,
+      "min_torso_y": 1.5,
+      "torso_touched_ground": false,
+      "steps_with_motion": 0,
+      "min_simulation_steps_required": 300,
+      "velocity_x": 0.0,
+      "velocity_y": 0.0,
+      "angular_velocity": 0.0,
+      "speed": 0.0
+    },
+    "error": null
+  },
+  "language": "python",
+  "timestamp": 1771602888.401189,
+  "saved_at": 1771603023.089722
+}

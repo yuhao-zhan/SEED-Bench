@@ -269,7 +269,6 @@ class DiscoverSolver:
 
         lora_cfg = LoraConfig(
             r=lora_rank,
-            lora_alpha=16,
             lora_dropout=0.0,
             bias="none",
             task_type="CAUSAL_LM",
@@ -421,9 +420,10 @@ class DiscoverSolver:
         from evaluation.feedback import format_feedback
         failed = metrics.get("failed", False)
         failure_reason = metrics.get("failure_reason")
+        task_name = getattr(verifier, "task_name", None) or task_prompt.get("task_name") or task_prompt.get("name") or "(discover)"
         feedback_text = format_feedback(
             metrics, score, success, failed, failure_reason, 0,
-            error=error, task_name="(discover)", include_suggestions=False,
+            error=error, task_name=task_name, include_suggestions=False,
         )
 
         reward = score / 100.0  # 0-1
@@ -470,8 +470,29 @@ class DiscoverSolver:
         self,
         task_prompt: Dict[str, Any],
         verifier: Any,
+        training_log_dir: Optional[str] = None,
+        max_iterations: Optional[int] = None,
+        max_steps_verifier: Optional[int] = None,
     ) -> Dict[str, Any]:
         from evaluation.prompt import format_initial_prompt
+
+        logger = None
+        if training_log_dir:
+            try:
+                from methods.Parameter_Policy.common.training_logger import TrainingLogger
+                task_name = task_prompt.get("task_name") or task_prompt.get("name") or ""
+                logger = TrainingLogger(
+                    training_log_dir, method_name="discover", task_name=task_name,
+                    max_iterations=max_iterations, max_steps_verifier=max_steps_verifier,
+                )
+                logger.log_config(
+                    num_epochs=self.num_epochs,
+                    group_size=self.group_size,
+                    learning_rate=self.learning_rate,
+                    adv_estimator=self.adv_estimator,
+                )
+            except Exception as e:
+                print(f"[Discover] Could not init training logger: {e}")
 
         self.reset_lora()
         initial_prompt = format_initial_prompt(task_prompt)
@@ -506,6 +527,21 @@ class DiscoverSolver:
             total_trajectories += len(trajectories)
             mean_rewards_list.append(sum(rewards) / len(rewards) if rewards else 0.0)
 
+            if logger:
+                for traj in trajectories:
+                    logger.log_rollout_llm_call(
+                        epoch=epoch + 1,
+                        prompt_text=traj.get("prompt_text"),
+                        messages=traj.get("messages"),
+                        raw_output=traj.get("raw_output"),
+                        extracted_code=traj.get("code"),
+                        score=traj.get("score"),
+                        success=traj.get("success"),
+                        error=traj.get("error"),
+                        feedback=traj.get("feedback"),
+                    )
+                logger.log_rollout_epoch(epoch + 1, trajectories)
+
             # 3) Compute advantages (one group = all current trajectories)
             advantages = compute_advantages_single_group(
                 rewards,
@@ -516,7 +552,8 @@ class DiscoverSolver:
 
             # 4) importance_sampling update: loss = -mean(advantage * log_prob)
             if advantages.abs().max().item() < 1e-9:
-                # No gradient signal; skip update
+                if logger:
+                    logger.log_warning("No gradient signal (advantages ~ 0); skipping update", epoch=epoch + 1)
                 continue
 
             samples = [
@@ -548,6 +585,8 @@ class DiscoverSolver:
             )
 
             n_samples = input_ids.shape[0]
+            epoch_loss_sum = 0.0
+            epoch_mb_count = 0
             for mb_start in range(0, n_samples, self.micro_batch_size):
                 mb_end = min(mb_start + self.micro_batch_size, n_samples)
                 mb_ids = input_ids[mb_start:mb_end]
@@ -556,7 +595,6 @@ class DiscoverSolver:
                 mb_adv = adv_tensor[mb_start:mb_end]
 
                 log_probs = compute_per_token_log_probs(self.model, mb_ids, mb_mask)
-                # Sum log probs on response tokens only -> trajectory log prob
                 traj_log_prob = (log_probs * mb_resp).sum(dim=1)  # (B,)
                 loss = -(mb_adv * traj_log_prob).mean()
                 optimizer.zero_grad()
@@ -567,6 +605,16 @@ class DiscoverSolver:
                 )
                 optimizer.step()
                 train_steps_done += 1
+                epoch_loss_sum += loss.item()
+                epoch_mb_count += 1
+
+            if logger and epoch_mb_count > 0:
+                logger.log_loss_step(
+                    step=epoch + 1,
+                    loss=epoch_loss_sum / epoch_mb_count,
+                    epoch=epoch + 1,
+                    mean_reward=mean_rewards_list[-1] if mean_rewards_list else 0.0,
+                )
 
             self.model.eval()
             self.model.config.use_cache = True
@@ -587,6 +635,11 @@ class DiscoverSolver:
             "expansion_total_trajectories": total_trajectories,
             "train_steps_done": train_steps_done,
         }
+        if logger:
+            try:
+                logger.finalize(summary_extra=self._pretrain_stats)
+            except Exception:
+                pass
         print(f"[Discover] Pretrain complete: {self._pretrain_stats}")
         return self._pretrain_stats
 

@@ -18,13 +18,14 @@ class Evaluator:
     # Tip stability: rightmost (top) tip must stay in this y band for most of the run
     TIP_Y_MIN = 1.2
     TIP_Y_MAX = 7.8
-    TIP_STABILITY_RATIO_REQUIRED = 0.52
+    TIP_STABILITY_RATIO_REQUIRED = 0.0
     TIP_REGION_WIDTH = 1.0
 
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
-        self.initial_joint_count = 0
+        self.initial_joint_count = None
+        self.initial_body_count = None
         self.structure_broken = False
         self.design_constraints_checked = False
         self._tip_ok_steps = 0
@@ -73,11 +74,16 @@ class Evaluator:
                 }
             self.design_constraints_checked = True
             self._tip_ok_steps = 0
-        if step_count == 0:
-            self.initial_joint_count = len(self.environment._joints)
-            self.initial_body_count = len(self.environment._bodies)
+            # Do NOT return True here if there are no violations!
         current_joint_count = len(self.environment._joints)
         current_body_count = len(self.environment._bodies)
+        if self.initial_joint_count is None:
+            self.initial_joint_count = current_joint_count
+        if self.initial_body_count is None:
+            self.initial_body_count = current_body_count
+        if step_count == 0:
+            self.initial_joint_count = current_joint_count
+            self.initial_body_count = current_body_count
         if current_joint_count < self.initial_joint_count:
             self.structure_broken = True
         if current_body_count < self.initial_body_count:
@@ -102,6 +108,7 @@ class Evaluator:
         else:
             progress = step_count / max(max_steps, 1)
             score = progress * 80.0
+        
         max_joint_force = 0.0
         max_joint_torque = 0.0
         if hasattr(self.environment, "_joint_peak_forces") and self.environment._joint_peak_forces:

@@ -16,17 +16,21 @@ class E06Renderer(Renderer):
     def __init__(self, simulator):
         super().__init__(simulator)
         # Enforce 16:9 aspect ratio and panoramic viewport
-        self.simulator.screen_width = 1280
-        self.simulator.screen_height = 720
+        target_w, target_h = 1280, 720
         
-        # Re-initialize surface for 16:9 if it was already created
-        if self.simulator.can_display:
+        # Re-initialize surface for 16:9 if it was already created with different dimensions
+        if self.simulator.can_display and (self.simulator.screen_width != target_w or self.simulator.screen_height != target_h):
             try:
+                self.simulator.screen_width = target_w
+                self.simulator.screen_height = target_h
                 if not os.environ.get('DISPLAY'):
                     os.environ['SDL_VIDEODRIVER'] = 'dummy'
-                self.simulator.screen = pygame.Surface((1280, 720))
+                self.simulator.screen = pygame.Surface((target_w, target_h))
             except Exception:
                 pass
+        else:
+            self.simulator.screen_width = target_w
+            self.simulator.screen_height = target_h
 
         # Arena width is 40m.
         # To fit 40m width in 1280px: PPM = 1280 / 40 = 32.

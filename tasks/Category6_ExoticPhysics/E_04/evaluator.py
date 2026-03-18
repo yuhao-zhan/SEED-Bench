@@ -5,7 +5,6 @@ Success: structure remains intact (no joint break). Failure: structure disintegr
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
-from common.simulator import TIME_STEP
 
 
 class Evaluator:
@@ -53,6 +52,7 @@ class Evaluator:
                     "step_count": step_count,
                     "structure_broken": False,
                     "joint_count": len(self.environment._joints),
+                    "beam_count": len(self.environment._bodies),
                     "structure_mass": self.environment.get_structure_mass(),
                     "max_structure_mass": self.MAX_STRUCTURE_MASS,
                 }
@@ -69,7 +69,7 @@ class Evaluator:
         success = (not failed) and (step_count >= max_steps - 1)
 
         if failed:
-            failure_reason = "Structure disintegrated due to vibration: one or more joints broke (reaction force or torque exceeded limit)"
+            failure_reason = "Structure disintegrated: one or more joints broke (reaction force or torque exceeded limit)"
         else:
             failure_reason = None
 
@@ -88,6 +88,7 @@ class Evaluator:
             "failure_reason": failure_reason,
             "structure_broken": self.structure_broken,
             "joint_count": current_joint_count,
+            "beam_count": len(self.environment._bodies),
             "initial_joint_count": self.initial_joint_count,
             "structure_mass": self.environment.get_structure_mass(),
             "max_structure_mass": self.MAX_STRUCTURE_MASS,

@@ -39,3 +39,56 @@ def build_agent(sandbox):
 
 def agent_action(sandbox, agent_body, step_count):
     pass
+
+def build_agent_stage_1(sandbox):
+    _, _, arena_y_min, _ = sandbox.get_arena_bounds()
+    x_pos = [14.0, 18.0, 22.0, 26.0]
+    beams = []
+    for x in x_pos:
+        b = sandbox.add_beam(x, 6.5, 3.8, 1.0, density=0.1)
+        for dx in [-1.5, -0.5, 0.5, 1.5]:
+            sandbox.add_joint(b, None, (x + dx, arena_y_min), type="rigid")
+        beams.append(b)
+    return beams[0]
+
+def build_agent_stage_2(sandbox):
+    _, _, arena_y_min, arena_y_max = sandbox.get_arena_bounds()
+    y_centers = [7.5, 10.5, 13.5]
+    beams = []
+    for yc in y_centers:
+        b = sandbox.add_beam(20.0, yc, 3.0, 2.5, density=1.5)
+        beams.append(b)
+    for i in range(len(beams)-1):
+        mid_y = (y_centers[i] + y_centers[i+1]) / 2
+        sandbox.add_joint(beams[i], beams[i+1], (20.0, mid_y), type="rigid")
+    sandbox.add_joint(beams[0], None, (19.0, arena_y_min), type="rigid")
+    sandbox.add_joint(beams[0], None, (21.0, arena_y_min), type="rigid")
+    sandbox.add_joint(beams[-1], None, (19.0, arena_y_max), type="rigid")
+    sandbox.add_joint(beams[-1], None, (21.0, arena_y_max), type="rigid")
+    return beams[0]
+
+def build_agent_stage_3(sandbox):
+    _, arena_x_max, arena_y_min, _ = sandbox.get_arena_bounds()
+    b1 = sandbox.add_beam(25.0, 8.0, 5.0, 1.0, density=1.0)
+    sandbox.add_joint(b1, None, (arena_x_max, 8.0), type="rigid")
+    b2 = sandbox.add_beam(20.0, 8.0, 5.0, 1.0, density=1.0)
+    sandbox.add_joint(b1, b2, (22.5, 8.0), type="rigid")
+    v1 = sandbox.add_beam(20.0, 7.0, 1.0, 2.0, density=2.0)
+    sandbox.add_joint(b2, v1, (20.0, 8.0), type="rigid")
+    sandbox.add_joint(v1, None, (20.0, arena_y_min), type="rigid")
+    return b1
+
+def build_agent_stage_4(sandbox):
+    _, _, arena_y_min, _ = sandbox.get_arena_bounds()
+    b1 = sandbox.add_beam(20.0, 6.5, 0.8, 0.8, density=1.0)
+    for dx in [-1.5, -0.9, -0.3, 0.3, 0.9, 1.5]:
+        sandbox.add_joint(b1, None, (20.0 + dx, arena_y_min), type="rigid")
+    return b1
+
+def agent_action_stage_1(sandbox, agent_body, step_count): pass
+
+def agent_action_stage_2(sandbox, agent_body, step_count): pass
+
+def agent_action_stage_3(sandbox, agent_body, step_count): pass
+
+def agent_action_stage_4(sandbox, agent_body, step_count): pass

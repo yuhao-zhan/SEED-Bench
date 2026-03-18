@@ -1,160 +1,83 @@
 #!/usr/bin/env python3
 """
-Create a minimal lora_dir compatible with GENOME raw repo (get_lora_pools).
-Creates at least 2 expert subdirs (code_alpaca, gpt4_alpaca) each with:
-  adapter_model.safetensors, adapter_config.json, tokenizer (same layout as save_lora_weight).
-Saved under genome/experts/ by default. Run once before method=genome.
+Create genome/experts/ and optionally populate it so get_lora_pools() finds at least 2 expert LoRAs.
+
+Official get_lora_pools (baseline/Parameter_Policy/GENOME/src/utils.py) only recognizes these
+subdir names under lora_dir: code_alpaca, gpt4_alpaca, cot, lima, oasst1, open_orca,
+flan_v2, science_literature, wizardlm, sharegpt.
+
+Usage (run from this directory, methods/Parameter_Policy/genome/):
+  python bootstrap_lora_dir.py
+    -> creates experts/ and one placeholder subdir (README only). Add a second expert manually.
+
+  python bootstrap_lora_dir.py --link-dir /path/to/parent
+    -> creates experts/ and symlinks into it any of the known subdir names found under
+       /path/to/parent (e.g. parent/code_alpaca, parent/gpt4_alpaca). Use this if you
+       already have expert LoRAs elsewhere.
 """
-import os
-import sys
+from __future__ import annotations
+
 import argparse
+import os
 
-# Scripts dir = parent of methods/
-_SCRIPTS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-if _SCRIPTS_DIR not in sys.path:
-    sys.path.insert(0, _SCRIPTS_DIR)
+# Subdir names recognized by official get_lora_pools (GENOME/src/utils.py)
+EXPERT_NAMES = [
+    "code_alpaca", "gpt4_alpaca", "cot", "lima", "oasst1", "open_orca",
+    "flan_v2", "science_literature", "wizardlm", "sharegpt",
+]
 
-# Default subdir names that GENOME get_lora_pools scans (raw repo utils.py)
-DEFAULT_EXPERT_NAMES = ["code_alpaca", "gpt4_alpaca"]
-
-
-def _resolve_model_path(model_name: str, model_path: str = None) -> str:
-    base = model_path or model_name
-    if os.path.isabs(base) and os.path.isdir(base):
-        return base
-    local_name = os.path.basename(base.rstrip("/"))
-    local_models = os.environ.get("LOCAL_MODELS_DIR", "/home/test/testdata/models")
-    local_path = os.path.join(local_models, local_name)
-    if os.path.isdir(local_path):
-        return local_path
-    return base
-
-
-def _peft_state_to_genome_ab_format(state_dict: dict) -> dict:
-    """
-    Convert PEFT LoRA state dict to GENOME format (keys starting with 'a' and 'b').
-    PEFT keys: base_model.model.model.layers.0....lora_A.default -> a.layers.0....
-    """
-    out = {}
-    for key, tensor in state_dict.items():
-        if ".lora_A." in key:
-            prefix = key.split(".lora_A.")[0]
-            # strip base_model.model. or model. for short path
-            for p in ("base_model.model.", "base_model."):
-                if prefix.startswith(p):
-                    prefix = prefix[len(p):]
-                    break
-            if prefix.startswith("model."):
-                prefix = prefix[6:]
-            out["a." + prefix] = tensor.detach().clone()
-        elif ".lora_B." in key:
-            prefix = key.split(".lora_B.")[0]
-            for p in ("base_model.model.", "base_model."):
-                if prefix.startswith(p):
-                    prefix = prefix[len(p):]
-                    break
-            if prefix.startswith("model."):
-                prefix = prefix[6:]
-            out["b." + prefix] = tensor.detach().clone()
-    return out
-
-
-def create_bootstrap_lora_dir(
-    base_model: str,
-    lora_dir: str,
-    expert_names: list = None,
-    r: int = 8,
-    alpha: int = 16,
-    seed_base: int = 42,
-) -> None:
-    """
-    Create lora_dir with at least 2 expert subdirs. Each subdir has adapter_model.safetensors
-    in GENOME format (keys starting with 'a' and 'b'), adapter_config.json, and tokenizer.
-    """
-    import torch
-    from safetensors.torch import save_file
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    from peft import LoraConfig, get_peft_model, TaskType
-
-    expert_names = expert_names or DEFAULT_EXPERT_NAMES
-    if len(expert_names) < 2:
-        raise ValueError("Need at least 2 expert subdirs for GENOME (pairs for merge).")
-
-    resolved = _resolve_model_path(base_model)
-    print(f"Loading base model from {resolved} ...")
-    tokenizer = AutoTokenizer.from_pretrained(resolved, trust_remote_code=True, local_files_only=True)
-    model = AutoModelForCausalLM.from_pretrained(
-        resolved,
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-        device_map="auto" if torch.cuda.is_available() else None,
-        trust_remote_code=True,
-        local_files_only=True,
-    )
-
-    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-    module_names = {n for n, _ in model.named_modules()}
-    target_modules = [m for m in target_modules if any(m in n for n in module_names)]
-    if not target_modules:
-        target_modules = ["q_proj", "v_proj"]
-
-    lora_config = LoraConfig(
-        r=r,
-        lora_alpha=alpha,
-        target_modules=target_modules,
-        lora_dropout=0.05,
-        bias="none",
-        task_type=TaskType.CAUSAL_LM,
-    )
-
-    os.makedirs(lora_dir, exist_ok=True)
-
-    for i, name in enumerate(expert_names):
-        expert_path = os.path.join(lora_dir, name)
-        os.makedirs(expert_path, exist_ok=True)
-        peft_model = get_peft_model(model, lora_config)
-        if seed_base is not None:
-            torch.manual_seed(seed_base + i)
-            for n, p in peft_model.named_parameters():
-                if "lora" in n.lower() and p.requires_grad:
-                    p.data.normal_(0, 0.01)
-        # Convert to GENOME "a"/"b" key format and save
-        sd = peft_model.state_dict()
-        genome_sd = _peft_state_to_genome_ab_format(sd)
-        if not genome_sd:
-            raise RuntimeError("No LoRA keys found in state dict; check _peft_state_to_genome_ab_format.")
-        save_file(genome_sd, os.path.join(expert_path, "adapter_model.safetensors"))
-        lora_config.save_pretrained(expert_path)
-        tokenizer.save_pretrained(expert_path)
-        print(f"  Created {expert_path} ({len(genome_sd)} keys)")
-        del peft_model, sd, genome_sd
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-
-    print(f"Done. lora_dir = {os.path.abspath(lora_dir)}")
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+EXPERTS_DIR = os.path.join(SCRIPT_DIR, "experts")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Create bootstrap lora_dir for GENOME (raw repo layout).")
-    parser.add_argument("--base-model", type=str, required=True, help="Base model path (e.g. Qwen3-8B or /path/to/model)")
-    parser.add_argument("--lora-dir", type=str, default=None, help="Output directory for LoRA adapters (default: genome/experts/)")
-    parser.add_argument("--experts", type=str, nargs="+", default=DEFAULT_EXPERT_NAMES, help="Expert subdir names (default: code_alpaca gpt4_alpaca)")
-    parser.add_argument("--r", type=int, default=8, help="LoRA r")
-    parser.add_argument("--alpha", type=int, default=16, help="LoRA alpha")
-    parser.add_argument("--seed", type=int, default=42, help="Base seed for init")
-    args = parser.parse_args()
-    lora_dir = args.lora_dir
-    if lora_dir is None:
-        from methods.Parameter_Policy.genome import get_genome_experts_dir
-        lora_dir = get_genome_experts_dir()
-    create_bootstrap_lora_dir(
-        base_model=args.base_model,
-        lora_dir=lora_dir,
-        expert_names=args.experts,
-        r=args.r,
-        alpha=args.alpha,
-        seed_base=args.seed,
+    ap = argparse.ArgumentParser(description="Create genome/experts/ for GENOME Phase 1.")
+    ap.add_argument(
+        "--link-dir",
+        type=str,
+        default=None,
+        help="Parent directory containing subdirs with expert names (e.g. code_alpaca). Symlink them into experts/.",
     )
+    args = ap.parse_args()
+
+    os.makedirs(EXPERTS_DIR, exist_ok=True)
+
+    if args.link_dir:
+        link_dir = os.path.abspath(args.link_dir)
+        if not os.path.isdir(link_dir):
+            print(f"Error: --link-dir is not a directory: {link_dir}")
+            return 1
+        for name in EXPERT_NAMES:
+            src = os.path.join(link_dir, name)
+            dst = os.path.join(EXPERTS_DIR, name)
+            if os.path.isdir(src):
+                if os.path.exists(dst):
+                    print(f"Skip (already exists): {name}")
+                    continue
+                try:
+                    os.symlink(src, dst)
+                    print(f"Linked: {name} -> {src}")
+                except OSError as e:
+                    print(f"Warning: could not symlink {name}: {e}")
+        print(f"Experts dir: {EXPERTS_DIR}")
+        return 0
+
+    # No --link-dir: create one placeholder so structure is clear
+    placeholder = os.path.join(EXPERTS_DIR, "code_alpaca")
+    if not os.path.exists(placeholder):
+        os.makedirs(placeholder, exist_ok=True)
+        readme = os.path.join(placeholder, "README.txt")
+        with open(readme, "w") as f:
+            f.write(
+                "Place a LoRA adapter here: adapter_model.safetensors and adapter_config.json.\n"
+                "You need at least two expert subdirs under experts/ (names: code_alpaca, gpt4_alpaca, cot, lima, oasst1, open_orca, flan_v2, science_literature, wizardlm, sharegpt).\n"
+                "See README.md in the genome directory.\n"
+            )
+        print(f"Created placeholder: {placeholder}")
+    print(f"Experts dir: {EXPERTS_DIR}")
+    print("Add at least one more expert subdir (with adapter_model.safetensors + adapter_config.json) or run with --link-dir /path/to/parent.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

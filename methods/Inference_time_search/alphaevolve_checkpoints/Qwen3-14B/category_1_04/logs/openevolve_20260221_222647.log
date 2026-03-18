@@ -1,0 +1,889 @@
+2026-02-21 22:26:47,211 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/logs/openevolve_20260221_222647.log
+2026-02-21 22:26:47,212 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 22:26:47,212 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-14B (weight: 1.00)
+2026-02-21 22:26:47,284 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 22:26:47,290 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 22:26:47,291 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 22:26:47,310 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_i8fu2owp/evaluate.py
+2026-02-21 22:26:47,310 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_i8fu2owp/evaluate.py
+2026-02-21 22:26:47,310 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_i8fu2owp/initial_program.py
+2026-02-21 22:26:47,310 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 22:26:47,420 - openevolve.evaluator - INFO - Evaluated program abe0238d-e615-461c-9d28-15670148fde2 in 0.11s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:26:47,421 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 22:26:47,421 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 22:26:47,422 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 22:26:47,422 - openevolve.database - INFO - Island Status:
+2026-02-21 22:26:47,422 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:26:47,422 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:26:47,422 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:26:47,422 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:26:47,422 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:26:47,423 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:28:03,955 - openevolve.evaluator - INFO - Evaluated program 0e670221-c9f6-4b0f-abe1-88e14cefa68e in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\nTypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument \'is_static\'\n'}, error=Error building agent: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+TypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+
+2026-02-21 22:28:03,955 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 5}
+2026-02-21 22:28:03,956 - openevolve.controller - INFO - Iteration 1: Program 0e670221-c9f6-4b0f-abe1-88e14cefa68e (parent: abe0238d-e615-461c-9d28-15670148fde2) completed in 76.53s
+2026-02-21 22:28:03,956 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\nTypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument \'is_static\'\n'}, error=Error building agent: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+TypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+
+2026-02-21 22:28:03,956 - openevolve.database - INFO - Island Status:
+2026-02-21 22:28:03,956 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=68.20, gen=1 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:28:03,956 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:28:03,956 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:28:03,956 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:28:03,956 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:28:03,964 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_1
+2026-02-21 22:28:03,967 - openevolve.controller - INFO - Saved best program at checkpoint 1 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:28:03,967 - openevolve.controller - INFO - Saved checkpoint at iteration 1 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_1
+2026-02-21 22:28:03,968 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:29:27,658 - openevolve.evaluator - INFO - Evaluated program 71087d48-5e60-45f0-9ce4-2f29ede5d2aa in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4406, in __set_anchor\n    raise ValueError(\'bodyB not set.\')\nValueError: bodyB not set.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs\n    _init_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nValueError: Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4406, in __set_anchor
+    raise ValueError('bodyB not set.')
+ValueError: bodyB not set.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs
+    _init_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+ValueError: Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.
+
+2026-02-21 22:29:27,660 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 2, 'diversity': 0}
+2026-02-21 22:29:27,660 - openevolve.controller - INFO - Iteration 2: Program 71087d48-5e60-45f0-9ce4-2f29ede5d2aa (parent: 0e670221-c9f6-4b0f-abe1-88e14cefa68e) completed in 83.69s
+2026-02-21 22:29:27,660 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4406, in __set_anchor\n    raise ValueError(\'bodyB not set.\')\nValueError: bodyB not set.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs\n    _init_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nValueError: Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4406, in __set_anchor
+    raise ValueError('bodyB not set.')
+ValueError: bodyB not set.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs
+    _init_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+ValueError: Failed on kwargs for b2RevoluteJointDef.anchor: bodyB not set.
+
+2026-02-21 22:29:27,660 - openevolve.database - INFO - Island Status:
+2026-02-21 22:29:27,660 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=68.20, gen=2 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:29:27,660 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:29:27,660 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:29:27,660 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:29:27,660 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:29:27,671 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_2
+2026-02-21 22:29:27,674 - openevolve.controller - INFO - Saved best program at checkpoint 2 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:29:27,674 - openevolve.controller - INFO - Saved checkpoint at iteration 2 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_2
+2026-02-21 22:29:27,675 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:29:56,373 - openevolve.evaluator - INFO - Evaluated program e79af438-3278-4232-add2-a81257bb8198 in 0.17s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 1.1714186372356183, 'max_angle_seen_deg': 1.1714186372356183, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 310.6000009775162, 'structure_com_x': -2.0145250605030007, 'structure_com_y': -14.023106193006633, 'min_body_y': -14.023641586303711, 'net_gravity_torque_about_pivot': -6257.114857614629, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:29:56,374 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 0}
+2026-02-21 22:29:56,374 - openevolve.controller - INFO - Iteration 3: Program e79af438-3278-4232-add2-a81257bb8198 (parent: abe0238d-e615-461c-9d28-15670148fde2) completed in 28.70s
+2026-02-21 22:29:56,375 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 1.1714186372356183, 'max_angle_seen_deg': 1.1714186372356183, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 310.6000009775162, 'structure_com_x': -2.0145250605030007, 'structure_com_y': -14.023106193006633, 'min_body_y': -14.023641586303711, 'net_gravity_torque_about_pivot': -6257.114857614629, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:29:56,375 - openevolve.database - INFO - Island Status:
+2026-02-21 22:29:56,375 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=68.20, gen=3 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:29:56,375 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:29:56,375 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:29:56,375 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:29:56,375 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:29:56,386 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_3
+2026-02-21 22:29:56,390 - openevolve.controller - INFO - Saved best program at checkpoint 3 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:29:56,390 - openevolve.controller - INFO - Saved checkpoint at iteration 3 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_3
+2026-02-21 22:29:56,391 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:31:15,452 - openevolve.evaluator - INFO - Evaluated program 090a6da6-99cf-44db-bb32-55e11a3c9463 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:31:15,453 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 8, 'diversity': 0}
+2026-02-21 22:31:15,453 - openevolve.controller - INFO - Iteration 4: Program 090a6da6-99cf-44db-bb32-55e11a3c9463 (parent: 0e670221-c9f6-4b0f-abe1-88e14cefa68e) completed in 79.06s
+2026-02-21 22:31:15,453 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:31:15,453 - openevolve.database - INFO - Island Status:
+2026-02-21 22:31:15,453 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=68.20, gen=4 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:31:15,453 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:31:15,453 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:31:15,453 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:31:15,453 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 22:31:15,465 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_4
+2026-02-21 22:31:15,468 - openevolve.controller - INFO - Saved best program at checkpoint 4 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:31:15,468 - openevolve.controller - INFO - Saved checkpoint at iteration 4 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_4
+2026-02-21 22:31:15,470 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:32:24,273 - openevolve.evaluator - INFO - Evaluated program 8020a086-3ca7-4a05-9976-719f033094c3 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 1.3266036301077757, 'max_angle_seen_deg': 1.3266036301077757, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 210.60000097751617, 'structure_com_x': -1.9861646513702267, 'structure_com_y': -14.022082611292763, 'min_body_y': -14.022984504699707, 'net_gravity_torque_about_pivot': -4182.862775200778, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:32:24,274 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 9, 'diversity': 0}
+2026-02-21 22:32:24,274 - openevolve.controller - INFO - Iteration 5: Program 8020a086-3ca7-4a05-9976-719f033094c3 (parent: 0e670221-c9f6-4b0f-abe1-88e14cefa68e) completed in 68.80s
+2026-02-21 22:32:24,274 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 1.3266036301077757, 'max_angle_seen_deg': 1.3266036301077757, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 210.60000097751617, 'structure_com_x': -1.9861646513702267, 'structure_com_y': -14.022082611292763, 'min_body_y': -14.022984504699707, 'net_gravity_torque_about_pivot': -4182.862775200778, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:32:24,274 - openevolve.database - INFO - Island Status:
+2026-02-21 22:32:24,274 - openevolve.database - INFO -  * Island 0: 2 programs, best=0.0000, avg=0.0000, diversity=68.20, gen=5 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:32:24,274 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:32:24,274 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:32:24,274 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:32:24,274 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:32:24,291 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_5
+2026-02-21 22:32:24,294 - openevolve.controller - INFO - Saved best program at checkpoint 5 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:32:24,294 - openevolve.controller - INFO - Saved checkpoint at iteration 5 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_5
+2026-02-21 22:32:24,295 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:33:24,696 - openevolve.evaluator - INFO - Evaluated program 22213c52-cd8e-410b-9695-e2a44f1f5743 in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 0.6415145788186051, 'max_angle_seen_deg': 0.6415145788186051, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 301.60000002384186, 'structure_com_x': -2.05921506479134, 'structure_com_y': -14.025670142007465, 'min_body_y': -14.025740623474121, 'net_gravity_torque_about_pivot': -6210.592635901637, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:33:24,698 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 9, 'diversity': 0}
+2026-02-21 22:33:24,698 - openevolve.controller - INFO - Iteration 6: Program 22213c52-cd8e-410b-9695-e2a44f1f5743 (parent: 0e670221-c9f6-4b0f-abe1-88e14cefa68e) completed in 60.40s
+2026-02-21 22:33:24,698 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 0.6415145788186051, 'max_angle_seen_deg': 0.6415145788186051, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 301.60000002384186, 'structure_com_x': -2.05921506479134, 'structure_com_y': -14.025670142007465, 'min_body_y': -14.025740623474121, 'net_gravity_torque_about_pivot': -6210.592635901637, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:33:24,698 - openevolve.database - INFO - Island Status:
+2026-02-21 22:33:24,698 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=46.27, gen=6 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:33:24,699 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:33:24,699 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:33:24,699 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:33:24,699 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:33:24,715 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_6
+2026-02-21 22:33:24,718 - openevolve.controller - INFO - Saved best program at checkpoint 6 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:33:24,718 - openevolve.controller - INFO - Saved checkpoint at iteration 6 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_6
+2026-02-21 22:33:24,718 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:34:30,620 - openevolve.evaluator - INFO - Evaluated program b5879f14-0643-4193-9003-e3223bbde3ee in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 4, in build_agent\nTypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument \'is_static\'\n'}, error=Error building agent: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 4, in build_agent
+TypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+
+2026-02-21 22:34:30,621 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 0}
+2026-02-21 22:34:30,621 - openevolve.controller - INFO - Iteration 7: Program b5879f14-0643-4193-9003-e3223bbde3ee (parent: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa) completed in 65.90s
+2026-02-21 22:34:30,621 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 4, in build_agent\nTypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument \'is_static\'\n'}, error=Error building agent: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 4, in build_agent
+TypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+
+2026-02-21 22:34:30,621 - openevolve.database - INFO - Island Status:
+2026-02-21 22:34:30,621 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=46.27, gen=6 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:34:30,621 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=45.80, gen=1 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:34:30,621 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:34:30,621 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:34:30,621 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:34:30,658 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_7
+2026-02-21 22:34:30,661 - openevolve.controller - INFO - Saved best program at checkpoint 7 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:34:30,661 - openevolve.controller - INFO - Saved checkpoint at iteration 7 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_7
+2026-02-21 22:34:30,662 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:35:52,587 - openevolve.controller - WARNING - Iteration 8 error: No valid diffs found
+2026-02-21 22:35:52,588 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:36:17,397 - openevolve.evaluator - INFO - Evaluated program 943a8643-1498-4b9d-8ad9-c990104fb8d6 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\nTypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument \'is_static\'\n'}, error=Error building agent: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+TypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+
+2026-02-21 22:36:17,398 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 8}
+2026-02-21 22:36:17,398 - openevolve.controller - INFO - Iteration 9: Program 943a8643-1498-4b9d-8ad9-c990104fb8d6 (parent: 090a6da6-99cf-44db-bb32-55e11a3c9463) completed in 24.81s
+2026-02-21 22:36:17,398 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\nTypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument \'is_static\'\n'}, error=Error building agent: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+TypeError: DaVinciSandbox.add_beam() got an unexpected keyword argument 'is_static'
+
+2026-02-21 22:36:17,398 - openevolve.database - INFO - Island Status:
+2026-02-21 22:36:17,398 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=46.27, gen=6 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:36:17,398 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=45.80, gen=1 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:36:17,398 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:36:17,398 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=49.30, gen=1 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:36:17,398 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:36:17,417 - openevolve.database - INFO - Saved database with 9 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_9
+2026-02-21 22:36:17,420 - openevolve.controller - INFO - Saved best program at checkpoint 9 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:36:17,420 - openevolve.controller - INFO - Saved checkpoint at iteration 9 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_9
+2026-02-21 22:36:17,420 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:37:39,424 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 22:37:39,426 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:39:03,967 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 22:39:03,969 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:40:28,016 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 22:40:28,017 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:41:49,733 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-21 22:41:49,734 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:43:13,865 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 22:43:13,866 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:44:35,659 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 22:44:35,662 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:45:59,449 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 22:45:59,450 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:47:23,014 - openevolve.evaluator - INFO - Evaluated program 5012f72d-4b6c-44a0-bf95-5983c6d0bd2f in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': -18.70868214615594, 'max_angle_seen_deg': 18.70868214615594, 'balance_duration': 0.0, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 190.60000097751617, 'structure_com_x': -1.5108746203411496, 'structure_com_y': -14.017254374942494, 'min_body_y': -14.018996238708496, 'net_gravity_torque_about_pivot': -2879.7270411392747, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:47:23,016 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 6, 'diversity': 0}
+2026-02-21 22:47:23,016 - openevolve.controller - INFO - Iteration 17: Program 5012f72d-4b6c-44a0-bf95-5983c6d0bd2f (parent: b5879f14-0643-4193-9003-e3223bbde3ee) completed in 83.57s
+2026-02-21 22:47:23,016 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': -18.70868214615594, 'max_angle_seen_deg': 18.70868214615594, 'balance_duration': 0.0, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 190.60000097751617, 'structure_com_x': -1.5108746203411496, 'structure_com_y': -14.017254374942494, 'min_body_y': -14.018996238708496, 'net_gravity_torque_about_pivot': -2879.7270411392747, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:47:23,017 - openevolve.database - INFO - Island Status:
+2026-02-21 22:47:23,017 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=46.27, gen=6 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:47:23,017 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=31.80, gen=2 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:47:23,017 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:47:23,017 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=49.30, gen=1 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:47:23,017 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:47:23,052 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_17
+2026-02-21 22:47:23,055 - openevolve.controller - INFO - Saved best program at checkpoint 17 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:47:23,055 - openevolve.controller - INFO - Saved checkpoint at iteration 17 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_17
+2026-02-21 22:47:23,056 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:48:44,784 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-21 22:48:44,787 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:49:11,631 - openevolve.evaluator - INFO - Evaluated program 48fd69bf-4c3a-43f6-a99b-4b3be849997a in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:49:11,632 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 6, 'diversity': 0}
+2026-02-21 22:49:11,632 - openevolve.controller - INFO - Iteration 19: Program 48fd69bf-4c3a-43f6-a99b-4b3be849997a (parent: 943a8643-1498-4b9d-8ad9-c990104fb8d6) completed in 26.84s
+2026-02-21 22:49:11,632 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:49:11,632 - openevolve.database - INFO - Island Status:
+2026-02-21 22:49:11,632 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=46.27, gen=6 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:49:11,632 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=31.80, gen=2 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:49:11,632 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:49:11,632 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=32.87, gen=2 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:49:11,633 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:49:11,655 - openevolve.database - INFO - Saved database with 11 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_19
+2026-02-21 22:49:11,658 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:49:11,659 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_19
+2026-02-21 22:49:11,659 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-14B
+2026-02-21 22:50:24,337 - openevolve.evaluator - INFO - Evaluated program 06f72ab4-ffaa-47d8-9455-9525e2ad8363 in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 4.335878790318142, 'max_angle_seen_deg': 4.335878790318142, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 310.6000009775162, 'structure_com_x': -2.013447548517712, 'structure_com_y': -14.023540873835898, 'min_body_y': -14.0239896774292, 'net_gravity_torque_about_pivot': -6253.768105377789, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:50:24,338 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 5, 'diversity': 0}
+2026-02-21 22:50:24,339 - openevolve.controller - INFO - Iteration 20: Program 06f72ab4-ffaa-47d8-9455-9525e2ad8363 (parent: 8020a086-3ca7-4a05-9976-719f033094c3) completed in 72.68s
+2026-02-21 22:50:24,339 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'load_caught': False, 'beam_angle_deg': 4.335878790318142, 'max_angle_seen_deg': 4.335878790318142, 'balance_duration': 1.6666666666666667, 'target_balance_time': 15.0, 'success': False, 'failed': True, 'failure_reason': 'Failed to catch load at (3,0)', 'step_count': 100, 'structure_mass': 310.6000009775162, 'structure_com_x': -2.013447548517712, 'structure_com_y': -14.023540873835898, 'min_body_y': -14.0239896774292, 'net_gravity_torque_about_pivot': -6253.768105377789, 'load_mass': None, 'load_pos': None}, error=None
+2026-02-21 22:50:24,339 - openevolve.database - INFO - Island Status:
+2026-02-21 22:50:24,339 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=46.27, gen=6 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:50:24,339 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=31.80, gen=2 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:50:24,339 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:50:24,339 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=32.87, gen=2 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:50:24,339 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=0.80, gen=1 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:50:24,378 - openevolve.database - INFO - Saved database with 12 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_20
+2026-02-21 22:50:24,382 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:50:24,382 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_20
+2026-02-21 22:50:24,400 - openevolve.database - INFO - Saved database with 12 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_20
+2026-02-21 22:50:24,402 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:50:24,402 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_20
+2026-02-21 22:50:24,402 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\nTypeError: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 10, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint\n    joint = self._world.CreateRevoluteJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint\n    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs\n    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nTypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method \'b2JointDef_bodyB_set\', argument 2 of type \'b2Body *\'\n'}, error=Error building agent: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+TypeError: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 10, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_04/environment.py", line 187, in add_joint
+    joint = self._world.CreateRevoluteJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3348, in CreateRevoluteJoint
+    return self.__CreateJoint(b2RevoluteJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4378, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 119, in _init_jointdef_kwargs
+    _init_kwargs(self, bodyA=bodyA, bodyB=bodyB)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+TypeError: Failed on kwargs for b2RevoluteJointDef.bodyB: in method 'b2JointDef_bodyB_set', argument 2 of type 'b2Body *'
+
+2026-02-21 22:50:24,405 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/best/best_program_info.json
+2026-02-21 22:50:24,408 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 22:50:24,408 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 22:50:24,408 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 22:50:24,415 - openevolve.database - INFO - Reconstructed islands: restored 12 programs to islands
+2026-02-21 22:50:24,415 - openevolve.database - INFO - Loaded database with 12 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-14B/category_1_04/checkpoints/checkpoint_20
+2026-02-21 22:50:24,415 - openevolve.database - INFO - Island Status:
+2026-02-21 22:50:24,415 - openevolve.database - INFO -  * Island 0: 3 programs, best=0.0000, avg=0.0000, diversity=46.27, gen=6 (best: abe0238d-e615-461c-9d28-15670148fde2)
+2026-02-21 22:50:24,415 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=31.80, gen=2 (best: 71087d48-5e60-45f0-9ce4-2f29ede5d2aa)
+2026-02-21 22:50:24,415 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: e79af438-3278-4232-add2-a81257bb8198)
+2026-02-21 22:50:24,415 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=32.87, gen=2 (best: 090a6da6-99cf-44db-bb32-55e11a3c9463)
+2026-02-21 22:50:24,415 - openevolve.database - INFO -    Island 4: 2 programs, best=0.0000, avg=0.0000, diversity=0.80, gen=1 (best: 8020a086-3ca7-4a05-9976-719f033094c3)
+2026-02-21 22:50:24,437 - openevolve.database - INFO - Saved database with 12 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_04/Qwen3-14B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

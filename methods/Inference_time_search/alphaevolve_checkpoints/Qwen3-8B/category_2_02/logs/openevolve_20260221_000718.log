@@ -1,0 +1,235 @@
+2026-02-21 00:07:18,801 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/logs/openevolve_20260221_000718.log
+2026-02-21 00:07:18,813 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 00:08:13,562 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 00:08:13,568 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 00:08:13,573 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 00:08:13,573 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 00:08:13,576 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d__1u_3_kh/evaluate.py
+2026-02-21 00:08:13,576 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d__1u_3_kh/evaluate.py
+2026-02-21 00:08:13,576 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d__1u_3_kh/initial_program.py
+2026-02-21 00:08:13,576 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 00:08:13,753 - openevolve.evaluator - INFO - Evaluated program d7761695-97f7-4043-94b7-82d3d5456902 in 0.18s: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:08:13,754 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 00:08:13,754 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 00:08:13,755 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 00:08:13,755 - openevolve.database - INFO - Island Status:
+2026-02-21 00:08:13,755 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=0 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:08:13,756 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:08:13,756 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:08:13,756 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:08:13,756 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:08:13,756 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:09:03,608 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-21 00:09:03,609 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:09:29,687 - openevolve.evaluator - INFO - Evaluated program fcf11f68-00ab-49c9-bc01-c4377fa1e6c8 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'add_joint: body_b cannot be None. You must provide a valid body object.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_02/environment.py", line 212, in add_joint\n    raise ValueError("add_joint: body_b cannot be None. You must provide a valid body object.")\nValueError: add_joint: body_b cannot be None. You must provide a valid body object.\n'}, error=Error building agent: add_joint: body_b cannot be None. You must provide a valid body object.
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_02/environment.py", line 212, in add_joint
+    raise ValueError("add_joint: body_b cannot be None. You must provide a valid body object.")
+ValueError: add_joint: body_b cannot be None. You must provide a valid body object.
+
+2026-02-21 00:09:29,688 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 5}
+2026-02-21 00:09:29,688 - openevolve.controller - INFO - Iteration 2: Program fcf11f68-00ab-49c9-bc01-c4377fa1e6c8 (parent: d7761695-97f7-4043-94b7-82d3d5456902) completed in 26.08s
+2026-02-21 00:09:29,688 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'add_joint: body_b cannot be None. You must provide a valid body object.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_02/environment.py", line 212, in add_joint\n    raise ValueError("add_joint: body_b cannot be None. You must provide a valid body object.")\nValueError: add_joint: body_b cannot be None. You must provide a valid body object.\n'}, error=Error building agent: add_joint: body_b cannot be None. You must provide a valid body object.
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_02/environment.py", line 212, in add_joint
+    raise ValueError("add_joint: body_b cannot be None. You must provide a valid body object.")
+ValueError: add_joint: body_b cannot be None. You must provide a valid body object.
+
+2026-02-21 00:09:29,688 - openevolve.database - INFO - Island Status:
+2026-02-21 00:09:29,688 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=1 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:09:29,688 - openevolve.database - INFO -    Island 1: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:09:29,688 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:09:29,688 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:09:29,688 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:09:29,697 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_2
+2026-02-21 00:09:29,702 - openevolve.controller - INFO - Saved best program at checkpoint 2 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:09:29,702 - openevolve.controller - INFO - Saved checkpoint at iteration 2 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_2
+2026-02-21 00:09:29,703 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:10:19,058 - openevolve.controller - WARNING - Iteration 3 error: No valid diffs found
+2026-02-21 00:10:19,059 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:11:08,403 - openevolve.controller - WARNING - Iteration 4 error: No valid diffs found
+2026-02-21 00:11:08,405 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:11:57,753 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-21 00:11:57,754 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:12:47,097 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 00:12:47,099 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:13:37,355 - openevolve.evaluator - INFO - Evaluated program 71bc8ccb-11df-4fe3-b743-9bc69afa74cf in 0.15s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pad1' is not defined"}, error=Code name error: name 'pad1' is not defined
+2026-02-21 00:13:37,356 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 0}
+2026-02-21 00:13:37,357 - openevolve.controller - INFO - Iteration 7: Program 71bc8ccb-11df-4fe3-b743-9bc69afa74cf (parent: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8) completed in 50.26s
+2026-02-21 00:13:37,357 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pad1' is not defined"}, error=Code name error: name 'pad1' is not defined
+2026-02-21 00:13:37,357 - openevolve.database - INFO - Island Status:
+2026-02-21 00:13:37,357 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=1 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:13:37,357 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=33.60, gen=1 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:13:37,357 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:13:37,358 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:13:37,358 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:13:37,367 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_7
+2026-02-21 00:13:37,371 - openevolve.controller - INFO - Saved best program at checkpoint 7 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:13:37,371 - openevolve.controller - INFO - Saved checkpoint at iteration 7 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_7
+2026-02-21 00:13:37,372 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:14:26,724 - openevolve.controller - WARNING - Iteration 8 error: No valid diffs found
+2026-02-21 00:14:26,726 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:14:48,927 - openevolve.evaluator - INFO - Evaluated program 475dce87-6d75-4c15-97db-5ebf90b5a667 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:14:48,927 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 8, 'diversity': 0}
+2026-02-21 00:14:48,928 - openevolve.controller - INFO - Iteration 9: Program 475dce87-6d75-4c15-97db-5ebf90b5a667 (parent: d7761695-97f7-4043-94b7-82d3d5456902) completed in 22.20s
+2026-02-21 00:14:48,928 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:14:48,928 - openevolve.database - INFO - Island Status:
+2026-02-21 00:14:48,928 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=2 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:14:48,928 - openevolve.database - INFO -    Island 1: 2 programs, best=0.0000, avg=0.0000, diversity=33.60, gen=1 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:14:48,928 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:14:48,928 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:14:48,928 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:14:48,953 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_9
+2026-02-21 00:14:48,955 - openevolve.controller - INFO - Saved best program at checkpoint 9 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:14:48,956 - openevolve.controller - INFO - Saved checkpoint at iteration 9 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_9
+2026-02-21 00:14:48,956 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:15:38,301 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 00:15:38,303 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:16:27,642 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 00:16:27,643 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:17:18,697 - openevolve.evaluator - INFO - Evaluated program 2fe119a9-2c6b-4b4d-b9f7-f6585fd028ea in 0.13s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pad1' is not defined"}, error=Code name error: name 'pad1' is not defined
+2026-02-21 00:17:18,699 - openevolve.controller - INFO - Iteration 12: Program 2fe119a9-2c6b-4b4d-b9f7-f6585fd028ea (parent: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8) completed in 51.06s
+2026-02-21 00:17:18,699 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pad1' is not defined"}, error=Code name error: name 'pad1' is not defined
+2026-02-21 00:17:18,699 - openevolve.database - INFO - Island Status:
+2026-02-21 00:17:18,699 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=2 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:17:18,699 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=22.40, gen=2 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:17:18,699 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:17:18,699 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:17:18,699 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:17:18,714 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_12
+2026-02-21 00:17:18,717 - openevolve.controller - INFO - Saved best program at checkpoint 12 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:17:18,717 - openevolve.controller - INFO - Saved checkpoint at iteration 12 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_12
+2026-02-21 00:17:18,717 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:17:36,651 - openevolve.evaluator - INFO - Evaluated program dd14017e-03da-4041-beef-c66c04309314 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'climber_x': 5.0, 'climber_y': 1.5, 'target_y': 3.5, 'height_gained': 0.0, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.20, 1.50) is outside build zone x=[0.0, 5.0], y=[0.0, 20.0]; Beam at (5.20, 2.00) is outside build zone x=[0.0, 5.0], y=[0.0, 20.0]', 'step_count': 0, 'structure_mass': 0.5723823085427284, 'max_structure_mass': 50.0, 'min_height_seen': 1.5, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:17:36,652 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 7, 'diversity': 0}
+2026-02-21 00:17:36,652 - openevolve.controller - INFO - Iteration 13: Program dd14017e-03da-4041-beef-c66c04309314 (parent: d7761695-97f7-4043-94b7-82d3d5456902) completed in 17.94s
+2026-02-21 00:17:36,653 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'climber_x': 5.0, 'climber_y': 1.5, 'target_y': 3.5, 'height_gained': 0.0, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.20, 1.50) is outside build zone x=[0.0, 5.0], y=[0.0, 20.0]; Beam at (5.20, 2.00) is outside build zone x=[0.0, 5.0], y=[0.0, 20.0]', 'step_count': 0, 'structure_mass': 0.5723823085427284, 'max_structure_mass': 50.0, 'min_height_seen': 1.5, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:17:36,653 - openevolve.database - INFO - Island Status:
+2026-02-21 00:17:36,653 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=3 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:17:36,653 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=22.40, gen=2 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:17:36,653 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: dd14017e-03da-4041-beef-c66c04309314)
+2026-02-21 00:17:36,653 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:17:36,653 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:17:36,669 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_13
+2026-02-21 00:17:36,671 - openevolve.controller - INFO - Saved best program at checkpoint 13 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:17:36,672 - openevolve.controller - INFO - Saved checkpoint at iteration 13 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_13
+2026-02-21 00:17:36,672 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:18:06,164 - openevolve.evaluator - INFO - Evaluated program 8df16400-4b71-4066-9648-b05242aa5e76 in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:18:06,164 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 3}
+2026-02-21 00:18:06,164 - openevolve.controller - INFO - Iteration 14: Program 8df16400-4b71-4066-9648-b05242aa5e76 (parent: 475dce87-6d75-4c15-97db-5ebf90b5a667) completed in 29.49s
+2026-02-21 00:18:06,164 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 16, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 16, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:18:06,164 - openevolve.database - INFO - Island Status:
+2026-02-21 00:18:06,164 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=3 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:18:06,164 - openevolve.database - INFO -    Island 1: 3 programs, best=0.0000, avg=0.0000, diversity=22.40, gen=2 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:18:06,164 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: dd14017e-03da-4041-beef-c66c04309314)
+2026-02-21 00:18:06,165 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=107.80, gen=1 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:18:06,165 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:18:06,199 - openevolve.database - INFO - Saved database with 7 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_14
+2026-02-21 00:18:06,203 - openevolve.controller - INFO - Saved best program at checkpoint 14 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:18:06,204 - openevolve.controller - INFO - Saved checkpoint at iteration 14 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_14
+2026-02-21 00:18:06,204 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:18:55,546 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 00:18:55,547 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:19:44,890 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 00:19:44,892 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:20:28,016 - openevolve.evaluator - INFO - Evaluated program b595bbb0-5815-40a7-8756-cd17673ccefd in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pivot_joint' is not defined"}, error=Code name error: name 'pivot_joint' is not defined
+2026-02-21 00:20:28,017 - openevolve.database - INFO - New MAP-Elites cell occupied in island 1: {'complexity': 9, 'diversity': 2}
+2026-02-21 00:20:28,017 - openevolve.controller - INFO - Iteration 17: Program b595bbb0-5815-40a7-8756-cd17673ccefd (parent: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8) completed in 43.13s
+2026-02-21 00:20:28,017 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pivot_joint' is not defined"}, error=Code name error: name 'pivot_joint' is not defined
+2026-02-21 00:20:28,017 - openevolve.database - INFO - Island Status:
+2026-02-21 00:20:28,017 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=3 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:20:28,018 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=59.50, gen=3 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:20:28,018 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: dd14017e-03da-4041-beef-c66c04309314)
+2026-02-21 00:20:28,018 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=107.80, gen=1 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:20:28,018 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:20:28,036 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_17
+2026-02-21 00:20:28,039 - openevolve.controller - INFO - Saved best program at checkpoint 17 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:20:28,039 - openevolve.controller - INFO - Saved checkpoint at iteration 17 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_17
+2026-02-21 00:20:28,040 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:21:05,300 - openevolve.evaluator - INFO - Evaluated program 2aa7b81a-7d0e-4070-8f4e-9399e7adec83 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pad1' is not defined"}, error=Code name error: name 'pad1' is not defined
+2026-02-21 00:21:05,302 - openevolve.controller - INFO - Iteration 18: Program 2aa7b81a-7d0e-4070-8f4e-9399e7adec83 (parent: dd14017e-03da-4041-beef-c66c04309314) completed in 37.26s
+2026-02-21 00:21:05,302 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'pad1' is not defined"}, error=Code name error: name 'pad1' is not defined
+2026-02-21 00:21:05,303 - openevolve.database - INFO - Island Status:
+2026-02-21 00:21:05,303 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=3 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:21:05,303 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=59.50, gen=3 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:21:05,303 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=14.50, gen=1 (best: dd14017e-03da-4041-beef-c66c04309314)
+2026-02-21 00:21:05,304 - openevolve.database - INFO -    Island 3: 2 programs, best=0.0000, avg=0.0000, diversity=107.80, gen=1 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:21:05,304 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:21:05,327 - openevolve.database - INFO - Saved database with 9 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_18
+2026-02-21 00:21:05,331 - openevolve.controller - INFO - Saved best program at checkpoint 18 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:21:05,331 - openevolve.controller - INFO - Saved checkpoint at iteration 18 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_18
+2026-02-21 00:21:05,331 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:21:34,821 - openevolve.evaluator - INFO - Evaluated program 3e995ec1-2988-4d78-a75e-dee6ea84599d in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:21:34,821 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 0}
+2026-02-21 00:21:34,821 - openevolve.controller - INFO - Iteration 19: Program 3e995ec1-2988-4d78-a75e-dee6ea84599d (parent: 475dce87-6d75-4c15-97db-5ebf90b5a667) completed in 29.49s
+2026-02-21 00:21:34,822 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "name 'math' is not defined", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 18, in build_agent\nNameError: name \'math\' is not defined. Did you forget to import \'math\'?\n'}, error=Error building agent: name 'math' is not defined
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 18, in build_agent
+NameError: name 'math' is not defined. Did you forget to import 'math'?
+
+2026-02-21 00:21:34,822 - openevolve.database - INFO - Island Status:
+2026-02-21 00:21:34,822 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=3 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:21:34,822 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=59.50, gen=3 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:21:34,822 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=14.50, gen=1 (best: dd14017e-03da-4041-beef-c66c04309314)
+2026-02-21 00:21:34,822 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=71.87, gen=2 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:21:34,822 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:21:34,846 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_19
+2026-02-21 00:21:34,865 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:21:34,865 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_19
+2026-02-21 00:21:34,865 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:22:24,217 - openevolve.controller - WARNING - Iteration 20 error: No valid diffs found
+2026-02-21 00:22:24,242 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_20
+2026-02-21 00:22:24,244 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:22:24,244 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_20
+2026-02-21 00:22:24,245 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'climber_x': 5.716982841491699, 'climber_y': 1.4817023277282715, 'target_y': 3.5, 'height_gained': -0.018297672271728516, 'max_height_reached': 1.5, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 50.0, 'min_height_seen': 1.4817023277282715, 'climber_fell': False, 'steps_with_motion': 0, 'min_simulation_steps_required': 90, 'velocity_x': 0.0, 'velocity_y': 0.0, 'angular_velocity': 0.0, 'speed': 0.0}, error=None
+2026-02-21 00:22:24,248 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/best/best_program_info.json
+2026-02-21 00:22:24,251 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 00:22:24,252 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 00:22:24,253 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 00:22:24,261 - openevolve.database - INFO - Reconstructed islands: restored 10 programs to islands
+2026-02-21 00:22:24,261 - openevolve.database - INFO - Loaded database with 10 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_02/checkpoints/checkpoint_20
+2026-02-21 00:22:24,262 - openevolve.database - INFO - Island Status:
+2026-02-21 00:22:24,262 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=3 (best: d7761695-97f7-4043-94b7-82d3d5456902)
+2026-02-21 00:22:24,262 - openevolve.database - INFO -    Island 1: 4 programs, best=0.0000, avg=0.0000, diversity=59.50, gen=3 (best: fcf11f68-00ab-49c9-bc01-c4377fa1e6c8)
+2026-02-21 00:22:24,262 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=14.50, gen=1 (best: dd14017e-03da-4041-beef-c66c04309314)
+2026-02-21 00:22:24,262 - openevolve.database - INFO -    Island 3: 3 programs, best=0.0000, avg=0.0000, diversity=71.87, gen=2 (best: 475dce87-6d75-4c15-97db-5ebf90b5a667)
+2026-02-21 00:22:24,262 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:22:24,291 - openevolve.database - INFO - Saved database with 10 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_2_02/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

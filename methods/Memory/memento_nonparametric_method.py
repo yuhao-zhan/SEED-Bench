@@ -98,7 +98,7 @@ def build_prompt_from_cases_2d(
 ) -> str:
     """
     Format retrieved cases into prompt text (positive/negative by reward).
-    2D adaptation: each case shows task_description (question), code (plan), feedback.
+    Omits repeating the full task (already in the main prompt); each case is code + feedback only.
     """
     positive_cases = []
     negative_cases = []
@@ -124,9 +124,8 @@ def build_prompt_from_cases_2d(
             code = case.get("plan", "") or ""
             if not isinstance(code, str):
                 code = str(code)
-            task_desc = (case.get("question") or "") or ""
             parts.append(
-                f"Example {i}:\nTask: {task_desc}\n\nCode:\n```python\n{code}\n```\n\nFeedback: {(feedback or '')}\n"
+                f"Example {i}:\n```python\n{code}\n```\n\n**Feedback / outcome:**\n{(feedback or '').strip()}\n"
             )
     if negative_cases:
         parts.append(
@@ -138,9 +137,8 @@ def build_prompt_from_cases_2d(
             code = case.get("plan", "") or ""
             if not isinstance(code, str):
                 code = str(code)
-            task_desc = (case.get("question") or "") or ""
             parts.append(
-                f"Example {i}:\nTask: {task_desc}\n\nCode:\n```python\n{code}\n```\n\nFeedback: {(feedback or '')}\n"
+                f"Example {i}:\n```python\n{code}\n```\n\n**Feedback / outcome:**\n{(feedback or '').strip()}\n"
             )
     parts.append(
         "Based on the above examples, provide an improved solution. "

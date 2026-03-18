@@ -1,0 +1,202 @@
+2026-02-21 00:22:30,165 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/logs/openevolve_20260221_002230.log
+2026-02-21 00:22:30,176 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 00:23:24,737 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 00:23:24,744 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 00:23:24,748 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 00:23:24,748 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 00:23:24,751 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_jc2s153q/evaluate.py
+2026-02-21 00:23:24,751 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_jc2s153q/evaluate.py
+2026-02-21 00:23:24,751 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_jc2s153q/initial_program.py
+2026-02-21 00:23:24,751 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 00:23:24,929 - openevolve.evaluator - INFO - Evaluated program 5633cabe-082c-484b-ac0d-d57648e6811e in 0.18s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'gripper_x': 5.0, 'gripper_y': 1.5, 'object_x': 5.0, 'object_y': 2.0, 'target_object_y': 3.5, 'height_gained': 0.0, 'max_object_y_reached': 2.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 10.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': True, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:23:24,930 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 00:23:24,930 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 00:23:24,931 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 00:23:24,931 - openevolve.database - INFO - Island Status:
+2026-02-21 00:23:24,931 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 5633cabe-082c-484b-ac0d-d57648e6811e)
+2026-02-21 00:23:24,931 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:23:24,931 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:23:24,931 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:23:24,931 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:23:24,932 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:24:14,857 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-21 00:24:14,859 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:25:04,290 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-21 00:25:04,291 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:25:53,905 - openevolve.evaluator - INFO - Evaluated program 0362bc38-f49e-435c-9db2-64919774399d in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'gripper_x': 5.0, 'gripper_y': 1.5, 'object_x': 5.0, 'object_y': 2.0, 'target_object_y': 3.5, 'height_gained': 0.0, 'max_object_y_reached': 2.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 10.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': True, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:25:53,906 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 5}
+2026-02-21 00:25:53,906 - openevolve.controller - INFO - Iteration 3: Program 0362bc38-f49e-435c-9db2-64919774399d (parent: 5633cabe-082c-484b-ac0d-d57648e6811e) completed in 49.62s
+2026-02-21 00:25:53,906 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'gripper_x': 5.0, 'gripper_y': 1.5, 'object_x': 5.0, 'object_y': 2.0, 'target_object_y': 3.5, 'height_gained': 0.0, 'max_object_y_reached': 2.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 10.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': True, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:25:53,906 - openevolve.database - INFO - Island Status:
+2026-02-21 00:25:53,906 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 5633cabe-082c-484b-ac0d-d57648e6811e)
+2026-02-21 00:25:53,906 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:25:53,907 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 0362bc38-f49e-435c-9db2-64919774399d)
+2026-02-21 00:25:53,907 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:25:53,907 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:25:53,914 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_3
+2026-02-21 00:25:53,917 - openevolve.controller - INFO - Saved best program at checkpoint 3 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'gripper_x': 5.0, 'gripper_y': 1.5, 'object_x': 5.0, 'object_y': 2.0, 'target_object_y': 3.5, 'height_gained': 0.0, 'max_object_y_reached': 2.0, 'progress': 0.0, 'success': False, 'failed': True, 'failure_reason': 'Design constraint violated: Beam at (5.00, 1.50) is outside build zone x=[0.0, 10.0], y=[5.0, 15.0]', 'step_count': 0, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': True, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:25:53,917 - openevolve.controller - INFO - Saved checkpoint at iteration 3 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_3
+2026-02-21 00:25:53,917 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:26:19,479 - openevolve.evaluator - INFO - Evaluated program c7cfd1aa-7fae-4699-b582-5deab41091fd in 0.14s: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:26:19,479 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 9}
+2026-02-21 00:26:19,479 - openevolve.database - INFO - New best program c7cfd1aa-7fae-4699-b582-5deab41091fd replaces 5633cabe-082c-484b-ac0d-d57648e6811e (combined_score: 0.0000 → 0.1500, +0.1500)
+2026-02-21 00:26:19,479 - openevolve.controller - INFO - Iteration 4: Program c7cfd1aa-7fae-4699-b582-5deab41091fd (parent: 5633cabe-082c-484b-ac0d-d57648e6811e) completed in 25.56s
+2026-02-21 00:26:19,479 - openevolve.controller - INFO - Metrics: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:26:19,479 - openevolve.controller - INFO - 🌟 New best solution found at iteration 4: c7cfd1aa-7fae-4699-b582-5deab41091fd
+2026-02-21 00:26:19,479 - openevolve.database - INFO - Island Status:
+2026-02-21 00:26:19,480 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=2 (best: 5633cabe-082c-484b-ac0d-d57648e6811e)
+2026-02-21 00:26:19,480 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:26:19,480 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 0362bc38-f49e-435c-9db2-64919774399d)
+2026-02-21 00:26:19,480 - openevolve.database - INFO -    Island 3: 1 programs, best=0.1500, avg=0.1500, diversity=0.00, gen=0 (best: c7cfd1aa-7fae-4699-b582-5deab41091fd)
+2026-02-21 00:26:19,480 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:26:19,488 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_4
+2026-02-21 00:26:19,491 - openevolve.controller - INFO - Saved best program at checkpoint 4 with metrics: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:26:19,491 - openevolve.controller - INFO - Saved checkpoint at iteration 4 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_4
+2026-02-21 00:26:19,493 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:27:08,935 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-21 00:27:08,936 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:27:58,366 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 00:27:58,367 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:28:47,809 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-21 00:28:47,810 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:29:05,804 - openevolve.evaluator - INFO - Evaluated program 9d25872e-3912-440e-9e5a-94d76d58d675 in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2PrismaticJoint' object has no attribute 'position'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation\n    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)\n                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/evaluator.py", line 71, in evaluate\n    gripper_x, gripper_y = agent_body.position.x, agent_body.position.y\n                           ^^^^^^^^^^^^^^^^^^^\nAttributeError: \'b2PrismaticJoint\' object has no attribute \'position\'\n'}, error=Verification process error: 'b2PrismaticJoint' object has no attribute 'position'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation
+    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)
+                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/evaluator.py", line 71, in evaluate
+    gripper_x, gripper_y = agent_body.position.x, agent_body.position.y
+                           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'b2PrismaticJoint' object has no attribute 'position'
+
+2026-02-21 00:29:05,806 - openevolve.controller - INFO - Iteration 8: Program 9d25872e-3912-440e-9e5a-94d76d58d675 (parent: 0362bc38-f49e-435c-9db2-64919774399d) completed in 18.00s
+2026-02-21 00:29:05,806 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'b2PrismaticJoint' object has no attribute 'position'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation\n    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)\n                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/evaluator.py", line 71, in evaluate\n    gripper_x, gripper_y = agent_body.position.x, agent_body.position.y\n                           ^^^^^^^^^^^^^^^^^^^\nAttributeError: \'b2PrismaticJoint\' object has no attribute \'position\'\n'}, error=Verification process error: 'b2PrismaticJoint' object has no attribute 'position'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation
+    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)
+                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/evaluator.py", line 71, in evaluate
+    gripper_x, gripper_y = agent_body.position.x, agent_body.position.y
+                           ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'b2PrismaticJoint' object has no attribute 'position'
+
+2026-02-21 00:29:05,806 - openevolve.database - INFO - Island Status:
+2026-02-21 00:29:05,807 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=2 (best: 5633cabe-082c-484b-ac0d-d57648e6811e)
+2026-02-21 00:29:05,808 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:29:05,808 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=563.00, gen=1 (best: 0362bc38-f49e-435c-9db2-64919774399d)
+2026-02-21 00:29:05,808 - openevolve.database - INFO -    Island 3: 1 programs, best=0.1500, avg=0.1500, diversity=0.00, gen=0 (best: c7cfd1aa-7fae-4699-b582-5deab41091fd)
+2026-02-21 00:29:05,808 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:29:05,820 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_8
+2026-02-21 00:29:05,823 - openevolve.controller - INFO - Saved best program at checkpoint 8 with metrics: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:29:05,823 - openevolve.controller - INFO - Saved checkpoint at iteration 8 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_8
+2026-02-21 00:29:05,824 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:29:56,300 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 00:29:56,300 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:30:45,728 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 00:30:45,729 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:31:35,165 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 00:31:35,166 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:32:24,624 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 00:32:24,626 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:33:13,667 - openevolve.evaluator - INFO - Evaluated program 232182a2-0594-402a-b0e2-05ca68d8942d in 0.15s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': 'set_slider_motor: joint must be a prismatic/slider joint', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 45, in agent_action\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/environment.py", line 316, in set_slider_motor\n    raise ValueError("set_slider_motor: joint must be a prismatic/slider joint")\nValueError: set_slider_motor: joint must be a prismatic/slider joint\n'}, error=Verification process error: set_slider_motor: joint must be a prismatic/slider joint
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 45, in agent_action
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/environment.py", line 316, in set_slider_motor
+    raise ValueError("set_slider_motor: joint must be a prismatic/slider joint")
+ValueError: set_slider_motor: joint must be a prismatic/slider joint
+
+2026-02-21 00:33:13,669 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 3}
+2026-02-21 00:33:13,670 - openevolve.controller - INFO - Iteration 13: Program 232182a2-0594-402a-b0e2-05ca68d8942d (parent: 0362bc38-f49e-435c-9db2-64919774399d) completed in 49.04s
+2026-02-21 00:33:13,670 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': 'set_slider_motor: joint must be a prismatic/slider joint', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation\n    agent_action_func(environment, agent_body, step_count)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "<string>", line 45, in agent_action\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/environment.py", line 316, in set_slider_motor\n    raise ValueError("set_slider_motor: joint must be a prismatic/slider joint")\nValueError: set_slider_motor: joint must be a prismatic/slider joint\n'}, error=Verification process error: set_slider_motor: joint must be a prismatic/slider joint
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 461, in _run_simulation
+    agent_action_func(environment, agent_body, step_count)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 45, in agent_action
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_03/environment.py", line 316, in set_slider_motor
+    raise ValueError("set_slider_motor: joint must be a prismatic/slider joint")
+ValueError: set_slider_motor: joint must be a prismatic/slider joint
+
+2026-02-21 00:33:13,671 - openevolve.database - INFO - Island Status:
+2026-02-21 00:33:13,671 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=2 (best: 5633cabe-082c-484b-ac0d-d57648e6811e)
+2026-02-21 00:33:13,671 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:33:13,671 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=375.33, gen=2 (best: 0362bc38-f49e-435c-9db2-64919774399d)
+2026-02-21 00:33:13,671 - openevolve.database - INFO -    Island 3: 1 programs, best=0.1500, avg=0.1500, diversity=0.00, gen=0 (best: c7cfd1aa-7fae-4699-b582-5deab41091fd)
+2026-02-21 00:33:13,671 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:33:13,685 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_13
+2026-02-21 00:33:13,687 - openevolve.controller - INFO - Saved best program at checkpoint 13 with metrics: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:33:13,688 - openevolve.controller - INFO - Saved checkpoint at iteration 13 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_13
+2026-02-21 00:33:13,688 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:34:03,895 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 00:34:03,896 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:34:53,341 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 00:34:53,343 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:35:42,782 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 00:35:42,783 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:36:32,210 - openevolve.controller - WARNING - Iteration 17 error: No valid diffs found
+2026-02-21 00:36:32,212 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:37:25,904 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-21 00:37:25,906 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:38:16,117 - openevolve.controller - WARNING - Iteration 19 error: No valid diffs found
+2026-02-21 00:38:16,118 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:38:43,748 - openevolve.evaluator - INFO - Evaluated program 66821539-38ad-4d34-9c23-dec093e47007 in 0.14s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'slider_joint' is not defined"}, error=Code name error: name 'slider_joint' is not defined
+2026-02-21 00:38:43,750 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 9, 'diversity': 2}
+2026-02-21 00:38:43,750 - openevolve.controller - INFO - Iteration 20: Program 66821539-38ad-4d34-9c23-dec093e47007 (parent: 5633cabe-082c-484b-ac0d-d57648e6811e) completed in 27.63s
+2026-02-21 00:38:43,751 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'slider_joint' is not defined"}, error=Code name error: name 'slider_joint' is not defined
+2026-02-21 00:38:43,751 - openevolve.database - INFO - Island Status:
+2026-02-21 00:38:43,751 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=3 (best: 5633cabe-082c-484b-ac0d-d57648e6811e)
+2026-02-21 00:38:43,752 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:38:43,752 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=375.33, gen=2 (best: 0362bc38-f49e-435c-9db2-64919774399d)
+2026-02-21 00:38:43,752 - openevolve.database - INFO -    Island 3: 1 programs, best=0.1500, avg=0.1500, diversity=0.00, gen=0 (best: c7cfd1aa-7fae-4699-b582-5deab41091fd)
+2026-02-21 00:38:43,752 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 66821539-38ad-4d34-9c23-dec093e47007)
+2026-02-21 00:38:43,769 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_20
+2026-02-21 00:38:43,772 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:38:43,772 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_20
+2026-02-21 00:38:43,785 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_20
+2026-02-21 00:38:43,787 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:38:43,787 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_20
+2026-02-21 00:38:43,787 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.1500, score=0.1500, success=0.0000, metrics={'gripper_x': 0.8893857002258301, 'gripper_y': 6.163905620574951, 'object_x': 5.0, 'object_y': 2.0149989128112793, 'target_object_y': 3.5, 'height_gained': 0.014998912811279297, 'max_object_y_reached': 2.0149989128112793, 'progress': 0.29997825622558594, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 856, 'structure_mass': 0.1300000036135316, 'max_structure_mass': 30.0, 'min_object_y_seen': 2.0, 'object_fell': False, 'object_grasped': False, 'object_contact_points': 0, 'gripper_bodies_touching_object': 0, 'steps_with_object_above_target': 0, 'min_simulation_steps_required': 80}, error=None
+2026-02-21 00:38:43,790 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/best/best_program_info.json
+2026-02-21 00:38:43,795 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 00:38:43,796 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 00:38:43,796 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 00:38:43,800 - openevolve.database - INFO - Reconstructed islands: restored 6 programs to islands
+2026-02-21 00:38:43,800 - openevolve.database - INFO - Loaded database with 6 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_03/checkpoints/checkpoint_20
+2026-02-21 00:38:43,800 - openevolve.database - INFO - Island Status:
+2026-02-21 00:38:43,800 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=3 (best: 5633cabe-082c-484b-ac0d-d57648e6811e)
+2026-02-21 00:38:43,800 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:38:43,800 - openevolve.database - INFO -    Island 2: 3 programs, best=0.0000, avg=0.0000, diversity=375.33, gen=2 (best: 0362bc38-f49e-435c-9db2-64919774399d)
+2026-02-21 00:38:43,800 - openevolve.database - INFO -    Island 3: 1 programs, best=0.1500, avg=0.1500, diversity=0.00, gen=0 (best: c7cfd1aa-7fae-4699-b582-5deab41091fd)
+2026-02-21 00:38:43,800 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 66821539-38ad-4d34-9c23-dec093e47007)
+2026-02-21 00:38:43,812 - openevolve.database - INFO - Saved database with 6 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_2_03/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

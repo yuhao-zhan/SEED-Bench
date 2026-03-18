@@ -1,0 +1,77 @@
+2026-02-21 12:52:18,668 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/logs/openevolve_20260221_125218.log
+2026-02-21 12:52:18,669 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 12:52:18,669 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 12:52:18,674 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 12:52:18,679 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 12:52:18,679 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 12:52:18,681 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_muj7cgj_/evaluate.py
+2026-02-21 12:52:18,681 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_muj7cgj_/evaluate.py
+2026-02-21 12:52:18,681 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_muj7cgj_/initial_program.py
+2026-02-21 12:52:18,681 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 12:52:18,970 - openevolve.evaluator - INFO - Evaluated program 95179c9d-d297-4b6a-9837-cda7e0e6c304 in 0.29s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'core_damage': 15.0, 'max_core_force': 14.0, 'structure_stable': True, 'structure_mass': 0.30000001192092896, 'max_mass': 120.0, 'success': False, 'failed': True, 'failure_reason': 'Core received 15.00N force (exceeds 14.0N limit)', 'step_count': 300, 'body_count': 1, 'joint_count': 0, 'min_body_y': 0.666666567325592, 'max_body_y': 0.666666567325592, 'meteor_count': 5, 'meteors_impacted': 3, 'max_impact_force': 15.0, 'min_steps_required': 1788, 'can_evaluate_success': False}, error=None
+2026-02-21 12:52:18,971 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 12:52:18,971 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 12:52:18,971 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 12:52:18,971 - openevolve.database - INFO - Island Status:
+2026-02-21 12:52:18,971 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 95179c9d-d297-4b6a-9837-cda7e0e6c304)
+2026-02-21 12:52:18,971 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 12:52:18,971 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 12:52:18,971 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 12:52:18,971 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 12:52:18,972 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:53:07,840 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-21 12:53:07,840 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:53:56,413 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-21 12:53:56,414 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:54:44,979 - openevolve.controller - WARNING - Iteration 3 error: No valid diffs found
+2026-02-21 12:54:44,980 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:55:33,555 - openevolve.controller - WARNING - Iteration 4 error: No valid diffs found
+2026-02-21 12:55:33,556 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:56:22,115 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-21 12:56:22,116 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:57:10,696 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 12:57:10,697 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:57:59,260 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-21 12:57:59,261 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:58:47,833 - openevolve.controller - WARNING - Iteration 8 error: No valid diffs found
+2026-02-21 12:58:47,833 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 12:59:36,534 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 12:59:36,535 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:00:25,143 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 13:00:25,144 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:01:13,724 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 13:01:13,725 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:02:02,288 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 13:02:02,288 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:02:50,850 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-21 13:02:50,851 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:03:39,419 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 13:03:39,420 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:04:27,989 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 13:04:27,989 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:05:16,563 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 13:05:16,564 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:06:05,131 - openevolve.controller - WARNING - Iteration 17 error: No valid diffs found
+2026-02-21 13:06:05,131 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:06:53,697 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-21 13:06:53,698 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:07:42,259 - openevolve.controller - WARNING - Iteration 19 error: No valid diffs found
+2026-02-21 13:07:42,259 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 13:08:30,836 - openevolve.controller - WARNING - Iteration 20 error: No valid diffs found
+2026-02-21 13:08:30,841 - openevolve.database - INFO - Saved database with 1 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 13:08:30,844 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'core_damage': 15.0, 'max_core_force': 14.0, 'structure_stable': True, 'structure_mass': 0.30000001192092896, 'max_mass': 120.0, 'success': False, 'failed': True, 'failure_reason': 'Core received 15.00N force (exceeds 14.0N limit)', 'step_count': 300, 'body_count': 1, 'joint_count': 0, 'min_body_y': 0.666666567325592, 'max_body_y': 0.666666567325592, 'meteor_count': 5, 'meteors_impacted': 3, 'max_impact_force': 15.0, 'min_steps_required': 1788, 'can_evaluate_success': False}, error=None
+2026-02-21 13:08:30,845 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 13:08:30,845 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'core_damage': 15.0, 'max_core_force': 14.0, 'structure_stable': True, 'structure_mass': 0.30000001192092896, 'max_mass': 120.0, 'success': False, 'failed': True, 'failure_reason': 'Core received 15.00N force (exceeds 14.0N limit)', 'step_count': 300, 'body_count': 1, 'joint_count': 0, 'min_body_y': 0.666666567325592, 'max_body_y': 0.666666567325592, 'meteor_count': 5, 'meteors_impacted': 3, 'max_impact_force': 15.0, 'min_steps_required': 1788, 'can_evaluate_success': False}, error=None
+2026-02-21 13:08:30,848 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/best/best_program_info.json
+2026-02-21 13:08:30,859 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 13:08:30,860 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 13:08:30,860 - openevolve.database - INFO - Loaded feature_stats for 1 dimensions
+2026-02-21 13:08:30,862 - openevolve.database - INFO - Reconstructed islands: restored 1 programs to islands
+2026-02-21 13:08:30,862 - openevolve.database - INFO - Loaded database with 3 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_05/checkpoints/checkpoint_20
+2026-02-21 13:08:30,862 - openevolve.database - INFO - Island Status:
+2026-02-21 13:08:30,862 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 95179c9d-d297-4b6a-9837-cda7e0e6c304)
+2026-02-21 13:08:30,862 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 13:08:30,862 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 13:08:30,862 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 13:08:30,862 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 13:08:30,869 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_05/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

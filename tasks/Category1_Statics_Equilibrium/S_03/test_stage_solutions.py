@@ -55,6 +55,8 @@ def agent_action(sandbox, agent_body, step_count):
     print(f"\nResults for {stage_id}:")
     print(f"  Success: {success}")
     print(f"  Score: {score:.2f}/100")
+    if metrics:
+        print(f"  Metrics: {metrics}")
     if error:
         print(f"  Error: {error}")
     if metrics and metrics.get('failure_reason'):

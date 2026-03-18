@@ -1,0 +1,5 @@
+2026-02-20 15:16:51,292 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/logs/openevolve_20260220_151651.log
+2026-02-20 15:16:51,305 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-20 15:16:53,452 - torch._subclasses.fake_tensor - INFO - FakeTensor cache stats:
+2026-02-20 15:16:53,452 - torch._subclasses.fake_tensor - INFO -   cache_hits: 0
+2026-02-20 15:16:53,452 - torch._subclasses.fake_tensor - INFO -   cache_misses: 0

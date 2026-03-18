@@ -27,6 +27,7 @@ Design a control strategy to pump a swing seat to reach a target zone.
 - **Target Zone**: y >= 11.7 m, x in [9.35, 10.65] m.
 - **Build Zone**: Any structure (e.g. beams) must be placed within x in [6, 14] m, y in [4, 10] m.
 - **Pump Force Limit**: Maximum 42 N horizontal and vertical force per step.
+- **Step Limit**: Success must be achieved within 15000 simulation steps; the run terminates after this limit and failure is declared if the target is not reached by then.
 
 ## Task Objective
 Design a controller that:
@@ -44,6 +45,7 @@ Design a controller that:
 - **Beam Size**: Each beam dimension (width, height) is clamped to [0.1, 3.0] m.
 - **Pump Force**: |fx|, |fy| <= 42 N per step.
 - **Impulse Limit**: Applied impulse (e.g. via apply_impulse_to_seat) is clamped per component; effective limit is 4.2 N·s per axis.
+- **Step Limit**: The task is evaluated over at most 15000 simulation steps; you must achieve success within this limit.
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['D_04'].values()),

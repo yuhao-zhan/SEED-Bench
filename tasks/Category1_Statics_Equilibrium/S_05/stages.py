@@ -32,13 +32,16 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     target_spawn_interval = int(target_terrain_config.get("meteor_spawn_interval", DEFAULT_METEOR_SPAWN_INTERVAL))
     base_spawn_interval = int(base_terrain_config.get("meteor_spawn_interval", DEFAULT_METEOR_SPAWN_INTERVAL))
     if target_meteor_count != base_meteor_count or target_spawn_interval != base_spawn_interval:
-        boulder_pattern = r"(In the nominal mission, )(\d+)( boulders spawn from above \(one every )(\d+)( simulation steps\))(, and 4 additional boulders spawn from the left and right sides \(every 90 steps\)\.)"
+        # Match prompt: "... simulation steps), and 4 additional ..." (comma after ")")
+        boulder_pattern = r"(In the nominal mission, )(\d+)( boulders spawn from above \(one every )(\d+)( simulation steps\))(?:, and 4 additional boulders spawn from the left and right sides \(every 90 steps\)\.)"
         if re.search(boulder_pattern, description):
             side_count = target_meteor_count // 3
             side_interval = target_spawn_interval * 3
+            base_side_count = base_meteor_count // 3
+            base_side_interval = base_spawn_interval * 3
             description = re.sub(
                 boulder_pattern,
-                f"\\g<1>{target_meteor_count} boulders spawn from above (one every {target_spawn_interval} simulation steps) (originally {base_meteor_count} boulders, one every {base_spawn_interval} simulation steps in the source environment), and {side_count} additional boulders spawn from the left and right sides (every {side_interval} steps).",
+                f"\\g<1>{target_meteor_count} boulders spawn from above (one every {target_spawn_interval} simulation steps) (originally {base_meteor_count} boulders, one every {base_spawn_interval} simulation steps in the source environment), and {side_count} additional boulders spawn from the left and right sides (every {side_interval} steps) (originally {base_side_count} additional boulders, every {base_side_interval} steps in the source environment).",
                 description,
                 count=1,
             )
@@ -62,10 +65,10 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_core_y = base_terrain_config.get("core_y", DEFAULT_CORE_Y)
 
     if target_core_x != base_core_x or target_core_y != base_core_y:
-        # Update main description intro: [new_value] (originally [old_value] in the source environment), then close Core paren
-        core_pos_pattern = r"(Protect a fragile Core \(a sensitive circular object at x=)(\d+\.?\d*)(, y=)(\d+\.?\d*)(\))"
+        # Update main description intro: [new_value] (originally [old_value] in the source environment). Consume " from" so the sentence continues as "... environment). From heavy falling ...".
+        core_pos_pattern = r"(Protect a fragile Core \(a sensitive circular object at x=)(\d+\.?\d*)(, y=)(\d+\.?\d*)(\) from)"
         description = re.sub(core_pos_pattern,
-                            f"\\g<1>{target_core_x:.1f}\\g<3>{target_core_y:.1f} (originally x={base_core_x:.1f}, y={base_core_y:.1f} in the source environment))",
+                            f"\\g<1>{target_core_x:.1f}\\g<3>{target_core_y:.1f}) (originally x={base_core_x:.1f}, y={base_core_y:.1f} in the source environment). From",
                             description)
 
         # Update Task Environment Core section: no period between new value and (originally ...)
@@ -86,7 +89,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     if target_core_force != base_core_force:
         description = re.sub(
             r"exceeds (\d+\.?\d*) N \(its structural tolerance\)\.",
-            f"exceeds {target_core_force:.1f} N (originally {base_core_force:.1f} N in the source environment).",
+            f"exceeds {target_core_force:.1f} N (its structural tolerance) (originally {base_core_force:.1f} N in the source environment).",
             description
         )
 
@@ -194,19 +197,20 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     return criteria
 
 # DYNAMICALLY GENERATED UNIFORM_SUFFIX based on the union of all mutated variables in Stages 1-4
-# Union of mutated variables: max_structure_mass, core_x, wind_force, meteor_restitution, has_walls, max_joint_force, gravity, max_core_force
+# Union of mutated variables: max_joint_force, max_joint_torque, wind_force, max_structure_mass,
+# meteor_restitution, has_walls, gravity, max_core_force, core_x (core_y unused but in union)
 UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Mass Budget Scarcity**: The total allowed mass for construction may differ from the nominal environment, forcing the use of lightweight materials or minimalist designs.
- - **Core Position**: The location of the protected object may differ from the nominal environment, requiring different structural placement.
- - **Atmospheric Turbulence (Wind)**: Constant lateral forces may be acting on all objects, potentially blowing away unanchored or high-drag structures.
- - **Meteor Elasticity (Restitution)**: Falling debris elasticity may differ from nominal, causing unpredictable ricochets that can bypass standard overhead cover.
- - **Lateral Boundaries (Containment)**: The scene may be enclosed by lateral walls, affecting boulder ricochets and horizontal debris velocity.
- - **Joint Shear Strength**: Connections may have different linear load-bearing capacity and can fail under heavy self-weight or moderate impacts.
- - **Gravitational Constant**: The downward acceleration may differ from the nominal environment, affecting structural stress and impact energy.
- - **Core Fragility**: The central object's impact tolerance may differ from the nominal environment, requiring robust isolation.
+ - **Joint Shear Strength (Fragile Anchor Points)**: The maximum linear force and torque that connections can withstand may differ from the nominal environment; joints may fail if limits are exceeded.
+ - **Atmospheric Turbulence (Wind)**: Constant lateral forces may act on all bodies, pushing structures sideways and requiring robust bracing or low drag to avoid sliding or tipping.
+ - **Mass Budget**: The total allowed mass for construction may differ from the nominal environment.
+ - **Meteor Elasticity (Restitution)**: Falling debris elasticity may differ from nominal, affecting ricochets and secondary impacts.
+ - **Lateral Boundaries (Containment)**: The scene may be enclosed by lateral walls, amplifying ricochets and horizontal debris paths.
+ - **Gravitational Constant**: Downward acceleration may differ from nominal; structural loads and impact energy may be affected.
+ - **Core Fragility**: The protected object's impact tolerance may differ from nominal.
+ - **Core Position**: The location of the protected object may differ from the nominal environment, requiring different structural placement and coverage.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -215,51 +219,55 @@ def get_s05_curriculum_stages() -> List[Dict[str, Any]]:
     return [
         {
             "stage_id": "Stage-1",
-            "title": "The Low-Density Canopy",
-            "mutation_description": "Extreme mass budget restrictions. The structure must be built using ultra-lightweight materials or minimalist geometry to avoid exceeding the strict weight limit.",
+            "title": "The Fragile Anchor",
+            "mutation_description": "Joints and ground anchors have severely reduced shear and torque capacity. A standard heavy shelter concentrates impact loads into few weld joints; when any reaction force or torque exceeds the hidden limit, that joint fails and the structure collapses. The agent must discover the failure mode from feedback and redesign so loads are distributed (e.g. more joints, lighter members, or geometry that keeps no single connection above the threshold).",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "max_structure_mass": 1.2,
+                "max_joint_force": 5000.0,
+                "max_joint_torque": 1e12,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-2",
             "title": "The Shifting Center",
-            "mutation_description": "The protected object is located in an offset position. The standard central structure would violate safety keep-out zones or fail to provide adequate coverage for the new coordinates.",
+            "mutation_description": "The protected core is displaced to a non-central position. The standard symmetric shelter leaves the core outside its coverage or in a weak spot; the agent must discover the new position from feedback and relocate the structure.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "core_x": 8.0,
+                "core_x": 5.0,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
-            "title": "The Ricochet Hurricane",
-            "mutation_description": "Intense lateral wind and highly elastic debris. Boulders ricochet off containment walls with minimal energy loss, while constant wind forces all structural elements to the side.",
+            "title": "The Ricochet Crucible",
+            "mutation_description": "Tight mass budget, fragile joints, highly elastic meteors, and lateral walls create conflicting constraints: minimal mass, joint-safe geometry, and deflection of ricochets that bounce off walls.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "wind_force": 60.0,
+                "max_structure_mass": 2.0,
+                "max_joint_force": 8000.0,
+                "max_joint_torque": 8000.0,
+                "max_core_force": 350.0,
                 "meteor_restitution": 0.95,
                 "has_walls": True,
-                "max_joint_force": 10000.0,
-                "max_structure_mass": 2.0,
+                "seed": 123,
             },
             "physics_config": {},
         },
         {
             "stage_id": "Stage-4",
             "title": "The Gravitational Void",
-            "mutation_description": "Crushing gravity and a hyper-sensitive core in a shifted location. Extreme downward acceleration increases impact energy, while the core's fragility requires perfect vibration isolation and containment within a tight mass budget.",
+            "mutation_description": "High gravity, hyper-sensitive core at shifted position, opposing wind, walls, elastic meteors, and tight mass and joint limits. The agent must balance impact isolation, lateral stability, and structural survival.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
-                "gravity": (0, -60.0),
-                "max_core_force": 0.1,
-                "max_structure_mass": 4.0,
                 "core_x": 13.0,
-                "wind_force": -40.0,
+                "max_core_force": 250.0,
+                "max_structure_mass": 4.0,
+                "wind_force": -45.0,
                 "has_walls": True,
                 "meteor_restitution": 0.9,
+                "max_joint_force": 12000.0,
+                "max_joint_torque": 13500.0,
             },
             "physics_config": {
                 "gravity": (0, -60.0),

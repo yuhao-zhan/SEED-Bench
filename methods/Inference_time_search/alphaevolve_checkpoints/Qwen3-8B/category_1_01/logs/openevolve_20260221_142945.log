@@ -1,0 +1,35 @@
+2026-02-21 14:29:45,661 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/logs/openevolve_20260221_142945.log
+2026-02-21 14:29:45,662 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 14:29:45,662 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 14:29:45,668 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 14:29:45,672 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 14:29:45,672 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 14:29:45,675 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_ckag82q4/evaluate.py
+2026-02-21 14:29:45,675 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_ckag82q4/evaluate.py
+2026-02-21 14:29:45,675 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_ckag82q4/initial_program.py
+2026-02-21 14:29:45,675 - openevolve.controller - INFO - Skipping initial program addition (exclude_initial_from_parent_sampling): DB will only contain LLM-generated solutions; first iteration uses initial code as parent only.
+2026-02-21 14:29:45,675 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 14:29:45,676 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 14:29:45,676 - openevolve.database - INFO - Island Status:
+2026-02-21 14:29:45,676 - openevolve.database - INFO -  * Island 0: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 14:29:45,676 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 14:29:45,676 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 14:29:45,676 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 14:29:45,676 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 14:29:45,676 - openevolve.controller - WARNING - No programs in database after bootstrap; skipping evolution loop.
+2026-02-21 14:29:45,678 - openevolve.database - INFO - Saved database with 0 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-21 14:29:45,678 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-21 14:29:45,678 - openevolve.controller - WARNING - No valid programs found during evolution
+2026-02-21 14:29:45,679 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 14:29:45,680 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 14:29:45,696 - openevolve.database - INFO - Reconstructed islands: restored 0 programs to islands
+2026-02-21 14:29:45,696 - openevolve.database - INFO - No island assignments found, distributing programs across islands
+2026-02-21 14:29:45,696 - openevolve.database - INFO - Distributed 39 programs across 5 islands
+2026-02-21 14:29:45,696 - openevolve.database - INFO - Loaded database with 39 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_01/checkpoints/checkpoint_20
+2026-02-21 14:29:45,697 - openevolve.database - INFO - Island Status:
+2026-02-21 14:29:45,697 - openevolve.database - INFO -  * Island 0: 8 programs, best=0.0000, avg=0.0000, diversity=21.67, gen=0
+2026-02-21 14:29:45,697 - openevolve.database - INFO -    Island 1: 8 programs, best=0.0000, avg=0.0000, diversity=19.80, gen=0
+2026-02-21 14:29:45,697 - openevolve.database - INFO -    Island 2: 8 programs, best=0.0000, avg=0.0000, diversity=198.80, gen=0
+2026-02-21 14:29:45,697 - openevolve.database - INFO -    Island 3: 8 programs, best=0.0000, avg=0.0000, diversity=78.32, gen=0
+2026-02-21 14:29:45,697 - openevolve.database - INFO -    Island 4: 7 programs, best=0.0000, avg=0.0000, diversity=28.70, gen=0
+2026-02-21 14:29:45,771 - openevolve.database - INFO - Saved database with 39 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_01/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

@@ -22,15 +22,25 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
     if target_mass != base_mass:
-        pattern = r"(- \*\*Mass Limit\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?"
-        description = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment)", description)
+        pattern = r"(- \*\*Mass Limit\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
+        description = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment).", description)
     
     # Update Payload mass (task_description: "Each payload has mass **500 kg** (applied at t=5s and t=15s).")
+    # Cascading-safe: match mass number only so it works whether or not load times were updated first.
     target_load_mass = target_terrain_config.get("load_mass", 500.0)
     base_load_mass = base_terrain_config.get("load_mass", 500.0)
     if target_load_mass != base_load_mass:
-        pattern = r"(Each payload has mass \*\*)(\d+,?\d*)( kg\*\*)( \(applied at t=5s and t=15s\))\."
-        description = re.sub(pattern, f"\\g<1>{target_load_mass:,.0f}\\g<3>\\g<4> (originally {base_load_mass:,.0f} kg in the source environment).", description)
+        # Match "Each payload has mass **NNN kg**" plus rest of sentence up to " The first payload".
+        pattern = r"(Each payload has mass \*\*)(\d+,?\d*)( kg\*\*)(.*?)(\s+The first payload)"
+        def _replace_mass(m):
+            tail = m.group(4)
+            if tail.endswith(")."):
+                tail = tail[:-2] + ") (originally {0:,.0f} kg in the source environment).".format(base_load_mass)
+            else:
+                tail = tail + " (originally {0:,.0f} kg in the source environment).".format(base_load_mass)
+            return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{tail}{m.group(5)}"
+        if re.search(pattern, description):
+            description = re.sub(pattern, _replace_mass, description, count=1)
 
     # Update load application times (VISIBLE: "at t=5s and t=15s")
     default_load_attach = 5.0
@@ -40,11 +50,20 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_t1 = float(base_terrain_config.get("load_attach_time", default_load_attach))
     base_t2 = float(base_terrain_config.get("load_2_attach_time", default_load_2_attach))
     if target_t1 != base_t1 or target_t2 != base_t2:
-        pattern = r"(t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)"
-        if re.search(pattern, description):
+        # Match and consume the closing ")." and any following whitespace so we don't duplicate it.
+        # Two contexts: "(e.g., at ...)." (then newline) and "(applied at ...). The"
+        pattern1 = r"\(e\.g\., at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)\)\.\s*"
+        pattern2 = r"\(applied at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)\)\.\s*"
+        if re.search(pattern1, description):
             description = re.sub(
-                pattern,
-                f"\\g<1>{target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)",
+                pattern1,
+                f"(e.g., at \\g<1>{target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). ",
+                description,
+            )
+        if re.search(pattern2, description):
+            description = re.sub(
+                pattern2,
+                f"(applied at \\g<1>{target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). ",
                 description,
             )
 
@@ -56,7 +75,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(pattern, description):
             description = re.sub(
                 pattern,
-                f"\\g<1>{target_duration:.1f} seconds each (originally {base_duration:.1f} seconds in the source environment)",
+                f"\\g<1>{target_duration:.1f} seconds each (originally {base_duration:.1f} seconds in the source environment) ",
                 description,
             )
 
@@ -84,7 +103,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_at = base_terrain_config.get("max_anchor_torque", default_anchor_t)
     if target_af != base_af or target_at != base_at:
         # Replacement uses literal " N·m**" so trailing clause appears once (no duplicate from \g<5>)
-        pattern_wa = r"(- \*\*Wall Anchor Limits\*\*: Wall anchors fail if force exceeds \*\*)([\d,]+)( N\*\* or torque exceeds \*\*)([\d,]+)( N·m\*\*)(?: \(originally [^)]+\))? \(exceeding causes anchor failure\)\.)"
+        pattern_wa = r"(- \*\*Wall Anchor Limits\*\*: Wall anchors fail if force exceeds \*\*)([\d,]+)( N\*\* or torque exceeds \*\*)([\d,]+)( N·m\*\*)(?: \(originally [^)]+\))? \(exceeding causes anchor failure\)\."
         if re.search(pattern_wa, description):
             description = re.sub(
                 pattern_wa,
@@ -101,11 +120,12 @@ def update_task_description_for_visible_changes(base_description: str, target_te
             description = re.sub(pattern, f"\\g<1>{target_mth:.1f} m (originally {base_mth:.1f} m in the source environment) ", description)
     
     # Update Reach Deflection Tolerance (cascading-safe: match " m of the target." or " m (originally ...) of the target.")
+    # Prompt text ends with "of the target." (no closing paren).
     default_tol = 1.0
     target_tol = float(target_terrain_config.get("reach_tolerance", default_tol))
     base_tol = float(base_terrain_config.get("reach_tolerance", default_tol))
     if target_tol != base_tol:
-        pattern = r"(- \*\*Reach Deflection Tolerance\*\*: .*? within )(\d+\.?\d*)( m )(?:\(originally [^)]+\) )?of the target\.)"
+        pattern = r"(- \*\*Reach Deflection Tolerance\*\*: .*? within )(\d+\.?\d*)( m )(?:\(originally [^)]+\) )?of the target\."
         if re.search(pattern, description):
             description = re.sub(pattern, f"\\g<1>{target_tol:.1f} m (originally {base_tol:.1f} m in the source environment) of the target.", description)
     
@@ -179,13 +199,13 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         for entry in target_strength_map:
             if len(entry) >= 4:
                 y_lo, y_hi, f_mult, t_mult = float(entry[0]), float(entry[1]), float(entry[2]), float(entry[3])
-                parts.append(f"y = [{y_lo:.1f}, {y_hi:.1f}] m: force and torque at {f_mult*100:.0f}% and {t_mult*100:.0f}% of base limits")
+                parts.append(f"y = [{y_lo:.1f}, {y_hi:.1f}] m: force and torque at {f_mult*100:.2f}% and {t_mult*100:.2f}% of base limits")
         if parts:
             strength_desc = "; ".join(parts)
             base_str = "none in the source environment"
             if base_strength_map and len(base_strength_map) > 0 and len(base_strength_map[0]) >= 4:
                 be = base_strength_map[0]
-                base_str = f"y = [{float(be[0]):.1f}, {float(be[1]):.1f}] m at {float(be[2])*100:.0f}%/{float(be[3])*100:.0f}% in the source environment"
+                base_str = f"y = [{float(be[0]):.1f}, {float(be[1]):.1f}] m at {float(be[2])*100:.2f}%/{float(be[3])*100:.2f}% in the source environment"
             pattern_anchor = r"(When segment-specific anchor strength applies, the vertical segment \(y range\) and force/torque multipliers are stated explicitly\.)"
             pattern_anchor_updated = r"(Regional anchor weakness: .*? \(originally [^)]+\)\.)"
             replacement_anchor = f"Regional anchor weakness: {strength_desc} (originally {base_str})."
@@ -211,8 +231,8 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
     if target_mass != base_mass:
-        pattern = r"(- \*\*Mass Budget\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?"
-        criteria = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment)", criteria)
+        pattern = r"(- \*\*Mass Budget\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
+        criteria = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment).", criteria)
     
     # Update Payload Mass in Success Criteria (cascading-safe)
     target_load_mass = target_terrain_config.get("load_mass", 500.0)
@@ -254,7 +274,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_at = base_terrain_config.get("max_anchor_torque", default_anchor)
     if target_af != base_af or target_at != base_at:
         # Replacement uses literal " N·m " so trailing clause appears once (no duplicate from \g<5>)
-        pattern_wa = r"(- \*\*Wall Anchor Limits\*\*: Max force )([\d,]+)( N; max torque )([\d,]+)( N·m )(?:\(originally [^)]+\) )?\(exceeding causes failure\)\.)"
+        pattern_wa = r"(- \*\*Wall Anchor Limits\*\*: Max force )([\d,]+)( N; max torque )([\d,]+)( N·m )(?:\(originally [^)]+\) )?\(exceeding causes failure\)\."
         if re.search(pattern_wa, criteria):
             criteria = re.sub(
                 pattern_wa,
@@ -303,13 +323,13 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         for entry in target_strength_map:
             if len(entry) >= 4:
                 y_lo, y_hi, f_mult, t_mult = float(entry[0]), float(entry[1]), float(entry[2]), float(entry[3])
-                parts.append(f"y = [{y_lo:.1f}, {y_hi:.1f}] m at {f_mult*100:.0f}%/{t_mult*100:.0f}%")
+                parts.append(f"y = [{y_lo:.1f}, {y_hi:.1f}] m at {f_mult*100:.2f}%/{t_mult*100:.2f}%")
         if parts:
             strength_desc = "; ".join(parts)
             base_str = "none in the source environment"
             if base_strength_map and len(base_strength_map) > 0 and len(base_strength_map[0]) >= 4:
                 be = base_strength_map[0]
-                base_str = f"y = [{float(be[0]):.1f}, {float(be[1]):.1f}] m at {float(be[2])*100:.0f}%/{float(be[3])*100:.0f}% in the source environment"
+                base_str = f"y = [{float(be[0]):.1f}, {float(be[1]):.1f}] m at {float(be[2])*100:.2f}%/{float(be[3])*100:.2f}% in the source environment"
             pattern_ra = r"(- \*\*Regional anchor strength\*\*: )None in the source environment; when present, the vertical segment and force/torque multipliers are stated\.?"
             pattern_ra_updated = r"(- \*\*Regional anchor strength\*\*: ).*? \(originally [^)]+\)\.?"
             repl_ra = f"\\g<1>{strength_desc} (originally {base_str})."
@@ -339,29 +359,12 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 
 
 def get_s03_curriculum_stages() -> List[Dict[str, Any]]:
-    # DYNAMICALLY GENERATED UNIFORM SUFFIX (Union of all mutated variables in S_03 Stages 1-4)
-    UNIFORM_SUFFIX = """
-## Environmental Anomalies Detected
-Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Operational Range**: The required horizontal extension (Target Reach) from the anchor wall may have been significantly adjusted.
- - **Structural Load Capacity**: The target load mass and the total structural mass budget may have been tuned to test extreme material efficiency.
- - **Joint Integrity Thresholds**: The maximum force and torque that internal (beam-to-beam) joints can withstand may differ significantly from standard conditions.
- - **Localized Force Fields**: Invisible spatial anomalies might exert powerful repulsive or attractive forces on any structure within their radius of influence.
- - **Anchor Zoning Constraints**: Certain vertical segments of the wall may be restricted (Forbidden Anchor Zones), or exhibit structural integrity that differs from standard conditions (Regional Anchor Weakness), affecting anchor stability.
- - **Static Obstructions**: Massive, impenetrable structures might be present in the build zone, necessitating complex, non-linear geometries to navigate around them.
- - **Dynamic Load Impacts**: The payload might be dropped from a height rather than being placed statically, introducing severe impulse forces upon impact.
- - **Atmospheric Oscillations**: Variable or oscillatory wind forces may act on the structure, inducing complex dynamic stresses.
-
-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
-"""
-
-    return [
+    # Define the stages first without the suffix
+    stages_data = [
         {
             "stage_id": "Stage-1",
             "title": "The Brittle Connections",
             "mutation_description": "Single Variable: Extreme internal joint fragility.",
-            "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "target_reach": 25.0, 
                 "load_mass": 800.0, 
@@ -373,28 +376,18 @@ While the following variables MIGHT have changed from the initial environment, N
         },
         {
             "stage_id": "Stage-2",
-            "title": "The Magnetic Anomaly",
-            "mutation_description": "Single Variable: Extreme spatial repulsion forcing complex structural compensation.",
-            "task_description_suffix": UNIFORM_SUFFIX,
+            "title": "The Fragile Anchors",
+            "mutation_description": "Single Variable: Severely reduced wall anchor capacity. Wall anchors fail at force and torque thresholds far below standard conditions; the resulting root reaction from any conventional long cantilever exceeds these limits. Standard solutions fail when anchor force or torque exceeds the new critical threshold. The agent must discover the fragile anchors through failure (anchor break at the wall) and adapt—e.g. a much shorter moment arm, a stiffer root, or a design that keeps reaction force and torque at the wall below the critical threshold.",
             "terrain_config": {
-                "target_reach": 28.0,
-                "load_mass": 1500.0,
-                "max_structure_mass": 10000.0,
+                "max_anchor_force": 68000.0,
+                "max_anchor_torque": 58000.0,
             },
-            "physics_config": {
-                "spatial_force": {
-                    "center": (14.0, 10.0),
-                    "magnitude": 1200000.0,
-                    "radius": 18.0,
-                    "type": "repulsion"
-                }
-            },
+            "physics_config": {},
         },
         {
             "stage_id": "Stage-3",
             "title": "The Subterranean Gorge",
             "mutation_description": "Multi-variable: Overhead Obstacle + Low Anchor Zone + Attraction Field + Weak Anchors. Forces low-slung, heavily reinforced construction.",
-            "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "target_reach": 32.0,
                 "load_mass": 1200.0,
@@ -424,7 +417,6 @@ While the following variables MIGHT have changed from the initial environment, N
             "stage_id": "Stage-4",
             "title": "The Perfect Storm",
             "mutation_description": "Multi-variable: Fragile joints + Repulsion Field + Forbidden Wall + Dropped Loads + Oscillatory Wind.",
-            "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "target_reach": 35.0,
                 "load_mass": 1500.0,
@@ -450,3 +442,52 @@ While the following variables MIGHT have changed from the initial environment, N
             },
         },
     ]
+
+    # Map variables to their descriptions
+    variable_descriptions = {
+        "target_reach": "**Operational Range**: The required horizontal extension (Target Reach) from the anchor wall may have been significantly adjusted.",
+        "load_mass": "**Structural Load Capacity**: The target load mass may have been tuned to test extreme material efficiency.",
+        "max_structure_mass": "**Mass Budget**: The total structural mass budget may be constrained.",
+        "max_internal_force": "**Joint Integrity Thresholds**: The maximum force that internal (beam-to-beam) joints can withstand may differ significantly from standard conditions.",
+        "max_internal_torque": "**Joint Torque Thresholds**: The maximum torque internal joints can endure may differ significantly from standard conditions.",
+        "max_anchor_force": "**Wall Anchor Force Limit**: The maximum force wall anchors can sustain before failure may differ significantly from standard conditions.",
+        "max_anchor_torque": "**Wall Anchor Torque Limit**: The maximum torque wall anchors can sustain before failure may differ significantly from standard conditions.",
+        "anchor_strength_map": "**Regional Anchor Weakness**: Certain vertical segments of the wall may exhibit structural integrity that differs from standard conditions, affecting anchor stability.",
+        "forbidden_anchor_y": "**Forbidden Anchor Zones**: Specific vertical segments of the wall may be restricted from attaching anchors.",
+        "obstacle_active": "**Static Obstructions**: Massive, impenetrable structures might be present in the build zone, necessitating complex geometries to navigate around them.",
+        "obstacle_rects": "**Obstacle Dimensions**: Specific rectangular zones are blocked off by obstructions.",
+        "load_type": "**Dynamic Load Impacts**: The payload might be dropped from a height rather than being placed statically, introducing severe impulse forces.",
+        "drop_height": "**Payload Drop Height**: The height from which payloads are dropped may vary.",
+        "spatial_force": "**Localized Force Fields**: Invisible spatial anomalies might exert powerful repulsive or attractive forces on any structure within their radius of influence.",
+        "wind": "**Atmospheric Oscillations**: Variable or oscillatory wind forces may act on the structure, inducing complex dynamic stresses."
+    }
+
+    # Dynamically extract the union of mutated variables
+    mutated_keys = set()
+    for stage in stages_data:
+        terrain = stage.get("terrain_config", {})
+        physics = stage.get("physics_config", {})
+        mutated_keys.update(terrain.keys())
+        mutated_keys.update(physics.keys())
+
+    # Build the suffix text
+    suffix_lines = [
+        "## Environmental Anomalies Detected",
+        "Sensors indicate that this region exhibits non-standard physical properties.",
+        "While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:"
+    ]
+    
+    for key in sorted(mutated_keys):
+        if key in variable_descriptions:
+            suffix_lines.append(f" - {variable_descriptions[key]}")
+
+    suffix_lines.append("")
+    suffix_lines.append("**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.")
+    
+    uniform_suffix = "\n".join(suffix_lines)
+
+    # Assign suffix back to stages
+    for stage in stages_data:
+        stage["task_description_suffix"] = uniform_suffix
+
+    return stages_data

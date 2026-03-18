@@ -1,0 +1,42 @@
+{
+  "id": "c9d5af3f-9f23-47ee-bfc9-f88424b00f11",
+  "generation": 0,
+  "iteration": 0,
+  "current_iteration": 6,
+  "metrics": {
+    "combined_score": 0.0,
+    "score": 0.0,
+    "success": false,
+    "metrics": {
+      "max_reach": 14.0,
+      "min_tip_y": -14.307304382324219,
+      "min_tip_height": -2.5,
+      "tip_sagged": true,
+      "current_reach": 13.998174667358398,
+      "target_reach": 14.0,
+      "load_attached": false,
+      "load_hold_time": 0,
+      "load2_attached": false,
+      "load2_hold_time": 0,
+      "load_mass": 600.0,
+      "load2_mass": 400.0,
+      "load_position_x": null,
+      "anchor_broken": false,
+      "anchor_count": 0,
+      "max_anchor_points": 2,
+      "max_anchor_torque": 0.0,
+      "max_anchor_torque_limit": 2600.0,
+      "structure_mass": 5.02000000141561,
+      "joint_count": 2,
+      "initial_joint_count": 2,
+      "success": false,
+      "failed": true,
+      "failure_reason": "Structure sagged too much (tip dropped below -2.5m; min_tip_y=-14.31m)",
+      "step_count": 100
+    },
+    "error": null
+  },
+  "language": "python",
+  "timestamp": 1771682234.4744992,
+  "saved_at": 1771682651.5815675
+}

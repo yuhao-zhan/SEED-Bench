@@ -1,8 +1,9 @@
 """
-D-04: The Swing — diagnostic feedback (QA-audited).
+D-04: The Swing — process-aware diagnostic feedback (QA-audited).
 - All strings, metrics, and constraints traced to evaluator.evaluate() return dict only.
 - No hardcoded physical thresholds; stage parameters from metrics.get().
-- Suggestions are diagnostic (failure mechanism / stress), not design or API spoilers.
+- Suggestions diagnose failure mechanism / stress; no design or API spoilers.
+- Physics domain: Dynamics & Energy (pendulum pumping, energy injection, apex targeting).
 """
 from typing import Dict, Any, List
 import math
@@ -21,24 +22,33 @@ def _is_finite(x: Any) -> bool:
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """
-    Expose high-resolution physical metrics from the evaluator only.
-    Phase-segregated (outcome → numerical state → trajectory → design → runtime).
-    Boundary proximity and trajectory state; no suggestions.
+    Expose physical metrics from the evaluator only.
+    Phase-segregated: Outcome → Numerical validity → Trajectory/apex state →
+    Boundary proximity → Design constraints → Runtime.
+    Every key used is present in evaluator._make_metrics() return.
     """
     parts = []
 
     # --- 1. Outcome (from metrics only) ---
     if "success" in metrics:
         parts.append(f"**Objective Success**: {'Yes' if metrics['success'] else 'No'}")
-    if "failed" in metrics and metrics["failed"]:
+    if metrics.get("failed"):
         parts.append("**Run Outcome**: Time/step limit reached without success.")
+    if metrics.get("failure_reason"):
+        parts.append(f"**Failure Reason (summary)**: {metrics['failure_reason'][:200]}")
 
-    # --- 2. Validity of returned numeric metrics (evaluator keys only) ---
-    key_numeric = ["seat_x", "seat_y", "seat_vx", "seat_vy", "seat_speed", "max_seat_y_reached"]
-    if any(k in metrics and not _is_finite(metrics.get(k)) for k in key_numeric):
+    # --- 2. Numerical validity (only observation: non-finite returned values) ---
+    key_numeric = [
+        "seat_x", "seat_y", "seat_vx", "seat_vy", "seat_speed",
+        "max_seat_y_reached", "progress_pct", "height_gap_to_target",
+        "distance_to_target_x", "swing_angle_deg",
+        "structure_mass", "max_structure_mass", "step_count",
+    ]
+    non_finite_keys = [k for k in key_numeric if k in metrics and not _is_finite(metrics.get(k))]
+    if non_finite_keys:
         parts.append(
-            "**Numerical State**: One or more returned metrics are non-finite (NaN or infinite); "
-            "results may be invalid."
+            "**Numerical State**: One or more returned metrics are non-finite (NaN or infinite): "
+            f"{', '.join(non_finite_keys)}; results may be invalid."
         )
 
     # --- 3. Trajectory / phase-specific state (only if present and finite) ---
@@ -51,25 +61,20 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "touched_target" in metrics:
         parts.append(f"**Target Zone Reached**: {'Yes' if metrics['touched_target'] else 'No'}")
 
-    # --- Final seat state ---
-    if all(
-        k in metrics and _is_finite(metrics.get(k))
-        for k in ("seat_x", "seat_y")
-    ):
+    if all(k in metrics and _is_finite(metrics.get(k)) for k in ("seat_x", "seat_y")):
         parts.append(
             f"**Final Seat Position**: (x: {metrics['seat_x']:.2f} m, y: {metrics['seat_y']:.2f} m)"
         )
-    if all(
-        k in metrics and _is_finite(metrics.get(k))
-        for k in ("seat_vx", "seat_vy")
-    ):
+    if all(k in metrics and _is_finite(metrics.get(k)) for k in ("seat_vx", "seat_vy")):
         parts.append(
             f"**Final Seat Velocity**: (vx: {metrics['seat_vx']:.2f}, vy: {metrics['seat_vy']:.2f}) m/s"
         )
     if "seat_speed" in metrics and _is_finite(metrics["seat_speed"]):
         parts.append(f"**Final Speed**: {metrics['seat_speed']:.2f} m/s")
+    if "swing_angle_deg" in metrics and _is_finite(metrics.get("swing_angle_deg")):
+        parts.append(f"**Swing Amplitude (final)**: {metrics['swing_angle_deg']:.1f}°")
 
-    # --- Boundary proximity (from evaluator only) ---
+    # --- 4. Boundary proximity (all from metrics; dynamic per stage) ---
     target_y = metrics.get("target_y_min")
     if _is_finite(target_y) and "height_gap_to_target" in metrics and _is_finite(
         metrics["height_gap_to_target"]
@@ -84,10 +89,8 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     target_x_max = metrics.get("target_x_max")
     if _is_finite(target_x_min) and _is_finite(target_x_max):
         parts.append(f"**Target Zone (x)**: [{target_x_min:.2f}, {target_x_max:.2f}] m")
-    if "swing_angle_deg" in metrics and _is_finite(metrics.get("swing_angle_deg")):
-        parts.append(f"**Swing Amplitude (final)**: {metrics['swing_angle_deg']:.1f}°")
 
-    # --- 4. Design constraints (dynamic thresholds from metrics) ---
+    # --- 5. Design constraints (from metrics only; stage-mutation adaptable) ---
     mass = metrics.get("structure_mass")
     max_mass = metrics.get("max_structure_mass")
     if _is_finite(mass):
@@ -96,7 +99,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         else:
             parts.append(f"**Structure Mass**: {mass:.2f} kg")
 
-    # --- 5. Runtime ---
+    # --- 6. Runtime ---
     if "step_count" in metrics and _is_finite(metrics.get("step_count")):
         parts.append(f"**Steps Used**: {metrics['step_count']}")
 
@@ -112,47 +115,53 @@ def get_improvement_suggestions(
     error: str = None,
 ) -> List[str]:
     """
-    Diagnostic system feedback: physical mechanism of failure, no solution spoilers.
-    Root-cause chain, multi-objective trade-offs, numerical limits.
-    All thresholds derived from metrics (stage-mutation adaptable).
+    Diagnostic feedback only: physical mechanism of failure, no solution spoilers.
+    All conditions and thresholds derived from metrics (evaluator return); no hardcoded limits.
+    Suggestions describe stress/failure mode, not specific designs or API usage.
     """
     suggestions = []
     msg = (error or failure_reason or "").lower()
 
-    # --- Non-finite returned metrics (diagnostic only; keys from evaluator) ---
-    key_numeric = ["seat_x", "seat_y", "seat_vx", "seat_vy", "seat_speed", "max_seat_y_reached"]
+    # --- Non-finite returned metrics (evaluator returns these keys) ---
+    key_numeric = [
+        "seat_x", "seat_y", "seat_vx", "seat_vy", "seat_speed",
+        "max_seat_y_reached", "progress_pct",
+    ]
     if any(k in metrics and not _is_finite(metrics.get(k)) for k in key_numeric):
         suggestions.append(
-            "- **Invalid State Values**: One or more returned metrics are non-finite. "
-            "Consider whether control or parameters could be driving the system into an "
-            "unstable regime (e.g. unbounded forces or resonances)."
+            "- **Non-finite Metrics**: One or more returned metrics are non-finite. "
+            "This indicates the physics state or integration produced invalid values; "
+            "the failure mode is in the dynamics or control regime, not in the reported numbers."
         )
 
-    # --- Root-cause chain: design constraint violated first (before trajectory success) ---
-    if "design constraint" in msg or "constraint violated" in msg:
+    # --- Root cause: design constraint violated (evaluator returns early with failure_reason) ---
+    design_violated = "design constraint" in msg or "constraint violated" in msg
+    if design_violated:
         if "mass" in msg:
             suggestions.append(
-                "- **Design Constraint (Mass)**: The structure exceeded the allowed mass budget. "
-                "Reconsider the strength-to-weight trade-off of the design."
+                "- **Root Cause (Design — Mass)**: The structure exceeded the allowed mass budget "
+                "before trajectory was evaluated. The failure is structural (mass constraint "
+                "violation), not control or trajectory."
             )
         if "build zone" in msg or "outside" in msg:
             suggestions.append(
-                "- **Design Constraint (Spatial)**: At least one component was placed outside the "
-                "allowed build region. Ensure all structure stays within the specified bounds."
+                "- **Root Cause (Design — Spatial)**: At least one component was placed outside "
+                "the allowed build region before trajectory was evaluated. The failure is "
+                "geometric (placement outside bounds), not dynamics."
             )
 
-    # --- Runtime failure: trajectory did not satisfy success criteria ---
-    if (failed or not success) and "design constraint" not in msg:
+    # --- Trajectory / control failure (only when design was satisfied) ---
+    if (failed or not success) and not design_violated:
         target_y = metrics.get("target_y_min")
         max_y = metrics.get("max_seat_y_reached")
         apex_reached = metrics.get("apex_reached", False)
         dist_x = metrics.get("distance_to_target_x")
         touched = metrics.get("touched_target", False)
+        mass = metrics.get("structure_mass")
+        max_mass = metrics.get("max_structure_mass")
         added_trajectory_suggestion = False
 
-        # Dynamic: use target from current stage only when valid (all from metrics)
         if _is_finite(target_y) and target_y > 0:
-            # Energy / altitude deficit (root cause: insufficient energy injection)
             if _is_finite(max_y) and max_y < target_y:
                 suggestions.append(
                     "- **Energy Deficit**: The swing did not reach the required altitude. "
@@ -160,7 +169,6 @@ def get_improvement_suggestions(
                     "pendulum phase and any dissipative effects."
                 )
                 added_trajectory_suggestion = True
-            # Height reached but apex condition failed
             if _is_finite(max_y) and max_y >= target_y and not apex_reached:
                 suggestions.append(
                     "- **Apex Timing**: Target height was reached at least once, but the seat was "
@@ -168,7 +176,6 @@ def get_improvement_suggestions(
                     "trajectory apex; review the phase and location of energy transfer."
                 )
                 added_trajectory_suggestion = True
-            # Lateral alignment failed
             if _is_finite(dist_x) and dist_x > 0 and not touched:
                 suggestions.append(
                     "- **Lateral Alignment**: The trajectory did not center the apex within the "
@@ -177,14 +184,12 @@ def get_improvement_suggestions(
                 )
                 added_trajectory_suggestion = True
 
-        # Only add generic trajectory summary when no specific cause was suggested (lean logic)
-        mass = metrics.get("structure_mass")
-        max_mass = metrics.get("max_structure_mass")
+        design_ok = (
+            _is_finite(mass) and _is_finite(max_mass) and max_mass > 0 and mass <= max_mass
+        )
         if (
             not added_trajectory_suggestion
-            and _is_finite(mass)
-            and _is_finite(max_mass)
-            and mass <= max_mass
+            and design_ok
             and not touched
             and (failed or not success)
         ):

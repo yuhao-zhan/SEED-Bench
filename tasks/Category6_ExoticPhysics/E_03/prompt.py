@@ -22,9 +22,12 @@ TASK_PROMPT = {
 Design a controller for a sled to navigate through a low-friction environment and pass through checkpoints.
 
 ## Task Environment
-- **Sled**: A sliding body subject to thrust and minimal friction.
-- **Checkpoints**: Target locations that must be reached in order.
-- **Goal**: Pass through all checkpoints within the time limit.
+- **Sled**: A sliding body subject to thrust and minimal friction. It starts at position (x=8.0 m, y=2.0 m).
+- **Checkpoints** (must be passed in order):
+  - **First checkpoint (Alpha)**: Sled center must enter the zone x in [17.5, 19.0] m, y in [3.8, 4.5] m.
+  - **Second checkpoint (Beta)**: Sled center must enter the zone x in [23.0, 24.5] m, y in [2.5, 3.2] m.
+- **Final target**: Sled center must enter the zone x in [28, 32] m, y in [2.2, 2.8] m.
+- **Time limit**: The task must be completed within 10,000 simulation steps; the run terminates after this limit and failure is declared if the objective is not met by then.
 
 ## Task Objective
 Design a control loop that:
@@ -34,9 +37,9 @@ Design a control loop that:
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Checkpoint Completion**: Sled passes through all required checkpoints.
+1. **Checkpoint Completion**: Sled passes through both required checkpoints in order (Alpha, then Beta).
 2. **Target Reach**: Sled center enters the final target zone (x in [28, 32], y in [2.2, 2.8]).
-3. **Efficiency**: Reaches the final target within the time limit.
+3. **Efficiency**: Reaches the final target within 10,000 simulation steps.
 
 ## Design Constraints
 - **APIs**: Use only the primitives documented below.

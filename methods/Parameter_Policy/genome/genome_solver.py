@@ -27,7 +27,7 @@ def _resolve_model_path(model_name: str, model_path: Optional[str]) -> str:
 
 
 def _extract_code(raw_text: str) -> str:
-    """Extract Python code from raw text (same logic as SolverInterface / absolute_zero_method)."""
+    """Extract Python code from raw text (same logic as SolverInterface / absolute_zero.absolute_zero_method)."""
     reasoning_end_markers = ["</think>", "</think>", "</think>"]
     reasoning_start_markers = ["<think>", "<think>", "<think>"]
     reasoning_end_pos = -1

@@ -1,0 +1,141 @@
+2026-02-21 18:22:23,011 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/logs/openevolve_20260221_182223.log
+2026-02-21 18:22:23,012 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 18:22:23,012 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 18:22:23,018 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 18:22:23,022 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 18:22:23,023 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 18:22:23,025 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_0y8dm5fq/evaluate.py
+2026-02-21 18:22:23,025 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_0y8dm5fq/evaluate.py
+2026-02-21 18:22:23,025 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_0y8dm5fq/initial_program.py
+2026-02-21 18:22:23,025 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 18:22:23,124 - openevolve.evaluator - INFO - Evaluated program 50d80d85-d006-4007-ae01-90012b3f075e in 0.10s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 11, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 11, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 18:22:23,124 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 18:22:23,124 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 18:22:23,126 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 18:22:23,126 - openevolve.database - INFO - Island Status:
+2026-02-21 18:22:23,126 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 50d80d85-d006-4007-ae01-90012b3f075e)
+2026-02-21 18:22:23,126 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:22:23,126 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:22:23,126 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:22:23,126 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:22:23,126 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:23:11,985 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-21 18:23:11,987 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:24:00,567 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-21 18:24:00,568 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:24:49,140 - openevolve.controller - WARNING - Iteration 3 error: No valid diffs found
+2026-02-21 18:24:49,142 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:25:37,710 - openevolve.controller - WARNING - Iteration 4 error: No valid diffs found
+2026-02-21 18:25:37,711 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:26:26,278 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-21 18:26:26,280 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:27:14,846 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 18:27:14,848 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:28:03,411 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-21 18:28:03,412 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:28:51,979 - openevolve.controller - WARNING - Iteration 8 error: No valid diffs found
+2026-02-21 18:28:51,980 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:29:13,178 - openevolve.evaluator - INFO - Evaluated program 9a75a2d0-b0a0-4a8e-9212-9748500ac86c in 0.19s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 1.2793391942977905, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -17.353239059448242, 'max_y_position': -13.01270580291748, 'center_of_mass_x': -0.9391380983404816, 'center_of_mass_y': -14.81383457183838, 'total_kinetic_energy': 1388.890372382666, 'max_velocity': 16.666675567626953, 'current_max_x': 1.2793391942977905}, error=None
+2026-02-21 18:29:13,179 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 5, 'diversity': 5}
+2026-02-21 18:29:13,180 - openevolve.controller - INFO - Iteration 9: Program 9a75a2d0-b0a0-4a8e-9212-9748500ac86c (parent: 50d80d85-d006-4007-ae01-90012b3f075e) completed in 21.20s
+2026-02-21 18:29:13,180 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 1.2793391942977905, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -17.353239059448242, 'max_y_position': -13.01270580291748, 'center_of_mass_x': -0.9391380983404816, 'center_of_mass_y': -14.81383457183838, 'total_kinetic_energy': 1388.890372382666, 'max_velocity': 16.666675567626953, 'current_max_x': 1.2793391942977905}, error=None
+2026-02-21 18:29:13,180 - openevolve.database - INFO - Island Status:
+2026-02-21 18:29:13,180 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 50d80d85-d006-4007-ae01-90012b3f075e)
+2026-02-21 18:29:13,180 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:29:13,180 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:29:13,181 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 9a75a2d0-b0a0-4a8e-9212-9748500ac86c)
+2026-02-21 18:29:13,181 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:29:13,190 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/checkpoints/checkpoint_9
+2026-02-21 18:29:13,193 - openevolve.controller - INFO - Saved best program at checkpoint 9 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 11, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 11, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 18:29:13,194 - openevolve.controller - INFO - Saved checkpoint at iteration 9 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/checkpoints/checkpoint_9
+2026-02-21 18:29:13,194 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:30:01,760 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 18:30:01,761 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:30:50,320 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 18:30:50,321 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:31:38,890 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 18:31:38,891 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:32:27,445 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-21 18:32:27,447 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:33:16,035 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 18:33:16,036 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:34:04,598 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 18:34:04,599 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:34:53,173 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 18:34:53,174 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:35:41,735 - openevolve.controller - WARNING - Iteration 17 error: No valid diffs found
+2026-02-21 18:35:41,736 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:36:30,306 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-21 18:36:30,307 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:37:18,813 - openevolve.controller - WARNING - Iteration 19 error: No valid diffs found
+2026-02-21 18:37:18,814 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 18:38:06,893 - openevolve.evaluator - INFO - Evaluated program 593a94e7-aceb-43e7-8a47-484795a2151b in 0.15s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 1.2793391942977905, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -17.353239059448242, 'max_y_position': -13.01270580291748, 'center_of_mass_x': -0.9391380983404816, 'center_of_mass_y': -14.81383457183838, 'total_kinetic_energy': 1388.890372382666, 'max_velocity': 16.666675567626953, 'current_max_x': 1.2793391942977905}, error=None
+2026-02-21 18:38:06,894 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 9, 'diversity': 9}
+2026-02-21 18:38:06,894 - openevolve.controller - INFO - Iteration 20: Program 593a94e7-aceb-43e7-8a47-484795a2151b (parent: 50d80d85-d006-4007-ae01-90012b3f075e) completed in 48.08s
+2026-02-21 18:38:06,894 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_x_position': 1.2793391942977905, 'target_overhang': 0.1, 'stable_duration': 0.0, 'target_stability_time': 10.0, 'stability_ok': False, 'overhang_ok': True, 'success': False, 'failed': True, 'failure_reason': 'Structure fell off table', 'step_count': 100, 'structure_mass': 10.0, 'block_count': 20, 'min_y_position': -17.353239059448242, 'max_y_position': -13.01270580291748, 'center_of_mass_x': -0.9391380983404816, 'center_of_mass_y': -14.81383457183838, 'total_kinetic_energy': 1388.890372382666, 'max_velocity': 16.666675567626953, 'current_max_x': 1.2793391942977905}, error=None
+2026-02-21 18:38:06,895 - openevolve.database - INFO - Island Status:
+2026-02-21 18:38:06,895 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=2 (best: 50d80d85-d006-4007-ae01-90012b3f075e)
+2026-02-21 18:38:06,895 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:38:06,895 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:38:06,895 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 9a75a2d0-b0a0-4a8e-9212-9748500ac86c)
+2026-02-21 18:38:06,895 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 593a94e7-aceb-43e7-8a47-484795a2151b)
+2026-02-21 18:38:06,922 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 18:38:06,926 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 11, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 11, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 18:38:06,926 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 18:38:06,933 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 18:38:06,935 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 11, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 11, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 18:38:06,935 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 18:38:06,935 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Blocks must spawn at x < 0.0', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 11, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block\n    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")\nValueError: Blocks must spawn at x < 0.0\n'}, error=Error building agent: Blocks must spawn at x < 0.0
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 11, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_06/environment.py", line 68, in add_block
+    raise ValueError(f"Blocks must spawn at x < {self.START_ZONE_X_MAX}")
+ValueError: Blocks must spawn at x < 0.0
+
+2026-02-21 18:38:06,939 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/best/best_program_info.json
+2026-02-21 18:38:06,942 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 18:38:06,943 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 18:38:06,943 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 18:38:07,006 - openevolve.database - INFO - Reconstructed islands: restored 3 programs to islands
+2026-02-21 18:38:07,006 - openevolve.database - INFO - Loaded database with 8 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_06/checkpoints/checkpoint_20
+2026-02-21 18:38:07,006 - openevolve.database - INFO - Island Status:
+2026-02-21 18:38:07,006 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=2 (best: 50d80d85-d006-4007-ae01-90012b3f075e)
+2026-02-21 18:38:07,006 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:38:07,007 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 18:38:07,007 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 9a75a2d0-b0a0-4a8e-9212-9748500ac86c)
+2026-02-21 18:38:07,007 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 593a94e7-aceb-43e7-8a47-484795a2151b)
+2026-02-21 18:38:07,025 - openevolve.database - INFO - Saved database with 8 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_06/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

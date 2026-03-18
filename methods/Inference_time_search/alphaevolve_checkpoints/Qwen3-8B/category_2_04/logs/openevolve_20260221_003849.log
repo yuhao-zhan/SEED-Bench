@@ -1,0 +1,133 @@
+2026-02-21 00:38:49,420 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/logs/openevolve_20260221_003849.log
+2026-02-21 00:38:49,428 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-21 00:39:42,104 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-21 00:39:42,109 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-21 00:39:42,115 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-21 00:39:42,115 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 00:39:42,117 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_j84icx72/evaluate.py
+2026-02-21 00:39:42,117 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_j84icx72/evaluate.py
+2026-02-21 00:39:42,117 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_j84icx72/initial_program.py
+2026-02-21 00:39:42,117 - openevolve.controller - INFO - Adding initial program to database
+2026-02-21 00:39:42,368 - openevolve.evaluator - INFO - Evaluated program 117ce925-0cec-4804-b7c6-dc2cda7fcf78 in 0.25s: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'pusher_x': 5.0, 'pusher_y': 1.1666666269302368, 'pusher_angle': 0.0, 'pusher_velocity_x': 0.0, 'pusher_velocity_y': 0.0, 'pusher_angular_velocity': 0.0, 'object_x': 8.0, 'object_y': 1.4149962663650513, 'object_velocity_x': 0.0, 'object_velocity_y': 0.0, 'object_angular_velocity': 0.0, 'target_object_x': 16.0, 'distance_pushed': 0.0, 'max_distance_pushed': 0.0, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 40.0, 'max_pusher_tilt': 0.0, 'pusher_tipped': False, 'wheel_spinning': False, 'wheel_suspended': False, 'consecutive_spinning_count': 0, 'consecutive_suspended_count': 0, 'steps_with_motion': 0, 'min_simulation_steps_required': 3}, error=None
+2026-02-21 00:39:42,368 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-21 00:39:42,368 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-21 00:39:42,369 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-21 00:39:42,369 - openevolve.database - INFO - Island Status:
+2026-02-21 00:39:42,369 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=0 (best: 117ce925-0cec-4804-b7c6-dc2cda7fcf78)
+2026-02-21 00:39:42,369 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:39:42,369 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:39:42,369 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:39:42,369 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:39:42,370 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:40:31,939 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-21 00:40:31,940 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:41:21,035 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-21 00:41:21,036 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:42:10,131 - openevolve.controller - WARNING - Iteration 3 error: No valid diffs found
+2026-02-21 00:42:10,132 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:42:59,216 - openevolve.controller - WARNING - Iteration 4 error: No valid diffs found
+2026-02-21 00:42:59,217 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:43:48,306 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-21 00:43:48,307 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:44:37,394 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-21 00:44:37,394 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:45:26,479 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-21 00:45:26,480 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:46:15,560 - openevolve.controller - WARNING - Iteration 8 error: No valid diffs found
+2026-02-21 00:46:15,560 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:47:04,646 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-21 00:47:04,646 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:47:53,732 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-21 00:47:53,733 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:48:42,827 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-21 00:48:42,828 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:49:31,909 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-21 00:49:31,910 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:50:20,995 - openevolve.controller - WARNING - Iteration 13 error: No valid diffs found
+2026-02-21 00:50:20,995 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:51:10,081 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-21 00:51:10,082 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:51:59,171 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-21 00:51:59,172 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:52:48,251 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-21 00:52:48,252 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:53:37,350 - openevolve.controller - WARNING - Iteration 17 error: No valid diffs found
+2026-02-21 00:53:37,351 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:54:26,440 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-21 00:54:26,441 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:55:15,694 - openevolve.evaluator - INFO - Evaluated program ec3c4f52-d5dd-41f1-b41e-d482e8a05b19 in 0.15s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'tuple' object has no attribute 'position'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation\n    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)\n                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_04/evaluator.py", line 73, in evaluate\n    pusher_x, pusher_y = agent_body.position.x, agent_body.position.y\n                         ^^^^^^^^^^^^^^^^^^^\nAttributeError: \'tuple\' object has no attribute \'position\'\n'}, error=Verification process error: 'tuple' object has no attribute 'position'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation
+    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)
+                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_04/evaluator.py", line 73, in evaluate
+    pusher_x, pusher_y = agent_body.position.x, agent_body.position.y
+                         ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'tuple' object has no attribute 'position'
+
+2026-02-21 00:55:15,695 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 5}
+2026-02-21 00:55:15,695 - openevolve.controller - INFO - Iteration 19: Program ec3c4f52-d5dd-41f1-b41e-d482e8a05b19 (parent: 117ce925-0cec-4804-b7c6-dc2cda7fcf78) completed in 49.25s
+2026-02-21 00:55:15,695 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'execution_error', 'error_stage': 'verification', 'error_message': "'tuple' object has no attribute 'position'", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code\n    success, score, metrics = self._run_simulation(\n                              ~~~~~~~~~~~~~~~~~~~~^\n        environment, agent_components, evaluator, code_module, headless, save_gif_path\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation\n    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)\n                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_04/evaluator.py", line 73, in evaluate\n    pusher_x, pusher_y = agent_body.position.x, agent_body.position.y\n                         ^^^^^^^^^^^^^^^^^^^\nAttributeError: \'tuple\' object has no attribute \'position\'\n'}, error=Verification process error: 'tuple' object has no attribute 'position'
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 126, in verify_code
+    success, score, metrics = self._run_simulation(
+                              ~~~~~~~~~~~~~~~~~~~~^
+        environment, agent_components, evaluator, code_module, headless, save_gif_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 442, in _run_simulation
+    init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)
+                                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category2_Kinematics_Linkages/K_04/evaluator.py", line 73, in evaluate
+    pusher_x, pusher_y = agent_body.position.x, agent_body.position.y
+                         ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'tuple' object has no attribute 'position'
+
+2026-02-21 00:55:15,696 - openevolve.database - INFO - Island Status:
+2026-02-21 00:55:15,696 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=1 (best: 117ce925-0cec-4804-b7c6-dc2cda7fcf78)
+2026-02-21 00:55:15,696 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:55:15,696 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:55:15,696 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: ec3c4f52-d5dd-41f1-b41e-d482e8a05b19)
+2026-02-21 00:55:15,696 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:55:15,720 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/checkpoints/checkpoint_19
+2026-02-21 00:55:15,723 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'pusher_x': 5.0, 'pusher_y': 1.1666666269302368, 'pusher_angle': 0.0, 'pusher_velocity_x': 0.0, 'pusher_velocity_y': 0.0, 'pusher_angular_velocity': 0.0, 'object_x': 8.0, 'object_y': 1.4149962663650513, 'object_velocity_x': 0.0, 'object_velocity_y': 0.0, 'object_angular_velocity': 0.0, 'target_object_x': 16.0, 'distance_pushed': 0.0, 'max_distance_pushed': 0.0, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 40.0, 'max_pusher_tilt': 0.0, 'pusher_tipped': False, 'wheel_spinning': False, 'wheel_suspended': False, 'consecutive_spinning_count': 0, 'consecutive_suspended_count': 0, 'steps_with_motion': 0, 'min_simulation_steps_required': 3}, error=None
+2026-02-21 00:55:15,723 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/checkpoints/checkpoint_19
+2026-02-21 00:55:15,724 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-21 00:56:04,939 - openevolve.evaluator - INFO - Evaluated program 50320eec-faa2-4301-abdd-84bf047278a2 in 0.12s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint1' is not defined"}, error=Code name error: name 'joint1' is not defined
+2026-02-21 00:56:04,940 - openevolve.database - INFO - New MAP-Elites cell occupied in island 4: {'complexity': 8, 'diversity': 0}
+2026-02-21 00:56:04,940 - openevolve.controller - INFO - Iteration 20: Program 50320eec-faa2-4301-abdd-84bf047278a2 (parent: 117ce925-0cec-4804-b7c6-dc2cda7fcf78) completed in 49.22s
+2026-02-21 00:56:04,940 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'name_error', 'error_stage': 'code_execution', 'error_message': "name 'joint1' is not defined"}, error=Code name error: name 'joint1' is not defined
+2026-02-21 00:56:04,940 - openevolve.database - INFO - Island Status:
+2026-02-21 00:56:04,941 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=2 (best: 117ce925-0cec-4804-b7c6-dc2cda7fcf78)
+2026-02-21 00:56:04,941 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:56:04,941 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:56:04,941 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: ec3c4f52-d5dd-41f1-b41e-d482e8a05b19)
+2026-02-21 00:56:04,941 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 50320eec-faa2-4301-abdd-84bf047278a2)
+2026-02-21 00:56:04,951 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/checkpoints/checkpoint_20
+2026-02-21 00:56:04,954 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'pusher_x': 5.0, 'pusher_y': 1.1666666269302368, 'pusher_angle': 0.0, 'pusher_velocity_x': 0.0, 'pusher_velocity_y': 0.0, 'pusher_angular_velocity': 0.0, 'object_x': 8.0, 'object_y': 1.4149962663650513, 'object_velocity_x': 0.0, 'object_velocity_y': 0.0, 'object_angular_velocity': 0.0, 'target_object_x': 16.0, 'distance_pushed': 0.0, 'max_distance_pushed': 0.0, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 40.0, 'max_pusher_tilt': 0.0, 'pusher_tipped': False, 'wheel_spinning': False, 'wheel_suspended': False, 'consecutive_spinning_count': 0, 'consecutive_suspended_count': 0, 'steps_with_motion': 0, 'min_simulation_steps_required': 3}, error=None
+2026-02-21 00:56:04,954 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/checkpoints/checkpoint_20
+2026-02-21 00:56:04,960 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/checkpoints/checkpoint_20
+2026-02-21 00:56:04,962 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'pusher_x': 5.0, 'pusher_y': 1.1666666269302368, 'pusher_angle': 0.0, 'pusher_velocity_x': 0.0, 'pusher_velocity_y': 0.0, 'pusher_angular_velocity': 0.0, 'object_x': 8.0, 'object_y': 1.4149962663650513, 'object_velocity_x': 0.0, 'object_velocity_y': 0.0, 'object_angular_velocity': 0.0, 'target_object_x': 16.0, 'distance_pushed': 0.0, 'max_distance_pushed': 0.0, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 40.0, 'max_pusher_tilt': 0.0, 'pusher_tipped': False, 'wheel_spinning': False, 'wheel_suspended': False, 'consecutive_spinning_count': 0, 'consecutive_suspended_count': 0, 'steps_with_motion': 0, 'min_simulation_steps_required': 3}, error=None
+2026-02-21 00:56:04,962 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/checkpoints/checkpoint_20
+2026-02-21 00:56:04,962 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=30.0000, score=30.0000, success=0.0000, metrics={'pusher_x': 5.0, 'pusher_y': 1.1666666269302368, 'pusher_angle': 0.0, 'pusher_velocity_x': 0.0, 'pusher_velocity_y': 0.0, 'pusher_angular_velocity': 0.0, 'object_x': 8.0, 'object_y': 1.4149962663650513, 'object_velocity_x': 0.0, 'object_velocity_y': 0.0, 'object_angular_velocity': 0.0, 'target_object_x': 16.0, 'distance_pushed': 0.0, 'max_distance_pushed': 0.0, 'progress': 0.0, 'success': False, 'failed': False, 'failure_reason': None, 'step_count': 960, 'structure_mass': 0.30000001192092896, 'max_structure_mass': 40.0, 'max_pusher_tilt': 0.0, 'pusher_tipped': False, 'wheel_spinning': False, 'wheel_suspended': False, 'consecutive_spinning_count': 0, 'consecutive_suspended_count': 0, 'steps_with_motion': 0, 'min_simulation_steps_required': 3}, error=None
+2026-02-21 00:56:04,966 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/best/best_program_info.json
+2026-02-21 00:56:04,968 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-21 00:56:04,969 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-21 00:56:04,969 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-21 00:56:04,971 - openevolve.database - INFO - Reconstructed islands: restored 3 programs to islands
+2026-02-21 00:56:04,972 - openevolve.database - INFO - Loaded database with 3 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_2_04/checkpoints/checkpoint_20
+2026-02-21 00:56:04,972 - openevolve.database - INFO - Island Status:
+2026-02-21 00:56:04,972 - openevolve.database - INFO -  * Island 0: 1 programs, best=30.0000, avg=30.0000, diversity=0.00, gen=2 (best: 117ce925-0cec-4804-b7c6-dc2cda7fcf78)
+2026-02-21 00:56:04,972 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:56:04,972 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-21 00:56:04,972 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: ec3c4f52-d5dd-41f1-b41e-d482e8a05b19)
+2026-02-21 00:56:04,972 - openevolve.database - INFO -    Island 4: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 50320eec-faa2-4301-abdd-84bf047278a2)
+2026-02-21 00:56:04,980 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_2_04/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260221_pseudo

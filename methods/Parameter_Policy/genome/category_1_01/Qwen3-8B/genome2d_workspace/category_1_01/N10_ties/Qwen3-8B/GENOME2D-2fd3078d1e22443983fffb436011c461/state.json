@@ -1,0 +1,1064 @@
+{
+    "init_expert_pairs": [
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ],
+        [
+            "code_alpaca",
+            "gpt4_alpaca"
+        ]
+    ],
+    "step_0": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 5760.443699836731,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_1": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 5347.919158220291,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_2": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 261.7171993255615,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_3": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 387.9522616863251,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_4": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 447.22154450416565,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_5": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 559.3263690471649,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_6": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 330.7260227203369,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_7": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 459.3982126712799,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_8": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 469.557532787323,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_9": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 358.8991506099701,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_10": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 446.09712386131287,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_11": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 472.44493865966797,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_12": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 439.3173973560333,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_13": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 346.55822372436523,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_14": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 435.1695206165314,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_15": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 566.7272338867188,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_16": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 457.2964506149292,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_17": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 443.3852024078369,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_18": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 247.97880268096924,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_19": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 370.89950728416443,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_20": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 376.64953112602234,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_21": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 361.4398944377899,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_22": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 465.0441749095917,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_23": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 463.6012272834778,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_24": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 241.08274292945862,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_25": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 338.7122483253479,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_26": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 438.6714930534363,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_27": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 567.0534129142761,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_28": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 554.6847670078278,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_29": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 438.51855731010437,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_30": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 332.2300691604614,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_31": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 418.21159625053406,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_32": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 434.71262979507446,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_33": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 536.6293284893036,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_34": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 564.9672005176544,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_35": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 333.9926640987396,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_36": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 442.3679127693176,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_37": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 442.186576128006,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_38": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 549.2970321178436,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_39": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 412.1287088394165,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_40": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 453.17076897621155,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_41": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 366.87225675582886,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_42": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 435.60382175445557,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_43": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 424.7844069004059,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_44": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 327.20597290992737,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_45": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 540.2595844268799,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_46": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 543.8656628131866,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_47": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 339.49633169174194,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_48": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 456.44496989250183,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_49": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 438.81995725631714,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    },
+    "step_50": {
+        "global_max_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_max_fitness_score": 0.0,
+        "global_min_fitness_path": "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Parameter_Policy/genome/category_1_01/Qwen3-8B/genome2d_workspace/category_1_01/N10_ties/Qwen3-8B/GENOME2D-2fd3078d1e22443983fffb436011c461/individual_d430d36c11c8495ebd7e266c778e2bb1",
+        "global_min_fitness_score": 0.0,
+        "average_fitness_score": 0.0,
+        "consume_time": 571.5999462604523,
+        "weighted_scores": {
+            "max": 0.0,
+            "min": 0.0,
+            "avg": 0.0
+        },
+        "task_scores": {
+            "category_1_01": {
+                "max": 0.0,
+                "min": 0.0,
+                "avg": 0.0
+            }
+        }
+    }
+}

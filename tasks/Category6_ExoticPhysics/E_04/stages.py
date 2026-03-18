@@ -7,98 +7,162 @@ parameter changes; it must infer from feedback.
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List
+
+# Nominal joint limits from environment.py (source defaults)
+DEFAULT_JOINT_BREAK_FORCE = 6.0
+DEFAULT_JOINT_BREAK_TORQUE = 10.0
+
+
+def _fmt_limit(value: float) -> str:
+    """Format force/torque limit for prompt (handles small values like 1e-10)."""
+    if value == 0 or (abs(value) < 1e-6 and value != 0):
+        return f"{value:.4g}"
+    if abs(value) >= 1000 or (abs(value) < 0.001 and value != 0):
+        return f"{value:.4g}"
+    return f"{value:.4f}".rstrip("0").rstrip(".")
 
 
 TASK_DESCRIPTION_SUFFIX = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-- **Joint Strength**: The force and torque limits before mechanical failure may have changed.
-- **Structural Fatigue**: The rate at which joints weaken over time may vary.
-- **Base Vibration**: The frequency and amplitude of external oscillations may be altered.
-- **Mass Dynamics**: The frequency and amplitude of periodic mass fluctuations may differ from standard.
-- **Gravity**: The magnitude and direction of the gravitational field may be adjusted.
+- **Aerodynamic Loading**: Constant lateral wind pressure that varies with structural profile area.
+- **Connection Axial Strength**: The maximum linear (axial) force joints can withstand before failing.
+- **Connection Torsional Yield**: The ability of joints to resist twisting moments may be altered.
+- **Asymmetric Gravity**: Significant shifts in the gravitational field vector, creating massive continuous side-loading.
+- **Dynamic Mass Resonance**: Altered frequencies and amplitudes of mass fluctuations that can trigger structural resonance.
+- **Mass Variation Spatial Phase**: How the phase of mass oscillation varies with beam position along the structure.
+- **Progressive Structural Fatigue**: Joint strength may decay over time; requiring redundant load paths and low-stress designs.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
 
+def update_task_description_for_visible_changes(
+    base_description: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+) -> str:
+    """
+    Update task description with visible changes: joint limits (nominal) when mutated.
+    Format: [new_value] (originally [old_value] in the source environment).
+    """
+    description = base_description
+    target_physics_config = target_physics_config or {}
+    base_physics_config = base_physics_config or {}
 
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Update task description for visible changes."""
-    return base_description
+    base_force = base_physics_config.get("joint_break_force", DEFAULT_JOINT_BREAK_FORCE)
+    base_torque = base_physics_config.get("joint_break_torque", DEFAULT_JOINT_BREAK_TORQUE)
+    target_force = target_physics_config.get("joint_break_force", base_force)
+    target_torque = target_physics_config.get("joint_break_torque", base_torque)
 
+    if target_force != base_force:
+        force_pattern = r"(- \*\*Joint Limits \(nominal\)\*\*: Joints fail if reaction force exceeds )(\d+\.?\d*e?-?\d*)( N or reaction torque exceeds )"
+        if re.search(force_pattern, description):
+            description = re.sub(
+                force_pattern,
+                lambda m: f"{m.group(1)}{_fmt_limit(target_force)} N (originally {_fmt_limit(base_force)} N in the source environment) or reaction torque exceeds ",
+                description,
+            )
+        else:
+            # Fallback: match "reaction force exceeds 6.0 N"
+            alt_force_pattern = r"(reaction force exceeds )(\d+\.?\d*e?-?\d*)( N)"
+            if re.search(alt_force_pattern, description):
+                description = re.sub(
+                    alt_force_pattern,
+                    lambda m: f"{m.group(1)}{_fmt_limit(target_force)} N (originally {_fmt_limit(base_force)} N in the source environment)",
+                    description,
+                    1,
+                )
+
+    if target_torque != base_torque:
+        torque_pattern = r"(reaction torque exceeds )(\d+\.?\d*e?-?\d*)( N·m )(\(before fatigue decay\))"
+        if re.search(torque_pattern, description):
+            description = re.sub(
+                torque_pattern,
+                lambda m: f"{m.group(1)}{_fmt_limit(target_torque)} N·m (originally {_fmt_limit(base_torque)} N·m in the source environment) {m.group(4)}",
+                description,
+            )
+        else:
+            alt_torque_pattern = r"(reaction torque exceeds )(\d+\.?\d*e?-?\d*)( N·m)"
+            if re.search(alt_torque_pattern, description):
+                description = re.sub(
+                    alt_torque_pattern,
+                    lambda m: f"{m.group(1)}{_fmt_limit(target_torque)} N·m (originally {_fmt_limit(base_torque)} N·m in the source environment)",
+                    description,
+                    1,
+                )
+
+    return description
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     """Update success criteria for visible changes."""
     return base_success_criteria
 
-
 def get_e04_curriculum_stages() -> List[Dict[str, Any]]:
     """
-    Returns ordered stage configs for E-04 variants (difficulty: Stage-1 < Stage-2 < Stage-3 < Stage-4).
-    Each stage overrides physics via physics_config; prompt does NOT reveal exact parameter changes.
+    Returns ordered stage configs for E-04 variants.
+    Stages use fundamentally different physical challenges.
     """
     return [
-        # Stage-1: Stricter joint limits (one param) — nominal limits lowered so reference exceeds them
+        # Stage-1: High-Frequency Resonance + Low Limit
         {
             "stage_id": "Stage-1",
-            "title": "Weak joints",
-            "mutation_description": "Joint break force/torque limits reduced; same reaction forces can break joints.",
+            "title": "Resonant Instability",
+            "mutation_description": "Structural mass varies at high frequency with large amplitude, targeting standard beam resonance.",
             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "joint_break_force": 0.0004,
-                "joint_break_torque": 0.0002,
+                "mass_freq_1": 1.5,
+                "mass_amp_1": 0.4,
+                "joint_break_force": 0.005,
+                "joint_break_torque": 0.002,
             },
         },
-        # Stage-2: Very fast joint fatigue (one param) — effective limits decay to near zero quickly
+        # Stage-2: Zero Torque (Purely Axial) + Wind
         {
             "stage_id": "Stage-2",
-            "title": "Rapid joint fatigue",
-            "mutation_description": "Joint fatigue time constant very small; effective limits drop to near zero within seconds.",
+            "title": "The Weld-less Truss",
+            "mutation_description": "Joints cannot resist ANY torque. Structure must be a perfect funicular arch or truss.",
             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "fatigue_tau_seconds": 2.0,
+                "joint_break_torque": 1e-10,
+                "wind_pressure": 10000.0,
+                "fatigue_tau_seconds": 400.0,
             },
         },
-        # Stage-3: Multiple — low joint limits + stronger base excitation + higher mass amplitude
+        # Stage-3: Massive Lateral Load (Extreme Wind + Twisting Phase)
         {
             "stage_id": "Stage-3",
-            "title": "Harsh vibration and weak joints",
-            "mutation_description": "Lower joint limits, stronger base excitation, higher mass variation amplitude.",
+            "title": "The Lateral Vortex",
+            "mutation_description": "Extreme wind pressure combined with high spatial mass phase gradient creating non-uniform twisting loads.",
             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "joint_break_force": 0.0005,
-                "joint_break_torque": 0.00025,
-                "base_excitation_vertical_amplitude": 0.25,
-                "base_excitation_horizontal_amplitude": 0.18,
-                "base_excitation_frequency": 0.5,
-                "mass_amp_1": 0.5,
-                "mass_amp_2": 0.42,
+                "wind_pressure": 1500.0,
+                "mass_phase_gradient": 15.0,
+                "mass_amp_1": 0.4,
+                "fatigue_tau_seconds": 400.0,
+                "joint_break_torque": 0.05,
             },
         },
-        # Stage-4: Multiple — mass freq + amp + base + fast fatigue + gravity (hardest)
+
+        # Stage-4: The Event Horizon (Lateral Gravity + Fatigue + Zero Torque)
         {
             "stage_id": "Stage-4",
-            "title": "Altered dynamics and fatigue",
-            "mutation_description": "Mass freq/amp changed; stronger base excitation; fast fatigue; increased gravity.",
+            "title": "Gravitational Shear",
+            "mutation_description": "Massive lateral gravity vector combined with zero torque capacity and rapid fatigue.",
             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "mass_freq_1": 1.0,
-                "mass_freq_2": 1.8,
-                "mass_amp_1": 0.45,  # Adjusted from 0.55 to avoid amp sum > 1.0 (negative density crash)
-                "mass_amp_2": 0.45,  # Adjusted from 0.48
-                "base_excitation_frequency": 0.65,
-                "base_excitation_vertical_amplitude": 0.28,
-                "base_excitation_horizontal_amplitude": 0.20,
-                "fatigue_tau_seconds": 4.0,
-                "joint_break_force": 0.5,
-                "joint_break_torque": 0.7,
-                "gravity": (0, -30.0),
+                "gravity": (15000.0, -30.0),
+                "joint_break_torque": 1e-10,
+                "fatigue_tau_seconds": 60.0,
             },
         },
     ]
+

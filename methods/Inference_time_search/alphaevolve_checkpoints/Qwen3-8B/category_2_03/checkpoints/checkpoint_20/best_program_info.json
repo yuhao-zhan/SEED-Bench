@@ -1,0 +1,38 @@
+{
+  "id": "c7cfd1aa-7fae-4699-b582-5deab41091fd",
+  "generation": 1,
+  "iteration": 4,
+  "current_iteration": 20,
+  "metrics": {
+    "combined_score": 0.14998912811279297,
+    "score": 0.14998912811279297,
+    "success": false,
+    "metrics": {
+      "gripper_x": 0.8893857002258301,
+      "gripper_y": 6.163905620574951,
+      "object_x": 5.0,
+      "object_y": 2.0149989128112793,
+      "target_object_y": 3.5,
+      "height_gained": 0.014998912811279297,
+      "max_object_y_reached": 2.0149989128112793,
+      "progress": 0.29997825622558594,
+      "success": false,
+      "failed": false,
+      "failure_reason": null,
+      "step_count": 856,
+      "structure_mass": 0.1300000036135316,
+      "max_structure_mass": 30.0,
+      "min_object_y_seen": 2.0,
+      "object_fell": false,
+      "object_grasped": false,
+      "object_contact_points": 0,
+      "gripper_bodies_touching_object": 0,
+      "steps_with_object_above_target": 0,
+      "min_simulation_steps_required": 80
+    },
+    "error": null
+  },
+  "language": "python",
+  "timestamp": 1771604779.4792962,
+  "saved_at": 1771605523.7868729
+}

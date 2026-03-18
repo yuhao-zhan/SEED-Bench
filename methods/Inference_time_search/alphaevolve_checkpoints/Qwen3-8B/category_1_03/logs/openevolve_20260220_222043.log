@@ -1,0 +1,261 @@
+2026-02-20 22:20:43,710 - openevolve.controller - INFO - Logging to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/logs/openevolve_20260220_222043.log
+2026-02-20 22:20:43,721 - openevolve.controller - INFO - Set random seed to 43 for reproducibility
+2026-02-20 22:21:32,294 - openevolve.llm.ensemble - INFO - Initialized LLM ensemble with models: /home/test/testdata/models/Qwen3-8B (weight: 1.00)
+2026-02-20 22:21:32,299 - openevolve.prompt.sampler - INFO - Initialized prompt sampler
+2026-02-20 22:21:32,303 - openevolve.prompt.sampler - INFO - Set custom templates: system=evaluator_system_message, user=None
+2026-02-20 22:21:32,303 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 22:21:32,305 - openevolve.evaluator - INFO - Successfully loaded evaluation function from /tmp/alpha_evolve_2d_viuullh0/evaluate.py
+2026-02-20 22:21:32,305 - openevolve.evaluator - INFO - Initialized evaluator with /tmp/alpha_evolve_2d_viuullh0/evaluate.py
+2026-02-20 22:21:32,305 - openevolve.controller - INFO - Initialized OpenEvolve with /tmp/alpha_evolve_2d_viuullh0/initial_program.py
+2026-02-20 22:21:32,305 - openevolve.controller - INFO - Adding initial program to database
+2026-02-20 22:21:32,477 - openevolve.evaluator - INFO - Evaluated program 37f91605-cf20-4592-a7bb-020ef9d2cd23 in 0.17s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_reach': 5.0, 'min_tip_y': -12.52778148651123, 'min_tip_height': -2.5, 'tip_sagged': True, 'current_reach': 5.0, 'target_reach': 14.0, 'load_attached': False, 'load_hold_time': 0, 'load2_attached': False, 'load2_hold_time': 0, 'load_mass': 600.0, 'load2_mass': 400.0, 'load_position_x': None, 'anchor_broken': False, 'anchor_count': 0, 'max_anchor_points': 2, 'max_anchor_torque': 0.0, 'max_anchor_torque_limit': 2600.0, 'structure_mass': 0.30000001192092896, 'joint_count': 0, 'initial_joint_count': 0, 'success': False, 'failed': True, 'failure_reason': 'Structure sagged too much (tip dropped below -2.5m; min_tip_y=-12.53m)', 'step_count': 100}, error=None
+2026-02-20 22:21:32,478 - openevolve.database - INFO - New MAP-Elites cell occupied in island 0: {'complexity': 5, 'diversity': 0}
+2026-02-20 22:21:32,478 - openevolve.controller - INFO - Running evolution in-process (serial vLLM requests): LLM loaded once, all iterations in this process. parallel_evaluations=4
+2026-02-20 22:21:32,479 - openevolve.controller - INFO - Using island-based evolution with 5 islands (in-process)
+2026-02-20 22:21:32,479 - openevolve.database - INFO - Island Status:
+2026-02-20 22:21:32,479 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 37f91605-cf20-4592-a7bb-020ef9d2cd23)
+2026-02-20 22:21:32,479 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:21:32,480 - openevolve.database - INFO -    Island 2: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:21:32,480 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:21:32,480 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:21:32,480 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:22:21,488 - openevolve.controller - WARNING - Iteration 1 error: No valid diffs found
+2026-02-20 22:22:21,490 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:23:10,145 - openevolve.controller - WARNING - Iteration 2 error: No valid diffs found
+2026-02-20 22:23:10,147 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:23:58,805 - openevolve.controller - WARNING - Iteration 3 error: No valid diffs found
+2026-02-20 22:23:58,806 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:24:47,462 - openevolve.controller - WARNING - Iteration 4 error: No valid diffs found
+2026-02-20 22:24:47,463 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:25:36,122 - openevolve.controller - WARNING - Iteration 5 error: No valid diffs found
+2026-02-20 22:25:36,124 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:26:24,774 - openevolve.controller - WARNING - Iteration 6 error: No valid diffs found
+2026-02-20 22:26:24,775 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:27:13,432 - openevolve.controller - WARNING - Iteration 7 error: No valid diffs found
+2026-02-20 22:27:13,433 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:27:58,925 - openevolve.evaluator - INFO - Evaluated program 31f76a62-7580-4c3d-b2a9-3d44a0bcb5fc in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor\n    raise ValueError(\'bodyA not set.\')\nValueError: bodyA not set.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 6, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint\n    joint = self._world.CreateWeldJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint\n    return self.__CreateJoint(b2WeldJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs\n    _init_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.\n'}, error=Error building agent: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor
+    raise ValueError('bodyA not set.')
+ValueError: bodyA not set.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 6, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint
+    joint = self._world.CreateWeldJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint
+    return self.__CreateJoint(b2WeldJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs
+    _init_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+ValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+
+2026-02-20 22:27:58,926 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 5}
+2026-02-20 22:27:58,926 - openevolve.controller - INFO - Iteration 8: Program 31f76a62-7580-4c3d-b2a9-3d44a0bcb5fc (parent: 37f91605-cf20-4592-a7bb-020ef9d2cd23) completed in 45.49s
+2026-02-20 22:27:58,926 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor\n    raise ValueError(\'bodyA not set.\')\nValueError: bodyA not set.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 6, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint\n    joint = self._world.CreateWeldJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint\n    return self.__CreateJoint(b2WeldJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs\n    _init_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.\n'}, error=Error building agent: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor
+    raise ValueError('bodyA not set.')
+ValueError: bodyA not set.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 6, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint
+    joint = self._world.CreateWeldJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint
+    return self.__CreateJoint(b2WeldJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs
+    _init_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+ValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+
+2026-02-20 22:27:58,926 - openevolve.database - INFO - Island Status:
+2026-02-20 22:27:58,926 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 37f91605-cf20-4592-a7bb-020ef9d2cd23)
+2026-02-20 22:27:58,926 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:27:58,926 - openevolve.database - INFO -    Island 2: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 31f76a62-7580-4c3d-b2a9-3d44a0bcb5fc)
+2026-02-20 22:27:58,926 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:27:58,926 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:27:58,932 - openevolve.database - INFO - Saved database with 2 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_8
+2026-02-20 22:27:58,935 - openevolve.controller - INFO - Saved best program at checkpoint 8 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_reach': 5.0, 'min_tip_y': -12.52778148651123, 'min_tip_height': -2.5, 'tip_sagged': True, 'current_reach': 5.0, 'target_reach': 14.0, 'load_attached': False, 'load_hold_time': 0, 'load2_attached': False, 'load2_hold_time': 0, 'load_mass': 600.0, 'load2_mass': 400.0, 'load_position_x': None, 'anchor_broken': False, 'anchor_count': 0, 'max_anchor_points': 2, 'max_anchor_torque': 0.0, 'max_anchor_torque_limit': 2600.0, 'structure_mass': 0.30000001192092896, 'joint_count': 0, 'initial_joint_count': 0, 'success': False, 'failed': True, 'failure_reason': 'Structure sagged too much (tip dropped below -2.5m; min_tip_y=-12.53m)', 'step_count': 100}, error=None
+2026-02-20 22:27:58,935 - openevolve.controller - INFO - Saved checkpoint at iteration 8 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_8
+2026-02-20 22:27:58,935 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:28:47,580 - openevolve.controller - WARNING - Iteration 9 error: No valid diffs found
+2026-02-20 22:28:47,581 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:29:36,237 - openevolve.controller - WARNING - Iteration 10 error: No valid diffs found
+2026-02-20 22:29:36,237 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:30:24,882 - openevolve.controller - WARNING - Iteration 11 error: No valid diffs found
+2026-02-20 22:30:24,882 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:31:13,540 - openevolve.controller - WARNING - Iteration 12 error: No valid diffs found
+2026-02-20 22:31:13,541 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:31:37,040 - openevolve.evaluator - INFO - Evaluated program a308eb6e-6723-477b-927c-f91d415a53db in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "cannot access local variable 'main_beam' where it is not associated with a value", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 6, in build_agent\nUnboundLocalError: cannot access local variable \'main_beam\' where it is not associated with a value\n'}, error=Error building agent: cannot access local variable 'main_beam' where it is not associated with a value
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 6, in build_agent
+UnboundLocalError: cannot access local variable 'main_beam' where it is not associated with a value
+
+2026-02-20 22:31:37,041 - openevolve.database - INFO - New MAP-Elites cell occupied in island 2: {'complexity': 9, 'diversity': 0}
+2026-02-20 22:31:37,041 - openevolve.controller - INFO - Iteration 13: Program a308eb6e-6723-477b-927c-f91d415a53db (parent: 31f76a62-7580-4c3d-b2a9-3d44a0bcb5fc) completed in 23.50s
+2026-02-20 22:31:37,041 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': "cannot access local variable 'main_beam' where it is not associated with a value", 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 6, in build_agent\nUnboundLocalError: cannot access local variable \'main_beam\' where it is not associated with a value\n'}, error=Error building agent: cannot access local variable 'main_beam' where it is not associated with a value
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 6, in build_agent
+UnboundLocalError: cannot access local variable 'main_beam' where it is not associated with a value
+
+2026-02-20 22:31:37,041 - openevolve.database - INFO - Island Status:
+2026-02-20 22:31:37,041 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 37f91605-cf20-4592-a7bb-020ef9d2cd23)
+2026-02-20 22:31:37,041 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:31:37,041 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.90, gen=1 (best: 31f76a62-7580-4c3d-b2a9-3d44a0bcb5fc)
+2026-02-20 22:31:37,041 - openevolve.database - INFO -    Island 3: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:31:37,042 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:31:37,051 - openevolve.database - INFO - Saved database with 3 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_13
+2026-02-20 22:31:37,055 - openevolve.controller - INFO - Saved best program at checkpoint 13 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_reach': 5.0, 'min_tip_y': -12.52778148651123, 'min_tip_height': -2.5, 'tip_sagged': True, 'current_reach': 5.0, 'target_reach': 14.0, 'load_attached': False, 'load_hold_time': 0, 'load2_attached': False, 'load2_hold_time': 0, 'load_mass': 600.0, 'load2_mass': 400.0, 'load_position_x': None, 'anchor_broken': False, 'anchor_count': 0, 'max_anchor_points': 2, 'max_anchor_torque': 0.0, 'max_anchor_torque_limit': 2600.0, 'structure_mass': 0.30000001192092896, 'joint_count': 0, 'initial_joint_count': 0, 'success': False, 'failed': True, 'failure_reason': 'Structure sagged too much (tip dropped below -2.5m; min_tip_y=-12.53m)', 'step_count': 100}, error=None
+2026-02-20 22:31:37,055 - openevolve.controller - INFO - Saved checkpoint at iteration 13 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_13
+2026-02-20 22:31:37,055 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:32:25,706 - openevolve.controller - WARNING - Iteration 14 error: No valid diffs found
+2026-02-20 22:32:25,707 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:33:14,372 - openevolve.controller - WARNING - Iteration 15 error: No valid diffs found
+2026-02-20 22:33:14,373 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:34:03,030 - openevolve.controller - WARNING - Iteration 16 error: No valid diffs found
+2026-02-20 22:34:03,031 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:34:51,688 - openevolve.controller - WARNING - Iteration 17 error: No valid diffs found
+2026-02-20 22:34:51,690 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:35:42,719 - openevolve.controller - WARNING - Iteration 18 error: No valid diffs found
+2026-02-20 22:35:42,721 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:36:18,090 - openevolve.evaluator - INFO - Evaluated program 66fc17ce-7b4c-4892-b836-76f4a6dc372d in 0.01s: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor\n    raise ValueError(\'bodyA not set.\')\nValueError: bodyA not set.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 11, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint\n    joint = self._world.CreateWeldJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint\n    return self.__CreateJoint(b2WeldJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs\n    _init_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.\n'}, error=Error building agent: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor
+    raise ValueError('bodyA not set.')
+ValueError: bodyA not set.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 11, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint
+    joint = self._world.CreateWeldJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint
+    return self.__CreateJoint(b2WeldJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs
+    _init_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+ValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+
+2026-02-20 22:36:18,091 - openevolve.database - INFO - New MAP-Elites cell occupied in island 3: {'complexity': 9, 'diversity': 3}
+2026-02-20 22:36:18,091 - openevolve.controller - INFO - Iteration 19: Program 66fc17ce-7b4c-4892-b836-76f4a6dc372d (parent: a308eb6e-6723-477b-927c-f91d415a53db) completed in 35.37s
+2026-02-20 22:36:18,091 - openevolve.controller - INFO - Metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'error_type': 'agent_building_error', 'error_stage': 'agent_construction', 'error_message': 'Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.', 'error_traceback': 'Traceback (most recent call last):\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs\n    setattr(self, key, value)\n    ~~~~~~~^^^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor\n    raise ValueError(\'bodyA not set.\')\nValueError: bodyA not set.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code\n    agent_components = build_agent_func(environment)\n  File "<string>", line 11, in build_agent\n  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint\n    joint = self._world.CreateWeldJoint(\n        bodyA=body_a,\n    ...<2 lines>...\n        collideConnected=False\n    )\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint\n    return self.__CreateJoint(b2WeldJointDef(**kwargs))\n                              ~~~~~~~~~~~~~~^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__\n    _init_jointdef_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs\n    _init_kwargs(self, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs\n    raise ex.__class__(\'Failed on kwargs for %s.%s: %s\' \\\n                % (self.__class__.__name__, key, ex))\nValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.\n'}, error=Error building agent: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+Traceback (most recent call last):
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 111, in _init_kwargs
+    setattr(self, key, value)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4601, in __set_anchor
+    raise ValueError('bodyA not set.')
+ValueError: bodyA not set.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation/verifier.py", line 107, in verify_code
+    agent_components = build_agent_func(environment)
+  File "<string>", line 11, in build_agent
+  File "/home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/tasks/Category1_Statics_Equilibrium/S_03/environment.py", line 170, in add_joint
+    joint = self._world.CreateWeldJoint(
+        bodyA=body_a,
+    ...<2 lines>...
+        collideConnected=False
+    )
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 3358, in CreateWeldJoint
+    return self.__CreateJoint(b2WeldJointDef(**kwargs))
+                              ~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 4579, in __init__
+    _init_jointdef_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 121, in _init_jointdef_kwargs
+    _init_kwargs(self, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/test/test1709/miniconda3/lib/python3.13/site-packages/Box2D/Box2D.py", line 113, in _init_kwargs
+    raise ex.__class__('Failed on kwargs for %s.%s: %s' \
+                % (self.__class__.__name__, key, ex))
+ValueError: Failed on kwargs for b2WeldJointDef.anchor: bodyA not set.
+
+2026-02-20 22:36:18,092 - openevolve.database - INFO - Island Status:
+2026-02-20 22:36:18,092 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 37f91605-cf20-4592-a7bb-020ef9d2cd23)
+2026-02-20 22:36:18,092 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:36:18,092 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.90, gen=2 (best: 31f76a62-7580-4c3d-b2a9-3d44a0bcb5fc)
+2026-02-20 22:36:18,092 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 66fc17ce-7b4c-4892-b836-76f4a6dc372d)
+2026-02-20 22:36:18,092 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:36:18,102 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_19
+2026-02-20 22:36:18,105 - openevolve.controller - INFO - Saved best program at checkpoint 19 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_reach': 5.0, 'min_tip_y': -12.52778148651123, 'min_tip_height': -2.5, 'tip_sagged': True, 'current_reach': 5.0, 'target_reach': 14.0, 'load_attached': False, 'load_hold_time': 0, 'load2_attached': False, 'load2_hold_time': 0, 'load_mass': 600.0, 'load2_mass': 400.0, 'load_position_x': None, 'anchor_broken': False, 'anchor_count': 0, 'max_anchor_points': 2, 'max_anchor_torque': 0.0, 'max_anchor_torque_limit': 2600.0, 'structure_mass': 0.30000001192092896, 'joint_count': 0, 'initial_joint_count': 0, 'success': False, 'failed': True, 'failure_reason': 'Structure sagged too much (tip dropped below -2.5m; min_tip_y=-12.53m)', 'step_count': 100}, error=None
+2026-02-20 22:36:18,105 - openevolve.controller - INFO - Saved checkpoint at iteration 19 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_19
+2026-02-20 22:36:18,106 - openevolve.llm.ensemble - INFO - Sampled model: /home/test/testdata/models/Qwen3-8B
+2026-02-20 22:37:06,764 - openevolve.controller - WARNING - Iteration 20 error: No valid diffs found
+2026-02-20 22:37:06,776 - openevolve.database - INFO - Saved database with 4 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_20
+2026-02-20 22:37:06,778 - openevolve.controller - INFO - Saved best program at checkpoint 20 with metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_reach': 5.0, 'min_tip_y': -12.52778148651123, 'min_tip_height': -2.5, 'tip_sagged': True, 'current_reach': 5.0, 'target_reach': 14.0, 'load_attached': False, 'load_hold_time': 0, 'load2_attached': False, 'load2_hold_time': 0, 'load_mass': 600.0, 'load2_mass': 400.0, 'load_position_x': None, 'anchor_broken': False, 'anchor_count': 0, 'max_anchor_points': 2, 'max_anchor_torque': 0.0, 'max_anchor_torque_limit': 2600.0, 'structure_mass': 0.30000001192092896, 'joint_count': 0, 'initial_joint_count': 0, 'success': False, 'failed': True, 'failure_reason': 'Structure sagged too much (tip dropped below -2.5m; min_tip_y=-12.53m)', 'step_count': 100}, error=None
+2026-02-20 22:37:06,779 - openevolve.controller - INFO - Saved checkpoint at iteration 20 to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_20
+2026-02-20 22:37:06,779 - openevolve.controller - INFO - Evolution complete. Best program has metrics: combined_score=0.0000, score=0.0000, success=0.0000, metrics={'max_reach': 5.0, 'min_tip_y': -12.52778148651123, 'min_tip_height': -2.5, 'tip_sagged': True, 'current_reach': 5.0, 'target_reach': 14.0, 'load_attached': False, 'load_hold_time': 0, 'load2_attached': False, 'load2_hold_time': 0, 'load_mass': 600.0, 'load2_mass': 400.0, 'load_position_x': None, 'anchor_broken': False, 'anchor_count': 0, 'max_anchor_points': 2, 'max_anchor_torque': 0.0, 'max_anchor_torque_limit': 2600.0, 'structure_mass': 0.30000001192092896, 'joint_count': 0, 'initial_joint_count': 0, 'success': False, 'failed': True, 'failure_reason': 'Structure sagged too much (tip dropped below -2.5m; min_tip_y=-12.53m)', 'step_count': 100}, error=None
+2026-02-20 22:37:06,782 - openevolve.controller - INFO - Saved best program to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/best/best_program.py with program info to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/best/best_program_info.json
+2026-02-20 22:37:06,786 - openevolve.database - INFO - Initialized program database with 0 programs
+2026-02-20 22:37:06,786 - openevolve.database - INFO - Loaded database metadata with last_iteration=20
+2026-02-20 22:37:06,786 - openevolve.database - INFO - Loaded feature_stats for 2 dimensions
+2026-02-20 22:37:06,789 - openevolve.database - INFO - Reconstructed islands: restored 4 programs to islands
+2026-02-20 22:37:06,789 - openevolve.database - INFO - Loaded database with 5 programs from /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/methods/Inference_time_search/alphaevolve_checkpoints/Qwen3-8B/category_1_03/checkpoints/checkpoint_20
+2026-02-20 22:37:06,790 - openevolve.database - INFO - Island Status:
+2026-02-20 22:37:06,790 - openevolve.database - INFO -  * Island 0: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=1 (best: 37f91605-cf20-4592-a7bb-020ef9d2cd23)
+2026-02-20 22:37:06,790 - openevolve.database - INFO -    Island 1: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:37:06,790 - openevolve.database - INFO -    Island 2: 2 programs, best=0.0000, avg=0.0000, diversity=0.90, gen=2 (best: 31f76a62-7580-4c3d-b2a9-3d44a0bcb5fc)
+2026-02-20 22:37:06,790 - openevolve.database - INFO -    Island 3: 1 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0 (best: 66fc17ce-7b4c-4892-b836-76f4a6dc372d)
+2026-02-20 22:37:06,790 - openevolve.database - INFO -    Island 4: 0 programs, best=0.0000, avg=0.0000, diversity=0.00, gen=0
+2026-02-20 22:37:06,801 - openevolve.database - INFO - Saved database with 5 programs to /home/test/test1709/THUNLP/DaVinciBench/2D_exploration/scripts/evaluation_results/category_1_03/Qwen3-8B/alpha_evolve/program_database_all_1st_pass_20260220_pseudo
