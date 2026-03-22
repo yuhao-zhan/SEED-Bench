@@ -846,6 +846,14 @@ def load_task_prompt(task_name):
     return mod.TASK_PROMPT
 
 
+def _with_prompt_trailer(prompt: str, task_prompt: dict) -> str:
+    """Append mutated-environment footer after the full formatted prompt when present."""
+    trailer = (task_prompt.get("prompt_trailer") or "").strip()
+    if not trailer:
+        return prompt
+    return prompt.rstrip() + "\n\n" + trailer + "\n"
+
+
 def format_initial_prompt(task_prompt):
     """
     Format initial prompt (first iteration) with one-shot demonstration
@@ -902,7 +910,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your physical analysis, then provide the code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_revision_prompt(task_prompt, previous_code, feedback):
@@ -974,7 +982,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your physical diagnosis, then provide the fixed code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_system_prompt_with_task(task_prompt, include_demonstrations=True):
@@ -1048,7 +1056,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your physical analysis, then provide the code.
 """
-    return system_prompt
+    return _with_prompt_trailer(system_prompt, task_prompt)
 
 
 def format_revision_prompt_chat(task_prompt, feedback):
@@ -1093,7 +1101,7 @@ Give the next improved solution.
 
 Remember: include analysis first if needed, then output ONE ```python ... ``` code block containing the complete updated implementation.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_revision_prompt_chat_simplified(feedback, iteration: int = 2):
@@ -1218,7 +1226,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your analysis, then provide the code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_revision_prompt_best_score(task_prompt, best_code, best_feedback, current_feedback):
@@ -1266,7 +1274,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your analysis, then provide the code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_revision_prompt_best_plus_previous(task_prompt, best_code, best_feedback, previous_code, previous_feedback, current_feedback, best_iteration=None, previous_iteration=None, current_iteration=None, memory_block=None):
@@ -1342,7 +1350,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your analysis, then provide the code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_mutated_revision_prompt_best_plus_previous(
@@ -1438,7 +1446,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your analysis, then provide the code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_mutated_revision_prompt(
@@ -1515,7 +1523,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your analysis, then provide the code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_revision_prompt_memory_only(task_prompt):
@@ -1560,7 +1568,7 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your analysis, then provide the code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)
 
 
 def format_mutated_prompt(task_prompt, previous_successful_code, feedback, rememberer_memory_block=None):
@@ -1635,4 +1643,4 @@ def agent_action(sandbox, agent_body, step_count):
 
 Begin with your diagnosis, then provide the adapted code.
 """
-    return prompt
+    return _with_prompt_trailer(prompt, task_prompt)

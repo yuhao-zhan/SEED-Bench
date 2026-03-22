@@ -25,14 +25,198 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
+# Okabe–Ito–style accents (colorblind-friendly) for bars/lines
+_ACCENT_A = '#0072B2'  # blue
+_ACCENT_B = '#D55E00'  # vermillion
+_ACCENT_GRID = '#B0B0B0'
+_ACCENT_TEXT = '#2C2C2C'
+_BASELINE_LINE = '#444444'
+
+
+def _configure_matplotlib_academic():
+    """Plot defaults: Arial (with fallbacks), large type, high-res save."""
+    if not HAS_MATPLOTLIB:
+        return
+    plt.rcParams.update({
+        'figure.dpi': 150,
+        'savefig.dpi': 300,
+        'savefig.bbox': 'tight',
+        'savefig.pad_inches': 0.12,
+        'font.family': 'sans-serif',
+        'font.sans-serif': [
+            'Arial', 'Helvetica', 'Liberation Sans', 'Nimbus Sans', 'DejaVu Sans',
+            'sans-serif',
+        ],
+        'mathtext.fontset': 'dejavusans',
+        'font.size': 20,
+        'axes.labelsize': 20,
+        'axes.titlesize': 20,
+        'axes.titleweight': 'normal',
+        'axes.labelweight': 'normal',
+        'axes.linewidth': 0.9,
+        'axes.edgecolor': _ACCENT_TEXT,
+        'axes.labelcolor': _ACCENT_TEXT,
+        'axes.titlepad': 8,
+        'xtick.labelsize': 18,
+        'ytick.labelsize': 18,
+        'xtick.direction': 'out',
+        'ytick.direction': 'out',
+        'xtick.major.width': 0.8,
+        'ytick.major.width': 0.8,
+        'legend.frameon': True,
+        'legend.framealpha': 0.95,
+        'legend.edgecolor': '#CCCCCC',
+        'legend.fontsize': 18,
+        'grid.color': _ACCENT_GRID,
+        'grid.linestyle': '-',
+        'grid.linewidth': 0.5,
+        'grid.alpha': 0.55,
+    })
+
+
+def _style_axes_minimal_spines(ax):
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_color(_ACCENT_TEXT)
+    ax.spines['bottom'].set_color(_ACCENT_TEXT)
+
+
+# (left, bottom, right, top): axes live inside this box → margins outside (esp. top breathing room).
+_FIG_RECT_DEFAULT = (0.07, 0.10, 0.96, 0.88)
+# Qwen bars: room below for tilted x-labels; top matches fig.legend anchor (tight gap, no huge void).
+_QWEN_AXES_TOP_FIG = 0.95
+_FIG_RECT_QWEN = (0.08, 0.16, 0.96, _QWEN_AXES_TOP_FIG)
+
+# Base methods for which we omit the +CE bar in qwen_score_comparison (e.g. incomplete / unwanted CE runs).
+#   _QWEN_SKIP_CE_METHODS = frozenset({'tree_of_thought'})
+_QWEN_SKIP_CE_METHODS = frozenset()
+
+# discovery_rate_agg: distinct line colors (user palette; #3480o8 → #3480b8).
+_DISCOVERY_LINE_PALETTE = (
+    '#f79059', '#c2bdde', '#8dcec8', '#add3e2',
+    '#3480b8', '#ffbe7a', '#fa8878', '#c82423',
+)
+
+
+def _tight_layout_margins(fig, rect=_FIG_RECT_DEFAULT):
+    fig.tight_layout(rect=rect)
+
+
+def _score_agg_success_within_budget(results, model, method, all_file_ids, k):
+    """Score@k for one model/method on all files (unqualified samples contribute 0)."""
+    if method not in results.get(model, {}):
+        return None
+    n_total = len(all_file_ids)
+    if n_total == 0:
+        return 0.0
+    s = 0.0
+    for fid in all_file_ids:
+        data = results[model][method].get(fid)
+        if not data:
+            # Missing result for this file contributes 0 to match discovery-style denominator.
+            continue
+        it = data.get('iterations', _MAX_DISCOVERY_K + 1)
+        if data.get('success') and it <= k:
+            s += float(data.get('best_score', 0.0))
+    return s / n_total
+
+
+def _y_lists_score_vs_iteration(results, models, methods, all_file_ids, k_vals):
+    """Per model: y[k] = mean over available methods of method-wise Score@k."""
+    y_lists = []
+    for model in models:
+        y = []
+        for k in k_vals:
+            method_avgs = []
+            for m in methods:
+                v = _score_agg_success_within_budget(results, model, m, all_file_ids, k)
+                if v is not None:
+                    method_avgs.append(v)
+            y.append(sum(method_avgs) / len(method_avgs) if method_avgs else 0.0)
+        y_lists.append(y)
+    return y_lists
+
+
+def _plot_iteration_budget_lines(
+    models, k_vals, y_lists, ylabel, output_path, ymax_cap=None,
+):
+    """Shared layout for discovery_rate_agg and score_vs_iteration (no title)."""
+    if not HAS_MATPLOTLIB or not models:
+        return
+    _xt = list(range(1, _MAX_DISCOVERY_K + 1, 2))
+    if _MAX_DISCOVERY_K not in _xt:
+        _xt.append(_MAX_DISCOVERY_K)
+    fig, ax = plt.subplots(figsize=(10.0, 8.0), facecolor='white')
+    ax.set_facecolor('white')
+    for mi, model in enumerate(models):
+        c = _DISCOVERY_LINE_PALETTE[mi % len(_DISCOVERY_LINE_PALETTE)]
+        y = y_lists[mi]
+        ax.plot(
+            k_vals, y,
+            'o-',
+            label=short_model_name(model),
+            linewidth=2.8,
+            markersize=3.4,
+            color=c,
+            markerfacecolor=c,
+            markeredgecolor='none',
+            markeredgewidth=0,
+            zorder=3,
+        )
+    ax.set_xlabel('Max iterations (T)')
+    ax.set_ylabel(ylabel, labelpad=14)
+    ax.set_xticks(_xt)
+    ax.set_xlim(0.5, _MAX_DISCOVERY_K + 0.5)
+    _style_axes_minimal_spines(ax)
+    ax.grid(True, axis='y', linestyle='-', linewidth=0.5, alpha=0.55)
+    ax.set_axisbelow(True)
+    finite = [v for row in y_lists for v in row if not math.isnan(v)]
+    if finite:
+        ymax = max(finite) * 1.08
+        if ymax_cap is not None:
+            ymax = min(float(ymax_cap), ymax)
+        ax.set_ylim(0, ymax + 1e-6)
+    leg_handles, leg_labels = ax.get_legend_handles_labels()
+    nleg = len(leg_handles)
+    if not leg_handles:
+        axes_top_fig = 0.90
+        ncol_disc = 1
+    else:
+        ncol_disc = nleg if nleg <= 3 else 3
+        n_leg_rows = math.ceil(nleg / ncol_disc)
+        row_frac = 0.048
+        axes_top_fig = max(0.72, 0.94 - row_frac * n_leg_rows)
+    _tight_layout_margins(fig, (0.14, 0.12, 0.96, axes_top_fig))
+    if leg_handles:
+        fig.legend(
+            leg_handles, leg_labels,
+            loc='lower center',
+            bbox_to_anchor=(0.5, axes_top_fig),
+            bbox_transform=fig.transFigure,
+            ncol=ncol_disc,
+            columnspacing=1.2,
+            handletextpad=0.45,
+            handlelength=2.0,
+            frameon=True,
+        )
+    fig.savefig(
+        output_path,
+        facecolor='white',
+        bbox_inches='tight',
+        pad_inches=0.14,
+    )
+    plt.close(fig)
+
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from evaluation.utils import get_evaluation_results_dir, get_evaluation_results_scratch_dir
 
 RESULTS_DIR = get_evaluation_results_dir()
 SCRATCH_DIR = get_evaluation_results_scratch_dir()
 
-# discovery@T: k values
-DISCOVERY_K_VALUES = (3, 5, 10, 15, 20)
+# discovery@T: k = 1.._MAX_DISCOVERY_K (inclusive); used in metrics + discovery_rate_agg plot.
+_MAX_DISCOVERY_K = 20
+DISCOVERY_K_VALUES = tuple(range(1, _MAX_DISCOVERY_K + 1))
 
 # Token types to skip
 _SKIP_TOKEN_TYPES = {
@@ -121,18 +305,10 @@ def load_results(results_dir, task_filter='all'):
             if not fn.endswith('.json'):
                 continue
             
-            # User requirement: ONLY consider json files with filename like all_{source_stage}_to_{target_stage}*.json
-            # And EXCLUDE those like all_1st_pass_20260301_pseudo.json
-            if not fn.startswith('all_'):
+            # Only T0=Initial → mutated env: all_Initial_to_Stage-1.json (ignore Stage-3_to_Stage-2, etc.)
+            if not fn.startswith('all_Initial_to_'):
                 continue
-            
-            # Match pattern: all_{source}_to_{target}*.json
-            # regex: all_.+_to_.+.*\.json
-            if not re.match(r'^all_.+_to_.+.*\.json$', fn):
-                continue
-            
-            # Exclude pseudo files
-            if '_pseudo' in fn:
+            if '_pseudo' in fn or fn.count('_to_') != 1:
                 continue
 
             file_path = os.path.join(root, fn)
@@ -218,8 +394,8 @@ def compute_metrics(model_method_results, all_file_ids):
     efficiencies = []
     code_usages = []
     discovery = {k: 0 for k in DISCOVERY_K_VALUES}
-    
-    _MAX_ITER = 20
+
+    _MAX_ITER = _MAX_DISCOVERY_K
 
     for fid in all_file_ids:
         data = model_method_results.get(fid)
@@ -277,11 +453,15 @@ _MODEL_NAME_PREFIXES = ('openai_', 'anthropic_', 'huggingface_', 'local_')
 _MODEL_NAME_ABBREV = {
     'gemini-3-flash-preview': 'gemini-3-flash',
     'gemini-3-flash-preview-thinking': 'gemini-3-think',
-    'gemini-3-pro-preview': 'gemini-3-pro'
+    'gemini-3-pro-preview': 'gemini-3-pro',
+    'gemini-3.1-flash-lite-preview': 'gemini-3.1-flash',
 }
-# _IGNORED_MODELS = {'gpt-4o', 'gpt-oss-20b', 'gemini-3-flash-preview-thinking', 'o3-mini', 'Qwen3-1.7B', 'Qwen3-4B'}
-_IGNORED_MODELS = {'gpt-4o', 'gpt-oss-20b', 'gemini-3-flash-preview-thinking', 'o3-mini'}
-_IGNORED_METHODS = {'self_refine_inner_only', 'baseline_backup', 'sys_feedback_backup', 'a_mem_sys'}
+_IGNORED_MODELS = {'gpt-4o', 'gpt-oss-20b', 'gemini-3-flash-preview-thinking', 'o3-mini', 'Qwen3-1.7B', 'Qwen3-4B'}
+_IGNORED_METHODS = {
+    'self_refine_inner_only', 'baseline_backup', 'sys_feedback_backup', 'a_mem_sys',
+    'sys_feedback', 'sys_feedback_CE',
+    'memento_nonparametric', 'memento_nonparametric_CE',
+}
 
 MODEL_COLUMN_ORDER = [
     'Qwen3-8B', 'Qwen3-14B', 'Qwen3-32B',
@@ -290,14 +470,13 @@ MODEL_COLUMN_ORDER = [
 
 METHOD_DISPLAY_NAMES = {
     'baseline': 'vanilla',
-    'sys_feedback': 'sys_feedback',
+    'baseline_CE': 'vanilla_CE',
     'textgrad': 'textgrad',
     'reflexion': 'reflexion',
     'self_refine': 'self_refine',
     'ace': 'ace',
     'rememberer': 'rememberer',
     'expel': 'expel',
-    'memento_nonparametric': 'memento',
     'reasoning_bank': 'reasoningbank',
     'tree_of_thought': 'ToT',
     'science_codeevolve': 'CodeEvolve',
@@ -312,8 +491,8 @@ METHOD_DISPLAY_NAMES = {
 }
 
 METHOD_CATEGORIES = {
-    'Context Evolution': ['baseline', 'sys_feedback', 'textgrad', 'reflexion', 'self_refine'],
-    'Memory Evolution': ['ace', 'rememberer', 'expel', 'memento_nonparametric', 'reasoning_bank'],
+    'Context Evolution': ['baseline', 'textgrad', 'reflexion', 'self_refine'],
+    'Memory Evolution': ['ace', 'rememberer', 'expel', 'reasoning_bank'],
     'Inference-time Search': ['tree_of_thought', 'science_codeevolve', 'alpha_evolve'],
     'Parameter Evolution': ['seal', 'ragen', 'genome', 'soar', 'theta_evolve', 'discover', 'absolute_zero_iter'],
 }
@@ -407,11 +586,28 @@ def print_markdown_table(name, models, methods, data):
         print(f'| {method_display_name(method)} | ' + ' | '.join(cells) + ' |')
 
 
-def plot_results(tables, models, methods, output_dir):
+def _base_methods_for_ce_grouping(ordered_methods):
+    """Ordered list of methods that are not *_CE (for paired base vs CE bars)."""
+    bases = []
+    seen = set()
+    for m in ordered_methods:
+        if m.endswith('_CE'):
+            continue
+        if m not in seen:
+            bases.append(m)
+            seen.add(m)
+    return bases
+
+
+def plot_results(
+    tables, models, methods, output_dir, score_by_model_method='baseline',
+    results=None, all_file_ids=None,
+):
     if not HAS_MATPLOTLIB: return
     
     os.makedirs(output_dir, exist_ok=True)
-    plt.rcParams.update({'font.size': 12, 'figure.dpi': 200})
+    _configure_matplotlib_academic()
+    method_set = set(methods)
     
     ordered_methods = _get_ordered_methods(methods)
     method_labels = [method_display_name(m) for m in ordered_methods]
@@ -422,13 +618,17 @@ def plot_results(tables, models, methods, output_dir):
         ('Pass@1', 'Pass Rate (%)', 'pass_rate_heatmap'),
         ('Score-Avg', 'Average Score', 'score_avg_heatmap'),
         ('Iteration-Avg', 'Avg Iterations', 'iteration_avg_heatmap'),
-        ('Efficiency-Avg', 'Efficiency (Score/Token)', 'efficiency_avg_heatmap'),
-        ('CodeUsage-Avg', 'Code Usage (Tokens)', 'code_usage_avg_heatmap'),
+        ('Efficiency-Avg', 'Efficiency (score / token)', 'efficiency_avg_heatmap'),
+        ('CodeUsage-Avg', 'Code usage (tokens)', 'code_usage_avg_heatmap'),
     ]:
         if not tables.get(metric) or not ordered_methods or not models:
             continue
             
-        fig, ax = plt.subplots(figsize=(len(ordered_methods)*0.8 + 2, len(models)*0.6 + 2))
+        fig, ax = plt.subplots(
+            figsize=(len(ordered_methods) * 1.05 + 3.0, len(models) * 0.85 + 2.8),
+            facecolor='white',
+        )
+        ax.set_facecolor('#FAFAFA')
         data = []
         for model in models:
             row = []
@@ -437,7 +637,6 @@ def plot_results(tables, models, methods, output_dir):
                 row.append(v)
             data.append(row)
         
-        # Manually mask NaNs for imshow
         v_min = 0
         v_max = 100 if 'Pass' in metric else None
         if v_max is None:
@@ -446,68 +645,235 @@ def plot_results(tables, models, methods, output_dir):
             
         masked_data = [[(v if not math.isnan(v) else 0) for v in row] for row in data]
         
-        im = ax.imshow(masked_data, cmap='Blues', vmin=v_min, vmax=v_max)
+        im = ax.imshow(
+            masked_data,
+            cmap='Blues',
+            vmin=v_min,
+            vmax=v_max,
+            aspect='auto',
+            interpolation='nearest',
+        )
         ax.set_xticks(range(len(ordered_methods)))
         ax.set_yticks(range(len(models)))
-        ax.set_xticklabels(method_labels, rotation=45, ha='right')
+        ax.set_xticklabels(method_labels, rotation=40, ha='right')
         ax.set_yticklabels(model_labels)
+        for s in ax.spines.values():
+            s.set_linewidth(0.9)
+            s.set_edgecolor(_ACCENT_TEXT)
+        ax.tick_params(axis='both', length=4, width=0.8)
+        ax.set_xlabel('Method')
+        ax.set_ylabel('Model')
+        
+        # Light cell boundaries (readable grid)
+        for i in range(len(models) + 1):
+            ax.axhline(i - 0.5, color='white', linewidth=0.9, zorder=5)
+        for j in range(len(ordered_methods) + 1):
+            ax.axvline(j - 0.5, color='white', linewidth=0.9, zorder=5)
         
         for i in range(len(models)):
             for j in range(len(ordered_methods)):
                 val = data[i][j]
                 if not math.isnan(val):
                     txt = f'{val:.1f}' if 'Efficiency' in metric or 'Score' in metric else f'{val:.0f}'
-                    ax.text(j, i, txt, ha='center', va='center', color='white' if val > v_max/2 else 'black', fontsize=9)
+                    tc = 'white' if val > v_min + 0.55 * (v_max - v_min) else _ACCENT_TEXT
+                    ax.text(j, i, txt, ha='center', va='center', color=tc, fontsize=17)
         
-        plt.title(f'{label} Across Task Pairs')
-        plt.colorbar(im, label=label)
-        plt.tight_layout()
-        fig.savefig(os.path.join(output_dir, f'{filename}.png'))
+        cbar = fig.colorbar(im, ax=ax, shrink=0.82, pad=0.02, aspect=22)
+        cbar.ax.tick_params(labelsize=18, width=0.7, length=3)
+        cbar.set_label(label, fontsize=18)
+        _tight_layout_margins(fig, _FIG_RECT_DEFAULT)
+        fig.savefig(os.path.join(output_dir, f'{filename}.png'), facecolor='white')
         plt.close(fig)
 
-    # --- 2. Qwen Model Comparison ---
-    qwen_models = [m for m in models if short_model_name(m) in ('Qwen3-8B', 'Qwen3-14B')]
-    if qwen_models and ordered_methods:
-        fig, ax = plt.subplots(figsize=(max(12, len(ordered_methods)*0.6), 6))
-        x = list(range(len(ordered_methods)))
-        width = 0.35
-        
-        for i, model in enumerate(qwen_models):
-            vals = [tables['Score-Avg'].get((model, m), 0) for m in ordered_methods]
-            vals = [v if not math.isnan(v) else 0 for v in vals]
-            ax.bar([pos + (i-0.5)*width for pos in x], vals, width, label=short_model_name(model))
-            
-        ax.set_ylabel('Average Score')
-        ax.set_title('Qwen3-8B vs Qwen3-14B Score Comparison')
+    # --- 2. Qwen Model Comparison (grouped: each method vs its *_CE variant) ---
+    qwen_models = [m for m in models if short_model_name(m) in ('Qwen3-8B',)]
+    method_bases = _base_methods_for_ce_grouping(ordered_methods)
+    if qwen_models and method_bases:
+        model = qwen_models[0]
+        n = len(method_bases)
+        fig, ax = plt.subplots(figsize=(max(12.5, n * 0.92), 6.5), facecolor='white')
+        ax.set_facecolor('white')
+        x = list(range(n))
+        width = 0.34
+        vals_base = []
+        vals_ce = []
+        for m in method_bases:
+            vb = tables['Score-Avg'].get((model, m), float('nan'))
+            vals_base.append(vb if not math.isnan(vb) else 0.0)
+            m_ce = f'{m}_CE'
+            if m_ce in method_set:
+                vc = tables['Score-Avg'].get((model, m_ce), float('nan'))
+                vals_ce.append(vc if not math.isnan(vc) else 0.0)
+            else:
+                vals_ce.append(0.0)
+        xb = [i - width / 2 for i in x]
+        xc = [i + width / 2 for i in x]
+        h_wo = h_ce = None
+        ce_heights_for_ylim = []
+        for i, m in enumerate(method_bases):
+            lb = 'w/o CE' if h_wo is None else '_nolegend_'
+            b0 = ax.bar(
+                xb[i], vals_base[i], width,
+                label=lb, color=_ACCENT_A, edgecolor='#003D5C', linewidth=0.45, zorder=2,
+            )
+            if h_wo is None:
+                h_wo = b0[0]
+            if m in _QWEN_SKIP_CE_METHODS:
+                continue
+            m_ce = f'{m}_CE'
+            if m_ce not in method_set:
+                continue
+            lc = '+ CE' if h_ce is None else '_nolegend_'
+            b1 = ax.bar(
+                xc[i], vals_ce[i], width,
+                label=lc, color=_ACCENT_B, edgecolor='#6B2F00', linewidth=0.45, zorder=2,
+            )
+            if h_ce is None:
+                h_ce = b1[0]
+            ce_heights_for_ylim.append(vals_ce[i])
+        vanilla_y = tables['Score-Avg'].get((model, 'baseline'), float('nan'))
+        h_line = None
+        if not math.isnan(vanilla_y):
+            h_line = ax.axhline(
+                vanilla_y,
+                linestyle=':',
+                color=_BASELINE_LINE,
+                linewidth=1.25,
+                zorder=1,
+            )
+        ax.set_ylabel('Average score')
+        # ax.set_xlabel('Method')
         ax.set_xticks(x)
-        ax.set_xticklabels(method_labels, rotation=45, ha='right')
-        ax.legend()
-        plt.tight_layout()
-        fig.savefig(os.path.join(output_dir, 'qwen_score_comparison.png'))
+        ax.set_xticklabels([method_display_name(m) for m in method_bases], rotation=38, ha='right')
+        _style_axes_minimal_spines(ax)
+        ax.yaxis.grid(True, linestyle='-', linewidth=0.5, alpha=0.85)
+        ax.set_axisbelow(True)
+        y_candidates = list(vals_base) + ce_heights_for_ylim
+        if not math.isnan(vanilla_y):
+            y_candidates.append(vanilla_y)
+        ymax = max(y_candidates) if y_candidates else 1.0
+        ax.set_ylim(0, ymax * 1.12 if ymax > 0 else 1.0)
+        _tight_layout_margins(fig, _FIG_RECT_QWEN)
+        leg_handles = []
+        leg_labels = []
+        if h_wo is not None:
+            leg_handles.append(h_wo)
+            leg_labels.append('w/o CE')
+        if h_ce is not None:
+            leg_handles.append(h_ce)
+            leg_labels.append('+ CE')
+        if h_line is not None:
+            leg_handles.append(h_line)
+            leg_labels.append('Vanilla baseline')
+        if leg_handles:
+            # Legend sits immediately above axes (lower edge = axes top) — avoids a tall empty band.
+            fig.legend(
+                leg_handles, leg_labels,
+                loc='lower center',
+                bbox_to_anchor=(0.5, _QWEN_AXES_TOP_FIG),
+                bbox_transform=fig.transFigure,
+                ncol=len(leg_handles),
+                handlelength=2.2,
+                columnspacing=1.4,
+                handletextpad=0.55,
+                frameon=True,
+            )
+        fig.savefig(
+            os.path.join(output_dir, 'qwen_score_comparison.png'),
+            facecolor='white',
+            bbox_inches='tight',
+            pad_inches=0.14,
+        )
         plt.close(fig)
 
-    # --- 3. Discovery Rate Line Plot ---
-    if models:
-        fig, ax = plt.subplots(figsize=(8, 6))
-        k_vals = list(DISCOVERY_K_VALUES)
+    # --- 2b. Score by model for a fixed method (default: baseline / vanilla) ---
+    if models and score_by_model_method in method_set:
+        fig, ax = plt.subplots(figsize=(max(9.0, len(models) * 0.72), 6.0), facecolor='white')
+        ax.set_facecolor('white')
+        x = list(range(len(models)))
+        vals = []
         for model in models:
-            y = []
-            for k in k_vals:
-                vals = [tables[f'Discovery@{k}'].get((model, m)) for m in methods if (model, m) in tables[f'Discovery@{k}']]
-                vals = [v for v in vals if v is not None and not math.isnan(v)]
-                avg = sum(vals) / len(vals) if vals else 0
-                y.append(avg)
-            ax.plot(k_vals, y, 'o-', label=short_model_name(model), linewidth=2)
-        
-        ax.set_xlabel('Max Iterations (T)')
-        ax.set_ylabel('Discovery Rate (%)')
-        ax.set_title('Average Discovery Rate@T')
-        ax.set_xticks(k_vals)
-        ax.grid(True, alpha=0.3)
-        ax.legend()
-        plt.tight_layout()
-        fig.savefig(os.path.join(output_dir, 'discovery_rate_agg.png'))
+            v = tables['Score-Avg'].get((model, score_by_model_method), float('nan'))
+            vals.append(v if not math.isnan(v) else 0.0)
+        ax.bar(
+            x, vals,
+            color='#117733',
+            edgecolor='#0A4D22',
+            linewidth=0.5,
+            zorder=2,
+        )
+        ax.set_ylabel('Average score')
+        # ax.set_xlabel('Model')
+        ax.set_xticks(x)
+        ax.set_xticklabels([short_model_name(m) for m in models], rotation=28, ha='right')
+        _style_axes_minimal_spines(ax)
+        ax.yaxis.grid(True, linestyle='-', linewidth=0.5, alpha=0.55)
+        ax.set_axisbelow(True)
+        ymax = max(vals) if vals else 1.0
+        ax.set_ylim(0, ymax * 1.1 if ymax > 0 else 1.0)
+        _tight_layout_margins(fig, _FIG_RECT_DEFAULT)
+        fig.savefig(os.path.join(output_dir, 'score_by_model.png'), facecolor='white')
         plt.close(fig)
+
+    # --- 2c. Pass rate by model (same layout as score_by_model; uses Pass@1) ---
+    if models and score_by_model_method in method_set:
+        fig, ax = plt.subplots(figsize=(max(9.0, len(models) * 0.72), 6.0), facecolor='white')
+        ax.set_facecolor('white')
+        x = list(range(len(models)))
+        vals = []
+        for model in models:
+            v = tables['Pass@1'].get((model, score_by_model_method), float('nan'))
+            vals.append(v if not math.isnan(v) else 0.0)
+        ax.bar(
+            x, vals,
+            color='#117733',
+            edgecolor='#0A4D22',
+            linewidth=0.5,
+            zorder=2,
+        )
+        ax.set_ylabel('Pass rate (%)')
+        # ax.set_xlabel('Model')
+        ax.set_xticks(x)
+        ax.set_xticklabels([short_model_name(m) for m in models], rotation=28, ha='right')
+        _style_axes_minimal_spines(ax)
+        ax.yaxis.grid(True, linestyle='-', linewidth=0.5, alpha=0.55)
+        ax.set_axisbelow(True)
+        ymax = max(vals) if vals else 1.0
+        ax.set_ylim(0, min(100.0, ymax * 1.12 + 2) if ymax > 0 else 1.0)
+        _tight_layout_margins(fig, _FIG_RECT_DEFAULT)
+        fig.savefig(os.path.join(output_dir, 'pass_rate_by_model.png'), facecolor='white')
+        plt.close(fig)
+
+    # --- 3. Discovery rate vs. T + score vs. T (same layout; markers match line, no white halo) ---
+    if models:
+        k_vals = list(DISCOVERY_K_VALUES)
+        y_disc = []
+        for model in models:
+            row = []
+            for k in k_vals:
+                vals = [
+                    tables[f'Discovery@{k}'].get((model, m))
+                    for m in methods
+                    if (model, m) in tables[f'Discovery@{k}']
+                ]
+                vals = [v for v in vals if v is not None and not math.isnan(v)]
+                row.append(sum(vals) / len(vals) if vals else 0)
+            y_disc.append(row)
+        _plot_iteration_budget_lines(
+            models, k_vals, y_disc,
+            'Discovery rate (%)',
+            os.path.join(output_dir, 'discovery_rate_agg.png'),
+            ymax_cap=100.0,
+        )
+        if results is not None and all_file_ids is not None:
+            y_score = _y_lists_score_vs_iteration(
+                results, models, methods, all_file_ids, k_vals,
+            )
+            _plot_iteration_budget_lines(
+                models, k_vals, y_score,
+                'Average score',
+                os.path.join(output_dir, 'score_vs_iteration.png'),
+            )
 
 
 def plot_task_env_heatmaps(results, models, methods, base_output_dir, scratch_mode=False):
@@ -519,7 +885,7 @@ def plot_task_env_heatmaps(results, models, methods, base_output_dir, scratch_mo
     output_dir = os.path.join(base_output_dir, 'task_env_heatmaps')
     os.makedirs(output_dir, exist_ok=True)
     
-    plt.rcParams.update({'font.size': 10, 'figure.dpi': 200})
+    _configure_matplotlib_academic()
 
     for model in models:
         for method in methods:
@@ -586,7 +952,11 @@ def plot_task_env_heatmaps(results, models, methods, base_output_dir, scratch_mo
             method_disp = method_display_name(method)
             
             for metric_type in ['score_avg', 'pass_rate']:
-                fig, ax = plt.subplots(figsize=(max(8, len(all_tasks)*0.8), max(6, len(sorted_pairs)*0.8)))
+                fig, ax = plt.subplots(
+                    figsize=(max(9.5, len(all_tasks) * 1.0), max(7.5, len(sorted_pairs) * 0.88)),
+                    facecolor='white',
+                )
+                ax.set_facecolor('#FAFAFA')
                 
                 grid = []
                 for pair in sorted_pairs:
@@ -606,30 +976,48 @@ def plot_task_env_heatmaps(results, models, methods, base_output_dir, scratch_mo
                 plot_data = [[(v if not math.isnan(v) else 0) for v in row] for row in grid]
                 v_max = 100.0
                 
-                im = ax.imshow(plot_data, cmap='YlGnBu', vmin=0, vmax=v_max)
+                im = ax.imshow(
+                    plot_data,
+                    cmap='YlGnBu',
+                    vmin=0,
+                    vmax=v_max,
+                    aspect='auto',
+                    interpolation='nearest',
+                )
                 
                 ax.set_xticks(range(len(all_tasks)))
                 ax.set_yticks(range(len(sorted_pairs)))
-                ax.set_xticklabels(all_tasks, rotation=45, ha='right')
+                ax.set_xticklabels(all_tasks, rotation=40, ha='right')
                 ax.set_yticklabels(sorted_pairs)
+                for s in ax.spines.values():
+                    s.set_linewidth(0.9)
+                    s.set_edgecolor(_ACCENT_TEXT)
+                ax.tick_params(axis='both', length=4, width=0.8)
+                ax.set_xlabel('Task')
+                ax.set_ylabel('Environment pair')
+                for i in range(len(sorted_pairs) + 1):
+                    ax.axhline(i - 0.5, color='white', linewidth=0.85, zorder=5)
+                for j in range(len(all_tasks) + 1):
+                    ax.axvline(j - 0.5, color='white', linewidth=0.85, zorder=5)
                 
                 for i in range(len(sorted_pairs)):
                     for j in range(len(all_tasks)):
                         val = grid[i][j]
                         if not math.isnan(val):
                             txt = f'{val:.1f}' if metric_type == 'score_avg' else f'{val:.0f}'
-                            ax.text(j, i, txt, ha='center', va='center', 
-                                    color='white' if val > v_max*0.6 else 'black', fontsize=8)
+                            tc = 'white' if val > v_max * 0.58 else _ACCENT_TEXT
+                            ax.text(j, i, txt, ha='center', va='center', color=tc, fontsize=16)
 
-                metric_label = "Average Score" if metric_type == 'score_avg' else "Pass Rate (%)"
-                ax.set_title(f"{metric_label}: {model_short} - {method_disp}")
-                plt.colorbar(im, ax=ax, label=metric_label)
-                plt.tight_layout()
+                metric_label = 'Average score' if metric_type == 'score_avg' else 'Pass rate (%)'
+                cbar = fig.colorbar(im, ax=ax, shrink=0.82, pad=0.02, aspect=22)
+                cbar.ax.tick_params(labelsize=18, width=0.7, length=3)
+                cbar.set_label(metric_label, fontsize=18)
+                _tight_layout_margins(fig, _FIG_RECT_DEFAULT)
                 
                 safe_model = model_short.replace('/', '_').replace(' ', '_')
                 safe_method = method_disp.replace('/', '_').replace(' ', '_')
                 filename = f"{safe_model}_{safe_method}_{metric_type}.png"
-                plt.savefig(os.path.join(output_dir, filename))
+                fig.savefig(os.path.join(output_dir, filename), facecolor='white')
                 plt.close(fig)
 
 
@@ -695,7 +1083,12 @@ def _run_evaluation(results, all_file_ids, plot_base_dir, scratch_mode, label, t
                         print_markdown_table(mn, models, methods, task_tables[mn])
 
     plot_dir = os.path.join(plot_base_dir, "plots", task_filter)
-    plot_results(tables, models, methods, plot_dir)
+    plot_results(
+        tables, models, methods, plot_dir,
+        score_by_model_method=args.score_by_model_method,
+        results=results,
+        all_file_ids=all_file_ids,
+    )
     plot_task_env_heatmaps(results, models, methods, plot_dir, scratch_mode=scratch_mode)
     print(f"\nPlots saved to: {plot_dir}")
 
@@ -705,6 +1098,13 @@ def main():
     parser.add_argument('--task', type=str, default='all')
     parser.add_argument('--format', choices=('latex', 'markdown'), default='markdown')
     parser.add_argument('--no-per-task', action='store_true', help='Disable per-task statistics output')
+    parser.add_argument(
+        '--score-by-model-method',
+        type=str,
+        default='baseline',
+        metavar='METHOD',
+        help='Internal method name for score_by_model.png and pass_rate_by_model.png (default: baseline)',
+    )
     args = parser.parse_args()
 
     # 1. evaluation_results (pair transitions: all_*_to_*.json)

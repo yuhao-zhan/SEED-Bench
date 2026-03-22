@@ -7,6 +7,11 @@ from typing import Dict, Any, List
 import math
 
 
+def _fmt_fy_m(y: float) -> str:
+    s = f"{float(y):.4f}".rstrip("0").rstrip(".")
+    return s if s else "0"
+
+
 def _is_finite(x: Any) -> bool:
     """True if x is a finite number (no NaN, no inf)."""
     if x is None:
@@ -50,7 +55,9 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
                     parts.append(f"- Mass Budget Margin: {margin:.2f} kg remaining")
 
         if "structure_broken" in metrics:
-            parts.append(f"- Structural Integrity: {'FAILED (Joints Snapped)' if metrics['structure_broken'] else 'NOMINAL (Intact)'}")
+            parts.append(
+                f"- Structural Integrity: {'FAILED (integrity loss detected)' if metrics['structure_broken'] else 'NOMINAL (intact)'}"
+            )
 
         max_b = metrics.get("max_beams")
         bc = metrics.get("beam_count")
@@ -63,12 +70,15 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
                     parts.append(f"- Beam Count Margin: Exceeded by {abs(beam_margin)}")
                 else:
                     parts.append(f"- Beam Count Margin: {beam_margin} beam(s) remaining")
+                if int(max_b) > 0:
+                    beam_util = (int(bc) / int(max_b)) * 100.0
+                    parts.append(f"- Beam Budget Utilization: {beam_util:.1f}%")
 
         if "joint_count" in metrics:
             parts.append(f"- Joint Count: {metrics['joint_count']} connections")
 
     # 2. Sorting Performance & Phase-Specific Segregation (all from metrics)
-    if "purity_percent" in metrics or "initial_particle_count" in metrics:
+    if "purity_percent" in metrics or "spawned_particle_count" in metrics:
         parts.append("\n### 2. Sorting Performance (Phase-Specific)")
         min_pct = metrics.get("min_purity_percent")
         pct = metrics.get("purity_percent")
@@ -82,16 +92,26 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
                 else:
                     parts.append(f"- Purity Margin: {abs(shortfall):.1f} percentage points above target")
 
-        initial_total = metrics.get("initial_particle_count")
-        if initial_total is not None and initial_total > 0:
-            parts.append(f"- Total Particles Fed: {initial_total}")
+        spawned_total = metrics.get("spawned_particle_count")
+        planned_total = metrics.get("planned_total_particle_count")
+        if spawned_total is not None and spawned_total > 0:
+            parts.append(f"- Particles currently in simulation: {spawned_total}")
+            if planned_total is not None and planned_total != spawned_total:
+                parts.append(
+                    f"- Planned total particle bodies after all waves spawn: {planned_total}"
+                )
+                if _is_finite(planned_total) and planned_total > 0:
+                    phase_completion = (spawned_total / planned_total) * 100.0
+                    parts.append(f"- Feed-wave completion: {phase_completion:.1f}% of planned particles active")
             # Derived routing summary (only from existing metrics)
             s_ok = metrics.get("small_in_small_zone", 0) or 0
             m_ok = metrics.get("medium_in_medium_zone", 0) or 0
             l_ok = metrics.get("large_in_large_zone", 0) or 0
             correct = s_ok + m_ok + l_ok
-            in_transit_or_misrouted = initial_total - correct
-            parts.append(f"- Correctly Placed: {correct} / {initial_total}; In transit or misrouted: {in_transit_or_misrouted}")
+            in_transit_or_misrouted = spawned_total - correct
+            parts.append(
+                f"- Correctly Placed: {correct} / {spawned_total}; In transit or misrouted: {in_transit_or_misrouted}"
+            )
 
         # Phase segregation: correctly sorted per size class
         if any(k in metrics for k in ("small_in_small_zone", "medium_in_medium_zone", "large_in_large_zone")):
@@ -128,7 +148,11 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         if "medium_in_large_zone" in metrics:
             parts.append(f"- Medium particles in Large zone: {metrics['medium_in_large_zone']}")
         if "contaminated" in metrics:
-            parts.append(f"- Any contamination (zero-tolerance): {'Yes' if metrics['contaminated'] else 'No'}")
+            fy = float(metrics["feed_y_min"]) if metrics.get("feed_y_min") is not None else 3.0
+            parts.append(
+                f"- Cross-zone contamination (y < {_fmt_fy_m(fy)} m only): "
+                f"{'Yes' if metrics['contaminated'] else 'No'}"
+            )
 
     return parts
 
@@ -191,6 +215,10 @@ def get_improvement_suggestions(
             suggestions.append("Diagnostic: Structure remained intact, but sorting purity fell below the required threshold. Separation performance is insufficient for the current flow and environment.")
         elif not purity_ok and not integrity_ok:
             suggestions.append("Diagnostic: Both structural integrity and sorting purity failed. Structural failure (e.g. joint breakage) can alter the effective geometry and thus measured purity.")
+            suggestions.append(
+                "Diagnostic: Determine the first break in the causal chain: whether integrity loss occurred before major misrouting, "
+                "or misrouting dominated while integrity was still near-nominal."
+            )
 
         # Purity-specific diagnostics (no spoilers)
         purity_below = purity is not None and min_purity is not None and _is_finite(purity) and purity < min_purity
@@ -204,9 +232,13 @@ def get_improvement_suggestions(
             if small_above > 0 or small_in_band > 0:
                 suggestions.append("Diagnostic: Fine material is not reaching the bottom zone; downward flow or retention in upper regions indicates a systemic routing failure for small particles.")
 
-        # Contamination (zero-tolerance): diagnostic without spoiling design
+        # Contamination metric (informational; scored gate is purity per evaluator)
         if metrics.get("contaminated", False):
-            suggestions.append("Diagnostic: Cross-zone contamination occurred (zero tolerance). Material is crossing the intended zone boundaries.")
+            fy = float(metrics["feed_y_min"]) if metrics.get("feed_y_min") is not None else 3.0
+            suggestions.append(
+                f"Diagnostic: Cross-zone placement detected below the feed volume (y < {_fmt_fy_m(fy)} m). "
+                f"Material may be crossing intended zone boundaries in the classifier region."
+            )
 
         if structure_broken:
             suggestions.append("Diagnostic: Structural integrity was lost (e.g. joints or connections failed). The geometry was overstressed by dead load, particle impact, or environmental forces.")

@@ -12,7 +12,6 @@ import os
 import sys
 import re
 import argparse
-import importlib.util
 import traceback
 from typing import Dict, Any, Optional, List
 
@@ -23,6 +22,7 @@ from evaluation.prompt import load_task_prompt, parse_task_name
 from evaluation.utils import (
     get_max_steps_for_task,
     run_is_complete,
+    load_task_stages_module,
 )
 
 
@@ -103,9 +103,7 @@ def get_task_prompt_override_for_stage(
 
     if os.path.exists(stages_file):
         try:
-            spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-            stages_mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(stages_mod)
+            stages_mod = load_task_stages_module(stages_file)
 
             update_desc_func = None
             update_criteria_func = None

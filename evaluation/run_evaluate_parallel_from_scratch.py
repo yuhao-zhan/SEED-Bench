@@ -26,18 +26,12 @@ import threading
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from evaluation.parallel_launch_gpu import parallel_local_use_tp2
+
 
 def resolve_task_list(task_spec: str):
     from evaluation.evaluate import resolve_task_list as _resolve
     return _resolve(task_spec)
-
-
-def model_needs_tp2(args) -> bool:
-    if getattr(args, "tensor_parallel_2", False):
-        return True
-    name = (args.model_name or "").lower()
-    path = (getattr(args, "model_path", None) or "").lower()
-    return "32b" in name or "30b" in name or "32b" in path or "30b" in path
 
 
 # From-scratch results go here (same layout as evaluation_results).
@@ -241,9 +235,20 @@ def main():
     )
     parser.add_argument("--task", type=str, required=True,
                         help="Task spec: category_X_YY, category_X, or all")
-    parser.add_argument("--num-workers", type=int, default=8, help="Number of GPU workers for local. Default: 8")
-    parser.add_argument("--gpus", type=str, default=None,
-                        help="Comma-separated GPU IDs. For TP2 use pairs (e.g. 1,2,3,4 => 2 workers).")
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=8,
+        help="Parallel worker count for local runs. For Parameter_Policy methods, 32B/30B, or "
+        "--tensor-parallel-2: pass exactly 2× this many IDs in --gpus (e.g. --num-workers 1 --gpus 0,1). Default: 8",
+    )
+    parser.add_argument(
+        "--gpus",
+        type=str,
+        default=None,
+        help="Comma-separated GPU IDs. 2-GPU-per-worker mode: exactly 2× --num-workers IDs, consecutive pairs "
+        "(Parameter_Policy / 32B–30B / --tensor-parallel-2). If omitted there, uses 0..2*num_workers-1.",
+    )
     parser.add_argument("--tensor-parallel-2", action="store_true", dest="tensor_parallel_2")
     parser.add_argument("--api-parallel", type=int, default=16, help="Max parallel API calls for openai. Default: 16")
 
@@ -329,23 +334,36 @@ def main():
         print(f"{'='*60}")
         return 0 if success == total else 1
 
-    use_tp2 = model_needs_tp2(args) or (getattr(args, "method", None) == "theta_evolve")
-    if args.gpus:
-        gpu_ids = [int(x.strip()) for x in args.gpus.split(",")]
-    else:
-        if use_tp2:
-            gpu_ids = list(range(2 * args.num_workers))
-        else:
-            gpu_ids = list(range(args.num_workers))
+    _m = getattr(args, "method", "") or ""
+    base_method = _m[:-3] if str(_m).endswith("_CE") else str(_m)
+    use_tp2 = parallel_local_use_tp2(args, base_method)
 
     if use_tp2:
-        if len(gpu_ids) % 2 != 0:
-            print("❌ For TP2/theta_evolve --gpus must have an even number of IDs")
-            return 1
-        num_workers = len(gpu_ids) // 2
+        need = 2 * args.num_workers
+        if args.gpus:
+            parts = [x.strip() for x in args.gpus.split(",") if x.strip()]
+            try:
+                gpu_ids = [int(p) for p in parts]
+            except ValueError:
+                print("❌ TP2: --gpus must be comma-separated integers")
+                return 1
+            if len(gpu_ids) != need:
+                print(
+                    f"❌ 2-GPU-per-worker (Parameter_Policy / 32B–30B / --tensor-parallel-2): "
+                    f"expected exactly {need} GPU id(s) (2 × --num-workers={args.num_workers}), "
+                    f"got {len(gpu_ids)}. Example: --num-workers 1 --gpus 0,1"
+                )
+                return 1
+        else:
+            gpu_ids = list(range(need))
+        num_workers = args.num_workers
         gpu_specs = [(gpu_ids[2 * i], gpu_ids[2 * i + 1]) for i in range(num_workers)]
         gpu_display = " ".join(f"{a},{b}" for (a, b) in gpu_specs)
     else:
+        if args.gpus:
+            gpu_ids = [int(x.strip()) for x in args.gpus.split(",")]
+        else:
+            gpu_ids = list(range(args.num_workers))
         num_workers = len(gpu_ids)
         if num_workers < 1:
             print("❌ Need at least one worker")

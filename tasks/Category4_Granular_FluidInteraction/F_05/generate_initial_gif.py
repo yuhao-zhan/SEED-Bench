@@ -8,6 +8,9 @@ from common.simulator import Simulator, TIME_STEP
 from environment import Sandbox
 from renderer import F05Renderer
 
+# Match prompt.py / CodeVerifier default episode budget for F-05 (sample frames to keep GIF size reasonable).
+MAX_PHYSICS_STEPS = 10000
+
 
 def generate_initial_gif():
     print("Generating initial_environment.gif for F-05: The Boat...")
@@ -20,8 +23,8 @@ def generate_initial_gif():
     renderer = F05Renderer(simulator)
     camera_offset_x = 0
     target_x = 0
-    max_steps = 450
-    frame_interval = 2
+    max_steps = MAX_PHYSICS_STEPS
+    frame_interval = max(2, max_steps // 400)
     for step_count in range(max_steps):
         renderer.render(environment, None, target_x, camera_offset_x)
         simulator.collect_frame(step_count, frame_interval=frame_interval)

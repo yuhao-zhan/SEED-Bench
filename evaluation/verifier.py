@@ -7,6 +7,7 @@ import sys
 import tempfile
 import importlib.util
 import inspect
+import re
 import traceback
 from typing import Dict, Any, Tuple, Optional
 
@@ -121,109 +122,6 @@ class CodeVerifier:
             
         return allowed
 
-    def verify_code(self, code: str, headless: bool = True, save_gif_path: Optional[str] = None) -> Tuple[bool, float, Dict[str, Any], Optional[str]]:
-        """
-        Verify code: execute code, run simulation, return evaluation results
-        Args:
-            code: Python code submitted by solver agent
-            headless: Whether to run in headless mode
-            save_gif_path: If provided, will save GIF to this path
-        Returns:
-            Tuple[success, score, metrics, error_message]:
-                - success: Whether successful
-                - score: Score (0-100)
-                - metrics: Evaluation metrics dictionary
-                - error_message: Error message (if any)
-        """
-        try:
-            # 0. Check for prohibited operations (direct state manipulation)
-            self._check_prohibited_operations(code)
-
-            # 1. Compile and execute code, get build_agent and agent_action functions
-            code_module = self._execute_code(code)
-            
-            # 2. Initialize environment
-            environment = self._init_environment()
-            if hasattr(environment, 'remove_initial_template'):
-                environment.remove_initial_template()
-
-            # 3. Build agent
-            build_agent_func = getattr(code_module, 'build_agent', None)
-            if not build_agent_func:
-                error_msg = "Code missing build_agent function"
-                error_metrics = {
-                    'error_type': 'missing_function',
-                    'error_stage': 'code_parsing',
-                    'error_message': error_msg
-                }
-                return False, 0.0, error_metrics, error_msg
-            
-            try:
-                agent_components = build_agent_func(environment)
-            except Exception as e:
-                error_msg = f"Error building agent: {str(e)}\n{traceback.format_exc()}"
-                error_metrics = {
-                    'error_type': 'agent_building_error',
-                    'error_stage': 'agent_construction',
-                    'error_message': str(e),
-                    'error_traceback': traceback.format_exc()
-                }
-                return False, 0.0, error_metrics, error_msg
-
-            # K-05: enforce object at ground (1.8m) so it must be lifted by the mechanism
-            if 'K_05' in self.task_name and hasattr(environment, 'enforce_object_at_ground'):
-                environment.enforce_object_at_ground()
-            
-            # 4. Initialize evaluator
-            evaluator = self._init_evaluator(environment)
-            
-            # 5. Run simulation
-            success, score, metrics = self._run_simulation(
-                environment, agent_components, evaluator, code_module, headless, save_gif_path
-            )
-            
-            return success, score, metrics, None
-            
-        except ProhibitedOperationError as e:
-            # Prohibited operation in agent code
-            error_msg = str(e)
-            error_metrics = {
-                'error_type': 'prohibited_operation',
-                'error_stage': 'static_analysis',
-                'error_message': error_msg
-            }
-            return False, 0.0, error_metrics, error_msg
-        except SyntaxError as e:
-            # Syntax error during code execution
-            error_msg = f"Code syntax error: {str(e)}"
-            error_metrics = {
-                'error_type': 'syntax_error',
-                'error_stage': 'code_compilation',
-                'error_message': str(e),
-                'error_line': getattr(e, 'lineno', None),
-                'error_text': getattr(e, 'text', None)
-            }
-            return False, 0.0, error_metrics, error_msg
-        except NameError as e:
-            # Name error (e.g., undefined variable)
-            error_msg = f"Code name error: {str(e)}"
-            error_metrics = {
-                'error_type': 'name_error',
-                'error_stage': 'code_execution',
-                'error_message': str(e)
-            }
-            return False, 0.0, error_metrics, error_msg
-        except Exception as e:
-            # Other execution errors
-            error_msg = f"Verification process error: {str(e)}\n{traceback.format_exc()}"
-            error_metrics = {
-                'error_type': 'execution_error',
-                'error_stage': 'verification',
-                'error_message': str(e),
-                'error_traceback': traceback.format_exc()
-            }
-            return False, 0.0, error_metrics, error_msg
-    
     def _check_prohibited_operations(self, code: str):
         """
         Check for prohibited operations in the agent code using AST-based static analysis.
@@ -512,7 +410,164 @@ class CodeVerifier:
             print(f"   Candidate list: {[n for n, _ in renderer_candidates] if renderer_candidates else 'None'}")
         return None
     
-    def _run_simulation(self, environment, agent_components, evaluator, code_module, headless, save_gif_path=None):
+    def _parse_granularity(self, granularity: str) -> int:
+        g = (granularity or "outcome-based").strip().lower()
+        if g == "outcome-based":
+            return 1
+        m = re.fullmatch(r"process_(\d+)", g)
+        if not m:
+            raise ValueError(f"Unsupported granularity: {granularity}")
+        n = int(m.group(1))
+        if n <= 0:
+            raise ValueError(f"Granularity process_n requires n >= 1, got {n}")
+        return n
+
+    def _extract_granular_snapshots(self, all_step_snapshots, actual_termination_step, n_moments, max_steps):
+        """
+        Extract t/3, 2t/3, t moments from actual termination step t.
+        all_step_snapshots: list of {"step_count": int, "score": float, "metrics": dict, ...}
+        Returns: list of snapshots with moment_index, total_moments, etc.
+        """
+        if n_moments <= 1 or not all_step_snapshots:
+            return []
+        
+        t = max(1, actual_termination_step)
+        target_steps = []
+        for i in range(1, n_moments + 1):
+            target_step = int(round((i * t) / n_moments))
+            target_step = max(1, min(t, target_step))
+            target_steps.append(target_step)
+        
+        # Find closest snapshot for each target step
+        granular_snapshots = []
+        for moment_idx, target_step in enumerate(target_steps, start=1):
+            # Find snapshot with step_count closest to target_step
+            best_snapshot = None
+            best_diff = float('inf')
+            for snap in all_step_snapshots:
+                diff = abs(snap["step_count"] - target_step)
+                if diff < best_diff:
+                    best_diff = diff
+                    best_snapshot = snap
+                elif diff == best_diff and snap["step_count"] <= target_step:
+                    # Prefer snapshot at or before target (not after)
+                    best_snapshot = snap
+            
+            if best_snapshot:
+                granular_snapshots.append({
+                    "moment_index": moment_idx,
+                    "total_moments": n_moments,
+                    "step_count": best_snapshot["step_count"],
+                    "score": best_snapshot["score"],
+                    "success": best_snapshot["success"],
+                    "failed": best_snapshot["failed"],
+                    "failure_reason": best_snapshot.get("failure_reason"),
+                    "metrics": dict(best_snapshot.get("metrics", {})),
+                    "max_steps": max_steps,
+                })
+        
+        return granular_snapshots
+
+    def verify_code(
+        self,
+        code: str,
+        headless: bool = True,
+        save_gif_path: Optional[str] = None,
+        granularity: str = "outcome-based",
+    ) -> Tuple[bool, float, Dict[str, Any], Optional[str]]:
+        """
+        Verify code and optionally collect process-level snapshots.
+        """
+        try:
+            # 0. Check for prohibited operations (direct state manipulation)
+            self._check_prohibited_operations(code)
+
+            # 1. Compile and execute code, get build_agent and agent_action functions
+            code_module = self._execute_code(code)
+
+            # 2. Initialize environment
+            environment = self._init_environment()
+            if hasattr(environment, 'remove_initial_template'):
+                environment.remove_initial_template()
+
+            # 3. Build agent
+            build_agent_func = getattr(code_module, 'build_agent', None)
+            if not build_agent_func:
+                error_msg = "Code missing build_agent function"
+                error_metrics = {
+                    'error_type': 'missing_function',
+                    'error_stage': 'code_parsing',
+                    'error_message': error_msg
+                }
+                return False, 0.0, error_metrics, error_msg
+
+            try:
+                agent_components = build_agent_func(environment)
+            except Exception as e:
+                error_msg = f"Error building agent: {str(e)}\n{traceback.format_exc()}"
+                error_metrics = {
+                    'error_type': 'agent_building_error',
+                    'error_stage': 'agent_construction',
+                    'error_message': str(e),
+                    'error_traceback': traceback.format_exc()
+                }
+                return False, 0.0, error_metrics, error_msg
+
+            # K-05: enforce object at ground (1.8m) so it must be lifted by the mechanism
+            if 'K_05' in self.task_name and hasattr(environment, 'enforce_object_at_ground'):
+                environment.enforce_object_at_ground()
+
+            # 4. Initialize evaluator
+            evaluator = self._init_evaluator(environment)
+
+            # 5. Run simulation
+            success, score, metrics = self._run_simulation(
+                environment, agent_components, evaluator, code_module, headless, save_gif_path, granularity
+            )
+
+            return success, score, metrics, None
+
+        except ProhibitedOperationError as e:
+            # Prohibited operation in agent code
+            error_msg = str(e)
+            error_metrics = {
+                'error_type': 'prohibited_operation',
+                'error_stage': 'static_analysis',
+                'error_message': error_msg
+            }
+            return False, 0.0, error_metrics, error_msg
+        except SyntaxError as e:
+            # Syntax error during code execution
+            error_msg = f"Code syntax error: {str(e)}"
+            error_metrics = {
+                'error_type': 'syntax_error',
+                'error_stage': 'code_compilation',
+                'error_message': str(e),
+                'error_line': getattr(e, 'lineno', None),
+                'error_text': getattr(e, 'text', None)
+            }
+            return False, 0.0, error_metrics, error_msg
+        except NameError as e:
+            # Name error (e.g., undefined variable)
+            error_msg = f"Code name error: {str(e)}"
+            error_metrics = {
+                'error_type': 'name_error',
+                'error_stage': 'code_execution',
+                'error_message': str(e)
+            }
+            return False, 0.0, error_metrics, error_msg
+        except Exception as e:
+            # Other execution errors
+            error_msg = f"Verification process error: {str(e)}\n{traceback.format_exc()}"
+            error_metrics = {
+                'error_type': 'execution_error',
+                'error_stage': 'verification',
+                'error_message': str(e),
+                'error_traceback': traceback.format_exc()
+            }
+            return False, 0.0, error_metrics, error_msg
+
+    def _run_simulation(self, environment, agent_components, evaluator, code_module, headless, save_gif_path=None, granularity: str = "outcome-based"):
         """Run simulation loop"""
         # Initialize simulator
         self.simulator = Simulator()
@@ -583,6 +638,12 @@ class CodeVerifier:
             except Exception as e:
                 print(f"Warning: Failed to render initial frame: {e}")
         
+        n_moments = self._parse_granularity(granularity)
+        # For process_n: continuously sample metrics during simulation.
+        # At termination, extract t/3, 2t/3, t moments from actual termination step t.
+        all_step_snapshots = []  # List of (step_count, score, metrics) tuples
+        granular_snapshots = []
+        
         # Evaluate at step 0 (design constraints only) so build-time constraints are checked before any physics step
         if evaluator and step_count == 0:
             task_lower = self.task_name.lower()
@@ -600,11 +661,28 @@ class CodeVerifier:
                 init_done, init_score, init_metrics = evaluator.evaluate(agent_body, 0, self.max_steps)
             else:
                 init_done, init_score, init_metrics = False, 0.0, {}
+            # Record step 0 snapshot for process_n
+            if n_moments > 1:
+                all_step_snapshots.append({
+                    "step_count": 0,
+                    "score": init_score,
+                    "success": bool(init_metrics.get("success", False)),
+                    "failed": bool(init_metrics.get("failed", False)),
+                    "failure_reason": init_metrics.get("failure_reason"),
+                    "metrics": dict(init_metrics or {}),
+                })
             if init_done and init_metrics.get('failed') and init_metrics.get('failure_reason', '').startswith('Design constraint'):
                 if save_gif_path and self.simulator and getattr(self.simulator, 'frames', None):
                     self.simulator.save_gif_animation(save_gif_path)
+                # Extract granular snapshots: t = 0 (terminated at step 0)
+                init_metrics["step_count"] = 0
+                if n_moments > 1:
+                    granular_snapshots = self._extract_granular_snapshots(
+                        all_step_snapshots, 0, n_moments, self.max_steps
+                    )
+                    init_metrics["granular_snapshots"] = granular_snapshots
                 return False, init_score, init_metrics
-        
+
         while running and step_count < self.max_steps:
             # Handle events
             if not self.simulator.handle_events():
@@ -770,6 +848,10 @@ class CodeVerifier:
             is_category5_c02 = 'c_02' in task_lower or ('category_5_02' in task_lower)
             is_e05_magnet = 'e_05' in task_lower
             eval_interval = 1 if (is_category5_c02 or is_e05_magnet or is_category3) else (10 if (is_category2_k03 or is_category5_c03) else 100)
+            # For process_n: sample more frequently to ensure we have data at t/3, 2t/3, t
+            # Use finer sampling interval when granularity is process_n
+            if n_moments > 1:
+                eval_interval = min(eval_interval, max(1, self.max_steps // (n_moments * 10)))  # Sample at least 10×n points
             if step_count % eval_interval == 0 and evaluator:
                 # Check for Category1 tasks (case-insensitive) or E-03 (sled, no agent_body)
                 is_category1 = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])
@@ -791,6 +873,18 @@ class CodeVerifier:
                 else:
                     should_stop, score, metrics = False, 0.0, {}
                 
+                # For process_n: record all evaluation snapshots during simulation.
+                # At termination, we'll extract t/3, 2t/3, t moments from actual termination step t.
+                if n_moments > 1:
+                    all_step_snapshots.append({
+                        "step_count": step_count,
+                        "score": score,
+                        "success": bool(metrics.get("success", False)),
+                        "failed": bool(metrics.get("failed", False)),
+                        "failure_reason": metrics.get("failure_reason"),
+                        "metrics": dict(metrics or {}),
+                    })
+
                 if should_stop and metrics.get('success'):
                     # Render and collect final frame before saving GIF
                     if (save_gif or can_display) and renderer and hasattr(renderer, 'render'):
@@ -815,6 +909,14 @@ class CodeVerifier:
                     # Save GIF before returning (important: save current state)
                     if save_gif_path and self.simulator:
                         self.simulator.save_gif_animation(save_gif_path)
+                    # Ensure step_count is in metrics
+                    metrics["step_count"] = step_count
+                    # Extract granular snapshots: t = actual termination step (step_count)
+                    if n_moments > 1:
+                        granular_snapshots = self._extract_granular_snapshots(
+                            all_step_snapshots, step_count, n_moments, self.max_steps
+                        )
+                        metrics["granular_snapshots"] = granular_snapshots
                     return True, score, metrics
                 elif should_stop and metrics.get('failed'):
                     # Render and collect final frame before saving GIF
@@ -840,6 +942,14 @@ class CodeVerifier:
                     # Save GIF before returning (even if failed)
                     if save_gif_path and self.simulator:
                         self.simulator.save_gif_animation(save_gif_path)
+                    # Ensure step_count is in metrics
+                    metrics["step_count"] = step_count
+                    # Extract granular snapshots: t = actual termination step (step_count)
+                    if n_moments > 1:
+                        granular_snapshots = self._extract_granular_snapshots(
+                            all_step_snapshots, step_count, n_moments, self.max_steps
+                        )
+                        metrics["granular_snapshots"] = granular_snapshots
                     return False, score, metrics
         
         # Final evaluation
@@ -875,6 +985,36 @@ class CodeVerifier:
                 except Exception as e:
                     print(f"⚠️  Warning: Failed to save GIF (possibly disk full): {e}")
             
+            if final_metrics is None:
+                final_metrics = {}
+            # Ensure step_count is in final_metrics
+            final_metrics["step_count"] = step_count
+            # Record final evaluation snapshot
+            if n_moments > 1:
+                all_step_snapshots.append({
+                    "step_count": step_count,
+                    "score": final_score,
+                    "success": bool(final_metrics.get("success", False)),
+                    "failed": bool(final_metrics.get("failed", False)),
+                    "failure_reason": final_metrics.get("failure_reason"),
+                    "metrics": dict(final_metrics or {}),
+                })
+            # Extract granular snapshots: t = actual termination step (step_count)
+            if n_moments > 1:
+                granular_snapshots = self._extract_granular_snapshots(
+                    all_step_snapshots, step_count, n_moments, self.max_steps
+                )
+                final_metrics["granular_snapshots"] = granular_snapshots
+            elif not final_metrics.get("granular_snapshots"):
+                final_metrics["granular_snapshots"] = [{
+                    "step_count": step_count,
+                    "score": final_score,
+                    "success": bool(final_metrics.get("success", False)),
+                    "failed": bool(final_metrics.get("failed", False)),
+                    "failure_reason": final_metrics.get("failure_reason"),
+                    "metrics": dict(final_metrics or {}),
+                    "max_steps": self.max_steps,
+                }]
             return final_metrics.get('success', False), final_score, final_metrics
         
         # Save GIF (even without evaluator)

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Cross-Mutation evaluation module.
-Pairs all environments (Initial + Stages) to evaluate adaptive capability.
-Total 20 pairs: (env_i, env_j) for i != j.
-Agent starts with reference solution of env_i and tries to solve env_j.
+Task pairs (T0, T1) are fixed: T0 is always the **Initial** environment; T1 is each
+mutated stage (Stage-1, Stage-2, …). So per task there are K pairs where K = number
+of curriculum stages (typically 4), not all-pairs N*(N-1).
+Agent starts with the Initial reference solution and adapts to the target env.
 All experiments are run ONLY ONCE.
 
 When invoked via run_evaluate_parallel.py (--method X), run_single_pair() uses the
@@ -32,7 +33,7 @@ from evaluation.prompt import (
 )
 from evaluation.feedback import format_feedback
 from evaluation.evaluate import TaskEvaluator
-from evaluation.utils import get_model_identifier
+from evaluation.utils import get_model_identifier, load_task_stages_module
 from methods.Context.reflexion_method import format_reflections_str, inject_reflexion_before_your_task
 
 
@@ -61,8 +62,7 @@ def _rememberer_memory_block_cross_mut(evaluator: Any, last_feedback: str) -> Op
 def get_all_stages(base_task_name: str) -> List[Dict[str, Any]]:
     """Get initial task + all curriculum stages."""
     from evaluation.prompt import parse_task_name
-    import importlib.util
-    
+
     try:
         task_path, _ = parse_task_name(base_task_name)
     except Exception as e:
@@ -87,16 +87,14 @@ def get_all_stages(base_task_name: str) -> List[Dict[str, Any]]:
     
     if os.path.exists(stages_file):
         try:
-            spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-            stages_mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(stages_mod)
-            
+            stages_mod = load_task_stages_module(stages_file)
+
             curriculum_func = None
             for name in dir(stages_mod):
                 if 'curriculum_stages' in name.lower() and callable(getattr(stages_mod, name)):
                     curriculum_func = getattr(stages_mod, name)
                     break
-            
+
             if curriculum_func:
                 stages = curriculum_func()
                 for s in stages:
@@ -264,24 +262,26 @@ def get_reference_solution(base_task_name: str, stage_id: str) -> str:
 
     return "\n\n".join(final_parts)
 def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_name: str,
-                                 method: str, context: str = 'previous', max_iterations: int = 10,
+                                 method: str, result_method: Optional[str] = None,
+                                 granularity: str = "outcome-based",
+                                 context: str = 'previous', max_iterations: int = 10,
                                  max_steps: int = 10000, headless: bool = True, api_key: Optional[str] = None,
                                  output_dir: str = "evaluation_results", save_gif: bool = True,
                                  reflect_model_name: Optional[str] = None):
     """
-    Run the new paradigm: all-pairs evaluation.
-    Total pairs = N * (N-1). For N=5, pairs=20.
+    Run Initial → mutated evaluation only.
+    Total pairs = (num_envs - 1): one per non-Initial stage.
     """
     all_envs = get_all_stages(base_task_name)
     num_envs = len(all_envs)
+    num_pairs = max(0, num_envs - 1)
     
     print(f"\n🚀 Starting Cross-Mutation Evaluation for {base_task_name}")
     print(f"Total Environments: {num_envs}")
-    print(f"Total Pairs: {num_envs * (num_envs - 1)}")
+    print(f"Total Pairs (Initial → each mutated env): {num_pairs}")
     
     # Load stages module for visible changes
     from evaluation.prompt import parse_task_name
-    import importlib.util
     task_path, _ = parse_task_name(base_task_name)
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     task_dir = os.path.join(script_dir, 'tasks', task_path)
@@ -292,9 +292,7 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
     update_criteria_func = None
     if os.path.exists(stages_file):
         try:
-            spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-            stages_mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(stages_mod)
+            stages_mod = load_task_stages_module(stages_file)
             for name in dir(stages_mod):
                 if 'update_task_description_for_visible_changes' in name.lower() and callable(getattr(stages_mod, name)):
                     update_desc_func = getattr(stages_mod, name)
@@ -304,122 +302,129 @@ def run_cross_mutation_evaluation(base_task_name: str, model_type: str, model_na
             print(f"⚠️  Failed to load stages module for updates: {e}")
 
     results = []
-    
-    for i, env_i in enumerate(all_envs):
+    if not all_envs:
+        return results
+    env_i = all_envs[0]
+    if env_i.get("stage_id") != "Initial":
+        print(f"⚠️  Expected first stage to be Initial, got {env_i.get('stage_id')}")
+    try:
+        ref_code_initial = get_reference_solution(base_task_name, "Initial")
+    except Exception as e:
+        print(f"⚠️  Failed to get Initial reference solution: {e}")
+        return results
+
+    for j in range(1, len(all_envs)):
+        env_j = all_envs[j]
+        env_i = all_envs[0]
+        ref_code = ref_code_initial
+        pair_name = f"{env_i['stage_id']}_to_{env_j['stage_id']}"
+        print(f"\n--- Evaluating Pair: {pair_name} ---")
+
+        env_overrides = {
+            "terrain_config": env_j.get("terrain_config", {}),
+            "physics_config": env_j.get("physics_config", {}),
+        }
+
+        # Prepare task prompt override with visible changes
+        task_prompt_override = None
         try:
-            ref_code = get_reference_solution(base_task_name, env_i["stage_id"])
-        except Exception as e:
-            print(f"⚠️  Failed to get reference solution for {env_i['stage_id']}: {e}")
-            continue
-            
-        for j, env_j in enumerate(all_envs):
-            if i == j: continue
-            
-            pair_name = f"{env_i['stage_id']}_to_{env_j['stage_id']}"
-            print(f"\n--- Evaluating Pair: {pair_name} ---")
-            
-            env_overrides = {
-                "terrain_config": env_j.get("terrain_config", {}),
-                "physics_config": env_j.get("physics_config", {}),
-            }
-            
-            # Prepare task prompt override with visible changes
-            task_prompt_override = None
-            try:
-                base_prompt = load_task_prompt(base_task_name)
-                task_prompt_override = dict(base_prompt)
-                
-                desc = base_prompt.get("task_description", "")
-                criteria = base_prompt.get("success_criteria", "")
-                
-                target_terrain = env_j.get("terrain_config", {})
-                target_physics = env_j.get("physics_config", {})
-                # Visible prompt text must describe target env vs **initial** source environment,
-                # not vs the cross-pair source stage (avoids mismatched numbers in the sentence).
-                base_terrain_visible, base_physics_visible = {}, {}
+            base_prompt = load_task_prompt(base_task_name)
+            task_prompt_override = dict(base_prompt)
 
-                if update_desc_func:
-                    try:
-                        import inspect
-                        sig = inspect.signature(update_desc_func)
-                        if len(sig.parameters) >= 5:
-                            desc = update_desc_func(
-                                desc,
-                                target_terrain,
-                                base_terrain_visible,
-                                target_physics,
-                                base_physics_visible,
-                            )
-                        else:
-                            desc = update_desc_func(desc, target_terrain, base_terrain_visible)
-                    except Exception:
+            desc = base_prompt.get("task_description", "")
+            criteria = base_prompt.get("success_criteria", "")
+
+            target_terrain = env_j.get("terrain_config", {})
+            target_physics = env_j.get("physics_config", {})
+            # Visible prompt text must describe target env vs **initial** source environment,
+            # not vs the cross-pair source stage (avoids mismatched numbers in the sentence).
+            base_terrain_visible, base_physics_visible = {}, {}
+
+            if update_desc_func:
+                try:
+                    import inspect
+                    sig = inspect.signature(update_desc_func)
+                    if len(sig.parameters) >= 5:
+                        desc = update_desc_func(
+                            desc,
+                            target_terrain,
+                            base_terrain_visible,
+                            target_physics,
+                            base_physics_visible,
+                        )
+                    else:
                         desc = update_desc_func(desc, target_terrain, base_terrain_visible)
-                if update_criteria_func:
-                    try:
-                        import inspect
-                        sig = inspect.signature(update_criteria_func)
-                        if len(sig.parameters) >= 5:
-                            criteria = update_criteria_func(
-                                criteria,
-                                target_terrain,
-                                base_terrain_visible,
-                                target_physics,
-                                base_physics_visible,
-                            )
-                        else:
-                            criteria = update_criteria_func(criteria, target_terrain, base_terrain_visible)
-                    except Exception:
+                except Exception:
+                    desc = update_desc_func(desc, target_terrain, base_terrain_visible)
+            if update_criteria_func:
+                try:
+                    import inspect
+                    sig = inspect.signature(update_criteria_func)
+                    if len(sig.parameters) >= 5:
+                        criteria = update_criteria_func(
+                            criteria,
+                            target_terrain,
+                            base_terrain_visible,
+                            target_physics,
+                            base_physics_visible,
+                        )
+                    else:
                         criteria = update_criteria_func(criteria, target_terrain, base_terrain_visible)
-                
-                # Add suffix from target environment if it exists
-                if method.endswith('_CE'):
-                    import json
-                    suffix = f'## Environmental Anomalies Detected\n + "terrain_config": {json.dumps(target_terrain)}, \n"physics_config": {json.dumps(env_j.get("physics_config", {}))}'
-                else:
-                    suffix = env_j.get("task_description_suffix", "")
-                
-                if suffix:
-                    desc += "\n" + suffix
-                
-                task_prompt_override["task_description"] = desc
-                task_prompt_override["success_criteria"] = criteria
-            except Exception as e:
-                print(f"⚠️  Failed to prepare prompt override: {e}")
+                except Exception:
+                    criteria = update_criteria_func(criteria, target_terrain, base_terrain_visible)
 
-            try:
-                evaluator = TaskEvaluator(
-                    task_name=base_task_name,
-                    model_type=model_type,
-                    model_name=model_name,
-                    api_key=api_key,
-                    max_iterations=max_iterations,
-                    max_steps=max_steps,
-                    headless=headless,
-                    method=method,
-                    context=context,
-                    env_overrides=env_overrides,
-                    is_mutated_task=True,
-                    task_prompt_override=task_prompt_override,
-                    save_gif=save_gif,
-                    reflect_model_name=reflect_model_name,
-                )
-                evaluator.mutated_task_name = pair_name
-                evaluator._setup_gif_directory()
+            # Add suffix from target environment if it exists
+            if method.endswith('_CE'):
+                import json
+                suffix = f'## Environmental Anomalies Detected\n + "terrain_config": {json.dumps(target_terrain)}, \n"physics_config": {json.dumps(env_j.get("physics_config", {}))}'
+            else:
+                suffix = env_j.get("task_description_suffix", "")
 
-                report = run_single_pair(evaluator, ref_code, base_task_name, pair_name)
-                if not report.get("skipped"):
-                    evaluator.save_report(report, output_dir=output_dir)
+            task_prompt_override["task_description"] = desc
+            task_prompt_override["success_criteria"] = criteria
+            if suffix:
+                task_prompt_override["prompt_trailer"] = suffix
+            else:
+                task_prompt_override.pop("prompt_trailer", None)
+        except Exception as e:
+            print(f"⚠️  Failed to prepare prompt override: {e}")
 
-                results.append({
-                    "pair": pair_name,
-                    "source_env": env_i["stage_id"],
-                    "target_env": env_j["stage_id"],
-                    "result": report
-                })
-            except Exception as e:
-                print(f"❌ Error evaluating pair {pair_name}: {e}")
-                traceback.print_exc()
-            
+        try:
+            evaluator = TaskEvaluator(
+                task_name=base_task_name,
+                model_type=model_type,
+                model_name=model_name,
+                api_key=api_key,
+                max_iterations=max_iterations,
+                max_steps=max_steps,
+                headless=headless,
+                method=method,
+                context=context,
+                env_overrides=env_overrides,
+                is_mutated_task=True,
+                task_prompt_override=task_prompt_override,
+                save_gif=save_gif,
+                reflect_model_name=reflect_model_name,
+                result_method=result_method or method,
+                granularity=granularity,
+            )
+            evaluator.mutated_task_name = pair_name
+            evaluator._setup_gif_directory()
+
+            report = run_single_pair(evaluator, ref_code, base_task_name, pair_name)
+            if not report.get("skipped"):
+                evaluator.save_report(report, output_dir=output_dir)
+
+            results.append({
+                "pair": pair_name,
+                "source_env": env_i["stage_id"],
+                "target_env": env_j["stage_id"],
+                "result": report
+            })
+        except Exception as e:
+            print(f"❌ Error evaluating pair {pair_name}: {e}")
+            traceback.print_exc()
+
     return results
 
 def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
@@ -439,16 +444,16 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
     gif_path_0 = evaluator._get_gif_path(0) if evaluator.save_gif else None
     try:
         success_0, score_0, metrics_0, error_0 = evaluator.verifier.verify_code(
-            initial_ref_code, headless=evaluator.headless, save_gif_path=gif_path_0
+            initial_ref_code, headless=evaluator.headless, save_gif_path=gif_path_0,
+            granularity=getattr(evaluator, "granularity", "outcome-based"),
         )
     except Exception as e:
         print(f"❌ Verification error at iteration 0: {e}")
         success_0, score_0, metrics_0, error_0 = False, 0.0, {}, str(e)
     failed_0 = metrics_0.get('failed', False) if metrics_0 else True
     failure_reason_0 = metrics_0.get('failure_reason') if metrics_0 else "Unknown error"
-    feedback_0 = format_feedback(
-        metrics_0 or {}, score_0, success_0, failed_0, failure_reason_0,
-        0, error=error_0, task_name=base_task_name
+    feedback_0 = evaluator._compose_feedback(
+        metrics_0 or {}, score_0, success_0, failed_0, failure_reason_0, 0, error_0
     )
     evaluator.iteration_history.append({
         'iteration': 0,
@@ -476,6 +481,66 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
     ref_feedback = feedback_0
     current_code = initial_ref_code
 
+    # SCIENCE-CODEEVOLVE: inference-time search via CodeEvolve, starting from T0 reference code.
+    # NOTE: This must be an early return; CodeEvolve does its own inner sampling/search/verification.
+    if getattr(evaluator, "base_method", None) == "science_codeevolve":
+        try:
+            from methods.Inference_time_search.science_codeevolve_method import run_single_task
+            scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+            model_type = getattr(evaluator.solver, "model_type", None)
+            model_name = getattr(evaluator.solver, "model_name", None)
+            # Use the same (aux) credentials TaskEvaluator received, since CodeEvolve calls the same API backend.
+            api_key = getattr(evaluator, "_llm_aux_api_key", None) or getattr(evaluator.solver, "API_KEY", None)
+            api_base = getattr(evaluator, "_llm_aux_base_url", None) or os.environ.get("API_BASE")
+
+            exit_code, ce_report = run_single_task(
+                task_name=base_task_name,
+                run_number=1,
+                model_type=model_type,
+                model_name=model_name,
+                context=getattr(evaluator, "context", "all"),
+                max_steps=getattr(evaluator, "max_steps", 10000),
+                max_iterations=getattr(evaluator, "max_iterations", 20),
+                scripts_dir=scripts_dir,
+                initial_code=initial_ref_code,
+                api_base=api_base,
+                api_key=api_key,
+                env_overrides=getattr(evaluator, "env_overrides", None) or {},
+                save_report=False,  # let TaskEvaluator.save_report handle the pair filename
+            )
+
+            # Merge T0 reference history (iteration 0) + CodeEvolve outer rounds (iterations 1..max_iterations).
+            ce_history = ce_report.get("iteration_history", []) or []
+            evaluator.iteration_history = list(evaluator.iteration_history) + ce_history
+            evaluator.best_score = ce_report.get("best_score", 0.0)
+            evaluator.best_code = ce_report.get("best_code")
+            evaluator.best_metrics = ce_report.get("best_metrics", {}) or {}
+
+            report = evaluator._generate_report()
+            # Expose key CodeEvolve evidence for debugging/analysis.
+            report["codeevolve_wall_time_s"] = ce_report.get("codeevolve_wall_time_s")
+            report["codeevolve_num_epochs"] = ce_report.get("codeevolve_num_epochs")
+            report["codeevolve_num_islands"] = ce_report.get("codeevolve_num_islands")
+            report["codeevolve_init_pop"] = ce_report.get("codeevolve_init_pop")
+            report["codeevolve_ckpt_interval"] = ce_report.get("codeevolve_ckpt_interval")
+            report["codeevolve_population_by_epoch"] = ce_report.get("codeevolve_population_by_epoch", [])
+            report["codeevolve_outer_round_stats"] = ce_report.get("codeevolve_outer_round_stats", [])
+            report["codeevolve_exit_code"] = ce_report.get("codeevolve_exit_code", exit_code)
+
+            evaluator.verifier.cleanup()
+            return report
+        except Exception as e:
+            print(f"[science_codeevolve] CodeEvolve failed in cross-mutation pair: {e}", flush=True)
+            traceback.print_exc()
+            evaluator.best_score = 0.0
+            evaluator.best_code = None
+            evaluator.best_metrics = {"failure_reason": str(e), "failed": True}
+            # Return a regular (failed) report so the pipeline can continue.
+            report = evaluator._generate_report()
+            evaluator.verifier.cleanup()
+            return report
+
     # ThetaEvolve: run per-pair with target env; save report under pair path (all_xx_to_yy.json)
     if getattr(evaluator, "base_method", None) == "theta_evolve":
         import tempfile as _tf
@@ -483,6 +548,10 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
         scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         tmp_out = _tf.mkdtemp(prefix="theta_evolve_pair_")
         try:
+            _cleanup = getattr(evaluator.solver, "cleanup", None)
+            if callable(_cleanup):
+                print("[theta_evolve] Releasing evaluation vLLM before ThetaEvolve (Megatron+SGLang need VRAM)...")
+                _cleanup()
             from methods.Parameter_Policy.theta_evolve import run_single_task as theta_evolve_run_single_task
             _exit_code, report = theta_evolve_run_single_task(
                 task_name=base_task_name,
@@ -719,14 +788,14 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
                 success, score, metrics, error = evaluator.verifier.verify_code(
                     current_code if (current_code and "def build_agent" in current_code) else (current_code or ""),
                     headless=evaluator.headless, save_gif_path=gif_path,
+                    granularity=getattr(evaluator, "granularity", "outcome-based"),
                 )
             except Exception as e:
                 success, score, metrics, error = False, 0.0, {}, str(e)
             failed = (metrics or {}).get("failed", False)
             failure_reason = (metrics or {}).get("failure_reason")
-            feedback = format_feedback(
-                metrics or {}, score, success, failed, failure_reason, iteration,
-                error=error, task_name=base_task_name, include_suggestions=False,
+            feedback = evaluator._compose_feedback(
+                metrics or {}, score, success, failed, failure_reason, iteration, error, include_suggestions=False
             )
             evaluator.iteration_history.append({
                 "iteration": iteration,
@@ -779,12 +848,12 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
                 gif_path = evaluator._get_gif_path(iteration) if evaluator.save_gif else None
                 success, score, metrics, error = evaluator.verifier.verify_code(
                     current_code, headless=evaluator.headless, save_gif_path=gif_path,
+                    granularity=getattr(evaluator, "granularity", "outcome-based"),
                 )
                 failed = (metrics or {}).get("failed", False)
                 failure_reason = (metrics or {}).get("failure_reason")
-                feedback = format_feedback(
-                    metrics or {}, score, success, failed, failure_reason, iteration,
-                    error=error, task_name=base_task_name, include_suggestions=False,
+                feedback = evaluator._compose_feedback(
+                    metrics or {}, score, success, failed, failure_reason, iteration, error, include_suggestions=False
                 )
                 evaluator.iteration_history.append({
                     "iteration": iteration, "phase": "textgrad_revision", "prompt": f"[TextGrad step {iteration}]",
@@ -855,12 +924,17 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
                 break
             if all_candidates:
                 for c in all_candidates:
-                    succ, sc, met, err = evaluator.verifier.verify_code(c["code"], headless=evaluator.headless, save_gif_path=None)
+                    succ, sc, met, err = evaluator.verifier.verify_code(
+                        c["code"], headless=evaluator.headless, save_gif_path=None,
+                        granularity=getattr(evaluator, "granularity", "outcome-based"),
+                    )
                     c["success"] = succ
                     c["score"] = sc
                     c["metrics"] = met
                     c["error"] = err
-                    c["feedback"] = format_feedback(met or {}, sc, succ, met.get("failed", False), met.get("failure_reason"), iteration, error=err, task_name=base_task_name, include_suggestions=False)
+                    c["feedback"] = evaluator._compose_feedback(
+                        met or {}, sc, succ, met.get("failed", False), met.get("failure_reason"), iteration, err, include_suggestions=False
+                    )
                     if sc > evaluator.best_score:
                         evaluator.best_score = sc
                         evaluator.best_code = c["code"]
@@ -914,13 +988,23 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
         # Memory retrieval (expel, reasoning_bank, memento, …) — rememberer is inlined above
         memory_block = None
         base_method = getattr(evaluator, "base_method", None)
-        if base_method == "expel" and (getattr(evaluator, "_expel_items", None) or getattr(evaluator, "_expel_rules", None)):
+        if base_method == "expel" and (
+            getattr(evaluator, "_expel_rules", None)
+            or getattr(evaluator, "_expel_items", None)
+            or getattr(evaluator, "source_env", None)
+        ):
             from methods.Memory.expel_method import retrieve_for_prompt as expel_retrieve
+
+            _pair = bool(getattr(evaluator, "source_env", None))
             memory_block = expel_retrieve(
-                evaluator.task_prompt, last_feedback,
+                evaluator.task_prompt,
+                last_feedback,
                 getattr(evaluator, "_expel_items", []),
                 getattr(evaluator, "_expel_rules", []),
                 getattr(evaluator, "_expel_embedder", None),
+                top_k_rules=8,
+                top_k_trajectories=0 if _pair else 3,
+                rules_only=_pair,
             )
         elif base_method == "reasoning_bank":
             from methods.Memory.reasoning_bank_method import retrieve_for_prompt as reasoning_bank_retrieve
@@ -941,7 +1025,18 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
         elif base_method == "ace" and getattr(evaluator, "_ace_playbook", None):
             memory_block = "\n\n## Current Playbook\n\n" + (evaluator._ace_playbook or "")
         if memory_block:
-            prompt = prompt + "\n\n---\n## Relevant experience from memory\n\n" + memory_block + "\n\nProvide an improved solution."
+            _mem_title = (
+                "## ExpeL insights (distilled rules)\n\n"
+                if base_method == "expel" and getattr(evaluator, "source_env", None)
+                else "## Relevant experience from memory\n\n"
+            )
+            prompt = (
+                prompt
+                + "\n\n---\n"
+                + _mem_title
+                + memory_block
+                + "\n\nProvide an improved solution."
+            )
 
         # Reflexion: after best/previous attempt blocks, before final "Your Task" (not at top)
         if base_method == "reflexion" and getattr(evaluator, "reflections_str", None):
@@ -972,8 +1067,13 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
             if codes_and_outputs:
                 trajectories = []
                 for (code, raw, tok) in codes_and_outputs:
-                    succ, sc, met, err = evaluator.verifier.verify_code(code, headless=evaluator.headless, save_gif_path=None)
-                    fb = format_feedback(met or {}, sc, succ, (met or {}).get("failed", False), (met or {}).get("failure_reason"), iteration, error=err, task_name=base_task_name)
+                    succ, sc, met, err = evaluator.verifier.verify_code(
+                        code, headless=evaluator.headless, save_gif_path=None,
+                        granularity=getattr(evaluator, "granularity", "outcome-based"),
+                    )
+                    fb = evaluator._compose_feedback(
+                        met or {}, sc, succ, (met or {}).get("failed", False), (met or {}).get("failure_reason"), iteration, err
+                    )
                     trajectories.append({
                         "code": code, "feedback": fb, "score": sc, "success": succ,
                         "metrics": met, "error": err, "raw_output": raw, "token_usage": tok,
@@ -984,11 +1084,13 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
                 if _aux_k is None:
                     from evaluation.solver_interface import get_aux_llm_credentials
                     _aux_k, _aux_u = get_aux_llm_credentials(None)
+                import os as _os_rb2
                 new_items = contrast_and_distill(
                     trajectories, task_desc,
                     api_key=_aux_k,
                     base_url=_aux_u,
-                    use_llm_judge=True,
+                    judge_model=_os_rb2.environ.get("REASONING_BANK_INDUCE_MODEL", "deepseek-v3.2"),
+                    use_llm_judge=False,
                 )
                 if new_items:
                     evaluator._reasoning_bank_items = store_after_iteration(
@@ -1044,7 +1146,8 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
                 save_this_gif = evaluator.save_gif
                 gif_path = evaluator._get_gif_path(iteration) if save_this_gif else None
                 success, score, metrics, error = evaluator.verifier.verify_code(
-                    current_code, headless=evaluator.headless, save_gif_path=gif_path
+                    current_code, headless=evaluator.headless, save_gif_path=gif_path,
+                    granularity=getattr(evaluator, "granularity", "outcome-based"),
                 )
                 if gif_path and os.path.exists(gif_path):
                     is_best = score > evaluator.best_score
@@ -1059,10 +1162,9 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
 
             failed = (metrics or {}).get("failed", False)
             failure_reason = (metrics or {}).get("failure_reason")
-            feedback = format_feedback(
+            feedback = evaluator._compose_feedback(
                 metrics or {}, score, success, failed, failure_reason,
-                iteration, error=error, task_name=base_task_name,
-                include_suggestions=getattr(evaluator, "enable_feedback", False),
+                iteration, error, include_suggestions=getattr(evaluator, "enable_feedback", False)
             )
 
             revision_entry = {
@@ -1094,6 +1196,7 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
             # ReasoningBank (single trajectory): store after iteration
             if base_method == "reasoning_bank" and getattr(evaluator, "_reasoning_bank_path", None):
                 try:
+                    import os as _os_rb
                     from methods.Memory.reasoning_bank_method import (
                         extract_memory_items_llm, store_after_iteration as rb_store,
                         judge_success_llm,
@@ -1104,15 +1207,19 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
                     if _aux_k is None:
                         from evaluation.solver_interface import get_aux_llm_credentials
                         _aux_k, _aux_u = get_aux_llm_credentials(None)
-                    success_for_memory = judge_success_llm(
-                        task_desc, current_code, feedback, score,
-                        api_key=_aux_k,
-                        base_url=_aux_u,
-                    )
+                    if _os_rb.environ.get("REASONING_BANK_LLM_JUDGE", "").lower() in ("1", "true", "yes"):
+                        success_for_memory = judge_success_llm(
+                            task_desc, current_code, feedback, score,
+                            api_key=_aux_k,
+                            base_url=_aux_u,
+                        )
+                    else:
+                        success_for_memory = bool(success)
                     new_items = extract_memory_items_llm(
                         task_desc, current_code, feedback, score, success_for_memory,
                         api_key=_aux_k,
                         base_url=_aux_u,
+                        raw_reasoning=(revision_entry.get("raw_llm_output") or None),
                     )
                     if new_items:
                         evaluator._reasoning_bank_items = rb_store(

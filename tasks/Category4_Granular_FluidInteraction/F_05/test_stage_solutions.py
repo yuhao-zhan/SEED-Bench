@@ -40,7 +40,7 @@ def main():
             
             verifier = CodeVerifier(
                 task_name="Category4_Granular_FluidInteraction/F_05",
-                max_steps=5000,
+                max_steps=10000,
                 env_overrides={
                     "terrain_config": stage.get("terrain_config", {}),
                     "physics_config": stage.get("physics_config", {})

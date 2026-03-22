@@ -47,7 +47,6 @@ class Sandbox:
         self.DAM_X_LEFT = 12.0
         self.DAM_X_RIGHT = 14.0
         self.DOWNSTREAM_X_START = 14.0
-        self.SEEPAGE_ZONE_X_START = 13.5  # particles in [13.5, 14] count as half-leak
         self.RESERVOIR_X_MAX = 12.0
 
         # THREE disjoint build strips — left [12.4,12.6], MIDDLE [12.9,13.1] (bridge), right [13.4,13.6]
@@ -82,7 +81,9 @@ class Sandbox:
         self._step_count = 0
         self._surge_steps_applied = 0
         self._joint_force_history = {}  # joint -> list of recent force magnitudes for break check
-        self._joint_force_history_len = 3  # break if force exceeds threshold for this many steps
+        # Critical-threshold mutation: fewer consecutive over-threshold steps => welds fail faster (not just lower N·threshold)
+        self._joint_force_history_len = int(terrain_config.get("joint_break_consecutive_steps", 3))
+        self._joint_force_history_len = max(1, min(self._joint_force_history_len, 10))
         # Nine surge waves at 1000, 2000, ..., 9000 — STRONGER impulses (tall/weak structures break)
         default_impulses = [0.7, 0.85, 1.0, 1.15, 1.3, 1.4, 1.5, 1.6, 1.7]
         surge_impulses = terrain_config.get("surge_impulses")
@@ -98,6 +99,8 @@ class Sandbox:
         # Upward surge: stronger — water jumps then slams down (weak joints break)
         self._upward_surge_steps = [2500, 5500, 8500]
         self._upward_surge_impulse_y = float(terrain_config.get("upward_surge_impulse_y", 1.0))
+        # Default simulation horizon when the harness does not override max_steps (see main.py).
+        self.MAX_STEPS = int(terrain_config.get("max_steps", 10000))
 
     def _create_terrain(self, terrain_config: dict):
         floor_length = 40.0
@@ -143,7 +146,18 @@ class Sandbox:
         self._debris_spawn_steps = [2000, 5000, 8000]
         self._debris_spawned = []
         self._earthquake_steps = [2500, 5000, 7500, 10000]
-        self._earthquake_impulse_x = 0.35  # horizontal shake — dam must resist
+        self._earthquake_impulse_x = float(terrain_config.get("earthquake_impulse_x", 0.35))  # horizontal shake — dam must resist
+        # Downstream wall squeeze amplitude (m); larger => harsher time-varying confinement / leak geometry
+        self._downstream_wall_amplitude = float(terrain_config.get("downstream_wall_amplitude", 0.4))
+        self._downstream_wall_phase_divisor = float(terrain_config.get("downstream_wall_phase_divisor", 100.0))
+        self._downstream_wall_phase_divisor = max(1.0, self._downstream_wall_phase_divisor)
+        # Beam–fluid / beam–beam contact friction for dam members (default matches historical 0.5)
+        self._structure_friction = terrain_config.get("structure_friction")
+        if self._structure_friction is not None:
+            self._structure_friction = float(self._structure_friction)
+        # Debris spawn velocity (hidden kinetic-energy lever; not a simple mass scale)
+        self._debris_linear_velocity_x = float(terrain_config.get("debris_linear_velocity_x", 2.2))
+        self._debris_linear_velocity_y = float(terrain_config.get("debris_linear_velocity_y", 0.0))
 
     def _create_water_particles(self, terrain_config: dict):
         fluid_config = terrain_config.get("fluid", {})
@@ -152,12 +166,24 @@ class Sandbox:
         fluid_density = float(fluid_config.get("density", 1000.0))
         seed = int(fluid_config.get("seed", 42))
         initial_flow_speed = float(fluid_config.get("initial_flow_speed", 0.65))
+        # Stage mutations: particle friction / restitution change granular coupling and impact rebound.
+        fp_override = terrain_config.get("fluid_particle_friction")
+        if fp_override is not None:
+            particle_friction = float(fp_override)
+        else:
+            particle_friction = float(fluid_config.get("particle_friction", 0.1))
+        pr_override = terrain_config.get("fluid_particle_restitution")
+        if pr_override is not None:
+            particle_restitution = float(pr_override)
+        else:
+            particle_restitution = float(fluid_config.get("particle_restitution", 0.05))
         random.seed(seed)
 
         reservoir_x_min = 1.0
         reservoir_x_max = 11.0
         reservoir_y_min = particle_radius + 0.1
         reservoir_y_max = self.RESERVOIR_FILL_HEIGHT
+        self.RESERVOIR_X_MIN = reservoir_x_min
 
         for _ in range(num_particles):
             x = random.uniform(reservoir_x_min, reservoir_x_max)
@@ -169,8 +195,8 @@ class Sandbox:
                 fixtures=Box2D.b2FixtureDef(
                     shape=circleShape(radius=particle_radius),
                     density=density,
-                    friction=0.1,
-                    restitution=0.05,
+                    friction=particle_friction,
+                    restitution=particle_restitution,
                 ),
             )
             particle.linearDamping = self._default_linear_damping
@@ -182,23 +208,25 @@ class Sandbox:
 
     MIN_BEAM_SIZE = 0.2
     MAX_BEAM_SIZE = 4.0
-    MAX_BEAM_WIDTH = 0.8  # instance overwritten from terrain_config (e.g. 0.6 in extreme)
-    MAX_BEAM_HEIGHT = 1.5  # instance overwritten (e.g. 1.5 in extreme)
+    # Class defaults match the extreme F-01 instance defaults (see __init__ max_beam_width/height).
+    MAX_BEAM_WIDTH = 0.6
+    MAX_BEAM_HEIGHT = 1.5
 
     def add_beam(self, x, y, width, height, angle=0, density=500.0):
         if len(self._bodies) >= self.MAX_BEAM_COUNT:
             raise ValueError(f"Beam count would exceed maximum {self.MAX_BEAM_COUNT}")
-        max_w = getattr(self, 'MAX_BEAM_WIDTH', 0.8)
+        max_w = getattr(self, 'MAX_BEAM_WIDTH', 0.6)
         max_h = getattr(self, 'MAX_BEAM_HEIGHT', 1.5)
         width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_SIZE, max_w))
         height = max(self.MIN_BEAM_SIZE, min(height, self.MAX_BEAM_SIZE, max_h))
+        sf = self._structure_friction if self._structure_friction is not None else 0.5
         body = self._world.CreateDynamicBody(
             position=(x, y),
             angle=angle,
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(width / 2, height / 2)),
                 density=density,
-                friction=0.5,
+                friction=float(sf),
             ),
         )
         body.linearDamping = self._default_linear_damping
@@ -211,15 +239,17 @@ class Sandbox:
             raise ValueError("add_joint: body_a cannot be None.")
         anchor_x, anchor_y = anchor_point[0], anchor_point[1]
 
+        floor_body = self._terrain_bodies.get("floor")
         if body_b is None:
-            body_b = self._terrain_bodies.get("floor")
-            if body_b is None:
-                raise ValueError("add_joint: terrain body not found for anchor.")
+            body_b = floor_body
+        if body_b is None:
+            raise ValueError("add_joint: terrain body not found for anchor.")
+        if body_b == floor_body:
             if len(self._terrain_joints) >= self.MAX_TERRAIN_ANCHORS:
                 raise ValueError(f"Terrain anchor count would exceed maximum {self.MAX_TERRAIN_ANCHORS}")
 
         # Enforce max beam-to-beam joint count (no limit on terrain joints when 0)
-        if body_b != self._terrain_bodies.get("floor"):
+        if body_b != floor_body:
             beam_joints = len(self._joints) - len(self._terrain_joints)
             max_joints = getattr(self, 'MAX_JOINT_COUNT', 15)
             if beam_joints >= max_joints:
@@ -234,7 +264,7 @@ class Sandbox:
             collideConnected=False
         )
         self._joints.append(joint)
-        if body_b == self._terrain_bodies.get("floor"):
+        if body_b == floor_body:
             self._terrain_joints.append(joint)
         return joint
 
@@ -274,7 +304,9 @@ class Sandbox:
         # MOVING WALL: oscillate downstream wall so dam is periodically squeezed/relaxed
         wall = self._terrain_bodies.get("downstream_wall")
         if wall is not None:
-            new_x = 13.85 + 0.4 * math.sin(self._step_count / 100.0)
+            amp = getattr(self, "_downstream_wall_amplitude", 0.4)
+            ph = getattr(self, "_downstream_wall_phase_divisor", 100.0)
+            new_x = 13.85 + amp * math.sin(self._step_count / ph)
             try:
                 wall.SetTransform((new_x, self._downstream_wall_y), 0)
             except Exception:
@@ -291,7 +323,9 @@ class Sandbox:
                         restitution=0.1,
                     ),
                 )
-                debris.linearVelocity = (2.2, 0.0)
+                dvx = getattr(self, "_debris_linear_velocity_x", 2.2)
+                dvy = getattr(self, "_debris_linear_velocity_y", 0.0)
+                debris.linearVelocity = (dvx, dvy)
                 debris.linearDamping = 0.05
                 self._debris_bodies.append(debris)
                 self._debris_spawned.append(t)
@@ -360,8 +394,9 @@ class Sandbox:
                 break
 
     def get_terrain_bounds(self):
+        res_x_min = getattr(self, "RESERVOIR_X_MIN", 1.0)
         return {
-            "reservoir": {"x_min": 0.0, "x_max": self.RESERVOIR_X_MAX, "fill_height": self.RESERVOIR_FILL_HEIGHT},
+            "reservoir": {"x_min": res_x_min, "x_max": self.RESERVOIR_X_MAX, "fill_height": self.RESERVOIR_FILL_HEIGHT},
             "dam_zone": {"x_min": self.DAM_X_LEFT, "x_max": self.DAM_X_RIGHT},
             "downstream_x_start": self.DOWNSTREAM_X_START,
             "build_zone_left": {"x": [self.BUILD_ZONE_LEFT_X_MIN, self.BUILD_ZONE_LEFT_X_MAX], "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX]},

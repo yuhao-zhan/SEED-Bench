@@ -69,7 +69,7 @@ from methods.Context.reflexion_method import (
     REFLEXION_SYSTEM_PROMPT, format_reflection_prompt, format_reflections_str,
     format_revision_prompt_reflexion, format_revision_prompt_reflexion_simple,
 )
-from evaluation.feedback import format_feedback
+from evaluation.feedback import format_feedback, format_granular_feedback
 from evaluation.solver_interface import SolverInterface, get_aux_llm_credentials
 from evaluation.verifier import CodeVerifier
 from evaluation.utils import (
@@ -78,8 +78,15 @@ from evaluation.utils import (
     get_evaluation_results_scratch_dir,
     get_training_log_dir,
     run_is_complete, is_cuda_oom, clean_special_tags,
-    get_max_steps_for_task
+    get_max_steps_for_task, load_task_stages_module,
 )
+
+
+def get_effective_result_method(method: str, granularity: str) -> str:
+    g = (granularity or "outcome-based").strip().lower()
+    if g == "outcome-based":
+        return method
+    return f"{method}_{g}"
 
 
 class TaskEvaluator:
@@ -108,11 +115,15 @@ class TaskEvaluator:
                  discover_num_substeps: int = 1, discover_max_expansion_rounds: int = 2,
                  save_gif: bool = True, source_env: Optional[str] = None,
                  output_dir: Optional[str] = None,
+                 result_method: Optional[str] = None,
+                 granularity: str = "outcome-based",
                  theta_evolve_num_rollout: Optional[int] = None,
                  theta_evolve_rollout_batch_size: Optional[int] = None):
         self.task_name = task_name
         self.save_gif = save_gif
         self.output_dir = output_dir
+        self.result_method = result_method or method
+        self.granularity = granularity or "outcome-based"
         self.theta_evolve_num_rollout = theta_evolve_num_rollout if theta_evolve_num_rollout is not None else 10000
         self.theta_evolve_rollout_batch_size = theta_evolve_rollout_batch_size if theta_evolve_rollout_batch_size is not None else 32
         self.base_task_name_for_memory = base_task_name_for_memory
@@ -319,11 +330,17 @@ class TaskEvaluator:
                 from methods.Memory.expel_method import load_expel_memory_for_task
                 model_id = get_model_identifier(self.solver.model_type, self.solver.model_name)
                 self._expel_items, self._expel_rules, self._expel_embedder = load_expel_memory_for_task(
-                    task_name, model_id, source_env=None
+                    task_name, model_id, source_env=self.source_env
                 )
-                print(
-                    f"🧠 ExpeL: same-category memory ({len(self._expel_items)} trajectories, {len(self._expel_rules)} rules)"
-                )
+                if self.source_env:
+                    print(
+                        f"🧠 ExpeL: pair memory ({self.source_env}) — "
+                        f"{len(self._expel_items)} trajectories, {len(self._expel_rules)} rules"
+                    )
+                else:
+                    print(
+                        f"🧠 ExpeL: same-category memory ({len(self._expel_items)} trajectories, {len(self._expel_rules)} rules)"
+                    )
         # ReasoningBank: load or create bank path; inject retrieved memory into prompt each iteration
         self._reasoning_bank_path = None
         self._reasoning_bank_items = []
@@ -434,7 +451,7 @@ class TaskEvaluator:
             cat_dir,
             task_subdir,
             model_id,
-            self.method
+            self.result_method
         )
         
         if self.save_gif:
@@ -451,6 +468,67 @@ class TaskEvaluator:
         """Return directory for Parameter_Policy training logs: scripts/training_log/{category}/{task}/{model}/{method}/"""
         model_id = get_model_identifier(self.solver.model_type, self.solver.model_name)
         return get_training_log_dir(self.task_name, model_id, self.method)
+
+    def _compose_feedback(self, metrics, score, success, failed, failure_reason, iteration, error, include_suggestions=False):
+        granular_snapshots = (metrics or {}).get("granular_snapshots", [])
+        g = (self.granularity or "outcome-based")
+        if g != "outcome-based" and not granular_snapshots:
+            import re as _re
+            m = _re.fullmatch(r"process_(\d+)", g.strip().lower())
+            n = int(m.group(1)) if m else 1
+            if n > 1:
+                effective_max_steps = int((metrics or {}).get("step_count") or self.max_steps or 1)
+                effective_max_steps = max(1, effective_max_steps)
+                granular_snapshots = []
+                for i in range(1, n + 1):
+                    step_i = int(round((i * effective_max_steps) / n))
+                    step_i = max(1, min(effective_max_steps, step_i))
+                    granular_snapshots.append({
+                        "moment_index": i,
+                        "total_moments": n,
+                        "step_count": step_i,
+                        "max_steps": effective_max_steps,
+                        "metrics": dict(metrics or {}),
+                        "score": score,
+                        "success": success,
+                        "failed": failed,
+                        "failure_reason": failure_reason,
+                        "error": error,
+                    })
+
+        if g != "outcome-based" and granular_snapshots:
+            entries = []
+            total = int(granular_snapshots[0].get("total_moments", len(granular_snapshots)))
+            for idx, snap in enumerate(granular_snapshots, start=1):
+                entries.append({
+                    "moment_index": int(snap.get("moment_index", idx)),
+                    "total_moments": total,
+                    "step_count": snap.get("step_count", 0),
+                    "max_steps": snap.get("max_steps", self.max_steps),
+                    "metrics": snap.get("metrics", {}),
+                    "score": snap.get("score", 0.0),
+                    "success": snap.get("success", False),
+                    "failed": snap.get("failed", False),
+                    "failure_reason": snap.get("failure_reason"),
+                    "error": snap.get("error"),
+                })
+            return format_granular_feedback(
+                entries,
+                iteration=iteration,
+                task_name=self.task_name,
+                include_suggestions=include_suggestions,
+            )
+        return format_feedback(
+            metrics,
+            score,
+            success,
+            failed,
+            failure_reason,
+            iteration,
+            error=error,
+            task_name=self.task_name,
+            include_suggestions=include_suggestions,
+        )
 
     def _generate_reflection(self, code: str, feedback: str, iteration: int) -> str:
         """
@@ -497,11 +575,32 @@ class TaskEvaluator:
                     max_steps_verifier=self.max_steps,
                 )
             except Exception as exc:
-                print(f"⚠️  SEAL TTT training failed (non-fatal): {exc}")
+                if is_cuda_oom(exc):
+                    print(f"🛑 SEAL TTT failed with CUDA OOM (fatal): {exc}")
+                    raise SystemExit(1) from exc
+                print(f"⚠️  SEAL TTT training failed: {exc}")
                 import traceback
                 traceback.print_exc()
         else:
             print("🔧 SEAL: no positive-score solutions yet, skipping TTT")
+            # Write a minimal "skipped" log once so training_log/{...}/seal/ exists and run can be verified
+            try:
+                training_log_dir = self._get_training_log_dir()
+                summary_path = os.path.join(training_log_dir, "training_summary.txt")
+                if not os.path.exists(summary_path):
+                    from methods.Parameter_Policy.common.training_logger import TrainingLogger
+                    logger = TrainingLogger(
+                        training_log_dir, method_name="seal", task_name=self.task_name or "",
+                        max_iterations=self.max_iterations, max_steps_verifier=self.max_steps,
+                    )
+                    logger.log_config(
+                        prompt_format="format_initial_prompt / format_revision_prompt (or format_mutated_* for cross-mutation)",
+                        n_solutions=0,
+                    )
+                    logger.log_warning("TTT skipped: no positive-score solutions in iteration_history yet.")
+                    logger.finalize({"skipped": True, "reason": "no positive-score solutions"})
+            except Exception as e:
+                print(f"🔧 SEAL: could not write skipped log: {e}")
 
     def evaluate(self):
         """Run iterative evaluation process"""
@@ -512,6 +611,12 @@ class TaskEvaluator:
         if self.base_method == 'theta_evolve':
             if self.solver.model_type != 'local':
                 raise ValueError("theta_evolve only supports --model-type local")
+            # TaskEvaluator always builds SolverInterface (vLLM) for local models; ThetaEvolve train.py
+            # colocates Megatron+SGLang on the same GPU(s). Drop vLLM first or the subprocess OOMs.
+            _cleanup = getattr(self.solver, "cleanup", None)
+            if callable(_cleanup):
+                print("[theta_evolve] Releasing evaluation vLLM before ThetaEvolve (Megatron+SGLang need VRAM)...")
+                _cleanup()
             from methods.Parameter_Policy.theta_evolve import run_single_task as theta_evolve_run_single_task
             scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             out_dir = self.output_dir or get_evaluation_results_dir()
@@ -555,6 +660,9 @@ class TaskEvaluator:
                 )
                 print(f"[RAGEN] Pretrain complete: {self._ragen_pretrain_stats}")
             except Exception as exc:
+                if is_cuda_oom(exc):
+                    print(f"🛑 [RAGEN] CUDA OOM during pretrain (fatal): {exc}")
+                    raise SystemExit(1) from exc
                 print(f"[RAGEN] Pretrain failed: {exc}")
                 import traceback
                 traceback.print_exc()
@@ -572,6 +680,9 @@ class TaskEvaluator:
                 )
                 print(f"[Discover] Pretrain complete: {self._discover_pretrain_stats}")
             except Exception as exc:
+                if is_cuda_oom(exc):
+                    print(f"🛑 [Discover] CUDA OOM during pretrain (fatal): {exc}")
+                    raise SystemExit(1) from exc
                 print(f"[Discover] Pretrain failed: {exc}")
                 import traceback
                 traceback.print_exc()
@@ -600,6 +711,9 @@ class TaskEvaluator:
                     return self._generate_report()
                 self._soar_pretrain_stats["error"] = "run_pretrain returned no iteration_history"
             except Exception as exc:
+                if is_cuda_oom(exc):
+                    print(f"🛑 [SOAR] CUDA OOM during run_pretrain (fatal): {exc}")
+                    raise SystemExit(1) from exc
                 print(f"[SOAR] run_pretrain failed: {exc}")
                 import traceback
                 traceback.print_exc()
@@ -707,18 +821,21 @@ class TaskEvaluator:
                     (self.iteration_history[-1].get("feedback", "") if self.iteration_history else "")
                     or ""
                 )
+                _pair_expel = bool(self.source_env)
                 expel_mem = expel_retrieve(
                     self.task_prompt,
                     last_fb,
                     getattr(self, "_expel_items", []),
                     getattr(self, "_expel_rules", []),
                     getattr(self, "_expel_embedder"),
-                    top_k_rules=5,
-                    top_k_trajectories=3,
+                    top_k_rules=8,
+                    top_k_trajectories=0 if _pair_expel else 3,
+                    rules_only=_pair_expel,
                 )
-                expel_suffix = (
-                    "\n\n---\n\n## Relevant insights and experience from same-category tasks\n\n"
-                )
+                if _pair_expel:
+                    expel_suffix = "\n\n---\n\n## ExpeL insights (distilled rules from your rollout)\n\n"
+                else:
+                    expel_suffix = "\n\n---\n\n## ExpeL: insights + related trajectories\n\n"
                 expel_suffix += (expel_mem.strip() or "(No relevant insights yet.)") + "\n\n"
                 prompt = prompt + expel_suffix
             # ACE (official): ask model to output bullet_ids + code so Reflector gets bullets_used
@@ -768,7 +885,8 @@ class TaskEvaluator:
                         trajectories, task_desc,
                         api_key=self._llm_aux_api_key,
                         base_url=self._llm_aux_base_url,
-                        use_llm_judge=True,
+                        judge_model=os.environ.get("REASONING_BANK_INDUCE_MODEL", "deepseek-v3.2"),
+                        use_llm_judge=False,
                     )
                     if new_items and getattr(self, '_reasoning_bank_path', None):
                         self._reasoning_bank_items = store_after_iteration(
@@ -802,6 +920,9 @@ class TaskEvaluator:
                     if new_code:
                         current_code = new_code
                 except Exception as e:
+                    if is_cuda_oom(e) and self.base_method in ("seal", "ragen", "soar", "discover", "genome", "absolute_zero_iter", "theta_evolve"):
+                        print(f"🛑 CUDA OOM during Parameter_Policy generation (fatal): {e}")
+                        raise SystemExit(1) from e
                     self._stop_reason = 'error_generating_code'
                     self._stop_error = str(e)
                     print(f"❌ Error generating code: {e}")
@@ -816,7 +937,8 @@ class TaskEvaluator:
                 success, score, metrics, error = self.verifier.verify_code(
                     current_code, 
                     headless=self.headless,
-                    save_gif_path=gif_path if self.save_gif else None
+                    save_gif_path=gif_path if self.save_gif else None,
+                    granularity=self.granularity,
                 )
             
             # 3. Handle GIF cleanup
@@ -832,9 +954,8 @@ class TaskEvaluator:
             # 4. Format feedback
             failed = metrics.get('failed', False)
             failure_reason = metrics.get('failure_reason', 'Unknown failure')
-            feedback = format_feedback(
-                metrics, score, success, failed, failure_reason,
-                iteration, error=error, task_name=self.task_name
+            feedback = self._compose_feedback(
+                metrics, score, success, failed, failure_reason, iteration, error
             )
             
             # 4. Record iteration
@@ -857,19 +978,22 @@ class TaskEvaluator:
             if self.base_method == 'reasoning_bank' and getattr(self, '_reasoning_bank_path', None) and not _reasoning_bank_matts_done:
                 try:
                     from methods.Memory.reasoning_bank_method import (
-                        extract_memory_items_llm, store_after_iteration,
-                        judge_success_llm,
+                        extract_memory_items_llm, store_after_iteration, judge_success_llm,
                     )
                     task_desc = (self.task_prompt.get("task_description") or "") if isinstance(self.task_prompt, dict) else str(self.task_prompt)
-                    success_for_memory = judge_success_llm(
-                        task_desc, current_code, feedback, score,
-                        api_key=self._llm_aux_api_key,
-                        base_url=self._llm_aux_base_url,
-                    )
+                    if os.environ.get("REASONING_BANK_LLM_JUDGE", "").lower() in ("1", "true", "yes"):
+                        success_for_memory = judge_success_llm(
+                            task_desc, current_code, feedback, score,
+                            api_key=self._llm_aux_api_key,
+                            base_url=self._llm_aux_base_url,
+                        )
+                    else:
+                        success_for_memory = bool(success)
                     new_items = extract_memory_items_llm(
                         task_desc, current_code, feedback, score, success_for_memory,
                         api_key=self._llm_aux_api_key,
                         base_url=self._llm_aux_base_url,
+                        raw_reasoning=(raw_output or None),
                     )
                     if new_items:
                         self._reasoning_bank_items = store_after_iteration(
@@ -961,7 +1085,9 @@ class TaskEvaluator:
         """Generate final evaluation report"""
         report = {
             'task_name': self.task_name,
-            'method': self.method,
+            'method': self.result_method,
+            'base_method': self.method,
+            'granularity': self.granularity,
             'context': self.context,
             'success': self.best_score >= 100.0,
             'best_score': self.best_score,
@@ -1033,7 +1159,7 @@ class TaskEvaluator:
         
         # Consistent with user request: evaluation_results/{category}/{task}/...
         # We still keep model and method to avoid overwriting between different models/methods
-        task_dir = os.path.join(output_dir, cat_dir, task_subdir, model_id, self.method)
+        task_dir = os.path.join(output_dir, cat_dir, task_subdir, model_id, self.result_method)
         os.makedirs(task_dir, exist_ok=True)
         
         task_label = self.mutated_task_name if self.is_mutated_task and self.mutated_task_name else "raw"
@@ -1092,12 +1218,17 @@ def evaluate_single_task(task_name, args):
     if getattr(args, 'source_env', None) and getattr(args, 'target_env', None):
         current_mutated_name = f"{args.source_env}_to_{args.target_env}"
 
+    # For non-default granularity, persist results under method_granularity.
+    effective_method = getattr(args, "result_method", None) or get_effective_result_method(
+        args.method, getattr(args, "granularity", "outcome-based")
+    )
+
     # Check if complete
-    if run_is_complete(
+    if getattr(args, "skip_complete", True) and run_is_complete(
         task_name=task_name,
         model_type=args.model_type,
         model_name=args.model_name,
-        method=args.method,
+        method=effective_method,
         context=args.context,
         mutated_task_name=current_mutated_name
     ):
@@ -1113,21 +1244,33 @@ def evaluate_single_task(task_name, args):
 
     base_method = args.method[:-3] if args.method.endswith('_CE') else args.method
 
-    # ExpeL (aligned with evaluation_backup): category-wide rollouts + insights.json before any eval
+    # ExpeL: pair eval (source_env × target_env) = same as Rememberer — only
+    # expel/.../{task}__{source_env}.json + optional pair .insights.json from evaluation_results_scratch.
+    # Non-pair category eval still uses category-wide rollouts + category insights.json.
     if base_method == "expel":
         from evaluation.utils import get_model_identifier
-        from methods.Memory.expel_method import ensure_expel_data
         _expel_mid = get_model_identifier(args.model_type, args.model_name)
         _expel_dev = getattr(args, "device", None) or (
             "cpu" if args.model_type == "openai" else "cuda:0"
         )
-        # Mock smoke test: skip category-wide rollout + insight extraction (slow / needs embedder).
         if args.model_type == "mock":
-            print(
-                "[ExpeL] mock mode: skipping ensure_expel_data (no category rollouts).",
-                flush=True,
+            print("[ExpeL] mock mode: skipping memory prep.", flush=True)
+        elif getattr(args, "source_env", None) and getattr(args, "target_env", None):
+            from methods.Memory.expel_method import ensure_expel_data_from_scratch
+            from evaluation.solver_interface import get_aux_llm_credentials
+
+            _ek, _eu = get_aux_llm_credentials(args.api_key)
+            ensure_expel_data_from_scratch(
+                task_name,
+                args.source_env,
+                _expel_mid,
+                api_key=_ek,
+                base_url=_eu,
+                insight_model=os.environ.get("EXPEL_INSIGHT_MODEL"),
             )
         else:
+            from methods.Memory.expel_method import ensure_expel_data
+
             ensure_expel_data(
                 [task_name],
                 _expel_mid,
@@ -1178,8 +1321,14 @@ def evaluate_single_task(task_name, args):
             if getattr(args, 'source_env', None) and getattr(args, 'target_env', None):
                 source_env = args.source_env
                 target_env = args.target_env
+                if source_env != "Initial":
+                    print(
+                        f"❌ Cross-mutation requires T0=Initial; got source_env={source_env!r}. "
+                        f"Use --source-env Initial --target-env <Stage-N>."
+                    )
+                    return 1
                 pair_name = f"{source_env}_to_{target_env}"
-                
+
                 print(f"🚀 Running Cross-Mutation Pair: {pair_name}")
                 
                 all_envs = get_all_stages(task_name)
@@ -1196,7 +1345,6 @@ def evaluate_single_task(task_name, args):
                 
                 # Compute task_prompt_override
                 from evaluation.prompt import parse_task_name, load_task_prompt
-                import importlib.util
                 task_path, _ = parse_task_name(task_name)
                 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 task_dir = os.path.join(script_dir, 'tasks', task_path)
@@ -1205,9 +1353,7 @@ def evaluate_single_task(task_name, args):
                 update_desc_func = None
                 update_criteria_func = None
                 if os.path.exists(stages_file):
-                    spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-                    stages_mod = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(stages_mod)
+                    stages_mod = load_task_stages_module(stages_file)
                     for name in dir(stages_mod):
                         if 'update_task_description_for_visible_changes' in name.lower() and callable(getattr(stages_mod, name)):
                             update_desc_func = getattr(stages_mod, name)
@@ -1250,11 +1396,12 @@ def evaluate_single_task(task_name, args):
                 else:
                     suffix = env_j.get("task_description_suffix", "")
                     
-                if suffix:
-                    desc += "\n" + suffix
-                    
                 task_prompt_override["task_description"] = desc
                 task_prompt_override["success_criteria"] = criteria
+                if suffix:
+                    task_prompt_override["prompt_trailer"] = suffix
+                else:
+                    task_prompt_override.pop("prompt_trailer", None)
                 
                 # Same evaluation as test_reference_solutions: get_all_stages(), get_max_steps_for_task(), env_overrides from stage only; run_single_pair sets random.seed(123) for non-C_02.
                 evaluator = TaskEvaluator(
@@ -1272,12 +1419,16 @@ def evaluate_single_task(task_name, args):
                     task_prompt_override=task_prompt_override,
                     save_gif=args.save_gif,
                     source_env=source_env,
+                    result_method=effective_method,
+                    granularity=getattr(args, "granularity", "outcome-based"),
                     model_path=getattr(args, 'model_path', None),
                     device=getattr(args, 'device', None),
                     reflect_model_name=getattr(args, 'reflect_model_name', None),
                     soar_generations=getattr(args, 'soar_generations', 2),
                     soar_k_candidates=getattr(args, 'soar_k_candidates', 4),
                     genome_best_lora_path=genome_best_lora_path,
+                    theta_evolve_num_rollout=getattr(args, 'theta_evolve_num_rollout', None),
+                    theta_evolve_rollout_batch_size=getattr(args, 'theta_evolve_rollout_batch_size', None),
                 )
                 evaluator.mutated_task_name = pair_name
                 
@@ -1291,6 +1442,8 @@ def evaluate_single_task(task_name, args):
                     model_type=args.model_type,
                     model_name=args.model_name,
                     method=args.method,
+                    result_method=effective_method,
+                    granularity=getattr(args, "granularity", "outcome-based"),
                     context=args.context,
                     max_iterations=args.max_iterations,
                     max_steps=max_steps,
@@ -1312,9 +1465,15 @@ def evaluate_single_task(task_name, args):
                 method=args.method,
                 context=args.context,
                 save_gif=args.save_gif,
+                result_method=effective_method,
+                granularity=getattr(args, "granularity", "outcome-based"),
                 soar_generations=getattr(args, 'soar_generations', 2),
                 soar_k_candidates=getattr(args, 'soar_k_candidates', 4),
                 genome_best_lora_path=genome_best_lora_path,
+                model_path=getattr(args, 'model_path', None),
+                device=getattr(args, 'device', None),
+                theta_evolve_num_rollout=getattr(args, 'theta_evolve_num_rollout', None),
+                theta_evolve_rollout_batch_size=getattr(args, 'theta_evolve_rollout_batch_size', None),
             )
             report = evaluator.evaluate()
             evaluator.print_report(report)
@@ -1357,6 +1516,14 @@ def main():
     parser.add_argument('--target-env', type=str, default=None)
     parser.add_argument('--save-gif', action='store_true', default=True, help='Save GIF animations of simulations')
     parser.add_argument('--no-save-gif', action='store_false', dest='save_gif', help='Disable saving GIF animations')
+    parser.add_argument(
+        '--skip-complete', action='store_true', default=True, dest='skip_complete',
+        help='Skip task/pair if a result JSON already exists (default: on).',
+    )
+    parser.add_argument(
+        '--no-skip-complete', action='store_false', dest='skip_complete',
+        help='Re-run even when a result JSON already exists.',
+    )
     parser.add_argument('--soar-generations', type=int, default=2, dest='soar_generations', help='SOAR: number of generations (search+SFT)')
     parser.add_argument('--soar-k-candidates', type=int, default=4, dest='soar_k_candidates', help='SOAR: candidates per first iteration')
     parser.add_argument('--genome-best-lora-path', type=str, default=None, dest='genome_best_lora_path',
@@ -1367,8 +1534,38 @@ def main():
                         help='ExpeL: insight extraction rounds when category insights.json is built (default: 3 in expel_method).')
     parser.add_argument('--expel-max-num-rules', type=int, default=None, dest='expel_max_num_rules',
                         help='ExpeL: max rules when building category insights.json.')
+    parser.add_argument(
+        '--theta-evolve-num-rollout', type=int, default=10000, dest='theta_evolve_num_rollout',
+        help='ThetaEvolve: num_rollout passed to slime train (default 10000; use a small value e.g. 12 for smoke tests).',
+    )
+    parser.add_argument(
+        '--theta-evolve-rollout-batch-size', type=int, default=32, dest='theta_evolve_rollout_batch_size',
+        help='ThetaEvolve: rollout_batch_size (default 32).',
+    )
+    parser.add_argument(
+        '--granularity',
+        type=str,
+        default='outcome-based',
+        help="Feedback granularity: outcome-based (default) or process_n (e.g., process_3, process_5).",
+    )
+    parser.add_argument(
+        '--result-method',
+        type=str,
+        default=None,
+        dest='result_method',
+        help='Optional output method name used only for result directory naming.',
+    )
 
     args = parser.parse_args()
+    g = (args.granularity or "outcome-based").strip().lower()
+    if g != "outcome-based":
+        import re as _re
+        m = _re.fullmatch(r"process_(\d+)", g)
+        if not m or int(m.group(1)) <= 0:
+            raise ValueError(f"Invalid --granularity: {args.granularity}. Use outcome-based or process_n (n>=1).")
+    args.granularity = g
+    if not getattr(args, "result_method", None):
+        args.result_method = get_effective_result_method(args.method, args.granularity)
 
     if len(args.task) == 1:
         task_list = resolve_task_list(args.task[0])

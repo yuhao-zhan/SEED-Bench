@@ -5,8 +5,9 @@ is missing or incomplete (fewer than total_mutations results), then run
 run_mutation_for_log for each to fill in the missing mutations.
 
 For local/huggingface models:
-- 32B/30B: 2-GPU tensor parallel (TP2), same as initial task. --device cuda:1,2 => GPUs 1,2 together.
-- Other models: data-parallel (split logs across GPUs). --device cuda:4,5,6,7 => 4 workers.
+- 32B/30B or methods under methods/Parameter_Policy (when --device lists GPU pairs): 2 GPUs per worker
+  (same as run_evaluate_parallel). Example: --device cuda:1,2 => one worker on GPUs 1+2.
+- Other baselines: data-parallel (split logs across GPUs). --device cuda:4,5,6,7 => 4 workers.
 
 Usage:
   # Scan default evaluation_results (under scripts/), exclude 'basic', run all incomplete
@@ -31,6 +32,7 @@ import threading
 # Point to scripts directory
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from evaluation.parallel_launch_gpu import PARAMETER_POLICY_LOCAL_METHODS_REQUIRING_DUAL_GPU
 from evaluation.run_mutation_from_log import run_mutation_for_log
 
 # Default base path for local/huggingface models (e.g. /home/test/testdata/models/Qwen3-14B)
@@ -124,6 +126,11 @@ def model_needs_tp2(model_name: str) -> bool:
     if not model_name:
         return False
     return "32b" in model_name.lower() or "30b" in model_name.lower()
+
+
+def _mutation_method_base(method: str | None) -> str:
+    m = method or ""
+    return m[:-3] if str(m).endswith("_CE") else str(m)
 
 
 def build_mutation_argv(
@@ -239,9 +246,9 @@ def run_tp2_workers_parallel(
     args,
 ) -> list[tuple[str, bool, int]]:
     """
-    Run mutation sequences with 2-GPU tensor parallel per worker (for 32B/30B).
+    Run mutation sequences with 2 GPUs per worker (32B/30B vLLM TP2, or SEAL HF model sharding).
     work_chunks: list of ((gpu_a, gpu_b), [(log_path, model_type, model_name, method, model_path), ...])
-    Each subprocess gets CUDA_VISIBLE_DEVICES='a,b' and --device cuda:0,1 so vLLM loads model across 2 GPUs.
+    Each subprocess gets CUDA_VISIBLE_DEVICES='a,b' and --device cuda:0,1.
     Returns: list of (gpu_label, all_ok, last_exit_code).
     """
     results: list[tuple[str, bool, int]] = []
@@ -456,8 +463,20 @@ def main():
             model_path = os.path.normpath(os.path.join(args.local_model_path, model_name))
         work_items.append((log_path, model_type, model_name, method, model_path))
 
-    # Split work: 32B/30B use 2-GPU tensor parallel (TP2); others use data-parallel or sequential
-    tp2_items = [w for w in work_items if w[1] == "local" and model_needs_tp2(w[2])]
+    # Split work: 32B/30B or Parameter_Policy methods use 2 GPUs per worker when --device lists pairs;
+    # Parameter_Policy falls back to single-GPU data-parallel if pairs are unavailable.
+    tp2_items = [
+        w
+        for w in work_items
+        if w[1] == "local"
+        and (
+            model_needs_tp2(w[2])
+            or (
+                _mutation_method_base(w[3]) in PARAMETER_POLICY_LOCAL_METHODS_REQUIRING_DUAL_GPU
+                and can_tp2
+            )
+        )
+    ]
     data_parallel_items = [w for w in work_items if w not in tp2_items]
     scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     failed = list(parse_failed)
@@ -473,7 +492,10 @@ def main():
             tp2_chunks[idx][1].append(item)
         tp2_chunks = [(pair, chunk) for pair, chunk in tp2_chunks if chunk]
         if tp2_chunks:
-            print(f"🔀 32B/30B TP2: {len(gpu_pairs)} worker(s), GPUs per worker: {[f'{a},{b}' for (a, b) in gpu_pairs]}")
+            print(
+                f"🔀 2-GPU workers (32B/30B or seal): {len(gpu_pairs)} worker(s), "
+                f"GPUs per worker: {[f'{a},{b}' for (a, b) in gpu_pairs]}"
+            )
             for (gpu_a, gpu_b), chunk in tp2_chunks:
                 preview = [os.path.basename(os.path.dirname(p[0])) for p in chunk[:3]]
                 extra = f" ... +{len(chunk)-3}" if len(chunk) > 3 else ""

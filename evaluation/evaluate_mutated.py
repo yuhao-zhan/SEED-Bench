@@ -31,7 +31,13 @@ from evaluation.feedback import format_feedback
 from evaluation.solver_interface import SolverInterface
 from evaluation.verifier import CodeVerifier
 from evaluation.evaluate import TaskEvaluator
-from evaluation.utils import get_model_identifier, load_log_file, is_cuda_oom, get_max_steps_for_task
+from evaluation.utils import (
+    get_model_identifier,
+    load_log_file,
+    is_cuda_oom,
+    get_max_steps_for_task,
+    load_task_stages_module,
+)
 
 
 def find_latest_log_file(task_name: str, model_type: str, model_name: str, method: str,
@@ -69,8 +75,7 @@ def find_latest_log_file(task_name: str, model_type: str, model_name: str, metho
 
 def get_mutation_sequence(base_task_name: str) -> List[str]:
     from evaluation.prompt import parse_task_name
-    import importlib.util
-    
+
     # Parse task name to get file system path
     task_path, module_path = parse_task_name(base_task_name)
     
@@ -82,11 +87,8 @@ def get_mutation_sequence(base_task_name: str) -> List[str]:
     stages_file = os.path.join(task_dir, 'stages.py')
     if os.path.exists(stages_file):
         try:
-            # Load stages module
-            spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-            stages_mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(stages_mod)
-            
+            stages_mod = load_task_stages_module(stages_file)
+
             # Find curriculum stages function (look for functions containing 'curriculum_stages' in name)
             curriculum_func = None
             for name in dir(stages_mod):
@@ -626,15 +628,12 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
         ce_env_overrides: Dict[str, Any] = {}
         if mutated_task_name.startswith("Stage-"):
             from evaluation.prompt import parse_task_name
-            import importlib.util
             task_path, _ = parse_task_name(base_task_name)
             task_dir = os.path.join(script_dir, 'tasks', task_path)
             stages_file = os.path.join(task_dir, 'stages.py')
             if os.path.exists(stages_file):
                 try:
-                    spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-                    stages_mod = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(stages_mod)
+                    stages_mod = load_task_stages_module(stages_file)
                     curriculum_func = next(
                         (getattr(stages_mod, n) for n in dir(stages_mod)
                          if 'curriculum_stages' in n.lower() and callable(getattr(stages_mod, n))),
@@ -657,6 +656,7 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
             model_name=model_name,
             context=context,
             max_steps=max_steps,
+            max_iterations=max_iterations,
             scripts_dir=script_dir,
             initial_code=previous_successful_code,
             api_base=os.environ.get('API_BASE'),
@@ -679,15 +679,12 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
         ae_env_overrides: Dict[str, Any] = {}
         if mutated_task_name.startswith("Stage-"):
             from evaluation.prompt import parse_task_name
-            import importlib.util
             task_path, _ = parse_task_name(base_task_name)
             task_dir = os.path.join(script_dir, 'tasks', task_path)
             stages_file = os.path.join(task_dir, 'stages.py')
             if os.path.exists(stages_file):
                 try:
-                    spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-                    stages_mod = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(stages_mod)
+                    stages_mod = load_task_stages_module(stages_file)
                     curriculum_func = next(
                         (getattr(stages_mod, n) for n in dir(stages_mod)
                          if 'curriculum_stages' in n.lower() and callable(getattr(stages_mod, n))),
@@ -725,6 +722,11 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
 
     # ThetaEvolve: run ThetaEvolve for mutated task with base best_code as initial (env mutation only)
     if method == 'theta_evolve':
+        if solver_override is not None:
+            _c = getattr(solver_override, "cleanup", None)
+            if callable(_c):
+                print("[theta_evolve] Releasing shared vLLM before ThetaEvolve (Megatron+SGLang need VRAM)...")
+                _c()
         from methods.Parameter_Policy.theta_evolve import run_single_task as theta_evolve_run_single_task
         from evaluation.utils import get_evaluation_results_dir, get_gif_base_dir
         script_dir = os.path.dirname(os.path.dirname(__file__))
@@ -732,15 +734,12 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
         te_env_overrides: Dict[str, Any] = {}
         if mutated_task_name.startswith("Stage-"):
             from evaluation.prompt import parse_task_name
-            import importlib.util
             task_path, _ = parse_task_name(base_task_name)
             task_dir = os.path.join(script_dir, 'tasks', task_path)
             stages_file = os.path.join(task_dir, 'stages.py')
             if os.path.exists(stages_file):
                 try:
-                    spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-                    stages_mod = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(stages_mod)
+                    stages_mod = load_task_stages_module(stages_file)
                     curriculum_func = next(
                         (getattr(stages_mod, n) for n in dir(stages_mod)
                          if 'curriculum_stages' in n.lower() and callable(getattr(stages_mod, n))),
@@ -791,20 +790,16 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
         
         # Parse task name to get file system path
         from evaluation.prompt import parse_task_name
-        import importlib.util
-        
+
         task_path, _ = parse_task_name(base_task_name)
         script_dir = os.path.dirname(os.path.dirname(__file__))
         task_dir = os.path.join(script_dir, 'tasks', task_path)
         stages_file = os.path.join(task_dir, 'stages.py')
-        
+
         if os.path.exists(stages_file):
             try:
-                # Load stages module
-                spec = importlib.util.spec_from_file_location("task_stages", stages_file)
-                stages_mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(stages_mod)
-                
+                stages_mod = load_task_stages_module(stages_file)
+
                 # Find curriculum stages function
                 curriculum_func = None
                 for name in dir(stages_mod):
@@ -866,26 +861,33 @@ def evaluate_single_mutation(base_task_name: str, mutated_task_name: str, previo
                     if update_criteria_func:
                         # Update success criteria with visible changes explicitly marked
                         try:
-                            sig = inspect.signature(update_criteria_func)
-                            if len(sig.parameters) >= 5:
-                                updated_criteria = update_criteria_func(
-                                    base_success_criteria, terrain_config, base_terrain_config,
-                                    physics_config, base_physics_config,
-                                )
-                            else:
+                            updated_criteria = update_criteria_func(
+                                base_success_criteria, terrain_config, base_terrain_config, stage=stage
+                            )
+                        except TypeError:
+                            try:
+                                sig = inspect.signature(update_criteria_func)
+                                if len(sig.parameters) >= 5:
+                                    updated_criteria = update_criteria_func(
+                                        base_success_criteria, terrain_config, base_terrain_config,
+                                        physics_config, base_physics_config,
+                                    )
+                                else:
+                                    updated_criteria = update_criteria_func(base_success_criteria, terrain_config, base_terrain_config)
+                            except Exception:
                                 updated_criteria = update_criteria_func(base_success_criteria, terrain_config, base_terrain_config)
                         except Exception:
                             updated_criteria = update_criteria_func(base_success_criteria, terrain_config, base_terrain_config)
                     else:
                         updated_criteria = base_success_criteria
                     
-                    # Append environmental warning suffix
-                    task_prompt_override["task_description"] = (
-                        updated_description
-                        + "\n"
-                        + (stage.get("task_description_suffix", "") or "")
-                    )
+                    task_prompt_override["task_description"] = updated_description
                     task_prompt_override["success_criteria"] = updated_criteria
+                    _suf = stage.get("task_description_suffix", "") or ""
+                    if _suf:
+                        task_prompt_override["prompt_trailer"] = _suf
+                    else:
+                        task_prompt_override.pop("prompt_trailer", None)
             except Exception as e:
                 print(f"⚠️  Failed to load stage config for {mutated_task_name}: {e}")
                 import traceback

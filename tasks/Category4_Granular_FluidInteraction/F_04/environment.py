@@ -1,6 +1,8 @@
 """
 F-04: The Filter task environment module (feedback-driven variant)
-Three-way separation: small / medium / large. Zone boundaries and particle sizes must be inferred from feedback.
+Three-way separation: small / medium / large. Zone boundaries and nominal/clamped radii are stated in the
+task prompt; classification purity divides by active particle bodies currently in the simulation (delayed waves
+increase the denominator when they spawn). Evaluator success is purity + structural integrity; contamination flags are diagnostic.
 """
 import Box2D
 from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody, weldJoint)
@@ -9,7 +11,10 @@ import random
 
 
 class Sandbox:
-    """Sandbox for F-04: Three-way Filter (small/medium/large; two-layer sieve; zero contamination)"""
+    """Sandbox for F-04: Three-way Filter (small/medium/large; sieve bands; scored on classification purity and intact structure)."""
+
+    # Default step cap for runners (`main.TaskRunner` uses getattr(environment, "MAX_STEPS", 10000)).
+    MAX_STEPS = 10000
 
     def __init__(self, *, terrain_config=None, physics_config=None):
         terrain_config = terrain_config or {}
@@ -43,17 +48,17 @@ class Sandbox:
         # Three zones (documented in task prompt): small y < 1.92, medium 1.92 <= y < 2.52, large y >= 2.52
         self.FEED_X_MIN = float(terrain_config.get("feed_x_min", 5.2))
         self.FEED_X_MAX = float(terrain_config.get("feed_x_max", 6.9))
-        self.FEED_Y_MIN = 3.0
-        self.FEED_Y_MAX = 5.0
+        self.FEED_Y_MIN = float(terrain_config.get("feed_y_min", 3.0))
+        self.FEED_Y_MAX = float(terrain_config.get("feed_y_max", 5.0))
         self.SMALL_ZONE_Y_MAX = 1.92
         self.MEDIUM_ZONE_Y_MIN = 1.92
         self.MEDIUM_ZONE_Y_MAX = 2.52
         self.LARGE_ZONE_Y_MIN = 2.52
         # Tighter build zone (must fit two horizontal layers; spans feed width)
-        self.BUILD_ZONE_X_MIN = float(terrain_config.get("build_x_min", 5.22))
-        self.BUILD_ZONE_X_MAX = float(terrain_config.get("build_x_max", 6.88))
+        self.BUILD_ZONE_X_MIN = float(terrain_config.get("build_x_min", 5.20))
+        self.BUILD_ZONE_X_MAX = float(terrain_config.get("build_x_max", 6.90))
         self.BUILD_ZONE_Y_MIN = 1.72
-        self.BUILD_ZONE_Y_MAX = 2.38
+        self.BUILD_ZONE_Y_MAX = 2.45
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 75.0))
         self.MAX_BEAMS = int(terrain_config.get("max_beams", 6))
         self.MIN_PURITY = float(terrain_config.get("min_purity", 0.35))
@@ -62,6 +67,9 @@ class Sandbox:
         self.SECOND_WAVE_STEP = int(terrain_config.get("second_wave_step", 1800))
         self.THIRD_WAVE_STEP = int(terrain_config.get("third_wave_step", 3600))
 
+        # Agent-built beams: friction vs particles (mutated tasks may use ultra-low “ice deck” contact)
+        self._beam_fixture_friction = float(terrain_config.get("beam_friction", 0.4))
+
         self._create_terrain(terrain_config)
         self._create_particles(terrain_config)
         self._create_baffles(terrain_config)
@@ -69,7 +77,8 @@ class Sandbox:
 
     def _create_terrain(self, terrain_config: dict):
         """Create floor."""
-        floor_length = 16.0
+        floor_length = float(terrain_config.get("floor_length", 16.0))
+        self.FLOOR_LENGTH = floor_length
         floor_height = 0.3
         floor = self._world.CreateStaticBody(
             position=(floor_length / 2, -floor_height / 2),
@@ -118,7 +127,8 @@ class Sandbox:
         x_max1 = float(sweep_config.get("x_max1", 6.85))
         half_w = float(sweep_config.get("half_width", 0.5))
         half_h = float(sweep_config.get("half_height", 0.05))
-        v1 = float(sweep_config.get("v_sweep1", 0.09))
+        speed_scale = float(sweep_config.get("speed_scale", 1.0))
+        v1 = float(sweep_config.get("v_sweep1", 0.09)) * speed_scale
         body1 = self._world.CreateDynamicBody(
             position=((x_min1 + x_max1) / 2, y1),
             fixtures=Box2D.b2FixtureDef(
@@ -137,7 +147,7 @@ class Sandbox:
             y2 = float(sweep_config.get("y2", 4.5))
             x_min2 = float(sweep_config.get("x_min2", 5.3))
             x_max2 = float(sweep_config.get("x_max2", 6.8))
-            v2 = -float(sweep_config.get("v_sweep2", 0.05))
+            v2 = -float(sweep_config.get("v_sweep2", 0.05)) * speed_scale
             body2 = self._world.CreateDynamicBody(
                 position=((x_min2 + x_max2) / 2, y2),
                 fixtures=Box2D.b2FixtureDef(
@@ -283,7 +293,8 @@ class Sandbox:
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(width / 2, height / 2)),
                 density=density,
-                friction=0.4,
+                friction=self._beam_fixture_friction,
+                restitution=0.1,
             ),
         )
         body.linearDamping = self._default_linear_damping
@@ -300,8 +311,8 @@ class Sandbox:
             angle=angle,
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(width / 2, height / 2)),
-                friction=0.4,
-                restitution=0.05,
+                friction=self._beam_fixture_friction,
+                restitution=0.1,
             ),
         )
         body.design_mass = width * height * density
@@ -343,18 +354,14 @@ class Sandbox:
             body.ApplyForceToCenter(force, wake=True)
 
     def step(self, time_step):
-        """Wind+gust; move both sweepers; spawn second wave; block large from passing sieve band; step world."""
+        """Apply wind and gusts, advance sweepers, spawn second/third particle waves when due, then step the physics world."""
         phase = 2 * math.pi * self._step_count / max(1, self.WIND_PERIOD_STEPS)
         fx_wind = self.WIND_AMPLITUDE * math.sin(phase)
         if self._step_count % self.GUST_PERIOD_STEPS == 0 and self._step_count > 0:
             fx_wind += self.GUST_AMPLITUDE * (1.0 if (self._step_count // self.GUST_PERIOD_STEPS) % 2 == 0 else -1.0)
-        # Position-dependent wind: strength varies with particle x (undocumented; agent infers from asymmetric results)
         for p in self._particles_small + self._particles_medium + self._particles_large:
             if p.active:
-                wx = p.position.x
-                wind_scale = 1.0 + 0.15 * math.sin(2 * math.pi * (wx - 5.5) / 2.0)
-                fx = fx_wind * max(0.7, wind_scale)
-                p.ApplyForceToCenter((fx, 0), wake=True)
+                p.ApplyForceToCenter((fx_wind, 0), wake=True)
         for key in ("sweeper1", "sweeper2"):
             sweeper = self._terrain_bodies.get(key)
             if sweeper is not None and hasattr(sweeper, "userData") and sweeper.userData:
@@ -444,7 +451,13 @@ class Sandbox:
         return self._initial_large_count
 
     def get_initial_particle_count(self):
+        """Planned total particle bodies after all scheduled waves have spawned (not mid-episode count)."""
         return self._initial_small_count + self._initial_medium_count + self._initial_large_count
+
+    def get_spawned_particle_count(self):
+        """Active particle bodies in the three lists (increases as delayed waves spawn; excludes inactive/destroyed)."""
+        parts = self._particles_small + self._particles_medium + self._particles_large
+        return sum(1 for p in parts if p is not None and p.active)
 
     def get_small_in_small_zone_count(self):
         return sum(1 for p in self._particles_small if p.active and p.position.y < self.SMALL_ZONE_Y_MAX)
@@ -485,8 +498,8 @@ class Sandbox:
                    and self.SMALL_ZONE_Y_MAX <= p.position.y < self.LARGE_ZONE_Y_MIN)
 
     def get_classification_purity(self):
-        """Purity = (small in small + medium in medium + large in large) / total initial."""
-        total = self.get_initial_particle_count()
+        """Purity = (small in small + medium in medium + large in large) / active particle body count."""
+        total = self.get_spawned_particle_count()
         if total == 0:
             return 1.0
         correct = (self.get_small_in_small_zone_count() +
@@ -495,8 +508,24 @@ class Sandbox:
         return correct / total
 
     def has_contamination(self):
-        """Zero tolerance: any cross-zone placement fails."""
-        return (self.get_large_in_small_zone_count() > 0 or
-                self.get_small_in_large_zone_count() > 0 or
-                self.get_medium_in_small_zone_count() > 0 or
-                self.get_medium_in_large_zone_count() > 0)
+        """
+        True if any particle below the feed volume (y < FEED_Y_MIN) lies in a wrong target zone.
+        Used for metrics and feedback only; the evaluator success gate is purity and structure integrity,
+        not this flag alone. Particles with y >= FEED_Y_MIN are treated as in transit, not contamination.
+        """
+        y_lim = self.FEED_Y_MIN
+
+        def below_feed(p):
+            return p.active and p.position.y < y_lim
+
+        if any(below_feed(p) and p.position.y < self.SMALL_ZONE_Y_MAX for p in self._particles_large):
+            return True
+        if any(below_feed(p) and p.position.y >= self.LARGE_ZONE_Y_MIN for p in self._particles_small):
+            return True
+        if any(
+            below_feed(p)
+            and (p.position.y < self.MEDIUM_ZONE_Y_MIN or p.position.y >= self.MEDIUM_ZONE_Y_MAX)
+            for p in self._particles_medium
+        ):
+            return True
+        return False

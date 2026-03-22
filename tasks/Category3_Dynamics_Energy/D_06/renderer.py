@@ -5,7 +5,6 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
 from common.renderer import Renderer
-from Box2D.b2 import dynamicBody, staticBody
 
 
 class D06Renderer(Renderer):
@@ -37,17 +36,11 @@ class D06Renderer(Renderer):
         AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
         AGENT_OUTLINE = (26, 125, 30)    # Darker Green
 
-        # Draw all bodies
-        ball_keys = ["ball", "ball2", "ball3", "ball4", "ball5", "ball6", "ball7"]
-        balls = [sandbox._terrain_bodies.get(k) for k in ball_keys]
-        
+        # Draw all bodies (terrain/deflector/balls live in _terrain_bodies; agent beams are other dynamics)
         for body in sandbox.world.bodies:
-            is_environment = False
-            if hasattr(sandbox, "_terrain_bodies") and body in sandbox._terrain_bodies.values():
-                is_environment = True
-            elif body in balls:
-                is_environment = True
-            
+            is_environment = bool(
+                hasattr(sandbox, "_terrain_bodies") and body in sandbox._terrain_bodies.values()
+            )
             if is_environment:
                 self.draw_body(body,
                              dynamic_color=ENV_COLOR,

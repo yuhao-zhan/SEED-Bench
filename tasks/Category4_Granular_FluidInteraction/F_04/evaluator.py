@@ -1,11 +1,17 @@
 """
 F-04: The Filter task evaluation module (feedback-driven variant)
 Three-way separation: small / medium / large. Zone boundaries and constraints are stated in the task prompt.
-Failure: purity < MIN_PURITY, structure broken.
+Failure: purity < MIN_PURITY, structure broken, or design constraints violated. Contamination below the feed is reported in metrics but does not override the purity gate. Purity divides by active particle body count (delayed waves increase the denominator when they appear).
 """
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+from Box2D.b2 import staticBody
+
+
+def _f04_fmt_m(x: float) -> str:
+    s = f"{float(x):.4f}".rstrip("0").rstrip(".")
+    return s if s else "0"
 
 
 class Evaluator:
@@ -15,27 +21,30 @@ class Evaluator:
     """
 
     def __init__(self, terrain_bounds, environment=None):
+        # terrain_bounds: passed by TaskRunner for metadata / get_task_description; scoring uses environment attrs.
         self.terrain_bounds = terrain_bounds
         self.environment = environment
         self.initial_joint_count = 0
         self.structure_broken = False
         self.design_constraints_checked = False
+        self._initial_structure_pose = {}
+        self._pose_break_detected = False
 
         if not environment:
             raise ValueError("Evaluator requires environment instance")
         env_class = type(environment)
         self.MAX_STRUCTURE_MASS = getattr(environment, 'MAX_STRUCTURE_MASS', getattr(env_class, 'MAX_STRUCTURE_MASS', 75.0))
         self.MAX_BEAMS = getattr(environment, 'MAX_BEAMS', getattr(env_class, 'MAX_BEAMS', 6))
-        self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', getattr(env_class, 'BUILD_ZONE_X_MIN', 5.22))
-        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 6.88))
+        self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', getattr(env_class, 'BUILD_ZONE_X_MIN', 5.20))
+        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', getattr(env_class, 'BUILD_ZONE_X_MAX', 6.90))
         self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', getattr(env_class, 'BUILD_ZONE_Y_MIN', 1.72))
-        self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 2.38))
+        self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', getattr(env_class, 'BUILD_ZONE_Y_MAX', 2.45))
         self.MIN_PURITY = getattr(environment, 'MIN_PURITY', getattr(env_class, 'MIN_PURITY', 0.35))
 
     def evaluate(self, agent_body, step_count, max_steps):
         """
         Evaluate three-way filter. Returns: (done, score, metrics).
-        Zero contamination: any large-in-small, small-in-large, or medium in wrong zone => fail.
+        Contamination (below feed) is included in metrics; terminal failure is purity, joint integrity, and design checks.
         """
         if not self.environment:
             return True, 0.0, {"error": "Environment not available"}
@@ -53,10 +62,25 @@ class Evaluator:
                 }
             self.design_constraints_checked = True
             self.initial_joint_count = len(self.environment._joints)
+            self._initial_structure_pose = self._capture_structure_pose()
 
         current_joint_count = len(self.environment._joints)
         if current_joint_count < self.initial_joint_count:
             self.structure_broken = True
+        if self._structure_pose_changed():
+            self.structure_broken = True
+            self._pose_break_detected = True
+
+        # Keep design checks active for the full episode so post-step-0 edits are still enforced.
+        violations = self._check_design_constraints()
+        if violations:
+            return True, 0.0, {
+                "success": False,
+                "failed": True,
+                "failure_reason": "Design constraint violated: " + "; ".join(violations),
+                "step_count": step_count,
+                "constraint_violations": violations,
+            }
 
         done = step_count >= max_steps
         if not done:
@@ -64,7 +88,12 @@ class Evaluator:
             return False, 0.0, metrics
 
         purity = self.environment.get_classification_purity()
-        initial_total = self.environment.get_initial_particle_count()
+        spawned_total = (
+            self.environment.get_spawned_particle_count()
+            if hasattr(self.environment, "get_spawned_particle_count")
+            else self.environment.get_initial_particle_count()
+        )
+        planned_total = self.environment.get_initial_particle_count()
         small_in_small = self.environment.get_small_in_small_zone_count()
         medium_in_medium = self.environment.get_medium_in_medium_zone_count()
         large_in_large = self.environment.get_large_in_large_zone_count()
@@ -79,16 +108,16 @@ class Evaluator:
 
         if self.structure_broken:
             failed = True
-            failure_reason = (failure_reason or "") + ("; " if failure_reason else "") + "Structure integrity lost (joints broke)"
+            detail_parts = []
+            if current_joint_count < self.initial_joint_count:
+                detail_parts.append("joint count decreased")
+            if self._pose_break_detected:
+                detail_parts.append("beam pose drifted from initial build state")
+            detail = "; ".join(detail_parts) if detail_parts else "integrity condition violated"
+            failure_reason = (failure_reason or "") + ("; " if failure_reason else "") + f"Structure integrity lost ({detail})"
 
-        success = (purity >= self.MIN_PURITY and not self.structure_broken and not failed)
-
-        if success:
-            score = 100.0
-        elif failed:
-            score = 0.0
-        else:
-            score = max(0.0, 80.0 * (purity / self.MIN_PURITY))
+        success = purity >= self.MIN_PURITY and not self.structure_broken and not failed
+        score = 100.0 if success else 0.0
 
         metrics = self._collect_metrics(
             step_count,
@@ -96,7 +125,8 @@ class Evaluator:
             failed=failed,
             failure_reason=failure_reason,
             purity=purity,
-            initial_total=initial_total,
+            spawned_total=spawned_total,
+            planned_total=planned_total,
             small_in_small=small_in_small,
             medium_in_medium=medium_in_medium,
             large_in_large=large_in_large,
@@ -105,10 +135,16 @@ class Evaluator:
         return True, score, metrics
 
     def _collect_metrics(self, step_count, success=False, failed=False, failure_reason=None,
-                         purity=None, initial_total=None, small_in_small=None, medium_in_medium=None,
-                         large_in_large=None, contaminated=None):
-        if initial_total is None:
-            initial_total = self.environment.get_initial_particle_count()
+                         purity=None, spawned_total=None, planned_total=None, small_in_small=None,
+                         medium_in_medium=None, large_in_large=None, contaminated=None):
+        if spawned_total is None:
+            spawned_total = (
+                self.environment.get_spawned_particle_count()
+                if hasattr(self.environment, "get_spawned_particle_count")
+                else self.environment.get_initial_particle_count()
+            )
+        if planned_total is None:
+            planned_total = self.environment.get_initial_particle_count()
         if small_in_small is None:
             small_in_small = self.environment.get_small_in_small_zone_count()
         if medium_in_medium is None:
@@ -131,7 +167,8 @@ class Evaluator:
 
         return {
             "step_count": step_count,
-            "initial_particle_count": initial_total,
+            "spawned_particle_count": spawned_total,
+            "planned_total_particle_count": planned_total,
             "small_in_small_zone": small_in_small,
             "medium_in_medium_zone": medium_in_medium,
             "large_in_large_zone": large_in_large,
@@ -157,6 +194,7 @@ class Evaluator:
             "joint_count": len(self.environment._joints),
             "beam_count": len(self.environment._bodies),
             "max_beams": self.MAX_BEAMS,
+            "feed_y_min": float(getattr(self.environment, "FEED_Y_MIN", 3.0)),
         }
 
     def _check_design_constraints(self):
@@ -170,14 +208,65 @@ class Evaluator:
         if structure_mass > self.MAX_STRUCTURE_MASS:
             violations.append(f"Structure mass {structure_mass:.2f} kg exceeds maximum {self.MAX_STRUCTURE_MASS} kg")
         for body in self.environment._bodies:
-            x, y = body.position.x, body.position.y
-            if not (self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX and
-                    self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
+            if body.type != staticBody:
+                violations.append("Structure contains non-static beam(s); all structural beams must be static")
+            ok, vx, vy = self._beam_footprint_inside_build_zone(body)
+            if not ok:
                 violations.append(
-                    f"Beam at ({x:.2f}, {y:.2f}) is outside build zone "
-                    f"x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]"
+                    f"Beam footprint extends outside build zone at world vertex (~{vx:.2f}, {vy:.2f}); "
+                    f"allowed x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], "
+                    f"y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]"
                 )
         return violations
+
+    def _beam_footprint_inside_build_zone(self, body):
+        """Every polygon vertex of agent structure must lie inside the build zone (axis-aligned bounds)."""
+        eps = 1e-4
+        x0, x1 = self.BUILD_ZONE_X_MIN - eps, self.BUILD_ZONE_X_MAX + eps
+        y0, y1 = self.BUILD_ZONE_Y_MIN - eps, self.BUILD_ZONE_Y_MAX + eps
+        saw_vertex = False
+        for fixture in body.fixtures:
+            shape = fixture.shape
+            if not hasattr(shape, "vertices"):
+                continue
+            for vertex in shape.vertices:
+                saw_vertex = True
+                w = body.GetWorldPoint(vertex)
+                if not (x0 <= w.x <= x1 and y0 <= w.y <= y1):
+                    return False, w.x, w.y
+        if not saw_vertex:
+            x, y = body.position.x, body.position.y
+            if not (x0 <= x <= x1 and y0 <= y <= y1):
+                return False, x, y
+        return True, None, None
+
+    def _capture_structure_pose(self):
+        pose = {}
+        for body in self.environment._bodies:
+            pose[id(body)] = (float(body.position.x), float(body.position.y), float(body.angle))
+        return pose
+
+    def _structure_pose_changed(self):
+        """
+        Integrity guard for structures that do not use joints:
+        if any structural body drifts/rotates from the initial built pose, mark as broken.
+        """
+        if not self._initial_structure_pose:
+            return False
+        pos_tol = 1e-3
+        ang_tol = 1e-3
+        for body in self.environment._bodies:
+            key = id(body)
+            if key not in self._initial_structure_pose:
+                return True
+            x0, y0, a0 = self._initial_structure_pose[key]
+            if abs(float(body.position.x) - x0) > pos_tol:
+                return True
+            if abs(float(body.position.y) - y0) > pos_tol:
+                return True
+            if abs(float(body.angle) - a0) > ang_tol:
+                return True
+        return False
 
     def get_task_description(self):
         return {
@@ -186,7 +275,11 @@ class Evaluator:
             "terrain": self.terrain_bounds,
             "success_criteria": {
                 "primary": f"Classification purity >= {self.MIN_PURITY*100:.0f}%",
-                "secondary": "Structure remains intact",
+                "secondary": (
+                    "Structure remains intact (no joint loss and no beam pose drift from initial build state); "
+                    "see metrics for cross-zone counts below the feed "
+                    f"(y < {_f04_fmt_m(float(getattr(self.environment, 'FEED_Y_MIN', 3.0)))} m)"
+                ),
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},
         }

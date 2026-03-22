@@ -6,7 +6,41 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from evaluation.verifier import CodeVerifier
-from tasks.Category4_Granular_FluidInteraction.F_05.stages import get_f05_curriculum_stages
+from tasks.Category4_Granular_FluidInteraction.F_05 import prompt as f05_prompt
+from tasks.Category4_Granular_FluidInteraction.F_05.stages import (
+    get_f05_curriculum_stages,
+    update_success_criteria_for_visible_changes,
+    update_task_description_for_visible_changes,
+)
+
+
+def assert_mutated_prompt_sync(stage: dict) -> None:
+    """
+    Same visible prompt updates as evaluation/evaluate_mutated.py (merged terrain/physics vs empty base).
+    Catches drift between physics overrides and staged prompt strings.
+    """
+    base = f05_prompt.TASK_PROMPT
+    tc = stage.get("terrain_config") or {}
+    pc = stage.get("physics_config") or {}
+    desc = update_task_description_for_visible_changes(
+        base["task_description"], tc, {}, pc, {}
+    )
+    crit = update_success_criteria_for_visible_changes(base["success_criteria"], tc, {})
+    cwy = float(tc.get("cargo_water_y", 1.98))
+    if cwy > 1.98 + 1e-9 and f"{cwy:.2f}" not in crit:
+        raise AssertionError(
+            f"{stage['stage_id']}: cargo_water_y={cwy} not reflected in success_criteria text"
+        )
+    jmf = tc.get("joint_max_force", float("inf"))
+    if jmf is not None and float(jmf) < float("inf"):
+        if "Maximum joint reaction force" not in crit:
+            raise AssertionError(f"{stage['stage_id']}: joint_max_force set but criteria lack weld limit text")
+    mm = float(tc.get("max_structure_mass", 60.0))
+    if mm < 60.0 - 1e-9 and f"{mm:.0f}" not in crit:
+        raise AssertionError(f"{stage['stage_id']}: max_structure_mass={mm} not reflected in criteria")
+    if "**Beam footprint**" not in base["task_description"]:
+        raise AssertionError("Baseline prompt missing beam footprint line (prompt/stages regression)")
+    assert "Build zone" in desc and "Success Criteria" in crit
 
 def read_reference_solution():
     """Read the reference solution from F_05 agent.py"""
@@ -29,7 +63,8 @@ def main():
         stage_id = stage['stage_id']
         title = stage['title']
         print(f"\nTesting {stage_id}: {title}...")
-        
+        assert_mutated_prompt_sync(stage)
+
         env_overrides = {
             "terrain_config": stage.get("terrain_config", {}),
             "physics_config": stage.get("physics_config", {}),
@@ -37,7 +72,7 @@ def main():
 
         verifier = CodeVerifier(
             task_name="Category4_Granular_FluidInteraction/F_05",
-            max_steps=5000, # F-05 usually finishes within 1000-2000 steps
+            max_steps=10000,  # Match prompt.py / standard verifier budget for F-05
             env_overrides=env_overrides
         )
 

@@ -171,6 +171,19 @@ class SolverInterface:
                     break
                 except ValueError as e:
                     err_str = str(e)
+                    # Not enough free VRAM for requested gpu_memory_utilization (other jobs on same GPU)
+                    if "Free memory on device" in err_str and "GPU memory utilization" in err_str:
+                        next_util = round(gpu_mem_util - 0.1, 2)
+                        if next_util < 0.05:
+                            raise RuntimeError(f"Failed to load local model with vLLM: {e}") from e
+                        print(
+                            f"⚠️  Reducing gpu_memory_utilization {gpu_mem_util} -> {next_util} "
+                            f"(insufficient free VRAM on device; free other processes or set VLLM_GPU_MEMORY_UTILIZATION)"
+                        )
+                        gpu_mem_util = next_util
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                        continue
                     # KV cache too small for max_model_len (e.g. 32B on 80G leaves ~4.6 GiB for KV)
                     if "KV cache" in err_str and "maximum model length is" in err_str:
                         import re

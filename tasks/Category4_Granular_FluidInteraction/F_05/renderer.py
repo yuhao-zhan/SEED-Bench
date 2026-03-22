@@ -1,18 +1,23 @@
 """
-F-05: The Boat task rendering module
+F-05: The Boat task rendering module.
+
+The horizontal line at CARGO_WATER_Y marks the loss-plane height used by the evaluator
+(cargo center ever below this y during the episode counts as failure), not an
+instantaneous-only rule. The segment spans the full seabed width [0, 30] m so it matches
+the global loss-plane rule (evaluation does not restrict loss by x).
 """
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from common.renderer import Renderer
-from Box2D.b2 import dynamicBody, staticBody
+from Box2D.b2 import staticBody
 
 
 class F05Renderer(Renderer):
     """F-05: The Boat task specific renderer"""
 
-    def render(self, sandbox, agent_body, target_x, camera_offset_x):
+    def render(self, sandbox, agent_body, _target_x, camera_offset_x):
         # Enforce 16:9 aspect ratio and 1280x720 resolution
         if self.simulator.screen_width != 1280 or self.simulator.screen_height != 720:
             self.simulator.screen_width = 1280
@@ -71,11 +76,15 @@ class F05Renderer(Renderer):
                 outline_width=2,
             )
 
+        cfg = getattr(sandbox, "_terrain_config", None) or {}
+        cargo_cfg = cfg.get("cargo") if isinstance(cfg.get("cargo"), dict) else {}
+        default_cargo_r = float(cargo_cfg.get("radius", 0.15))
+
         if hasattr(sandbox, "_cargo"):
             for c in sandbox._cargo:
                 if c is not None and c.active:
                     cx, cy = c.position.x, c.position.y
-                    r = 0.15
+                    r = default_cargo_r
                     for f in c.fixtures:
                         if hasattr(f.shape, "radius"):
                             r = f.shape.radius
@@ -93,7 +102,8 @@ class F05Renderer(Renderer):
                 )
 
         if hasattr(sandbox, "CARGO_WATER_Y"):
-            self.draw_line(5, sandbox.CARGO_WATER_Y, 25, sandbox.CARGO_WATER_Y, COLOR_ENVIRONMENT, 1)
+            # Match evaluator semantics: loss plane applies for all x (draw across full floor span).
+            self.draw_line(0.0, sandbox.CARGO_WATER_Y, 30.0, sandbox.CARGO_WATER_Y, COLOR_ENVIRONMENT, 1)
 
         if hasattr(sandbox, "BUILD_ZONE_X_MIN"):
             x_min = sandbox.BUILD_ZONE_X_MIN

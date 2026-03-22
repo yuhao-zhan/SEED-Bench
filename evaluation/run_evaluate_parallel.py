@@ -17,6 +17,9 @@ from tqdm import tqdm
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from evaluation.evaluate import get_effective_result_method
+from evaluation.parallel_launch_gpu import parallel_local_use_tp2
+
 import fcntl
 
 def _safe_init_sdl():
@@ -46,6 +49,15 @@ _safe_init_sdl()
 def resolve_task_list(task_spec: str):
     from evaluation.evaluate import resolve_task_list as _resolve
     return _resolve(task_spec)
+
+
+def cuda_visible_to_eval_device(cuda_visible: str) -> str:
+    """Map CUDA_VISIBLE_DEVICES (e.g. 5,7) to evaluate.py --device (cuda:0 or cuda:0,1)."""
+    parts = [p.strip() for p in str(cuda_visible).split(",") if p.strip()]
+    if len(parts) <= 1:
+        return "cuda:0"
+    return "cuda:" + ",".join(str(i) for i in range(len(parts)))
+
 
 import concurrent.futures
 
@@ -88,19 +100,17 @@ def collect_work_items(task_list, model_type, model_name, method, context):
             continue
         try:
             all_envs = get_all_stages(task_name)
-            for i, env_i in enumerate(all_envs):
-                source = env_i["stage_id"]
-                try:
-                    ref_source = get_reference_solution(task_name, source)
-                except: continue
-                for j, env_j in enumerate(all_envs):
-                    if i == j: continue
-                    target = env_j["stage_id"]
-                    
-                    pair_name = f"{source}_to_{target}"
-                    if not run_is_complete(task_name, model_type, model_name, method, context, mutated_task_name=pair_name):
-                        # Do not pass env_j directly to avoid PicklingError with functions
-                        candidates.append((task_name, source, target, ref_source))
+            if not all_envs:
+                continue
+            try:
+                ref_initial = get_reference_solution(task_name, "Initial")
+            except Exception:
+                continue
+            for env_j in all_envs[1:]:
+                source, target = "Initial", env_j["stage_id"]
+                pair_name = f"{source}_to_{target}"
+                if not run_is_complete(task_name, model_type, model_name, method, context, mutated_task_name=pair_name):
+                    candidates.append((task_name, source, target, ref_initial))
         except: pass
 
     if candidates:
@@ -222,14 +232,14 @@ def run_local_workers(gpu_specs, work_chunks, scripts_dir, base_argv, max_iters)
                     "SDL_AUDIODRIVER": "dummy", "PYTHONUNBUFFERED": "1"})
         if "DISPLAY" in env: del env["DISPLAY"]
 
+        device_arg = cuda_visible_to_eval_device(cuda_visible)
         for item in chunk:
             task_name, src, tgt = item
             pair_label = f"{src or 'init'}->{tgt or 'init'}"
             pbar = tqdm(total=max_iters, desc=f"GPU-{gpu_spec} | {task_name[-12:]} | {pair_label}", 
                         position=worker_idx + 1, leave=False)
             
-            # For local models, we use model_name as path
-            cmd = base_argv + ["--task", task_name, "--device", "cuda:0", "--model-path", base_argv[5]]
+            cmd = base_argv + ["--task", task_name, "--device", device_arg]
             if src and tgt: cmd += ["--source-env", src, "--target-env", tgt]
             
             _run_single_task_resilient(cmd, env, task_name, pair_label, pbar, print_lock)
@@ -245,12 +255,25 @@ def run_local_workers(gpu_specs, work_chunks, scripts_dir, base_argv, max_iters)
 
 def run_api_parallel(work_items, args, scripts_dir):
     """Handles API-based (OpenAI/DeepSeek) parallelism"""
+    effective_result_method = get_effective_result_method(args.method, args.granularity)
     evaluate_script = os.path.join(scripts_dir, "evaluation", "evaluate.py")
     base_cmd = [sys.executable, evaluate_script, "--model-type", args.model_type, "--model-name", args.model_name,
-                "--max-iterations", str(args.max_iterations), "--method", args.method, "--context", args.context]
-    if args.api_key: base_cmd += ["--api-key", args.api_key]
-    if getattr(args, "method", None) == "reflexion" and getattr(args, "reflect_model_name", None):
+                "--max-iterations", str(args.max_iterations), "--method", args.method, "--context", args.context,
+                "--granularity", args.granularity, "--result-method", effective_result_method]
+    if args.api_key:
+        base_cmd += ["--api-key", args.api_key]
+    if getattr(args, "model_path", None):
+        base_cmd += ["--model-path", args.model_path]
+    base_method = args.method[:-3] if args.method.endswith("_CE") else args.method
+    if base_method == "genome" and getattr(args, "genome_best_lora_path", None):
+        base_cmd += ["--genome-best-lora-path", args.genome_best_lora_path]
+    if base_method == "reflexion" and getattr(args, "reflect_model_name", None):
         base_cmd += ["--reflect-model-name", args.reflect_model_name]
+    if base_method == "theta_evolve":
+        base_cmd += [
+            "--theta-evolve-num-rollout", str(getattr(args, "theta_evolve_num_rollout", 10000)),
+            "--theta-evolve-rollout-batch-size", str(getattr(args, "theta_evolve_rollout_batch_size", 32)),
+        ]
     
     max_workers = min(len(work_items), args.api_parallel)
     stop_event = threading.Event()
@@ -294,11 +317,30 @@ def main():
     parser.add_argument("--task", type=str, required=True)
     parser.add_argument("--model-type", type=str, default="openai", choices=["openai", "local", "mock"])
     parser.add_argument("--model-name", type=str, required=True)
-    parser.add_argument("--num-workers", type=int, default=8, help="Number of GPU workers")
-    parser.add_argument("--gpus", type=str, default=None, help="Comma-separated GPU IDs")
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=8,
+        help="Parallel worker count. For local Parameter_Policy methods (see scripts/methods/Parameter_Policy/), "
+        "32B/30B, or --tensor-parallel-2: pass exactly 2× this many IDs in --gpus (e.g. --num-workers 1 --gpus 0,1).",
+    )
+    parser.add_argument(
+        "--gpus",
+        type=str,
+        default=None,
+        help="Comma-separated GPU IDs. One GPU per worker for non–Parameter-Policy baselines. For local "
+        "Parameter_Policy runs or 32B/30B: exactly 2× --num-workers IDs, consecutive pairs per worker "
+        "(e.g. --num-workers 2 --gpus 0,1,2,3). If omitted in 2-GPU mode, uses 0..2*num_workers-1.",
+    )
     parser.add_argument("--api-parallel", type=int, default=16, help="API Parallelism")
     parser.add_argument("--max-iterations", type=int, default=20)
     parser.add_argument("--method", type=str, default="baseline")
+    parser.add_argument(
+        "--granularity",
+        type=str,
+        default="outcome-based",
+        help="Feedback granularity: outcome-based (default) or process_n (e.g., process_3, process_5).",
+    )
     parser.add_argument("--context", type=str, default="all")
     parser.add_argument("--api-key", type=str, default=None)
     parser.add_argument("--save-gif", action="store_true", default=True)
@@ -313,12 +355,26 @@ def main():
                         help="GENOME: path to Phase 1 best LoRA. Passed to workers when --method genome.")
     parser.add_argument("--reflect-model-name", type=str, default="deepseek-v3.2", dest="reflect_model_name",
                         help="Reflexion: reflection LLM model name (API). Passed to workers when --method reflexion. Default: deepseek-v3.2.")
+    parser.add_argument("--model-path", type=str, default=None, dest="model_path",
+                        help="Local HF checkpoint dir for workers (default: same as --model-name).")
+    parser.add_argument("--tensor-parallel-2", action="store_true", dest="tensor_parallel_2",
+                        help="Force 2 GPUs per worker (vLLM TP=2), same as auto-detect for 32B/30B.")
+    parser.add_argument("--theta-evolve-num-rollout", type=int, default=10000, dest="theta_evolve_num_rollout",
+                        help="ThetaEvolve: passed to evaluate.py subprocesses.")
+    parser.add_argument("--theta-evolve-rollout-batch-size", type=int, default=32, dest="theta_evolve_rollout_batch_size")
 
     args = parser.parse_args()
+    g = (args.granularity or "outcome-based").strip().lower()
+    if g != "outcome-based":
+        m = re.fullmatch(r"process_(\d+)", g)
+        if not m or int(m.group(1)) <= 0:
+            raise ValueError(f"Invalid --granularity: {args.granularity}. Use outcome-based or process_n (n>=1).")
+    args.granularity = g
+    effective_result_method = get_effective_result_method(args.method, args.granularity)
     if args.method.endswith('_CE'):
         print(f"📡 Change Exposed (CE) Mode detected for method: {args.method[:-3]}")
     task_list = resolve_task_list(args.task)
-    work_items = collect_work_items(task_list, args.model_type, args.model_name, args.method, args.context)
+    work_items = collect_work_items(task_list, args.model_type, args.model_name, effective_result_method, args.context)
     if not work_items: print("✅ All runs complete."); return 0
 
     # Optional filter by Qwen3-8B baseline success (skip / only / none)
@@ -374,30 +430,62 @@ def main():
     scripts_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     if args.model_type == "local":
-        all_gpus = [x.strip() for x in args.gpus.split(",")] if args.gpus else [str(i) for i in range(args.num_workers)]
-        num_workers = args.num_workers
-        
-        # Group GPUs for each worker
-        gpu_groups = []
-        gpus_per_worker = max(1, len(all_gpus) // num_workers)
-        for i in range(num_workers):
-            start = i * gpus_per_worker
-            # Last worker gets all remaining GPUs to ensure none are left out
-            end = (i + 1) * gpus_per_worker if i < num_workers - 1 else len(all_gpus)
-            if start < len(all_gpus):
-                gpu_groups.append(",".join(all_gpus[start:end]))
-        
-        # Adjust num_workers if we have fewer groups than requested
-        num_workers = len(gpu_groups)
+        base_method = args.method[:-3] if args.method.endswith("_CE") else args.method
+        use_tp2 = parallel_local_use_tp2(args, base_method)
+
+        if use_tp2:
+            # 2 GPUs per worker; --gpus must list exactly 2 × --num-workers IDs (pairs are consecutive).
+            need = 2 * args.num_workers
+            if args.gpus:
+                all_gpus = [x.strip() for x in args.gpus.split(",") if x.strip()]
+            else:
+                all_gpus = [str(i) for i in range(need)]
+            if len(all_gpus) != need:
+                print(
+                    f"❌ 2-GPU-per-worker mode (Parameter_Policy local methods, 32B/30B, or --tensor-parallel-2): "
+                    f"expected exactly {need} GPU id(s) (2 × --num-workers={args.num_workers}), "
+                    f"got {len(all_gpus)}.\n"
+                    f"   Example: --num-workers 1 --gpus 0,1  → one worker uses physical GPUs 0 and 1 together."
+                )
+                return 1
+            num_workers = args.num_workers
+            gpu_groups = [f"{all_gpus[2 * i]},{all_gpus[2 * i + 1]}" for i in range(num_workers)]
+        else:
+            all_gpus = [x.strip() for x in args.gpus.split(",")] if args.gpus else [str(i) for i in range(args.num_workers)]
+            num_workers = args.num_workers
+            gpu_groups = []
+            gpus_per_worker = max(1, len(all_gpus) // num_workers)
+            for i in range(num_workers):
+                start = i * gpus_per_worker
+                end = (i + 1) * gpus_per_worker if i < num_workers - 1 else len(all_gpus)
+                if start < len(all_gpus):
+                    gpu_groups.append(",".join(all_gpus[start:end]))
+            num_workers = len(gpu_groups)
+
         work_chunks = [work_items[i::num_workers] for i in range(num_workers)]
-        # We pass model_name as both name and path for simplicity in local mode
-        base_argv = [sys.executable, os.path.join(scripts_dir, "evaluation", "evaluate.py"), 
-                     "--model-type", "local", "--model-name", args.model_name, 
-                     "--max-iterations", str(args.max_iterations), "--method", args.method, "--context", args.context]
-        if getattr(args, "method", None) == "genome" and getattr(args, "genome_best_lora_path", None):
+        base_argv = [
+            sys.executable,
+            os.path.join(scripts_dir, "evaluation", "evaluate.py"),
+            "--model-type", "local",
+            "--model-name", args.model_name,
+            "--max-iterations", str(args.max_iterations),
+            "--method", args.method,
+            "--context", args.context,
+            "--granularity", args.granularity,
+            "--result-method", effective_result_method,
+            "--model-path", getattr(args, "model_path", None) or args.model_name,
+        ]
+        if base_method == "genome" and getattr(args, "genome_best_lora_path", None):
             base_argv += ["--genome-best-lora-path", args.genome_best_lora_path]
-        if getattr(args, "method", None) == "reflexion" and getattr(args, "reflect_model_name", None):
+        if base_method == "reflexion" and getattr(args, "reflect_model_name", None):
             base_argv += ["--reflect-model-name", args.reflect_model_name]
+        if base_method == "theta_evolve":
+            base_argv += [
+                "--theta-evolve-num-rollout", str(getattr(args, "theta_evolve_num_rollout", 10000)),
+                "--theta-evolve-rollout-batch-size", str(getattr(args, "theta_evolve_rollout_batch_size", 32)),
+            ]
+        tp2_label = " [2 GPUs per worker: Parameter_Policy / 32B–30B / --tensor-parallel-2]" if use_tp2 else ""
+        print(f"🔀 Local workers: {num_workers}, GPU groups: {gpu_groups}{tp2_label}")
         run_local_workers(gpu_groups, work_chunks, scripts_dir, base_argv, args.max_iterations)
     else:
         run_api_parallel(work_items, args, scripts_dir)

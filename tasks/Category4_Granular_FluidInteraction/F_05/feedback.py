@@ -71,29 +71,54 @@ def format_task_metrics(metrics: Dict[str, Any]) -> str:
     cargo_water_y = metrics.get("cargo_water_y")
 
     if initial is not None:
-        ratio_val = _safe_float(ratio, 0.0)
-        lines.append(
-            f"- **Cargo Security Index**: {retained if retained is not None else (initial - lost)}/{initial} particles "
-            f"({ratio_val * 100:.1f}%)"
-        )
+        ever = metrics.get("cargo_ever_below_loss_plane")
+        if ever:
+            lines.append(
+                f"- **Cargo Security Index**: Retention rule violated (a particle center ever fell below the loss plane). "
+                f"Particles below plane at episode end: {lost}/{initial}."
+            )
+        else:
+            ratio_val = _safe_float(ratio, 0.0)
+            lines.append(
+                f"- **Cargo Security Index**: {retained if retained is not None else (initial - lost)}/{initial} particles "
+                f"({ratio_val * 100:.1f}%)"
+            )
     if cargo_water_y is not None:
-        lines.append(f"- **Cargo-in-Water Threshold**: Particles below y = {cargo_water_y:.2f} m are counted as lost.")
+        ever = metrics.get("cargo_ever_below_loss_plane")
+        surface_y = metrics.get("water_surface_y")
+        surface_note = (
+            f"y = {float(surface_y):.2f} m in the task description"
+            if surface_y is not None
+            else "the nominal free surface height in the task description"
+        )
+        thresh = (
+            f"- **Cargo loss plane**: Particle centers below y = {cargo_water_y:.2f} m violate evaluator retention "
+            f"(this threshold is not the same as the nominal free surface at {surface_note})."
+        )
+        if ever is not None:
+            thresh += f" **Ever violated**: {bool(ever)}."
+        lines.append(thresh)
 
     # ---- 2. Vessel stability (only if present; limit from metrics) ----
+    boat_peak_deg = metrics.get("boat_peak_angle_deg")
     boat_angle_deg = metrics.get("boat_angle_deg")
     boat_max_angle_deg = metrics.get("boat_max_angle_deg")
-    if boat_angle_deg is not None or boat_max_angle_deg is not None:
-        angle_val = _safe_float(boat_angle_deg, 0.0)
+    if boat_peak_deg is not None or boat_angle_deg is not None or boat_max_angle_deg is not None:
+        peak_val = _safe_float(boat_peak_deg, _safe_float(boat_angle_deg, 0.0))
+        final_val = _safe_float(boat_angle_deg, 0.0)
         max_angle_val = _safe_float_or_none(boat_max_angle_deg)
         if max_angle_val is not None:
-            margin = max_angle_val - abs(angle_val)
+            margin = max_angle_val - abs(peak_val)
             lines.append(
-                f"- **Vessel Roll State**: Peak angle {angle_val:.1f}° | "
+                f"- **Vessel Roll State**: Peak |angle| {peak_val:.1f}° | "
+                f"final |angle| {final_val:.1f}° | "
                 f"Limit {max_angle_val:.1f}° | "
                 f"Stability margin {margin:.1f}°"
             )
         else:
-            lines.append(f"- **Vessel Roll State**: Peak angle {angle_val:.1f}°")
+            lines.append(
+                f"- **Vessel Roll State**: Peak |angle| {peak_val:.1f}° | final |angle| {final_val:.1f}°"
+            )
 
     # ---- 3. Structural integrity (only if present) ----
     structure_broken = metrics.get("structure_broken", False)
@@ -124,7 +149,8 @@ def format_task_metrics(metrics: Dict[str, Any]) -> str:
     by_max = metrics.get("build_zone_y_max")
     if bx_min is not None and bx_max is not None and by_min is not None and by_max is not None:
         lines.append(
-            f"- **Build Zone (anchor validity)**: x ∈ [{bx_min:.1f}, {bx_max:.1f}], y ∈ [{by_min:.1f}, {by_max:.1f}]"
+            f"- **Build Zone (beam centers; hull weld anchors)**: "
+            f"x ∈ [{bx_min:.1f}, {bx_max:.1f}], y ∈ [{by_min:.1f}, {by_max:.1f}]"
         )
 
     boat_x = metrics.get("boat_x")
@@ -156,18 +182,20 @@ def get_improvement_suggestions(metrics: Dict[str, Any], success: bool) -> List[
         return ["Structural design and mass distribution are consistent with the current environmental constraints."]
 
     suggestions: List[str] = []
-    angle = abs(_safe_float(metrics.get("boat_angle_deg"), 0.0))
+    peak = metrics.get("boat_peak_angle_deg")
+    angle = abs(_safe_float(peak if peak is not None else metrics.get("boat_angle_deg"), 0.0))
     max_angle = _safe_float(metrics.get("boat_max_angle_deg"), float("inf"))
     cargo_in_water = metrics.get("cargo_in_water", 0) or 0
+    cargo_ever = bool(metrics.get("cargo_ever_below_loss_plane", False))
     structure_broken = metrics.get("structure_broken", False)
     constraint_violations = metrics.get("constraint_violations") or []
 
     # ---- 1. Cargo retention (fluid/granular) ----
-    if cargo_in_water > 0:
+    if cargo_ever or cargo_in_water > 0:
         suggestions.append(
-            "Cargo particles have left the vessel. Kinetic energy transfer from vessel motion is exceeding "
-            "the retention capacity of the current containment; the physical mechanism is loss of constraint "
-            "before particles are fully retained."
+            "Cargo particles have left the vessel or crossed the loss plane during the episode. Kinetic energy "
+            "transfer from vessel motion is exceeding the retention capacity of the current containment; the "
+            "physical mechanism is loss of constraint before particles are fully retained."
         )
 
     # ---- 2. Stability / capsize (dynamics) ----
@@ -189,7 +217,7 @@ def get_improvement_suggestions(metrics: Dict[str, Any], success: bool) -> List[
     # ---- 4. Root-cause chain (multiple failures) ----
     has_constraint_violations = bool(constraint_violations)
     failure_modes = sum([
-        cargo_in_water > 0,
+        cargo_ever or cargo_in_water > 0,
         structure_broken,
         (max_angle != float("inf") and angle > max_angle),
         has_constraint_violations,

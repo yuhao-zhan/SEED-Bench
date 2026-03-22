@@ -1,7 +1,7 @@
 """
 D-06: The Catch — ESSENTIAL difficulty (deflector cooperation, ball-ball coupling, order constraint)
 SEVEN balls. Deflector funnels to focal regions (discover via runs). Ball-ball collisions matter.
-Sequential absorption required. Penta forbidden, quad sweeper. Max 9 beams, 10 kg, 880 N.
+Sequential absorption required. Five forbidden x-bands, four sweeper y-bands. Max 9 beams, 10 kg, 880 N peak joints.
 """
 import math
 import Box2D
@@ -23,9 +23,18 @@ class Sandbox:
         self._terrain_config = dict(terrain_config)
         self._physics_config = dict(physics_config)
         gravity = tuple(physics_config.get("gravity", (0, -10)))
+        self._physics_gravity = (float(gravity[0]), float(gravity[1]))
         self._default_linear_damping = float(physics_config.get("linear_damping", 0.0))
         self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
-        self._world = world(gravity=gravity, doSleep=True)
+        self._world = world(gravity=self._physics_gravity, doSleep=True)
+        # Structural / contact tuning (mutated stages may lower friction or raise ball bounce)
+        self._structure_friction = float(terrain_config.get("structure_friction", 0.5))
+        self._ball_restitution = float(terrain_config.get("ball_restitution", 0.06))
+        self._wind_on_structure = bool(terrain_config.get("wind_on_structure", False))
+        self._structure_wind_scale = float(terrain_config.get("structure_wind_scale", 0.12))
+        # Time-varying gravity offset (vertical); amplitude 0 disables
+        self._gravity_pulse_amplitude = float(terrain_config.get("gravity_pulse_amplitude", 0.0))
+        self._ball_velocity_scale = float(terrain_config.get("ball_velocity_scale", 1.0))
         self._bodies = []
         self._joints = []
         self._terrain_bodies = {}
@@ -57,7 +66,7 @@ class Sandbox:
         self.BUILD_ZONE_X_MAX = float(terrain_config.get("build_zone_x_max", 11.0))
         self.BUILD_ZONE_Y_MIN = float(terrain_config.get("build_zone_y_min", 0.5))
         self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 5.5))
-        # DUAL forbidden zones: no beam CENTER in these x ranges (forces split routing)
+        # Five forbidden x-bands: no beam CENTER in these ranges (forces split routing)
         self.FORBIDDEN_ZONE_X_MIN = float(terrain_config.get("forbidden_zone_x_min", 8.5))
         self.FORBIDDEN_ZONE_X_MAX = float(terrain_config.get("forbidden_zone_x_max", 9.5))
         self.FORBIDDEN_ZONE_2_X_MIN = float(terrain_config.get("forbidden_zone_2_x_min", 7.35))
@@ -70,7 +79,7 @@ class Sandbox:
         self.FORBIDDEN_ZONE_5_X_MAX = float(terrain_config.get("forbidden_zone_5_x_max", 7.34))
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 10.0))
         self.MAX_BEAM_COUNT = int(terrain_config.get("max_beam_count", 9))
-        # DOUBLE sweeper bands — three build corridors: bottom y<2.95, middle 3.55<y<4.15, top y>4.75
+        # Four sweeper y-bands (forbidden for beam centers); legal build pockets lie outside these intervals
         self.SWEEPER_BAND_1_Y_MIN = float(terrain_config.get("sweeper_band_1_y_min", 2.95))
         self.SWEEPER_BAND_1_Y_MAX = float(terrain_config.get("sweeper_band_1_y_max", 3.55))
         self.SWEEPER_BAND_2_Y_MIN = float(terrain_config.get("sweeper_band_2_y_min", 4.15))
@@ -82,6 +91,8 @@ class Sandbox:
         self.WIND_AMPLITUDE = float(terrain_config.get("wind_amplitude", 5.0))
         self.GRAVITY_PULSE_PERIOD = float(terrain_config.get("gravity_pulse_period", 1.2))
         self.WIND_PERIOD = float(terrain_config.get("wind_period", 1.8))
+        # Default episode cap for `main.TaskRunner` when `max_steps` is None.
+        self.MAX_STEPS = int(terrain_config.get("max_steps", 10000))
 
     def _create_terrain(self, terrain_config: dict):
         ground_len = 35.0
@@ -125,7 +136,7 @@ class Sandbox:
             self._create_deflector(terrain_config)
 
     def _create_deflector(self, terrain_config: dict):
-        """Kinematic bar in central region; moves over time — motion not documented in prompt."""
+        """Kinematic bar in central region; oscillates vertically each step (see task prompt)."""
         deflector_x = float(terrain_config.get("deflector_x", 8.36))
         deflector_y_center = float(terrain_config.get("deflector_y_center", 3.5))
         deflector_amplitude = float(terrain_config.get("deflector_amplitude", 0.65))
@@ -167,10 +178,10 @@ class Sandbox:
                 shape=circleShape(radius=ball_radius),
                 density=ball_density,
                 friction=0.5,
-                restitution=0.06,
+                restitution=self._ball_restitution,
             ),
         )
-        ball1.linearVelocity = (ball_vx, ball_vy)
+        ball1.linearVelocity = (ball_vx * self._ball_velocity_scale, ball_vy)
         ball1.linearDamping = linear_damp
         ball1.angularDamping = angular_damp
         self._terrain_bodies["ball"] = ball1
@@ -183,14 +194,14 @@ class Sandbox:
                 shape=circleShape(radius=ball_radius),
                 density=ball_density,
                 friction=0.5,
-                restitution=0.06,
+                restitution=self._ball_restitution,
             ),
         )
         ball2.linearVelocity = (0.0, 0.0)
         ball2.linearDamping = linear_damp
         ball2.angularDamping = angular_damp
         self._terrain_bodies["ball2"] = ball2
-        # Ball 3: launched at t=2.0 s from (22, 4.5)
+        # Ball 3: launched at t=third_ball_launch_time (default 1.0 s) from (22, 4.5)
         ball3_x = float(terrain_config.get("ball3_spawn_x", 22.0))
         ball3_y = float(terrain_config.get("ball3_spawn_y", 4.5))
         ball3 = self._world.CreateDynamicBody(
@@ -199,14 +210,14 @@ class Sandbox:
                 shape=circleShape(radius=ball_radius),
                 density=ball_density,
                 friction=0.5,
-                restitution=0.06,
+                restitution=self._ball_restitution,
             ),
         )
         ball3.linearVelocity = (0.0, 0.0)
         ball3.linearDamping = linear_damp
         ball3.angularDamping = angular_damp
         self._terrain_bodies["ball3"] = ball3
-        # Ball 4: launched at t=2.6 s from (22, 3.8) — trajectory through sweeper band
+        # Ball 4: launched at t=fourth_ball_launch_time (default 1.3 s) from (22, 3.8)
         ball4_x = float(terrain_config.get("ball4_spawn_x", 22.0))
         ball4_y = float(terrain_config.get("ball4_spawn_y", 3.8))
         ball4 = self._world.CreateDynamicBody(
@@ -215,14 +226,14 @@ class Sandbox:
                 shape=circleShape(radius=ball_radius),
                 density=ball_density,
                 friction=0.5,
-                restitution=0.06,
+                restitution=self._ball_restitution,
             ),
         )
         ball4.linearVelocity = (0.0, 0.0)
         ball4.linearDamping = linear_damp
         ball4.angularDamping = angular_damp
         self._terrain_bodies["ball4"] = ball4
-        # Ball 5: launched at t=2.0 s from (22, 4.2) - through middle
+        # Ball 5: launched at t=fifth_ball_launch_time (default 1.8 s) from (22, 4.2)
         ball5_x = float(terrain_config.get("ball5_spawn_x", 22.0))
         ball5_y = float(terrain_config.get("ball5_spawn_y", 4.2))
         ball5 = self._world.CreateDynamicBody(
@@ -231,13 +242,14 @@ class Sandbox:
                 shape=circleShape(radius=ball_radius),
                 density=ball_density,
                 friction=0.5,
-                restitution=0.06,
+                restitution=self._ball_restitution,
             ),
         )
         ball5.linearVelocity = (0.0, 0.0)
         ball5.linearDamping = linear_damp
         ball5.angularDamping = angular_damp
         self._terrain_bodies["ball5"] = ball5
+        # Ball 6: launched at t=sixth_ball_launch_time (default 2.2 s) from (22, 3.9)
         ball6_x = float(terrain_config.get("ball6_spawn_x", 22.0))
         ball6_y = float(terrain_config.get("ball6_spawn_y", 3.9))
         ball6 = self._world.CreateDynamicBody(
@@ -246,13 +258,14 @@ class Sandbox:
                 shape=circleShape(radius=ball_radius),
                 density=ball_density,
                 friction=0.5,
-                restitution=0.06,
+                restitution=self._ball_restitution,
             ),
         )
         ball6.linearVelocity = (0.0, 0.0)
         ball6.linearDamping = linear_damp
         ball6.angularDamping = angular_damp
         self._terrain_bodies["ball6"] = ball6
+        # Ball 7: launched at t=seventh_ball_launch_time (default 2.7 s) from (22, 4.1)
         ball7_x = float(terrain_config.get("ball7_spawn_x", 22.0))
         ball7_y = float(terrain_config.get("ball7_spawn_y", 4.1))
         ball7 = self._world.CreateDynamicBody(
@@ -261,7 +274,7 @@ class Sandbox:
                 shape=circleShape(radius=ball_radius),
                 density=ball_density,
                 friction=0.5,
-                restitution=0.06,
+                restitution=self._ball_restitution,
             ),
         )
         ball7.linearVelocity = (0.0, 0.0)
@@ -280,7 +293,7 @@ class Sandbox:
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(width / 2, height / 2)),
                 density=density,
-                friction=0.5,
+                friction=self._structure_friction,
             ),
         )
         body.linearDamping = self._default_linear_damping
@@ -328,7 +341,16 @@ class Sandbox:
     def step(self, time_step):
         self._sim_time += time_step
         self._step_count += 1
-        # Moving deflector: position varies with step — undocumented, must be inferred from runs
+        # Time-modulated gravity (mutated stages): effective weight of all bodies oscillates
+        if self._gravity_pulse_amplitude != 0.0:
+            period = max(self.GRAVITY_PULSE_PERIOD, 0.05)
+            gy = self._physics_gravity[1] + self._gravity_pulse_amplitude * math.sin(
+                2 * math.pi * self._sim_time / period
+            )
+            self._world.gravity = (self._physics_gravity[0], gy)
+        else:
+            self._world.gravity = self._physics_gravity
+        # Moving deflector: vertical position updated each step
         deflector = self._terrain_bodies.get("deflector")
         if deflector is not None and hasattr(self, "_deflector_x"):
             y_def = self._deflector_y_center + self._deflector_amplitude * math.sin(
@@ -345,43 +367,48 @@ class Sandbox:
             ball2 = self._terrain_bodies.get("ball2")
             if ball2 is not None:
                 ball_vy = float(self._terrain_config.get("ball_velocity_y", 0.0))
-                ball2.linearVelocity = (ball2_vx, ball_vy)
+                ball2.linearVelocity = (ball2_vx * self._ball_velocity_scale, ball_vy)
                 self._ball2_launched = True
         if not self._ball3_launched and self._sim_time >= self._third_ball_launch_time:
             ball3 = self._terrain_bodies.get("ball3")
             if ball3 is not None:
                 ball_vy = float(self._terrain_config.get("ball_velocity_y", 0.0))
-                ball3.linearVelocity = (ball3_vx, ball_vy)
+                ball3.linearVelocity = (ball3_vx * self._ball_velocity_scale, ball_vy)
                 self._ball3_launched = True
         ball5_vx = float(self._terrain_config.get("ball5_velocity_x", -25.0))
         if not self._ball4_launched and self._sim_time >= self._fourth_ball_launch_time:
             ball4 = self._terrain_bodies.get("ball4")
             if ball4 is not None:
                 ball_vy = float(self._terrain_config.get("ball_velocity_y", 0.0))
-                ball4.linearVelocity = (ball4_vx, ball_vy)
+                ball4.linearVelocity = (ball4_vx * self._ball_velocity_scale, ball_vy)
                 self._ball4_launched = True
         ball6_vx = float(self._terrain_config.get("ball6_velocity_x", -26.0))
         if not self._ball5_launched and self._sim_time >= self._fifth_ball_launch_time:
             ball5 = self._terrain_bodies.get("ball5")
             if ball5 is not None:
                 ball_vy = float(self._terrain_config.get("ball_velocity_y", 0.0))
-                ball5.linearVelocity = (ball5_vx, ball_vy)
+                ball5.linearVelocity = (ball5_vx * self._ball_velocity_scale, ball_vy)
                 self._ball5_launched = True
         ball7_vx = float(self._terrain_config.get("ball7_velocity_x", -25.0))
         if not self._ball6_launched and self._sim_time >= self._sixth_ball_launch_time:
             ball6 = self._terrain_bodies.get("ball6")
             if ball6 is not None:
                 ball_vy = float(self._terrain_config.get("ball_velocity_y", 0.0))
-                ball6.linearVelocity = (ball6_vx, ball_vy)
+                ball6.linearVelocity = (ball6_vx * self._ball_velocity_scale, ball_vy)
                 self._ball6_launched = True
         if not self._ball7_launched and self._sim_time >= self._seventh_ball_launch_time:
             ball7 = self._terrain_bodies.get("ball7")
             if ball7 is not None:
                 ball_vy = float(self._terrain_config.get("ball_velocity_y", 0.0))
-                ball7.linearVelocity = (ball7_vx, ball_vy)
+                ball7.linearVelocity = (ball7_vx * self._ball_velocity_scale, ball_vy)
                 self._ball7_launched = True
-        # PERIODIC LATERAL WIND (gravity pulses set above)
+        # PERIODIC LATERAL WIND — balls always; catcher beams optionally (hidden coupling)
         wind_fx = self.WIND_AMPLITUDE * math.sin(2 * math.pi * self._sim_time / self.WIND_PERIOD)
+        if self._wind_on_structure:
+            for body in self._bodies:
+                body.ApplyForceToCenter(
+                    (wind_fx * body.mass * self._structure_wind_scale, 0.0), wake=True
+                )
         for key in ("ball", "ball2", "ball3", "ball4", "ball5", "ball6", "ball7"):
             b = self._terrain_bodies.get(key)
             if b is not None:
@@ -398,8 +425,8 @@ class Sandbox:
                     hist.append(mag)
                     if len(hist) > self._joint_force_history_len:
                         hist.pop(0)
-                    # Peak: single step >= 880 N → break
-                    # Fatigue: sustained load > 760 N for 2 consecutive steps → break (undocumented)
+                    # Peak: single step >= max_joint_force → break
+                    # Fatigue: sustained load > joint_fatigue_threshold for 2 consecutive steps → break
                     peak_break = mag >= self._max_joint_force
                     fatigue_break = (
                         len(hist) >= 2
@@ -424,6 +451,7 @@ class Sandbox:
         return {
             "ground_y": self._ground_y,
             "max_joint_force": self._max_joint_force,
+            "joint_fatigue_threshold": self._joint_fatigue_threshold,
             "build_zone": {
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX],

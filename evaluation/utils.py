@@ -1,9 +1,34 @@
 """Utility functions for evaluation scripts"""
 import os
+import sys
 import json
 import glob
 import re
+import importlib.util
 from typing import Optional, Dict, Any, List, Tuple
+
+
+def load_task_stages_module(stages_file: str) -> Any:
+    """
+    Load ``tasks/.../<task>/stages.py`` via importlib.
+
+    Temporarily prepends that task directory to ``sys.path`` so bare imports like
+    ``from environment import ...`` resolve to that task's ``environment.py``.
+    Without this, dynamic loads (e.g. C_02) can pick up another task's module
+    (e.g. C_01/environment.py).
+    """
+    task_dir = os.path.dirname(os.path.abspath(stages_file))
+    sys.path.insert(0, task_dir)
+    try:
+        spec = importlib.util.spec_from_file_location("_davinci_task_stages", stages_file)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load spec for {stages_file}")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    finally:
+        if sys.path and sys.path[0] == task_dir:
+            sys.path.pop(0)
 
 
 def is_cuda_oom(exc: BaseException) -> bool:
@@ -31,6 +56,18 @@ def get_model_identifier(model_type: str, model_name: str) -> str:
         return f"{model_type}_{model_name}".replace('/', '_')
 
 
+def get_run_suffix(run_num: int) -> str:
+    """Get run suffix (1st, 2nd, 3rd, etc.)."""
+    if run_num == 1:
+        return '1st'
+    elif run_num == 2:
+        return '2nd'
+    elif run_num == 3:
+        return '3rd'
+    else:
+        return f'{run_num}th'
+
+
 def get_gif_path(gif_dir: str, context: str, iteration: int) -> str:
     """Generate GIF file path"""
     filename = f"{context}_{iteration}.gif"
@@ -50,7 +87,13 @@ def get_evaluation_results_dir() -> str:
 
 
 def get_evaluation_results_scratch_dir() -> str:
-    """Get base directory for evaluation_results_scratch (from-scratch / pair-based memory source)."""
+    """
+    Base dir for from-scratch runs and Rememberer/ExpeL category rollout backfill.
+    Override with env ``EVALUATION_RESULTS_SCRATCH_DIR`` (absolute path) if scratch lives elsewhere.
+    """
+    override = os.environ.get("EVALUATION_RESULTS_SCRATCH_DIR", "").strip()
+    if override:
+        return os.path.abspath(override)
     script_dir = os.path.dirname(os.path.dirname(__file__))
     return os.path.join(script_dir, "evaluation_results_scratch")
 
@@ -59,13 +102,16 @@ def get_scratch_pair_path(
     task_name: str,
     source_env: str,
     model_identifier: str,
-    results_scratch_base: str,
+    results_scratch_base: Optional[str] = None,
 ) -> str:
     """
     Path to baseline single-env JSON in evaluation_results_scratch used for pair-based memory.
-    Layout: results_scratch_base / cat_dir / task_subdir / model_identifier / baseline / all_{source_env}.json
+    Layout: base / cat_dir / task_subdir / model_identifier / baseline / all_{source_env}.json
+    When ``results_scratch_base`` is None, uses ``get_evaluation_results_scratch_dir()``.
     """
     from evaluation.prompt import parse_task_name
+
+    base = results_scratch_base or get_evaluation_results_scratch_dir()
     try:
         task_path, _ = parse_task_name(task_name)
         cat_dir, task_subdir = task_path.split("/")
@@ -74,7 +120,7 @@ def get_scratch_pair_path(
         task_subdir = task_name
     safe_env = (source_env or "Initial").replace("/", "_").strip()
     return os.path.join(
-        results_scratch_base,
+        base,
         cat_dir,
         task_subdir,
         model_identifier,
@@ -188,6 +234,7 @@ def get_max_steps_for_task(task_name: str) -> int:
         'category_3_04': 15000,
         'category_3_06': 15000,
         'category_4_03': 2400,   # F_03: 40s at 60 fps
+        'category_4_05': 10000,  # F_05: align with prompt.py / test_mutated_tasks.py / run_test.py
         'category_5_01': 20000,  # C_01: pendulum swing-up from inverted (Stage-1) needs enough steps
         # C_02: must match tasks/.../C_02/environment.MAX_EPISODE_STEPS
         'category_5_02': 5000,

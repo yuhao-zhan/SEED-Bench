@@ -22,9 +22,10 @@ class F04Renderer(Renderer):
                 self.simulator.screen = pygame.Surface((1280, 720))
 
         # Panoramic viewport: fix PPM and offset to see the entire relevant area
-        # 1280 / 20 = 64 PPM captures the full 16m floor width with margin
+        floor_w = float(getattr(sandbox, "FLOOR_LENGTH", 16.0))
+        # 1280 / 20 = 64 PPM captures the full floor width with margin when floor_w ≈ 16 m
         self.simulator.ppm = 64
-        # Center camera on x=8 (middle of 16m floor)
+        # Center camera on x=8 (middle of floor)
         # 640 = 8 * 64 - offset_x => offset_x = 512 - 640 = -128
         self.set_camera_offset(-128, 0)
         
@@ -39,7 +40,10 @@ class F04Renderer(Renderer):
         COLOR_MEDIUM = (120, 220, 120)       # Light Green
         COLOR_LARGE = (220, 140, 100)        # Light Orange/Red
 
+        agent_bodies = set(getattr(sandbox, "_bodies", []) or [])
         for body in sandbox.world.bodies:
+            if body.type == staticBody and body in agent_bodies:
+                continue
             if body.type == staticBody:
                 self.draw_body(
                     body,
@@ -92,13 +96,15 @@ class F04Renderer(Renderer):
                     outline_width=2,
                 )
 
-        # Draw zone boundaries (Goldenrod Yellow)
+        # Draw zone boundaries (Goldenrod Yellow). Small-zone ceiling and medium-zone floor share y — draw once.
         if hasattr(sandbox, "SMALL_ZONE_Y_MAX"):
-            self.draw_line(0, sandbox.SMALL_ZONE_Y_MAX, 16, sandbox.SMALL_ZONE_Y_MAX, COLOR_ENVIRONMENT, 1)
+            self.draw_line(0, sandbox.SMALL_ZONE_Y_MAX, floor_w, sandbox.SMALL_ZONE_Y_MAX, COLOR_ENVIRONMENT, 1)
         if hasattr(sandbox, "MEDIUM_ZONE_Y_MIN"):
-            self.draw_line(0, sandbox.MEDIUM_ZONE_Y_MIN, 16, sandbox.MEDIUM_ZONE_Y_MIN, COLOR_ENVIRONMENT, 1)
+            y_mid = sandbox.MEDIUM_ZONE_Y_MIN
+            if not hasattr(sandbox, "SMALL_ZONE_Y_MAX") or abs(y_mid - sandbox.SMALL_ZONE_Y_MAX) > 1e-6:
+                self.draw_line(0, y_mid, floor_w, y_mid, COLOR_ENVIRONMENT, 1)
         if hasattr(sandbox, "LARGE_ZONE_Y_MIN"):
-            self.draw_line(0, sandbox.LARGE_ZONE_Y_MIN, 16, sandbox.LARGE_ZONE_Y_MIN, COLOR_ENVIRONMENT, 1)
+            self.draw_line(0, sandbox.LARGE_ZONE_Y_MIN, floor_w, sandbox.LARGE_ZONE_Y_MIN, COLOR_ENVIRONMENT, 1)
 
         if hasattr(sandbox, "BUILD_ZONE_X_MIN"):
             x_min = sandbox.BUILD_ZONE_X_MIN

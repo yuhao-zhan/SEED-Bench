@@ -1,27 +1,30 @@
 """
 F-01: The Dam task evaluation module
-Defines task objectives and success criteria. Failure: leakage rate > 0.1%;
-design: max beam height 1.5 m, breakable joints.
+Defines task objectives and success criteria. Failure: leakage rate above the configured limit
+(default 0.10%); runtime failure if beam-to-beam joints break. Design checks include mass cap,
+beam count range, zero floor anchors, build strips, underflow, max beam width/height, joint cap,
+vertical-band coverage, span, connectivity, and strip occupancy (middle/right).
 """
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
-from common.simulator import TIME_STEP
 
 
 class Evaluator:
     """
     Evaluation system for F-01: The Dam (extreme variant).
-    Success: leakage rate <= 0.1%. Failure: leakage rate > 0.1%.
-    Design: max beam height 1.5 m; joints can break under load; leak boundary = moving wall left edge; half-leak band = 0.5 m before that boundary.
+    Success: leakage rate <= configured MAX_LEAKAGE_RATE (default 0.10%); no broken beam-to-beam joints.
+    Design: mass/beam/joint/strip/band/span/connectivity rules from the environment; leak scoring uses
+    the moving wall left edge (half-leak band 0.5 m upstream) or fallback x=14.0 m.
     """
 
-    MAX_LEAKAGE_RATE = 0.001  # 0.1% - brutal: moving wall, debris, earthquake, min 3 beams per vertical band
+    MAX_LEAKAGE_RATE = 0.001  # 0.10% — moving wall, debris, earthquake, min 3 beams per vertical band
 
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
         self.initial_joint_count = 0
+        self.initial_beam_to_beam_joint_count = 0
         self.structure_broken = False
         self.design_constraints_checked = False
 
@@ -43,8 +46,9 @@ class Evaluator:
         self.BUILD_ZONE_MIDDLE_X_MAX = getattr(environment, 'BUILD_ZONE_MIDDLE_X_MAX', 13.1)
         self.BUILD_ZONE_RIGHT_X_MIN = getattr(environment, 'BUILD_ZONE_RIGHT_X_MIN', 13.4)
         self.BUILD_ZONE_RIGHT_X_MAX = getattr(environment, 'BUILD_ZONE_RIGHT_X_MAX', 13.6)
-        self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', 12.0)
-        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', 14.0)
+        # Defaults match Sandbox strip union [12.4, 13.6] when attrs are missing
+        self.BUILD_ZONE_X_MIN = getattr(environment, 'BUILD_ZONE_X_MIN', 12.4)
+        self.BUILD_ZONE_X_MAX = getattr(environment, 'BUILD_ZONE_X_MAX', 13.6)
         self.BUILD_ZONE_Y_MIN = getattr(environment, 'BUILD_ZONE_Y_MIN', 0.0)
         self.BUILD_ZONE_Y_MAX = getattr(environment, 'BUILD_ZONE_Y_MAX', 7.5)
         self.MIN_BEAM_BOTTOM_Y = getattr(environment, 'MIN_BEAM_BOTTOM_Y', 0.5)
@@ -72,10 +76,14 @@ class Evaluator:
                 }
             self.design_constraints_checked = True
             self.initial_joint_count = len(self.environment._joints)
+            terrain_joints = self.environment.get_terrain_joint_count() if hasattr(self.environment, 'get_terrain_joint_count') else 0
+            self.initial_beam_to_beam_joint_count = self.initial_joint_count - terrain_joints
 
         # Structure integrity
         current_joint_count = len(self.environment._joints)
-        if current_joint_count < self.initial_joint_count:
+        terrain_joints = self.environment.get_terrain_joint_count() if hasattr(self.environment, 'get_terrain_joint_count') else 0
+        current_beam_to_beam_joint_count = current_joint_count - terrain_joints
+        if current_beam_to_beam_joint_count < self.initial_beam_to_beam_joint_count:
             self.structure_broken = True
 
         # Only decide success/failure and score when we have run long enough
@@ -101,13 +109,8 @@ class Evaluator:
             failure_reason = (failure_reason or "") + ("; " if failure_reason else "") + "Structure integrity lost (joints broke)"
 
         success = (leakage_rate <= self.MAX_LEAKAGE_RATE) and not self.structure_broken and not failed
-
-        if success:
-            score = 100.0
-        elif failed:
-            score = 0.0
-        else:
-            score = max(0.0, 80.0 * (1.0 - leakage_rate / self.MAX_LEAKAGE_RATE))
+        # Binary scoring: at horizon, outcome is success vs failure (partial tier was unreachable).
+        score = 100.0 if success else 0.0
 
         metrics = self._collect_metrics(
             step_count,
@@ -248,6 +251,23 @@ class Evaluator:
                 f"Dam must span the gate: at least one beam center in left strip x=[{self.BUILD_ZONE_LEFT_X_MIN}, {self.BUILD_ZONE_LEFT_X_MAX}] and at least one in right strip x=[{self.BUILD_ZONE_RIGHT_X_MIN}, {self.BUILD_ZONE_RIGHT_X_MAX}]"
             )
         # Build zones and mandatory underflow gap (left OR middle OR right)
+        # For underflow, use world-space polygon vertices so rotated beams are checked correctly.
+        def _world_bottom_y(body):
+            try:
+                mins = []
+                for fx in getattr(body, "fixtures", []):
+                    shape = getattr(fx, "shape", None)
+                    verts = getattr(shape, "vertices", None)
+                    if verts:
+                        for v in verts:
+                            wv = body.GetWorldPoint(v)
+                            mins.append(float(wv[1]))
+                if mins:
+                    return min(mins)
+            except Exception:
+                pass
+            return None
+
         for body in self.environment._bodies:
             x, y = body.position.x, body.position.y
             in_left = self.BUILD_ZONE_LEFT_X_MIN <= x <= self.BUILD_ZONE_LEFT_X_MAX
@@ -274,7 +294,9 @@ class Evaluator:
                             hx = max(abs(v[0]) for v in verts)
                             hy = max(abs(v[1]) for v in verts)
                     if hx is not None and hy is not None:
-                        bottom = body.position.y - hy
+                        bottom = _world_bottom_y(body)
+                        if bottom is None:
+                            bottom = body.position.y - hy
                         if bottom < self.MIN_BEAM_BOTTOM_Y:
                             violations.append(
                                 f"Beam at ({x:.2f}, {y:.2f}) extends below y={self.MIN_BEAM_BOTTOM_Y} (bottom={bottom:.2f}); mandatory underflow gap required"
@@ -299,10 +321,10 @@ class Evaluator:
         limit_pct = self.MAX_LEAKAGE_RATE * 100
         return {
             "task": "F-01: The Dam (extreme)",
-            "description": f"Design a dam to block water particles; leakage rate must not exceed {limit_pct:.1f}%",
+            "description": f"Design a dam to block water particles; leakage rate must not exceed {limit_pct:.2f}%",
             "terrain": self.terrain_bounds,
             "success_criteria": {
-                "primary": f"Leakage rate <= {limit_pct:.1f}%",
+                "primary": f"Leakage rate <= {limit_pct:.2f}%",
                 "secondary": "Dam structure remains intact (no broken joints)",
             },
             "evaluation": {

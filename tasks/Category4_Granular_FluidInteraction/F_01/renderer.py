@@ -7,7 +7,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from common.renderer import Renderer
-from Box2D.b2 import dynamicBody, staticBody
+from Box2D.b2 import staticBody
 
 
 class F01Renderer(Renderer):
@@ -35,9 +35,10 @@ class F01Renderer(Renderer):
         COLOR_WATER = (80, 140, 220)         # Professional Blue
         COLOR_WATER_OUTLINE = (120, 180, 255)
 
-        # Draw static terrain (floor, left wall)
+        # Draw static terrain (floor, left wall) and kinematic downstream wall (not staticBody in Box2D).
+        downstream = getattr(sandbox, "_terrain_bodies", {}).get("downstream_wall")
         for body in sandbox.world.bodies:
-            if body.type == staticBody:
+            if body.type == staticBody or body is downstream:
                 self.draw_body(
                     body,
                     dynamic_color=COLOR_ENVIRONMENT,

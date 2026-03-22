@@ -188,3 +188,74 @@ def format_feedback(metrics: Dict[str, Any], score: float, success: bool, failed
             feedback_parts.append("- Review the metrics above to identify areas for improvement")
     
     return "\n".join(feedback_parts)
+
+
+def format_granular_feedback(
+    snapshot_entries,
+    iteration: int,
+    task_name: str = None,
+    include_suggestions: bool = False,
+) -> str:
+    """
+    Build concatenated feedback for process-level granularity.
+
+    snapshot_entries item schema:
+      {
+        "moment_index": int,
+        "total_moments": int,
+        "step_count": int,
+        "max_steps": int,
+        "metrics": dict,
+        "score": float,
+        "success": bool,
+        "failed": bool,
+        "failure_reason": str,
+        "error": Optional[str],
+      }
+    """
+    if not snapshot_entries:
+        return ""
+
+    blocks = []
+    total = snapshot_entries[0].get("total_moments", len(snapshot_entries))
+    blocks.append(
+        "## Multi-Moment Simulation Feedback\n\n"
+        "The rollout is sampled at multiple moments to provide process-level supervision.\n"
+    )
+
+    for snap in snapshot_entries:
+        idx = int(snap.get("moment_index", 1))
+        total_i = int(snap.get("total_moments", total))
+        step_count = int(snap.get("step_count", 0))
+        max_steps = max(1, int(snap.get("max_steps", 1)))
+        progress_pct = 100.0 * float(step_count) / float(max_steps)
+        if idx >= total_i:
+            moment_note = (
+                "This is the **final** sampled moment for this run: the metrics below are the "
+                "terminal state when the simulation stopped (success, failure, or step limit).\n"
+            )
+        else:
+            moment_note = (
+                "This is an **intermediate** sampled moment: the metrics below reflect partial "
+                "progress along the rollout, not necessarily the final outcome.\n"
+            )
+        blocks.append(
+            f"\n### Simulation Moment {idx}/{total_i} "
+            f"(~{progress_pct:.1f}% of rollout, step {step_count}/{max_steps})\n"
+            f"{moment_note}"
+        )
+        blocks.append(
+            format_feedback(
+                snap.get("metrics", {}) or {},
+                float(snap.get("score", 0.0)),
+                bool(snap.get("success", False)),
+                bool(snap.get("failed", False)),
+                snap.get("failure_reason"),
+                iteration=iteration,
+                error=snap.get("error"),
+                task_name=task_name,
+                include_suggestions=include_suggestions,
+            )
+        )
+
+    return "\n".join(blocks)
