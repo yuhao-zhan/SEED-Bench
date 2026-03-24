@@ -21,10 +21,49 @@ cp -r "$TASK_DIR/"* "$ORIGINAL_STATE_DIR/"
 # MODEL CONFIGURATION
 # ==========================================
 # Try `auto` first (CLI routes to an available model), then explicit fallbacks.
-MODELS=("auto" "gemini-3.1-pro-preview" "gemini-3.1-flash-lite-preview" "gemini-3-flash-preview" "gemini-2.5-pro")
+MODELS=("auto" "gemini-3.1-flash-lite-preview" "gemini-3-flash-preview" "gemini-3.1-pro-preview" "gemini-2.5-pro")
 
 # Global variable to track models that have failed (quota or crash) during this run
 BLACKLISTED_MODELS=""
+
+# Track background heartbeat workers so traps can always clean them.
+HEARTBEAT_PIDS=""
+
+register_heartbeat_pid() {
+    local pid="$1"
+    [ -n "$pid" ] || return 0
+    HEARTBEAT_PIDS="$HEARTBEAT_PIDS $pid"
+}
+
+unregister_heartbeat_pid() {
+    local pid="$1"
+    [ -n "$pid" ] || return 0
+    local kept=""
+    local p
+    for p in $HEARTBEAT_PIDS; do
+        if [ "$p" != "$pid" ]; then
+            kept="$kept $p"
+        fi
+    done
+    HEARTBEAT_PIDS="$kept"
+}
+
+cleanup_heartbeats() {
+    local p
+    for p in $HEARTBEAT_PIDS; do
+        kill "$p" 2>/dev/null || true
+    done
+    for p in $HEARTBEAT_PIDS; do
+        wait "$p" 2>/dev/null || true
+    done
+    HEARTBEAT_PIDS=""
+}
+
+on_exit_cleanup() {
+    cleanup_heartbeats
+}
+
+trap on_exit_cleanup INT TERM EXIT
 
 # When gemini exits non-zero: print why-it-failed hints (never prints secret values).
 print_gemini_failure_diagnostics() {
@@ -185,10 +224,12 @@ run_gemini_with_fallback() {
             done
         ) &
         HEARTBEAT_PID=$!
+        register_heartbeat_pid "$HEARTBEAT_PID"
         gemini -y --model "$MODEL" -p "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
         EXIT_CODE=$?
         kill "$HEARTBEAT_PID" 2>/dev/null || true
         wait "$HEARTBEAT_PID" 2>/dev/null || true
+        unregister_heartbeat_pid "$HEARTBEAT_PID"
         rm -rf "$HEARTBEAT_TIP_DIR"
         API_END=$(date +%s)
         API_DURATION=$((API_END - API_START))
