@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
 
 from main import TaskRunner
+from tasks.Category5_Cybernetics_Control.C_04.environment import MAX_STEPS
 
 
 def test_c04_agent():
@@ -33,7 +34,7 @@ def test_c04_agent():
 
         result = runner.run(
             headless=True,
-            max_steps=10000,
+            max_steps=MAX_STEPS,
             save_gif=True,
         )
 

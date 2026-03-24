@@ -28,6 +28,15 @@ def _m(
         return float(default)
 from tasks.Category5_Cybernetics_Control.C_04.evaluator import CONSECUTIVE_EXIT_STEPS_REQUIRED
 
+
+def _exit_hold_required(metrics: Dict[str, Any]) -> int:
+    v = metrics.get("consecutive_exit_steps_required", CONSECUTIVE_EXIT_STEPS_REQUIRED)
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return int(CONSECUTIVE_EXIT_STEPS_REQUIRED)
+
+
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """Format high-resolution physical metrics for C-04."""
     metric_parts = []
@@ -50,7 +59,8 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "progress_x_pct" in metrics:
         metric_parts.append(f"- Linear Progression to Goal: {metrics['progress_x_pct']:.1f}%")
     if "consecutive_steps_in_exit" in metrics:
-        metric_parts.append(f"- Goal Occupancy Duration: {metrics['consecutive_steps_in_exit']}/{CONSECUTIVE_EXIT_STEPS_REQUIRED} steps")
+        need = _exit_hold_required(metrics)
+        metric_parts.append(f"- Goal Occupancy Duration: {metrics['consecutive_steps_in_exit']}/{need} steps")
     if "distance_to_exit_x" in metrics:
         metric_parts.append(f"- Distance to Exit Boundary: {metrics['distance_to_exit_x']:.2f} m")
     
@@ -114,7 +124,7 @@ def get_improvement_suggestions(
             )
 
         # 4. Final Hold Protocol
-        if reached_exit and metrics.get("consecutive_steps_in_exit", 0) < CONSECUTIVE_EXIT_STEPS_REQUIRED:
+        if reached_exit and metrics.get("consecutive_steps_in_exit", 0) < _exit_hold_required(metrics):
             suggestions.append("Exit occupancy failed the duration protocol. Maintain steady control within the goal coordinates for the required consecutive steps.")
 
     return suggestions

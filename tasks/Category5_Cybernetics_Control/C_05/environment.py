@@ -7,6 +7,9 @@ Discovery: timing, sequence tightness, and path conditions via interaction and f
 """
 import math
 import Box2D
+
+# Default integration dt; must match ``common.simulator.TIME_STEP`` (TARGET_FPS = 60).
+DEFAULT_SIMULATION_TIME_STEP = 1.0 / 60.0
 from Box2D.b2 import (
     world,
     polygonShape,
@@ -22,6 +25,7 @@ REPULSION_MAG = 22.0
 # Evaluator/feedback: treat repulsion at or above this magnitude as “strong” (curriculum uses ≥40)
 REPULSION_STRONG_THRESHOLD = 40.0
 REPULSION_RANGE = 1.5
+REPULSION_TANGENTIAL_MAG = 0.0  # default radial-only; overridden via physics_config
 COOLDOWN_STEPS = 55
 # Barrier opens this many steps AFTER A is triggered (not immediately) — must discover via waiting/failure
 BARRIER_DELAY_STEPS = 70
@@ -46,6 +50,21 @@ ZONE_A = (2.0, 2.0, 0.5, 0.5)
 ZONE_B = (4.95, 3.2, 0.7, 0.4)  # x [4.25, 5.65], y [2.8, 3.6] so ramp approach can trigger
 ZONE_C = (8.0, 2.0, 0.5, 0.5)
 
+# Defaults for terrain_config / physics_config (single source for prompt sync in stages.py)
+SPAWN_X = 0.5
+SPAWN_Y = 1.95
+AGENT_RADIUS = 0.2
+AGENT_MASS = 3.0
+MAX_AGENT_FORCE_PER_AXIS = 50.0
+GROUND_FRICTION_DEFAULT = 0.5
+RAMP_FRICTION_DEFAULT = 0.12
+PLATFORM_FRICTION_DEFAULT = 0.45
+AGENT_FIXTURE_FRICTION = 0.4
+BARRIER_FIXTURE_FRICTION = 0.3
+# Dynamic agent body damping (Box2D); single source for prompt.py
+DEFAULT_LINEAR_DAMPING = 0.3
+DEFAULT_ANGULAR_DAMPING = 0.3
+
 
 class Sandbox:
     """
@@ -62,8 +81,12 @@ class Sandbox:
         self._terrain_config = dict(terrain_config)
         self._physics_config = dict(physics_config)
         gravity = tuple(physics_config.get("gravity", (0, -10)))
-        self._default_linear_damping = float(physics_config.get("linear_damping", 0.3))
-        self._default_angular_damping = float(physics_config.get("angular_damping", 0.3))
+        self._default_linear_damping = float(
+            physics_config.get("linear_damping", DEFAULT_LINEAR_DAMPING)
+        )
+        self._default_angular_damping = float(
+            physics_config.get("angular_damping", DEFAULT_ANGULAR_DAMPING)
+        )
 
         # Allow overriding key timing/hidden parameters via physics_config for mutated tasks
         self._trigger_stay_steps = int(physics_config.get("trigger_stay_steps", TRIGGER_STAY_STEPS))
@@ -80,9 +103,13 @@ class Sandbox:
         self._recent_b_for_c = int(physics_config.get("recent_b_for_c", RECENT_B_FOR_C))
 
         # New mutation parameters
-        self._repulsion_tangential_mag = float(physics_config.get("repulsion_tangential_mag", 0.0))
+        self._repulsion_tangential_mag = float(
+            physics_config.get("repulsion_tangential_mag", REPULSION_TANGENTIAL_MAG)
+        )
         self._force_limit_inside = float(physics_config.get("force_limit_inside", FORCE_LIMIT_INSIDE))
-        self._max_agent_force = float(physics_config.get("max_agent_force_per_axis", 50.0))
+        self._max_agent_force = float(
+            physics_config.get("max_agent_force_per_axis", MAX_AGENT_FORCE_PER_AXIS)
+        )
         self._barrier_x = float(terrain_config.get("barrier_x", BARRIER_X))
 
         self._world = world(gravity=gravity, doSleep=True)
@@ -101,15 +128,25 @@ class Sandbox:
         self._zone_contact_steps = {"A": 0, "B": 0, "C": 0}
         self._last_zone = None
 
-        self._agent_radius = float(terrain_config.get("agent_radius", 0.2))
-        self._agent_mass = float(terrain_config.get("agent_mass", 3.0))
-        self._spawn_x = float(terrain_config.get("spawn_x", 0.5))
-        self._spawn_y = float(terrain_config.get("spawn_y", 1.95))
+        self._agent_radius = float(terrain_config.get("agent_radius", AGENT_RADIUS))
+        self._agent_mass = float(terrain_config.get("agent_mass", AGENT_MASS))
+        self._spawn_x = float(terrain_config.get("spawn_x", SPAWN_X))
+        self._spawn_y = float(terrain_config.get("spawn_y", SPAWN_Y))
 
         # Friction overrides
-        self._ground_friction = float(terrain_config.get("ground_friction", 0.5))
-        self._ramp_friction = float(terrain_config.get("ramp_friction", 0.12))
-        self._platform_friction = float(terrain_config.get("platform_friction", 0.45))
+        self._ground_friction = float(
+            terrain_config.get("ground_friction", GROUND_FRICTION_DEFAULT)
+        )
+        self._ramp_friction = float(terrain_config.get("ramp_friction", RAMP_FRICTION_DEFAULT))
+        self._platform_friction = float(
+            terrain_config.get("platform_friction", PLATFORM_FRICTION_DEFAULT)
+        )
+        self._agent_fixture_friction = float(
+            terrain_config.get("agent_fixture_friction", AGENT_FIXTURE_FRICTION)
+        )
+        self._barrier_fixture_friction = float(
+            terrain_config.get("barrier_fixture_friction", BARRIER_FIXTURE_FRICTION)
+        )
 
         self._step_count = 0
         self._barrier_remove_at_step = None  # barrier opens at this step (set when A triggers)
@@ -124,13 +161,13 @@ class Sandbox:
         self._force_y = 0.0
 
     def _create_ground(self, terrain_config: dict):
-        """Ground: flat 0-4 at y=2, ramp up 4-5 to platform at y=3.5, platform 5-6, ramp down 6-7, flat 7-12. Ice on ramps."""
+        """Ground: flat 0-4 at y=2, ramp up 4-5 to platform at y=3.5, platform 5-6, ramp down 6-7, flat 7-12. Ramps use low friction (ramp_friction)."""
         ground_y = 2.0
-        platform_y = 3.5
         h = 0.25  # half-height of segment
+        ground_segments = self._terrain_bodies.setdefault("ground_segments", [])
 
         # Flat segment [0, 4] at y=2
-        self._world.CreateStaticBody(
+        body_flat_left = self._world.CreateStaticBody(
             position=(2.0, ground_y - h),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(2.0, h)),
@@ -138,7 +175,7 @@ class Sandbox:
                 restitution=0.0,
             ),
         )
-        self._terrain_bodies.setdefault("ground_segments", [])
+        ground_segments.append(body_flat_left)
 
         # Ramp up: top edge (4, 2) to (5.5, 3.5) so it meets platform; body center (4.75, 2.75)
         ramp1_verts = [(-0.75, -1.25), (0.75, 0.25), (0.75, 0.75), (-0.75, -0.75)]
@@ -150,11 +187,11 @@ class Sandbox:
                 restitution=0.0,
             ),
         )
-        self._terrain_bodies.setdefault("ground_segments", []).append(body_ramp1)
+        ground_segments.append(body_ramp1)
 
         # Platform [5, 6]: top at y=3.5, bottom at 3 so it meets ramp at x=5 (center 5.5, 3.25)
         platform_hh = 0.25
-        self._world.CreateStaticBody(
+        body_platform = self._world.CreateStaticBody(
             position=(5.5, 3.25),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(0.5, platform_hh)),
@@ -162,6 +199,7 @@ class Sandbox:
                 restitution=0.0,
             ),
         )
+        ground_segments.append(body_platform)
 
         # Ramp down: top edge (6, 3.5) to (7, 2). Body center (6.5, 2.75). Local CCW: left-bottom, left-top, right-top, right-bottom
         ramp2_verts = [(-0.5, 0.5), (-0.5, 0.75), (0.5, -0.75), (0.5, -1.0)]
@@ -173,10 +211,10 @@ class Sandbox:
                 restitution=0.0,
             ),
         )
-        self._terrain_bodies.setdefault("ground_segments", []).append(body_ramp2)
+        ground_segments.append(body_ramp2)
 
         # Flat [7, 12] at y=2
-        self._world.CreateStaticBody(
+        body_flat_right = self._world.CreateStaticBody(
             position=(9.5, ground_y - h),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(2.5, h)),
@@ -184,6 +222,7 @@ class Sandbox:
                 restitution=0.0,
             ),
         )
+        ground_segments.append(body_flat_right)
 
         self._ground_y_top = ground_y
 
@@ -197,7 +236,7 @@ class Sandbox:
             position=(cx, cy),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(BARRIER_HALFW, hh)),
-                friction=0.3,
+                friction=self._barrier_fixture_friction,
                 restitution=0.0,
             ),
         )
@@ -217,7 +256,7 @@ class Sandbox:
             fixtures=Box2D.b2FixtureDef(
                 shape=circleShape(radius=r),
                 density=density,
-                friction=0.4,
+                friction=self._agent_fixture_friction,
                 restitution=0.0,
             ),
         )
@@ -413,7 +452,13 @@ class Sandbox:
         phase = 2.0 * math.pi * self._step_count / max(1, int(self._wind_period))
         return (float(self._wind_amp) * math.sin(phase), 0.0)
 
-    def step(self, time_step):
+    def step(self, time_step=None):
+        """Advance physics by one simulation step.
+
+        If ``time_step`` is omitted, uses ``common.simulator.TIME_STEP`` so behavior matches
+        the dt stated in the task prompt.
+        """
+        dt = float(DEFAULT_SIMULATION_TIME_STEP if time_step is None else time_step)
         # Timed barrier: remove only when step >= barrier_remove_at_step
         if self._barrier_remove_at_step is not None and self._step_count >= self._barrier_remove_at_step:
             self._barrier_remove_at_step = None
@@ -440,10 +485,15 @@ class Sandbox:
                 agent.ApplyForceToCenter((total_fx, total_fy), True)
             self._force_x = 0.0
             self._force_y = 0.0
-        self._world.Step(time_step, 10, 10)
+        self._world.Step(dt, 10, 10)
 
     def get_terrain_bounds(self):
-        """Snapshot of task-relevant bounds and timing/force parameters (for tools and debugging)."""
+        """Snapshot of task-relevant bounds, timing, repulsion, and friction (for tools and debugging).
+
+        Includes repulsion and friction because those are stated in the task prompt. Omits gravity,
+        linear/angular damping, and wind amplitude/period; read those from ``sandbox.world`` or
+        instance fields when debugging.
+        """
         return {
             "zones": dict(self._zones),
             "required_order": list(REQUIRED_ORDER),
@@ -461,14 +511,11 @@ class Sandbox:
             "repulsion_range": float(self._repulsion_range),
             "repulsion_tangential_mag": float(self._repulsion_tangential_mag),
             "max_agent_force_per_axis": float(self._max_agent_force),
-            "gravity": tuple(self._world.gravity),
-            "linear_damping": float(self._default_linear_damping),
-            "angular_damping": float(self._default_angular_damping),
             "ground_friction": float(self._ground_friction),
             "ramp_friction": float(self._ramp_friction),
             "platform_friction": float(self._platform_friction),
-            "wind_amp": float(self._wind_amp),
-            "wind_period": int(self._wind_period),
+            "agent_fixture_friction": float(self._agent_fixture_friction),
+            "barrier_fixture_friction": float(self._barrier_fixture_friction),
         }
 
     def get_agent_body(self):

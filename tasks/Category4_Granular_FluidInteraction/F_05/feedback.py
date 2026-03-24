@@ -73,9 +73,11 @@ def format_task_metrics(metrics: Dict[str, Any]) -> str:
     if initial is not None:
         ever = metrics.get("cargo_ever_below_loss_plane")
         if ever:
+            above = max(0, initial - lost)
             lines.append(
-                f"- **Cargo Security Index**: Retention rule violated (a particle center ever fell below the loss plane). "
-                f"Particles below plane at episode end: {lost}/{initial}."
+                f"- **Cargo Security Index**: Retention rule violated (a particle center **ever** fell below the loss plane "
+                f"after the grace window). End state: {above}/{initial} centers at or above the loss plane; "
+                f"{lost}/{initial} below."
             )
         else:
             ratio_val = _safe_float(ratio, 0.0)
@@ -149,7 +151,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> str:
     by_max = metrics.get("build_zone_y_max")
     if bx_min is not None and bx_max is not None and by_min is not None and by_max is not None:
         lines.append(
-            f"- **Build Zone (beam centers; hull weld anchors)**: "
+            f"- **Build Zone (beam centers, weld anchors, and beam footprint corners)**: "
             f"x ∈ [{bx_min:.1f}, {bx_max:.1f}], y ∈ [{by_min:.1f}, {by_max:.1f}]"
         )
 
@@ -193,9 +195,10 @@ def get_improvement_suggestions(metrics: Dict[str, Any], success: bool) -> List[
     # ---- 1. Cargo retention (fluid/granular) ----
     if cargo_ever or cargo_in_water > 0:
         suggestions.append(
-            "Cargo particles have left the vessel or crossed the loss plane during the episode. Kinetic energy "
-            "transfer from vessel motion is exceeding the retention capacity of the current containment; the "
-            "physical mechanism is loss of constraint before particles are fully retained."
+            "Evaluator retention against the **loss plane** failed: at least one cargo center crossed below the "
+            "configured threshold after the grace window, and/or the end-state count of centers below that height is "
+            "nonzero. Kinetic energy from hull motion may exceed what the containment can hold relative to that "
+            "threshold (which need not coincide with the nominal free surface)."
         )
 
     # ---- 2. Stability / capsize (dynamics) ----
@@ -224,9 +227,9 @@ def get_improvement_suggestions(metrics: Dict[str, Any], success: bool) -> List[
     ])
     if failure_modes >= 2:
         suggestions.append(
-            "Multiple failure modes are present. Identifying which constraint was exceeded first—cargo loss, "
-            "capsize, joint failure, mass budget, or build zone—helps prioritize which physical mechanism "
-            "to address in the next design. Joint failure may precede or follow cargo loss depending on load path."
+            "Multiple failure modes are present. Identifying which constraint was exceeded first—loss-plane "
+            "retention, capsize, joint failure, mass budget, or build zone—helps prioritize which physical mechanism "
+            "to address in the next design. Joint failure may precede or follow loss-plane breaches depending on load path."
         )
 
     # ---- 5. Build zone / integration ----

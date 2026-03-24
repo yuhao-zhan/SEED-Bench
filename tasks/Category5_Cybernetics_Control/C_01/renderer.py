@@ -30,14 +30,20 @@ class C01Renderer(Renderer):
         track_center_x = float(
             bounds.get("track_center_x", getattr(sandbox, "TRACK_CENTER_X", 10.0))
         )
+        track_y = float(
+            bounds.get(
+                "cart_rail_center_y",
+                getattr(sandbox, "cart_rail_center_y", getattr(sandbox, "CART_RAIL_CENTER_Y", 2.0)),
+            )
+        )
         w = float(self.simulator.screen_width)
         h = float(self.simulator.screen_height)
         ppm = 40.0
         # World x at horizontal screen center = track_center_x (plus caller pan in px)
         pan_x = float(camera_offset_x or 0.0)
         fixed_offset_x = track_center_x * ppm - w / 2.0 + pan_x
-        # World y=3.0 m at vertical screen center (track at y=2.0 m stays slightly below center)
-        fixed_offset_y = h / 2.0 - 3.0 * ppm
+        # Keep prior framing: world (track_y + 1) m at vertical screen center
+        fixed_offset_y = h / 2.0 - (track_y + 1.0) * ppm
         
         self.set_camera_offset(fixed_offset_x, fixed_offset_y)
         self.clear((0, 0, 0))  # Pure Black Background
@@ -47,8 +53,7 @@ class C01Renderer(Renderer):
         AGENT_COLOR = (76, 175, 80)        # #4CAF50 (Material Green)
         OUTLINE_COLOR = (255, 255, 255)
 
-        # Draw Track (Environmental Baseline)
-        track_y = 2.0
+        # Draw Track (Environmental Baseline; matches Sandbox rail height when bounds expose it)
         safe_half_range = float(
             bounds.get("safe_half_range", getattr(sandbox, "SAFE_HALF_RANGE", 8.5))
         )
@@ -60,9 +65,9 @@ class C01Renderer(Renderer):
         self.draw_line(track_x_start, track_y - 0.2, track_x_start, track_y + 0.2, ENVIRONMENT_COLOR, width=4)
         self.draw_line(track_x_end, track_y - 0.2, track_x_end, track_y + 0.2, ENVIRONMENT_COLOR, width=4)
 
-        # Cart and pole (Agent-Created Structure)
-        cart = sandbox._terrain_bodies.get("cart") if hasattr(sandbox, "_terrain_bodies") else None
-        pole = sandbox._terrain_bodies.get("pole") if hasattr(sandbox, "_terrain_bodies") else None
+        # Cart and pole (Agent-Created Structure) — use public accessors
+        cart = sandbox.get_cart_body() if callable(getattr(sandbox, "get_cart_body", None)) else None
+        pole = sandbox.get_pole_body() if callable(getattr(sandbox, "get_pole_body", None)) else None
 
         for body in sandbox.world.bodies:
             if body == cart or body == pole:

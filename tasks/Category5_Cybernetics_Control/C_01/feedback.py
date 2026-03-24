@@ -8,6 +8,8 @@ from .evaluator import BALANCE_ANGLE_DEG, FAILURE_ANGLE_DEG
 
 def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     """Format high-resolution physical metrics for C-01."""
+    bal_deg = float(metrics.get("grading_balance_angle_deg", BALANCE_ANGLE_DEG))
+    fail_deg = float(metrics.get("grading_failure_angle_deg", FAILURE_ANGLE_DEG))
     metric_parts = []
     
     # Core State Variables (reported = sensor; true = grading state when evaluator provides it)
@@ -30,13 +32,13 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "balance_achieved" in metrics:
         if not metrics["balance_achieved"]:
             phase = (
-                f"Pre-lock-in: accumulate consecutive steps with |true angle| ≤ {BALANCE_ANGLE_DEG:.0f}° "
+                f"Pre-lock-in: accumulate consecutive steps with |true angle| ≤ {bal_deg:.0f}° "
                 "while staying on the track"
             )
-        elif "pole_angle_true_deg" in metrics and abs(metrics["pole_angle_true_deg"]) > BALANCE_ANGLE_DEG:
+        elif "pole_angle_true_deg" in metrics and abs(metrics["pole_angle_true_deg"]) > bal_deg:
             phase = (
-                f"Post lock-in (true angle outside {BALANCE_ANGLE_DEG:.0f}° band; "
-                f"still within mid-episode rules until |true angle| > {FAILURE_ANGLE_DEG:.0f}°)"
+                f"Post lock-in (true angle outside {bal_deg:.0f}° band; "
+                f"still within mid-episode rules until |true angle| > {fail_deg:.0f}°)"
             )
         else:
             phase = "Balancing/Stability (hold terminal band through horizon)"
@@ -64,26 +66,27 @@ def get_improvement_suggestions(
 ) -> List[str]:
     """Generate diagnostic suggestions based on grounded physical failure modes."""
     suggestions = []
-    
+    bal_deg = float(metrics.get("grading_balance_angle_deg", BALANCE_ANGLE_DEG))
+
     if error:
         return [f"System Error: {error}. Check API usage."]
 
-    safe_range = metrics.get('safe_half_range', float('inf'))
-    dist_from_center = metrics.get('dist_from_center', 0.0)
+    safe_range = metrics.get("safe_half_range")
+    dist_from_center = metrics.get("dist_from_center", 0.0)
     balance_achieved = metrics.get("balance_achieved", False)
 
     if not failed and not success:
         if not balance_achieved:
             suggestions.append(
                 "The consecutive in-band upright requirement has not been met. Check that the true pole angle "
-                f"stays within ±{BALANCE_ANGLE_DEG:.0f}° for long enough stretches while limiting cart excursion."
+                f"stays within ±{bal_deg:.0f}° for long enough stretches while limiting cart excursion."
             )
         else:
             suggestions.append("Long-term stability was not maintained. This indicates a potential mismatch between the controller's response frequency and the system's natural oscillations.")
 
     if failed:
         # 1. Boundary vs Stability Root-Cause
-        if dist_from_center > safe_range:
+        if safe_range is not None and dist_from_center > safe_range:
             if not balance_achieved:
                 suggestions.append(
                     "Cart motion exceeded the safe track half-range before balance lock-in. "
@@ -105,11 +108,11 @@ def get_improvement_suggestions(
         elif balance_achieved and "pole not in upright region at end" in fr:
             suggestions.append(
                 f"Balance lock-in occurred earlier, but the true pole angle was outside the upright band when the episode ended; "
-                f"focus on terminal-phase regulation to satisfy |angle| ≤ {BALANCE_ANGLE_DEG:.0f}° at the last step."
+                f"focus on terminal-phase regulation to satisfy |angle| ≤ {bal_deg:.0f}° at the last step."
             )
             
         # 3. Lock-in not achieved while on track
-        if not balance_achieved and dist_from_center <= safe_range:
+        if not balance_achieved and (safe_range is None or dist_from_center <= safe_range):
             suggestions.append(
                 "The pole is not staying in the upright grading band long enough for lock-in. "
                 "Consider whether the plant dynamics or the relationship between observations and grading state differ from your model, "

@@ -59,7 +59,7 @@ def main():
         mutated_desc = stages_mod.update_task_description_for_visible_changes(
             base_prompt,
             terrain_config,
-            {},
+            stages_mod.get_source_base_terrain_config(),
             physics_config,
             stages_mod.get_source_base_physics_config(),
         )

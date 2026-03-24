@@ -10,6 +10,9 @@ from Box2D import b2World, b2PolygonShape, b2CircleShape, b2FixtureDef, b2BodyDe
 FPS = 60
 TIME_STEP = 1.0 / FPS
 VEL_ITERS, POS_ITERS = 10, 10
+# Command / state history caps (prompt documents these; keep in sync)
+FORCE_HISTORY_CAP = 100
+STATE_HISTORY_CAP = 300
 # Episode length (single source of truth; prompt and evaluation/utils TASK_MAX_STEPS category_5_04)
 MAX_STEPS = 250000
 
@@ -252,7 +255,8 @@ class Sandbox:
 
     def apply_agent_force(self, force_x, force_y):
         self._force_history.append((float(force_x), float(force_y)))
-        if len(self._force_history) > 100: self._force_history.pop(0)
+        if len(self._force_history) > FORCE_HISTORY_CAP:
+            self._force_history.pop(0)
         
         delay = max(0, self._control_lag_steps)
         if delay > 0 and len(self._force_history) > delay:
@@ -280,7 +284,8 @@ class Sandbox:
             # (Though in apply_agent_force we already handled control lag)
             # Actually history should be of the TRUE state
             self._position_history.append((x, y))
-            if len(self._position_history) > 300: self._position_history.pop(0)
+            if len(self._position_history) > STATE_HISTORY_CAP:
+                self._position_history.pop(0)
             
             # For whisker history, we need the "true" readings at that moment
             r = WHISKER_RANGE
@@ -291,7 +296,8 @@ class Sandbox:
                 frac = self._raycast((x, y), p2, agent)
                 true_whiskers.append(frac * r)
             self._whisker_readings_history.append(tuple(true_whiskers))
-            if len(self._whisker_readings_history) > 300: self._whisker_readings_history.pop(0)
+            if len(self._whisker_readings_history) > STATE_HISTORY_CAP:
+                self._whisker_readings_history.pop(0)
 
             # Unlock uses reported position (same frame as exit zone) and commanded Fx after control lag
             if (
@@ -379,8 +385,10 @@ class Sandbox:
         """Uses get_agent_position() so success and reported metrics stay consistent when position_delay_steps is set."""
         if self._is_destroyed:
             return False
+        b = self.get_terrain_bounds()
+        ex, ey0, ey1 = b["exit_x_min"], b["exit_y_min"], b["exit_y_max"]
         x, y = self.get_agent_position()
-        return x >= EXIT_X_MIN and EXIT_Y_MIN <= y <= EXIT_Y_MAX
+        return x >= ex and ey0 <= y <= ey1
     def get_whisker_max_range(self): return WHISKER_RANGE
     def is_destroyed(self): return self._is_destroyed
     def get_destruction_reason(self): return self._destruction_reason

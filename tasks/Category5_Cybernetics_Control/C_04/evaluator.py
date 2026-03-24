@@ -149,7 +149,6 @@ class Evaluator:
         ox, _ = _oneway_params(self.environment)
         lock_lo, lock_hi = _lock_gate_bounds(self.environment)
         act_lo, act_hi = _activation_bounds(self.environment)
-        exit_hold_need = _exit_hold_steps_required(self.environment)
         metrics = {
             "agent_x": x,
             "agent_y": y,
@@ -177,6 +176,7 @@ class Evaluator:
             "lock_gate_x_max": lock_hi,
             "activation_x_min": act_lo,
             "activation_x_max": act_hi,
+            "consecutive_exit_steps_required": exit_hold_need,
         }
 
         done = success or failed
@@ -192,19 +192,21 @@ class Evaluator:
             pc.pop("task_description", None)
 
         base_physics = c04_stages.get_source_base_physics_config()
+        base_terrain = c04_stages.get_source_base_terrain_config()
         if self._task_description_override is not None:
             desc = self._task_description_override
         else:
             base_desc = c04_prompt.TASK_PROMPT["task_description"]
             desc = c04_stages.update_task_description_for_visible_changes(
-                base_desc, tc, {}, pc, base_physics
+                base_desc, tc, base_terrain, pc, base_physics
             )
 
         base_success = c04_prompt.TASK_PROMPT["success_criteria"]
         success_markdown = c04_stages.update_success_criteria_for_visible_changes(
-            base_success, tc, {}, pc, base_physics
+            base_success, tc, base_terrain, pc, base_physics
         )
 
+        hold_steps_meta = _exit_hold_steps_required(self.environment)
         return {
             "task": "C-04: The Escaper",
             "description": desc,
@@ -215,7 +217,7 @@ class Evaluator:
             "success_criteria": {
                 "primary": (
                     f"Behavioral unlock, then hold in exit zone "
-                    f"{CONSECUTIVE_EXIT_STEPS_REQUIRED} consecutive steps (exit hold counts only after unlock)"
+                    f"{hold_steps_meta} consecutive steps (exit hold counts only after unlock)"
                 ),
                 "failure": (
                     f"Timeout within {max_steps_meta:,} steps without success, or structural (impulse) failure"

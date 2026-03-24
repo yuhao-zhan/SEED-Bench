@@ -29,14 +29,24 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         req = metrics.get('steps_required_to_trigger', 'N/A')
         metric_parts.append(f"- Contact Dwell Time: {metrics['steps_in_current_zone']}/{req} steps")
     if "speed" in metrics:
+        in_zone = metrics.get("inside_next_required_zone")
+        zone_note = (
+            " Agent center is inside the **next required** switch zone; this |v| is what the simulator "
+            "compares to the zone speed cap."
+            if in_zone
+            else ""
+        )
         metric_parts.append(
-            f"- Speed (global |v|): {metrics['speed']:.3f} m/s "
-            "(dwell gating uses speed **only while inside** the active trigger zone; see task description)"
+            f"- Speed |v|: {metrics['speed']:.3f} m/s.{zone_note} "
+            "(The cap applies only while inside a trigger zone; see task description.)"
         )
     if "cooldown_remaining" in metrics:
         metric_parts.append(f"- System Lockout (Cooldown): {metrics['cooldown_remaining']} steps")
     if "distance_to_next_zone" in metrics and metrics["distance_to_next_zone"] is not None:
-        metric_parts.append(f"- Proximity to Target: {metrics['distance_to_next_zone']:.2f} m")
+        metric_parts.append(
+            f"- Proximity to Target: {metrics['distance_to_next_zone']:.2f} m "
+            "(shortest distance to the **switch zone rectangle** for the next required node)"
+        )
     
     # Environmental Flags
     metric_parts.append("\n**Environmental Anomaly Flags**")
@@ -73,7 +83,7 @@ def get_improvement_suggestions(
     triggered = metrics.get("triggered_switches", [])
     next_req = metrics.get("next_required")
     speed = metrics.get("speed", 1.0)
-    speed_cap = metrics.get("env_speed_cap_inside", 0.0)
+    speed_cap = metrics.get("env_speed_cap_inside")
     # Evaluator sets distance_to_next_zone to None when next_required is missing; treat as "far"
     # so comparisons below never raise TypeError on failure paths (e.g. wrong_order).
     _raw_dist = metrics.get("distance_to_next_zone")
@@ -93,7 +103,8 @@ def get_improvement_suggestions(
             )
         if max_steps > 0 and step_count >= max_steps - 1:
             suggestions.append(
-                "Episode step budget exhausted before sequence completion; prioritize faster transitions."
+                "Episode step budget is almost exhausted; shorten path and timing where possible while "
+                "keeping |v| and in-zone controller force within the stated caps so dwell still accumulates."
             )
         loose_ab = metrics.get("env_flag_loose_a_to_b_recency", False)
         if (
@@ -115,16 +126,16 @@ def get_improvement_suggestions(
         if metrics.get("wrong_order"):
             suggestions.append("Sequence violation. Nodes must be triggered in the order A -> B -> C.")
             
-        # 2. Velocity Cap (only when dwell was accumulating—global speed is a poor proxy otherwise)
-        steps_in_zone = metrics.get("steps_in_current_zone") or 0
+        # 2. Zone speed cap (|v| while inside the next-required zone is what the environment checks)
+        inside = metrics.get("inside_next_required_zone")
         if (
-            dist_to_next < NEAR_TARGET_ZONE_M
-            and steps_in_zone > 0
+            speed_cap is not None
             and speed > speed_cap
+            and (inside or dist_to_next < NEAR_TARGET_ZONE_M)
         ):
             suggestions.append(
-                "While accumulating dwell in the target zone, speed exceeded the zone limit and reset progress; "
-                "keep speed at or below the cap for consecutive steps inside the zone."
+                "Speed magnitude exceeds the in-zone cap while at or inside the next required switch zone; "
+                "dwell progress resets when |v| is above the cap—hold lower speed for consecutive steps inside the zone."
             )
             
         # 4. Input Sensitivity

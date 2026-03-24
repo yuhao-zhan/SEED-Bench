@@ -7,6 +7,11 @@ import pygame
 import math
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
+_c02_dir = os.path.dirname(os.path.abspath(__file__))
+if _c02_dir not in sys.path:
+    sys.path.insert(0, _c02_dir)
+from environment import GROUND_SLAB_HEIGHT  # noqa: E402
+
 from common.renderer import Renderer
 from Box2D.b2 import dynamicBody, staticBody
 
@@ -90,11 +95,23 @@ class C02Renderer(Renderer):
             if by_bottom < 1e6:
                 self.draw_line(bx_left, by_bottom, bx_right, by_bottom, (180, 60, 60), width=2)
 
-        # Draw target zone (moving platform center)
+        # Moving landing platform (visual only; physics is flat ground at ground_y_top + evaluator x-window)
         if hasattr(sandbox, "_sim_time") and hasattr(sandbox, "get_platform_center_at_time"):
             t = sandbox._sim_time
             tx = sandbox.get_platform_center_at_time(t)
             ty = sandbox._ground_y_top
             hw = sandbox._platform_half_width
-            # Draw target zone indicator on the ground
-            self.draw_line(tx - hw, ty + 0.05, tx + hw, ty + 0.05, (255, 255, 255), width=3)
+            slab_h = float(
+                getattr(sandbox, "_ground_slab_height", GROUND_SLAB_HEIGHT)
+            )
+            # draw_rect: world_y is the rectangle bottom; span [ty - slab_h, ty] so the band sits in the ground slab flush with the landing surface
+            self.draw_rect(
+                tx - hw,
+                ty - slab_h,
+                2.0 * hw,
+                slab_h,
+                (90, 90, 140),
+                outline_color=(200, 200, 255),
+                outline_width=2,
+            )
+            self.draw_line(tx - hw, ty + 0.02, tx + hw, ty + 0.02, (255, 255, 255), width=2)

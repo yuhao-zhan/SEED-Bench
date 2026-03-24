@@ -111,7 +111,7 @@ class TaskEvaluator:
                  discover_groups_per_batch: int = 64, discover_learning_rate: float = 4e-5,
                  discover_adv_estimator: str = 'entropic', discover_adv_estimator_beta: float = 2.0,
                  discover_loss_fn: str = 'importance_sampling', discover_lora_rank: int = 32,
-                 discover_max_tokens: int = 65536, discover_temperature: float = 1.0,
+                 discover_max_tokens: int = 26000, discover_temperature: float = 1.0,
                  discover_num_substeps: int = 1, discover_max_expansion_rounds: int = 2,
                  save_gif: bool = True, source_env: Optional[str] = None,
                  output_dir: Optional[str] = None,
@@ -124,7 +124,7 @@ class TaskEvaluator:
         self.output_dir = output_dir
         self.result_method = result_method or method
         self.granularity = granularity or "outcome-based"
-        self.theta_evolve_num_rollout = theta_evolve_num_rollout if theta_evolve_num_rollout is not None else 10000
+        self.theta_evolve_num_rollout = theta_evolve_num_rollout if theta_evolve_num_rollout is not None else max_iterations
         self.theta_evolve_rollout_batch_size = theta_evolve_rollout_batch_size if theta_evolve_rollout_batch_size is not None else 32
         self.base_task_name_for_memory = base_task_name_for_memory
         self.source_env = source_env
@@ -133,7 +133,24 @@ class TaskEvaluator:
         self.max_iterations = max_iterations
         self.headless = headless
         self.method = method
+        # Keep the raw CLI device string (e.g., "cuda:5,7") for downstream methods
+        # that need exact multi-GPU topology. SolverInterface may normalize this.
+        self.requested_device = device
         self.base_method = method[:-3] if method.endswith('_CE') else method
+
+        class _ThetaEvolveSolverStub:
+            """Lightweight solver placeholder to avoid loading vLLM in theta_evolve mode."""
+            def __init__(self, model_type, model_name, model_path, device):
+                self.model_type = model_type
+                self.model_name = model_name
+                self.model_path = model_path
+                self.device = device
+
+            def cleanup(self):
+                return None
+
+            def reset_conversation(self):
+                return None
         # All auxiliary LLM calls (Reflexion, ACE, memory, ReasoningBank, TextGrad, …): same as SolverInterface openai defaults
         self._llm_aux_api_key, self._llm_aux_base_url = get_aux_llm_credentials(api_key)
         self.context = context
@@ -145,6 +162,15 @@ class TaskEvaluator:
         # Initialize solver (Parameter_Policy methods use custom solver)
         if solver_override:
             self.solver = solver_override
+        elif self.base_method == 'theta_evolve':
+            # ThetaEvolve runs in a separate subprocess (Megatron + SGLang).
+            # Avoid pre-loading local vLLM here to prevent unnecessary VRAM pressure.
+            self.solver = _ThetaEvolveSolverStub(
+                model_type=model_type,
+                model_name=model_name,
+                model_path=model_path,
+                device=device,
+            )
         elif self.base_method == 'absolute_zero_iter':
             # Absolute-Zero: iteration-based evaluation with AZR solver (local only).
             if model_type != 'local':
@@ -465,9 +491,10 @@ class TaskEvaluator:
         return os.path.join(self.gif_dir, filename)
 
     def _get_training_log_dir(self):
-        """Return directory for Parameter_Policy training logs: scripts/training_log/{category}/{task}/{model}/{method}/"""
+        """Return directory for Parameter_Policy training logs (per task_name + mutation label)."""
         model_id = get_model_identifier(self.solver.model_type, self.solver.model_name)
-        return get_training_log_dir(self.task_name, model_id, self.method)
+        mut = self.mutated_task_name if getattr(self, "is_mutated_task", False) and getattr(self, "mutated_task_name", None) else None
+        return get_training_log_dir(self.task_name, model_id, self.method, mutated_task_label=mut)
 
     def _compose_feedback(self, metrics, score, success, failed, failure_reason, iteration, error, include_suggestions=False):
         granular_snapshots = (metrics or {}).get("granular_snapshots", [])
@@ -633,12 +660,17 @@ class TaskEvaluator:
                 gif_base_dir=get_gif_base_dir(),
                 initial_code=None,
                 model_path=getattr(self.solver, 'model_path', None),
-                device=getattr(self.solver, 'device', None),
+                device=self.requested_device,
                 env_overrides=self.env_overrides or {},
                 theta_evolve_num_rollout=self.theta_evolve_num_rollout,
                 theta_evolve_rollout_batch_size=self.theta_evolve_rollout_batch_size,
                 training_log_dir=training_log_dir,
             )
+            if _exit_code != 0:
+                raise RuntimeError(
+                    f"ThetaEvolve training failed with exit code {_exit_code}. "
+                    "Check training log and Ray actor traceback above."
+                )
             report['iterations'] = len(report.get('iteration_history', []))
             return report
 
@@ -1535,8 +1567,8 @@ def main():
     parser.add_argument('--expel-max-num-rules', type=int, default=None, dest='expel_max_num_rules',
                         help='ExpeL: max rules when building category insights.json.')
     parser.add_argument(
-        '--theta-evolve-num-rollout', type=int, default=10000, dest='theta_evolve_num_rollout',
-        help='ThetaEvolve: num_rollout passed to slime train (default 10000; use a small value e.g. 12 for smoke tests).',
+        '--theta-evolve-num-rollout', type=int, default=None, dest='theta_evolve_num_rollout',
+        help='ThetaEvolve: num_rollout passed to slime train (default: use --max-iterations).',
     )
     parser.add_argument(
         '--theta-evolve-rollout-batch-size', type=int, default=32, dest='theta_evolve_rollout_batch_size',

@@ -1,6 +1,6 @@
 """
 Task-specific feedback for C-03: The Seeker.
-Audited and purified version: zero hardcoding, zero hallucinations.
+Uses evaluator metrics when present; falls back to environment defaults for activation-zone hints only.
 """
 from typing import Dict, Any, List
 import importlib.util
@@ -123,9 +123,12 @@ def get_improvement_suggestions(
                     "Use proactive braking so relative speed stays below the threshold."
                 )
             if not metrics.get("heading_aligned", False):
+                hr = float(
+                    metrics.get("heading_reference_min_target_speed", HEADING_REFERENCE_MIN_TARGET_SPEED)
+                )
                 suggestions.append(
                     f"Orientation misaligned during capture. Align heading with target velocity when "
-                    f"target speed ≥ {HEADING_REFERENCE_MIN_TARGET_SPEED:g} m/s, else with seeker-to-target "
+                    f"target speed ≥ {hr:g} m/s, else with seeker-to-target "
                     f"direction (thrust follows heading)."
                 )
 

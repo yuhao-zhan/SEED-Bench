@@ -1,9 +1,10 @@
 """
 C-02: The Lander task curriculum stages (mutations).
 
-Visible parameters that differ from the source environment (spawn, corridor,
-platform size, thrust cap, delay, fuel totals, success thresholds) are updated
-in the prompt via update_*_for_visible_changes.
+Visible parameters that differ from the source environment (spawn, lander
+mass/size, ground reference/length, corridor, platform size, thrust/torque caps,
+delay, fuel totals, success thresholds) are updated in the prompt via
+update_*_for_visible_changes.
 
 Invisible parameters (gravity profile over time, wind/gust magnitudes,
 contact/damping/friction details, gravity-after magnitudes) stay out of the base
@@ -34,7 +35,8 @@ DEFAULT_BARRIER_X_LEFT = _env_mod.BARRIER_X_LEFT
 DEFAULT_BARRIER_X_RIGHT = _env_mod.BARRIER_X_RIGHT
 DEFAULT_BARRIER_Y_BOTTOM = _env_mod.BARRIER_Y_BOTTOM
 DEFAULT_BARRIER_Y_TOP = _env_mod.BARRIER_Y_TOP
-DEFAULT_MAX_LANDING_ANGLE_RAD = _env_mod.MAX_LANDING_ANGLE
+# Default |angle| limit at landing from environment.py (radians), not the Stage-2 curriculum override.
+ENV_DEFAULT_MAX_LANDING_ANGLE_RAD = _env_mod.MAX_LANDING_ANGLE
 DEFAULT_MAX_SAFE_VERTICAL_SPEED = _env_mod.MAX_SAFE_VERTICAL_SPEED
 DEFAULT_MAX_THRUST = _env_mod.MAX_THRUST
 DEFAULT_MAX_TORQUE = _env_mod.MAX_TORQUE
@@ -51,10 +53,14 @@ DEFAULT_MAX_EPISODE_STEPS = _env_mod.MAX_EPISODE_STEPS
 DEFAULT_TIME_STEP = _env_mod.DEFAULT_TIME_STEP
 DEFAULT_TIME_STEP_LABEL = _env_mod.DEFAULT_TIME_STEP_LABEL
 DEFAULT_LAND_TOLERANCE = _env_mod.LAND_TOLERANCE
+DEFAULT_LANDER_MASS = _env_mod.LANDER_MASS
+DEFAULT_LANDER_HALF_WIDTH = _env_mod.LANDER_HALF_WIDTH
+DEFAULT_LANDER_HALF_HEIGHT = _env_mod.LANDER_HALF_HEIGHT
+DEFAULT_GROUND_Y_TOP = _env_mod.GROUND_Y_TOP
+DEFAULT_GROUND_LENGTH = _env_mod.GROUND_LENGTH
+DEFAULT_GROUND_SLAB_HEIGHT = _env_mod.GROUND_SLAB_HEIGHT
+CURRICULUM_STAGE2_MAX_LANDING_ANGLE_RAD = _env_mod.CURRICULUM_STAGE2_MAX_LANDING_ANGLE_RAD
 del _env_path, _env_spec, _env_mod
-
-# Stage-2: relaxed upright tolerance (radians, ~68.75°; environment expects radians)
-STAGE2_MAX_LANDING_ANGLE_RAD = 1.2
 
 # Numeric token as rendered in TASK_PROMPT (includes scientific notation, e.g. 1e+05)
 _PROMPT_SCALAR = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
@@ -115,24 +121,149 @@ def update_task_description_for_visible_changes(
     target_sy = float(target_terrain_config.get("spawn_y", DEFAULT_SPAWN_Y))
     base_sy = float(base_terrain_config.get("spawn_y", DEFAULT_SPAWN_Y))
     if target_sx != base_sx or target_sy != base_sy:
+        # Per-axis: `x=T m (originally B m in the source environment)` only when that axis changes.
+        _spawn_orig_m = rf"(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
         p_spawn = (
-            rf"(Starting position \(spawn x=)({_PROMPT_SCALAR})(\s*m)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
-            rf"(,\s*y=)({_PROMPT_SCALAR})(\s*m)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?(\)\.)"
+            rf"(Starting position \(spawn x=)({_PROMPT_SCALAR})( m){_spawn_orig_m}(\s*,\s*y=)({_PROMPT_SCALAR})( m){_spawn_orig_m}(\)\.)"
         )
         if re.search(p_spawn, description):
+
+            def _spawn_repl(m: re.Match) -> str:
+                ox = (
+                    f" (originally {base_sx:.1f} m in the source environment)"
+                    if abs(target_sx - base_sx) > 1e-9
+                    else ""
+                )
+                oy = (
+                    f" (originally {base_sy:.1f} m in the source environment)"
+                    if abs(target_sy - base_sy) > 1e-9
+                    else ""
+                )
+                return (
+                    f"{m.group(1)}{target_sx:.1f}{m.group(3)}{ox}{m.group(4)}"
+                    f"{target_sy:.1f}{m.group(6)}{oy}{m.group(7)}"
+                )
+
+            description = re.sub(p_spawn, _spawn_repl, description)
+        else:
+            warnings.warn(
+                "C_02 stages: spawn coordinates changed but Starting position regex did not match; "
+                "task_description left unchanged.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+
+    target_mass = float(target_terrain_config.get("lander_mass", DEFAULT_LANDER_MASS))
+    base_mass = float(base_terrain_config.get("lander_mass", DEFAULT_LANDER_MASS))
+    if target_mass != base_mass:
+        p_mass = (
+            rf"(\*\*Lander\*\*: Mass )({_PROMPT_SCALAR}) kg"
+            rf"(?: \(originally {_PROMPT_SCALAR} kg in the source environment\))?"
+            rf"(, rectangular hull )"
+        )
+        if re.search(p_mass, description):
             description = re.sub(
-                p_spawn,
+                p_mass,
                 lambda m: (
-                    f"{m.group(1)}{target_sx:.1f}{m.group(3)} (originally {base_sx:.1f} m in the source environment)"
-                    f"{m.group(4)}{target_sy:.1f}{m.group(6)} (originally {base_sy:.1f} m in the source environment)"
-                    f"{m.group(7)}"
+                    f"{m.group(1)}{target_mass:.0f} kg (originally {base_mass:.0f} kg in the source environment)"
+                    f"{m.group(3)}"
                 ),
                 description,
             )
         else:
             warnings.warn(
-                "C_02 stages: spawn coordinates changed but Starting position regex did not match; "
+                "C_02 stages: lander_mass changed but Lander mass regex did not match; "
                 "task_description left unchanged.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+
+    target_lhw = float(target_terrain_config.get("lander_half_width", DEFAULT_LANDER_HALF_WIDTH))
+    base_lhw = float(base_terrain_config.get("lander_half_width", DEFAULT_LANDER_HALF_WIDTH))
+    target_lhh = float(target_terrain_config.get("lander_half_height", DEFAULT_LANDER_HALF_HEIGHT))
+    base_lhh = float(base_terrain_config.get("lander_half_height", DEFAULT_LANDER_HALF_HEIGHT))
+    if target_lhw != base_lhw or target_lhh != base_lhh:
+        target_fw, target_fh = 2.0 * target_lhw, 2.0 * target_lhh
+        base_fw, base_fh = 2.0 * base_lhw, 2.0 * base_lhh
+
+        def _hull_m_seg(target: float, base: float) -> str:
+            if abs(target - base) > 1e-9:
+                return (
+                    f"{target:.1f} m (originally {base:.1f} m in the source environment)"
+                )
+            return f"{target:.1f} m"
+
+        p_hull = re.compile(
+            r"(rectangular hull ).+?( Starting position \(spawn x=)",
+        )
+        if p_hull.search(description):
+            core = (
+                f"{_hull_m_seg(target_fw, base_fw)} × {_hull_m_seg(target_fh, base_fh)} "
+                f"(half-width {_hull_m_seg(target_lhw, base_lhw)}, "
+                f"half-height {_hull_m_seg(target_lhh, base_lhh)})"
+            )
+            description = p_hull.sub(
+                lambda m: f"{m.group(1)}{core}{m.group(2)}",
+                description,
+                count=1,
+            )
+        else:
+            warnings.warn(
+                "C_02 stages: lander half-dims changed but hull anchor regex did not match; "
+                "task_description left unchanged.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+
+    target_gy = float(target_terrain_config.get("ground_y_top", DEFAULT_GROUND_Y_TOP))
+    base_gy = float(base_terrain_config.get("ground_y_top", DEFAULT_GROUND_Y_TOP))
+    target_glen = float(target_terrain_config.get("ground_length", DEFAULT_GROUND_LENGTH))
+    base_glen = float(base_terrain_config.get("ground_length", DEFAULT_GROUND_LENGTH))
+    target_gslab = float(
+        target_terrain_config.get("ground_slab_height", DEFAULT_GROUND_SLAB_HEIGHT)
+    )
+    base_gslab = float(
+        base_terrain_config.get("ground_slab_height", DEFAULT_GROUND_SLAB_HEIGHT)
+    )
+    if target_gy != base_gy or target_glen != base_glen or target_gslab != base_gslab:
+        p_ground = (
+            r"(\*\*Ground\*\*: The landing surface \(ground and platform\) is at y=)"
+            rf"({_PROMPT_SCALAR})( m)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
+            r"(; the static ground fixture extends downward from that plane by )"
+            rf"({_PROMPT_SCALAR})( m \(slab thickness\)\.)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
+            r"( The terrain extends horizontally over roughly )"
+            rf"({_PROMPT_SCALAR})( m)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
+            r"(\. Touchdown is detected when the craft's lowest point is within )"
+        )
+        if re.search(p_ground, description):
+
+            def _ground_repl(m: re.Match) -> str:
+                y_o = (
+                    f" (originally {base_gy:.1f} m in the source environment)"
+                    if abs(target_gy - base_gy) > 1e-9
+                    else ""
+                )
+                slab_o = (
+                    f" (originally {base_gslab:.1f} m in the source environment)"
+                    if abs(target_gslab - base_gslab) > 1e-9
+                    else ""
+                )
+                len_o = (
+                    f" (originally {base_glen:.0f} m in the source environment)"
+                    if abs(target_glen - base_glen) > 1e-9
+                    else ""
+                )
+                return (
+                    f"{m.group(1)}{target_gy:.1f}{m.group(3)}{y_o}{m.group(4)}"
+                    f"{target_gslab:.1f}{m.group(6)}{slab_o}{m.group(7)}"
+                    f"{target_glen:.0f}{m.group(9)}{len_o}{m.group(10)}"
+                )
+
+            description = re.sub(p_ground, _ground_repl, description)
+        else:
+            warnings.warn(
+                "C_02 stages: ground_y_top, ground_slab_height, or ground_length changed but Ground "
+                "regex did not match; task_description left unchanged.",
                 RuntimeWarning,
                 stacklevel=2,
             )
@@ -162,19 +293,20 @@ def update_task_description_for_visible_changes(
         DEFAULT_BARRIER_X_RIGHT,
     )
     if target_bl != base_bl or target_br != base_br:
-        # Interior: plain "10.5, 13.5", per-endpoint annotations, or legacy "left/right endpoint" suffix after "] m".
+        # Interval form: `[L, R] m (originally [L0, R0] m in the source environment).`
         p_bx = (
             r"(A vertical corridor at x in \[)([^\]]+)(\]\s*m)"
+            r"(?: \(originally \[[^\]]+\] m in the source environment\))?"
             r"(\.| \(left endpoint originally .+? m in the source environment, right endpoint originally .+? m in the source environment\)\.)"
         )
         if re.search(p_bx, description):
-            new_interior = (
-                f"{target_bl:.1f} m (originally {base_bl:.1f} m in the source environment), "
-                f"{target_br:.1f} m (originally {base_br:.1f} m in the source environment)"
+            new_interior = f"{target_bl:.1f}, {target_br:.1f}"
+            orig = (
+                f" (originally [{base_bl:.1f}, {base_br:.1f}] m in the source environment)"
             )
             description = re.sub(
                 p_bx,
-                lambda m: f"{m.group(1)}{new_interior}{m.group(3)}.",
+                lambda m: f"{m.group(1)}{new_interior}{m.group(3)}{orig}.",
                 description,
             )
         else:
@@ -212,9 +344,9 @@ def update_task_description_for_visible_changes(
 
     if target_barrier_top != base_barrier_top:
         p_lower = (
-            r"(The lower bound is y=)([\d.]+)(\s*m)"
-            + _ORIG_ANY
-            + r"(\s*\(ground-based obstacle top\);)"
+            rf"(The lower bound is y=)({_PROMPT_SCALAR})(\s*m)"
+            rf"(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
+            rf"(\s*\(ground-based obstacle top\);)"
         )
         if re.search(p_lower, description):
             description = re.sub(
@@ -236,9 +368,9 @@ def update_task_description_for_visible_changes(
 
     if target_barrier_bottom != base_barrier_bottom:
         p_upper = (
-            r"(the upper bound is y=)([\d.]+)(\s*m)"
-            + _ORIG_ANY
-            + r"(\s*\(ceiling\) within that x band\.)"
+            rf"(the upper bound is y=)({_PROMPT_SCALAR})(\s*m)"
+            rf"(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
+            rf"(\s*\(ceiling\) within that x band\.)"
         )
         if re.search(p_upper, description):
             description = re.sub(
@@ -309,16 +441,19 @@ def update_task_description_for_visible_changes(
     if target_hw != base_hw:
         target_width = 2.0 * target_hw
         base_width = 2.0 * base_hw
+        # Flat form: `W m total (center ± h m) (originally W0 m total (center ± h0 m) in the source environment) and ...`
         pattern = (
-            rf"(The valid landing area is )({_PROMPT_SCALAR})(\s*m){_ORIG_ANY}?(\s*wide \(center ± )({_PROMPT_SCALAR})(\s*m){_ORIG_ANY}?(\) and its position)"
+            rf"(The valid landing area is )({_PROMPT_SCALAR})( m total \(center ± )({_PROMPT_SCALAR})( m\))"
+            rf"(?: \(originally {_PROMPT_SCALAR} m total \(center ± {_PROMPT_SCALAR} m\) in the source environment\))?"
+            rf"( and its position depends on the time of landing\.)"
         )
         if re.search(pattern, description):
             description = re.sub(
                 pattern,
                 lambda m: (
-                    f"{m.group(1)}{target_width:.1f}{m.group(3)} (originally {base_width:.1f} m in the source environment)"
-                    f"{m.group(4)}{target_hw:.1f}{m.group(6)} (originally {base_hw:.1f} m in the source environment)"
-                    f"{m.group(7)}"
+                    f"{m.group(1)}{target_width:.1f}{m.group(3)}{target_hw:.1f}{m.group(5)} "
+                    f"(originally {base_width:.1f} m total (center ± {base_hw:.1f} m) in the source environment)"
+                    f"{m.group(6)}"
                 ),
                 description,
             )
@@ -421,9 +556,10 @@ def update_task_description_for_visible_changes(
     )
     if target_delay != base_delay:
         p_delay = (
-            r"(\*\*Control Latency\*\*: Thrust and steering commands first affect forces \*\*)(\d+)"
-            r"(\*\* simulation steps after they are issued \(fixed pipeline delay\)\.)"
-            + _ORIG_ANY
+            r"(\*\*Control Latency\*\*: Pipeline delay is \*\*)(\d+)"
+            r"(\*\* simulation steps)"
+            r"(?: \(originally (?:\*\*)?\d+(?:\*\*)? simulation steps in the source environment\))?"
+            r"( between issuing thrust/steering commands and their physical effect \(fixed\)\.)"
         )
         if re.search(p_delay, description):
             description = re.sub(
@@ -431,12 +567,13 @@ def update_task_description_for_visible_changes(
                 lambda m: (
                     f"{m.group(1)}{target_delay}{m.group(3)} "
                     f"(originally {base_delay} simulation steps in the source environment)"
+                    f"{m.group(4)}"
                 ),
                 description,
             )
         else:
             warnings.warn(
-                "C_02 stages: thrust_delay_steps changed but Control Latency prompt line did not match; "
+                "C_02 stages: thrust_delay_steps changed but Pipeline delay prompt line did not match; "
                 "description left unchanged.",
                 RuntimeWarning,
                 stacklevel=2,
@@ -452,7 +589,8 @@ def update_task_description_for_visible_changes(
         # Prompt uses "**{N} simulation steps**" (one bold span), not "**{N}** simulation steps**"
         p_eps = (
             r"(Each evaluation run is limited to \*\*)(\d+)( simulation steps\*\*)"
-            + _ORIG_ANY
+            r"(?: \(originally \*\*\d+\*\* simulation steps in the source environment\))?"
+            r"(?: \(originally \d+ simulation steps in the source environment\))?"
         )
         if re.search(p_eps, description):
             description = re.sub(
@@ -563,7 +701,7 @@ def update_success_criteria_for_visible_changes(
             r"(1\. \*\*Soft Landing\*\*: At touchdown, vertical speed magnitude must satisfy \|\s*vy\s*\|\s*<=\s*"
             rf")({_PROMPT_SCALAR})(\s*m/s)"
             + _ORIG_ANY
-            + r"(\s*\(world frame, \+y upward; evaluator uses \|vy\| at first ground contact\)\.)"
+            + r"(\. Measurement uses world-frame vertical velocity \(\+y upward; evaluator uses \|vy\| at first ground contact\)\.)"
         )
         if re.search(pattern, criteria):
             criteria = re.sub(
@@ -584,10 +722,10 @@ def update_success_criteria_for_visible_changes(
             )
 
     target_angle_rad = target_terrain_config.get(
-        "max_landing_angle", DEFAULT_MAX_LANDING_ANGLE_RAD
+        "max_landing_angle", ENV_DEFAULT_MAX_LANDING_ANGLE_RAD
     )
     base_angle_rad = base_terrain_config.get(
-        "max_landing_angle", DEFAULT_MAX_LANDING_ANGLE_RAD
+        "max_landing_angle", ENV_DEFAULT_MAX_LANDING_ANGLE_RAD
     )
     if target_angle_rad != base_angle_rad:
         target_angle_deg = math.degrees(target_angle_rad)
@@ -660,16 +798,18 @@ def update_success_criteria_for_visible_changes(
         bw = 2.0 * base_hw
         pattern = (
             r"(3\. \*\*Accuracy\*\*: At touchdown, the craft's entire ground-contact width must lie within the valid landing platform: \*\*)"
-            rf"({_PROMPT_SCALAR})(\s*m){_ORIG_ANY}?(\s*total \(center ± )({_PROMPT_SCALAR})(\s*m){_ORIG_ANY}?(\)\*\*)"
+            rf"({_PROMPT_SCALAR})( m total \(center ± )({_PROMPT_SCALAR})( m\))"
+            rf"(?: \(originally {_PROMPT_SCALAR} m total \(center ± {_PROMPT_SCALAR} m\) in the source environment\))?"
+            rf"(\*\*)"
             + r"( at the instant of landing \(zone position at that time; not only the center x\)\.)"
         )
         if re.search(pattern, criteria):
             criteria = re.sub(
                 pattern,
                 lambda m: (
-                    f"{m.group(1)}{tw:.1f}{m.group(3)} (originally {bw:.1f} m in the source environment)"
-                    f"{m.group(4)}{target_hw:.1f}{m.group(6)} (originally {base_hw:.1f} m in the source environment)"
-                    f"{m.group(7)}{m.group(8)}"
+                    f"{m.group(1)}{tw:.1f}{m.group(3)}{target_hw:.1f}{m.group(5)} "
+                    f"(originally {bw:.1f} m total (center ± {base_hw:.1f} m) in the source environment)"
+                    f"{m.group(6)}{m.group(7)}"
                 ),
                 criteria,
             )
@@ -683,21 +823,54 @@ def update_success_criteria_for_visible_changes(
     return criteria
 
 
+def apply_visible_prompt_updates(
+    task_description: str,
+    success_criteria: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+    *,
+    stage: Optional[Dict[str, Any]] = None,
+) -> tuple[str, str]:
+    """
+    Apply both visible-text updaters in one call so task_description and success_criteria stay aligned
+    (e.g. platform half-width appears consistently in both sections).
+    """
+    td = update_task_description_for_visible_changes(
+        task_description,
+        target_terrain_config,
+        base_terrain_config,
+        target_physics_config,
+        base_physics_config,
+        stage=stage,
+    )
+    sc = update_success_criteria_for_visible_changes(
+        success_criteria,
+        target_terrain_config,
+        base_terrain_config,
+        target_physics_config,
+        base_physics_config,
+        stage=stage,
+    )
+    return td, sc
+
+
 def get_c02_curriculum_stages() -> List[Dict[str, Any]]:
     task_description_suffix = """
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Structural Integrity Threshold**: The maximum safe impact velocity at touchdown may be different.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+ - **Structural Integrity Threshold**: The allowed magnitude of world-frame vertical speed |vy| at touchdown may be different.
  - **Upright Orientation Tolerance**: The maximum allowed landing angle (deviation from vertical) may be different.
  - **Landing Zone Extent**: The horizontal width of the valid landing platform may be different.
  - **Actuation Latency**: The time delay between issuing a control command and the engine's physical response may be different.
  - **Flight Corridor Constraints**: Vertical limits of the no-fly corridor in the barrier region may be different.
  - **Engine Thrust Limit**: The maximum thrust the main engine can produce may be different.
- - **Effective Gravity**: Gravitational effects on the craft are among the quantities that may need to be inferred through interaction.
+ - **Effective Gravity**: The effective gravitational influence on the craft may be different.
  - **Resource Availability**: The total fuel impulse available for the mission may be different.
  - **Operational Safety Margins**: The minimum required fuel that must remain after landing may be different.
- - **Atmospheric Disturbances**: Lateral environmental forcing (including gust-like effects) is among the quantities that may need to be inferred through interaction.
+ - **Atmospheric Disturbances**: Lateral environmental forcing (including gust-like effects) may be different.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Use simulator feedback to refine your controller.
 """
@@ -723,7 +896,7 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "max_safe_vertical_speed": 2.5,
-                "max_landing_angle": STAGE2_MAX_LANDING_ANGLE_RAD,
+                "max_landing_angle": CURRICULUM_STAGE2_MAX_LANDING_ANGLE_RAD,
             },
             "physics_config": {
                 "thrust_delay_steps": 12,
@@ -756,7 +929,7 @@ Discovery via feedback: Your objective is to identify the underlying physical ru
             "task_description_suffix": task_description_suffix,
             "terrain_config": {
                 "max_safe_vertical_speed": 2.6,
-                "max_landing_angle": 0.28,
+                "max_landing_angle": math.radians(7.0),
             },
             "physics_config": {
                 "thrust_delay_steps": 12,

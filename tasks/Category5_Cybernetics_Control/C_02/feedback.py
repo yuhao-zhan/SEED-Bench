@@ -42,10 +42,35 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         metric_parts.append(
             f"- Minimum impulse required at landing: {metrics['min_fuel_remaining_at_landing']:.1f} N·s"
         )
-    if "barrier_y_top" in metrics and "barrier_y_bottom" in metrics:
+    if "max_episode_steps" in metrics:
         metric_parts.append(
-            f"- No-fly corridor (barrier x-band): stay between y={metrics['barrier_y_top']:.1f} m "
-            f"and y={metrics['barrier_y_bottom']:.1f} m"
+            f"- Max episode steps (sandbox): {int(metrics['max_episode_steps'])}"
+        )
+    if "episode_horizon" in metrics:
+        metric_parts.append(
+            f"- Effective evaluation horizon: {int(metrics['episode_horizon'])} steps"
+        )
+    if "thrust_delay_steps" in metrics:
+        metric_parts.append(
+            f"- Thrust/torque pipeline delay: {int(metrics['thrust_delay_steps'])} simulation steps"
+        )
+    if (
+        "barrier_y_top" in metrics
+        and "barrier_y_bottom" in metrics
+        and "barrier_x_left" in metrics
+        and "barrier_x_right" in metrics
+    ):
+        xl, xr = metrics["barrier_x_left"], metrics["barrier_x_right"]
+        yt, yb = metrics["barrier_y_top"], metrics["barrier_y_bottom"]
+        metric_parts.append(
+            f"- No-fly corridor: if any hull corner has x in [{xl:.1f}, {xr:.1f}] m, "
+            f"that corner must satisfy y≥{yt:.1f} m (obstacle top) and y≤{yb:.1f} m (ceiling)."
+        )
+    elif "barrier_y_top" in metrics and "barrier_y_bottom" in metrics:
+        metric_parts.append(
+            f"- No-fly corridor: when in the barrier x-band, keep y between "
+            f"{metrics['barrier_y_top']:.1f} m and {metrics['barrier_y_bottom']:.1f} m "
+            f"(see task specification for x limits)."
         )
 
     if metrics.get("failed") and metrics.get("failure_reason"):
@@ -78,9 +103,16 @@ def get_improvement_suggestions(
     
     # success == landed and not failed (evaluator); so "not failed and not success" implies not landed.
     if not failed and not success and not landed:
-        suggestions.append(
-            "The mission reached the simulation step limit before landing. Adjust the control strategy to reach the platform within the allowed step budget."
-        )
+        hz = metrics.get("episode_horizon")
+        if hz is not None:
+            suggestions.append(
+                f"The mission reached the evaluation horizon ({int(hz)} simulation steps) before landing. "
+                "Adjust the control strategy to reach the platform within the allowed step budget."
+            )
+        else:
+            suggestions.append(
+                "The mission reached the simulation step limit before landing. Adjust the control strategy to reach the platform within the allowed step budget."
+            )
 
     if failed:
         # 1. Kinetic Stress Root-Cause
@@ -89,7 +121,9 @@ def get_improvement_suggestions(
             
         # 2. Attitude Loss
         if landed and angle > limit_angle:
-            suggestions.append("The craft capsized. High rotational inertia or sensing lag may be destabilizing the attitude during the high-thrust final approach.")
+            suggestions.append(
+                "The craft capsized. Reduce final-approach angular rates and align the body before touchdown."
+            )
             
         # 3. Dynamic Window Synchronization
         if landed and "out of landing zone" in (failure_reason or "").lower():

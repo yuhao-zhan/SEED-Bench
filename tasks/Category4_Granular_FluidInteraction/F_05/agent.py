@@ -22,6 +22,14 @@ def _hull_deck_top(sandbox):
 def build_agent(sandbox):
     deck_top, by = _hull_deck_top(sandbox)
     yz = float(getattr(sandbox, "BUILD_ZONE_Y_MIN", 2.0))
+    max_m = float(getattr(sandbox, "MAX_STRUCTURE_MASS", 60.0))
+    _REF_STRUCTURE_MASS = 59.61
+    d_scale = (
+        1.0
+        if max_m >= _REF_STRUCTURE_MASS - 0.05
+        else min(1.0, max(0.35, (max_m - 0.25) / _REF_STRUCTURE_MASS))
+    )
+    rho = lambda d: float(d) * d_scale
     y_min_anchor = yz + 0.01
     ballast_half_h = 0.17 / 2.0
     ballast_y = max(by - 0.26, yz + ballast_half_h + 0.001)
@@ -29,28 +37,28 @@ def build_agent(sandbox):
     joint_rail_y = max(deck_top - 0.05, y_min_anchor)
     bodies = []
     for bx in (14.25, 15.75):
-        b = sandbox.add_beam(bx, ballast_y, 0.5, 0.17, angle=0, density=254.0)
+        b = sandbox.add_beam(bx, ballast_y, 0.5, 0.17, angle=0, density=rho(254.0))
         sandbox.set_material_properties(b, restitution=0.05)
         bodies.append(b)
         sandbox.add_joint(b, None, (bx, joint_ballast_y), type='rigid')
-    rail_density = 30.0
+    rail_density = rho(30.0)
     left_rail_y = deck_top + RAIL_HEIGHT / 2
     for x_rail in (BOAT_LEFT_X, BOAT_RIGHT_X):
         r = sandbox.add_beam(x_rail, left_rail_y, RAIL_WIDTH, RAIL_HEIGHT, angle=0, density=rail_density)
         sandbox.set_material_properties(r, restitution=0.07)
         bodies.append(r)
         sandbox.add_joint(r, None, (x_rail, joint_rail_y), type='rigid')
-    lip_front = sandbox.add_beam(14.5, deck_top + 0.06, 0.18, 0.06, angle=0, density=35.0)
+    lip_front = sandbox.add_beam(14.5, deck_top + 0.06, 0.18, 0.06, angle=0, density=rho(35.0))
     sandbox.set_material_properties(lip_front, restitution=0.07)
     bodies.append(lip_front)
     sandbox.add_joint(lip_front, None, (14.5, deck_top), type='rigid')
-    lip_back = sandbox.add_beam(15.5, deck_top + 0.06, 0.18, 0.06, angle=0, density=35.0)
+    lip_back = sandbox.add_beam(15.5, deck_top + 0.06, 0.18, 0.06, angle=0, density=rho(35.0))
     sandbox.set_material_properties(lip_back, restitution=0.07)
     bodies.append(lip_back)
     sandbox.add_joint(lip_back, None, (15.5, deck_top), type='rigid')
     barrier_y = deck_top + 0.18
     for bx in (14.5, 15.5):
-        bar = sandbox.add_beam(bx, barrier_y, 0.26, 0.2, angle=0, density=42.0)
+        bar = sandbox.add_beam(bx, barrier_y, 0.26, 0.2, angle=0, density=rho(42.0))
         sandbox.set_material_properties(bar, restitution=0.07)
         bodies.append(bar)
         sandbox.add_joint(bar, None, (bx, deck_top), type='rigid')

@@ -20,6 +20,8 @@ from typing import Any, Dict, List
 import math
 import re
 
+from tasks.Category4_Granular_FluidInteraction.F_05.environment import WELD_TORQUE_FORCE_RATIO
+
 
 def _fmt_build_zone_axis(y: float) -> str:
     """Format build-zone bounds without `% 0.1` float residue (e.g. 2.0 vs 2.00)."""
@@ -32,7 +34,7 @@ def _fmt_build_zone_axis(y: float) -> str:
 
 # Appended when repairing a truncated obstacle line (regex legacy path).
 _ROCK_FIXTURES_SUFFIX = (
-    " Each baseline rock fixture uses friction **0.6** and restitution **0.2** in the simulator; "
+    " Each rock uses environment-defined contact parameters (magnitudes omitted in the task text); "
     "variants may change positions/radii and therefore the hazard field."
 )
 
@@ -75,9 +77,61 @@ def _hull_linear_angular_damping(physics_config: Dict[str, Any] | None) -> tuple
     return float(ld), float(ad)
 
 
+def _damping_token_phrase(value: float, base_value: float) -> str:
+    """Format one damping scalar; append (originally …) only when it differs from the source environment."""
+    v, b = float(value), float(base_value)
+    core = f"**{v:.2f}**"
+    if not math.isclose(v, b, rel_tol=0.0, abs_tol=1e-9):
+        return f"{core} (originally {b:.2f} in the source environment)"
+    return core
+
+
+def _cargo_scalar_token(new: float, old: float) -> str:
+    """Cargo friction/restitution in prose; new value bold; (originally …) matches S-01 plain archive style."""
+    n, o = float(new), float(old)
+    core = f"**{n:.2f}**"
+    if not math.isclose(n, o, rel_tol=0.0, abs_tol=1e-9):
+        return f"{core} (originally {o:.2f} in the source environment)"
+    return core
+
+
+def _f05_joint_limit_float(terrain_config: Dict[str, Any]) -> float:
+    """Finite joint force cap or +inf when unset / invalid / None."""
+    inf = float("inf")
+    v = terrain_config.get("joint_max_force", inf)
+    if v is None:
+        return inf
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return inf
+
+
 def _cargo_count_radius(terrain_config: Dict[str, Any]) -> tuple[int, float]:
     cargo = terrain_config.get("cargo") or {}
     return int(cargo.get("count", 10)), float(cargo.get("radius", 0.15))
+
+
+_ROCK_COUNT_WORDS = (
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+)
+
+
+def _rock_count_phrase(n: int) -> str:
+    """Spelled-out count for obstacle lines (aligns baseline prompt: \"four rocks\")."""
+    if 0 <= n < len(_ROCK_COUNT_WORDS):
+        return f"{_ROCK_COUNT_WORDS[n]} rocks"
+    return f"{n} rocks"
 
 
 def _format_rocks_summary(terrain_config: Dict[str, Any]) -> str:
@@ -94,7 +148,7 @@ def _format_rocks_summary(terrain_config: Dict[str, Any]) -> str:
         ry = float(r.get("y", 1.0))
         rr = float(r.get("radius", r.get("r", 0.2)))
         parts.append(f"({rx:.2f}, {ry:.2f}, r={rr:.2f})")
-    return f"{len(rocks)} rocks: " + "; ".join(parts)
+    return f"{_rock_count_phrase(len(rocks))}: " + "; ".join(parts)
 
 
 def update_task_description_for_visible_changes(
@@ -103,6 +157,8 @@ def update_task_description_for_visible_changes(
     base_terrain_config: Dict[str, Any],
     target_physics_config: Dict[str, Any] | None = None,
     base_physics_config: Dict[str, Any] | None = None,
+    *,
+    stage: Dict[str, Any] | None = None,
 ) -> str:
     """Update task description for visible terrain/config changes.
 
@@ -114,10 +170,16 @@ def update_task_description_for_visible_changes(
     Deck friction and damping use the same numeric defaults as ``environment.Sandbox``; when they
     differ from the source environment, prose uses
     ``[new] (originally [old] in the source environment)`` (not sea-state forcings).
+
+    ``stage`` is accepted for harness compatibility (e.g. ``evaluate_mutated``). When the harness
+    calls with ``stage=`` but omits physics configs, merged ``physics_config`` is read from ``stage``.
     """
     description = base_description
-    target_physics_config = target_physics_config or {}
-    base_physics_config = base_physics_config or {}
+    if target_physics_config is None:
+        target_physics_config = dict((stage or {}).get("physics_config") or {})
+    else:
+        target_physics_config = dict(target_physics_config)
+    base_physics_config = dict(base_physics_config or {})
     target_x_min = target_terrain_config.get("build_zone_x_min", 12.0)
     target_x_max = target_terrain_config.get("build_zone_x_max", 18.0)
     target_y_min = target_terrain_config.get("build_zone_y_min", 2.0)
@@ -246,12 +308,12 @@ def update_task_description_for_visible_changes(
     target_rocks = _format_rocks_summary(target_terrain_config)
     base_rocks = _format_rocks_summary(base_terrain_config)
     if target_rocks != base_rocks:
-        # Match prompt.py: rock list + "Each rock uses fixed contact parameters..." sentence.
+        # Match prompt.py: rock list + qualitative contact-parameters sentence.
         obs_pat_full = (
             r"(- \*\*Submerged obstacles\*\*: )"
             r"((?:four|\d+) rocks: .+?)"
             r"(?: \(originally .+? in the source environment\))?"
-            r"(\. Each (?:rock uses environment-defined contact parameters \(magnitudes omitted\);|baseline rock fixture uses \*\*friction 0\.6\*\* and \*\*restitution 0\.2\*\* in the simulator; )"
+            r"(\. Each rock uses environment-defined contact parameters \(magnitudes omitted in the task text\); "
             r"variants may change positions/radii and therefore the hazard field\.)"
         )
         if re.search(obs_pat_full, description):
@@ -276,23 +338,31 @@ def update_task_description_for_visible_changes(
     t_n, t_r = _cargo_count_radius(target_terrain_config)
     b_n, b_r = _cargo_count_radius(base_terrain_config)
     if t_fr != b_fr or t_rest != b_rest or t_n != b_n or not math.isclose(t_r, b_r, rel_tol=0.0, abs_tol=1e-9):
+        _ob = r"(?:\*\*)?"
         cargo_pat = (
-            r"(- \*\*Cargo\*\*: )(\d+) circular particles, radius ([\d.]+) m; baseline disk density 260, friction "
-            r"([\d.]+(?: \(originally [\d.]+ in the source environment\))?)"
+            r"(- \*\*Cargo\*\*: )"
+            r"(\d+) circular particles, radius ([\d.]+) m; baseline disk density 260, friction "
+            + _ob
+            + r"([\d.]+)"
+            + _ob
+            + r"(?: \(originally "
+            + _ob
+            + r"([\d.]+)"
+            + _ob
+            + r" in the source environment\))?"
             r"(, restitution )"
-            r"([\d.]+(?: \(originally [\d.]+ in the source environment\))?)"
+            + _ob
+            + r"([\d.]+)"
+            + _ob
+            + r"(?: \(originally "
+            + _ob
+            + r"([\d.]+)"
+            + _ob
+            + r" in the source environment\))?"
             r"( \(variants may override contact parameters\)\.)"
         )
-        fr_s = (
-            f"{t_fr:.2f} (originally {b_fr:.2f} in the source environment)"
-            if t_fr != b_fr
-            else f"{t_fr:.2f}"
-        )
-        rest_s = (
-            f"{t_rest:.2f} (originally {b_rest:.2f} in the source environment)"
-            if t_rest != b_rest
-            else f"{t_rest:.2f}"
-        )
+        fr_s = _cargo_scalar_token(t_fr, b_fr)
+        rest_s = _cargo_scalar_token(t_rest, b_rest)
 
         def _cargo_full_repl(m: re.Match[str]) -> str:
             n_part = (
@@ -307,7 +377,7 @@ def update_task_description_for_visible_changes(
                 r_part = f"radius {r_fmt} m"
             return (
                 f"{m.group(1)}{n_part}, {r_part}; baseline disk density 260, friction {fr_s}"
-                f"{m.group(5)}{rest_s}{m.group(7)}"
+                f"{m.group(6)}{rest_s}{m.group(9)}"
             )
 
         if re.search(cargo_pat, description):
@@ -318,27 +388,22 @@ def update_task_description_for_visible_changes(
     tc_ld, tc_ad = _cargo_linear_angular_damping(target_terrain_config)
     bc_ld, bc_ad = _cargo_linear_angular_damping(base_terrain_config)
     if (th_ld, th_ad) != (bh_ld, bh_ad) or (tc_ld, tc_ad) != (bc_ld, bc_ad):
+        hl_p = _damping_token_phrase(th_ld, bh_ld)
+        ha_p = _damping_token_phrase(th_ad, bh_ad)
+        cl_p = _damping_token_phrase(tc_ld, bc_ld)
+        ca_p = _damping_token_phrase(tc_ad, bc_ad)
         damp_new = (
-            "- **Damping (baseline)**: Hull and beams use linear damping **{hl:.2f}** and angular damping **{ha:.2f}**; "
-            "cargo particles use linear damping **{cl:.2f}** and angular damping **{ca:.2f}** "
-            "(originally hull/beam linear **{ohl:.2f}**, angular **{oha:.2f}** and cargo linear **{ocl:.2f}**, "
-            "angular **{oca:.2f}** in the source environment). "
+            f"- **Damping (baseline)**: Hull and beams use linear damping {hl_p} and angular damping {ha_p}; "
+            f"cargo particles use linear damping {cl_p} and angular damping {ca_p}. "
             "Variants may override these per body class."
-        ).format(
-            hl=th_ld,
-            ha=th_ad,
-            cl=tc_ld,
-            ca=tc_ad,
-            ohl=bh_ld,
-            oha=bh_ad,
-            ocl=bc_ld,
-            oca=bc_ad,
         )
+        # Matches per-scalar optional (originally …) after each **x.xx** (idempotent re-apply; old value may be plain or bold).
+        _opt_orig = r"(?: \(originally (?:\*\*)?[\d.]+(?:\*\*)? in the source environment\))?"
         damp_pat_mut = (
-            r"- \*\*Damping \(baseline\)\*\*: Hull and beams use linear damping \*\*[\d.]+\*\* and angular damping \*\*[\d.]+\*\*; "
-            r"cargo particles use linear damping \*\*[\d.]+\*\* and angular damping \*\*[\d.]+\*\* "
-            r"\(originally hull/beam linear \*\*[\d.]+\*\*, angular \*\*[\d.]+\*\* and cargo linear \*\*[\d.]+\*\*, "
-            r"angular \*\*[\d.]+\*\* in the source environment\)\. "
+            r"- \*\*Damping \(baseline\)\*\*: Hull and beams use linear damping \*\*[\d.]+\*\*" + _opt_orig + r" "
+            r"and angular damping \*\*[\d.]+\*\*" + _opt_orig + r"; "
+            r"cargo particles use linear damping \*\*[\d.]+\*\*" + _opt_orig + r" "
+            r"and angular damping \*\*[\d.]+\*\*" + _opt_orig + r"\. "
             r"Variants may override these per body class\."
         )
         damp_pat_qual_base = (
@@ -370,62 +435,110 @@ def update_task_description_for_visible_changes(
                 description = re.sub(pat, damp_new, description, count=1)
                 break
 
+    default_grace = 120
+    target_grace = int(target_terrain_config.get("cargo_loss_grace_steps", default_grace))
+    base_grace = int(base_terrain_config.get("cargo_loss_grace_steps", default_grace))
+    if target_grace != base_grace:
+        # Full-bullet replace: parentheses are easier to get wrong with partial regex groups.
+        grace_full_pat = (
+            r"- \*\*Loss-plane grace window\*\*: The evaluator ignores loss-plane crossings during the first "
+            r"\*\*`cargo_loss_grace_steps`\*\* physics steps \(environment configuration; "
+            r"baseline default \*\*\d+\*\*(?: \(originally \*\*\d+\*\* in the source environment\))?\)"
+            r"\. The first numbered cargo-retention rule in the scoring section uses that baseline default; "
+            r"staged prompts update the step count when variants change it\."
+        )
+
+        def _grace_full_repl(_m: re.Match[str]) -> str:
+            return (
+                "- **Loss-plane grace window**: The evaluator ignores loss-plane crossings during the first "
+                "**`cargo_loss_grace_steps`** physics steps (environment configuration; "
+                f"baseline default **{target_grace}** (originally **{base_grace}** in the source environment)). "
+                "The first numbered cargo-retention rule in the scoring section uses that baseline default; "
+                "staged prompts update the step count when variants change it."
+            )
+
+        if re.search(grace_full_pat, description):
+            description = re.sub(grace_full_pat, _grace_full_repl, description, count=1)
+
     return description
 
 
 def update_success_criteria_for_visible_changes(
-    base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
+    base_success_criteria: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    *,
+    stage: Dict[str, Any] | None = None,
 ) -> str:
     """Update success criteria for visible changes.
 
     ``base_terrain_config`` must be the **Initial** task defaults (typically ``{}``), not a
     prior merged stage, so ``(originally … in the source environment)`` refers to the true source.
+
+    ``stage`` is accepted for harness compatibility; unused here.
     """
     criteria = base_success_criteria
     inf = float("inf")
-    target_joint = target_terrain_config.get("joint_max_force", inf)
-    base_joint = base_terrain_config.get("joint_max_force", inf)
+    target_joint = _f05_joint_limit_float(target_terrain_config)
+    base_joint = _f05_joint_limit_float(base_terrain_config)
+    _tr = WELD_TORQUE_FORCE_RATIO
+    joint_limits_generic = (
+        "- **Joint structural limits**: When no per-weld load cap is configured, welds do not break under reaction loads. "
+        "When a force cap **F_max** (newtons) is configured, a weld breaks if the simulated per-weld reaction **force** magnitude exceeds **F_max** "
+        f"or the simulated per-weld reaction **torque** magnitude exceeds **{_tr:.1f} × F_max**. "
+        "Both samples use the Box2D timestep-scaled reaction API with **`inv_dt = 1/Δt`** (same **Δt** as `World.Step`), "
+        "so the torque threshold is **not** an independent SI torque budget — it is a coupled scalar limit tied to **F_max** and the integration timestep. "
+        f"Numeric **F_max** and the paired **{_tr:.1f} × F_max** torque threshold appear in Success Criteria when configured; use episode feedback when limits are not printed."
+    )
     pattern_generic = (
         r"(- \*\*Joint structural limits\*\*: )"
         r"When no per-weld load cap is configured, welds do not break under reaction loads\. "
-        r"When a force cap \*\*F_max\*\* \(N\) is configured, the simulator also enforces a coupled torque cap "
-        r"\*\*0\.4 × F_max\*\* \(N\u00b7m\); a weld breaks if simulated reaction force exceeds \*\*F_max\*\* or reaction torque exceeds that torque cap\. "
-        r"Numeric \*\*F_max\*\* and the derived torque cap appear in Success Criteria when configured; use episode feedback when limits are not printed\."
+        r"When a force cap \*\*F_max\*\* \(newtons\) is configured, a weld breaks if the simulated per-weld reaction \*\*force\*\* magnitude exceeds \*\*F_max\*\* "
+        r"or the simulated per-weld reaction \*\*torque\*\* magnitude exceeds \*\*0\.4 × F_max\*\*\. "
+        r"Both samples use the Box2D timestep-scaled reaction API with \*\*`inv_dt = 1/Δt`\*\* \(same \*\*Δt\*\* as `World\.Step`\), "
+        r"so the torque threshold is \*\*not\*\* an independent SI torque budget \u2014 it is a coupled scalar limit tied to \*\*F_max\*\* and the integration timestep\. "
+        r"Numeric \*\*F_max\*\* and the paired \*\*0\.4 × F_max\*\* torque threshold appear in Success Criteria when configured; use episode feedback when limits are not printed\."
     )
     pattern_configured = (
         r"(- \*\*Joint structural limits\*\*: )"
         r"Maximum joint reaction force [\d.]+ N \(originally [^\)]+\); "
-        r"reaction torque limit [\d.]+ N\u00b7m \(originally [^\)]+\)\. "
+        r"coupled torque threshold [\d.]+ "
+        r"\(0\.4× the force cap; same timestep-scaled Box2D reaction sampling as force\) "
+        r"\(originally [^\)]+\)\. "
         r"A weld fails when simulated reaction force exceeds the force limit or "
-        r"simulated reaction torque exceeds the torque limit\."
+        r"simulated reaction torque exceeds the torque threshold\."
     )
-    TORQUE_SCALE = 0.4
-    if target_joint != inf:
+    if not math.isinf(target_joint):
         target_val = float(target_joint)
-        torque_limit = target_val * TORQUE_SCALE
-        if base_joint == inf or base_joint is None:
+        torque_limit = target_val * WELD_TORQUE_FORCE_RATIO
+        if math.isinf(base_joint):
             orig_f = "∞ in the source environment"
             orig_t = "∞ in the source environment"
         else:
             base_val = float(base_joint)
-            base_torque = base_val * TORQUE_SCALE
+            base_torque = base_val * WELD_TORQUE_FORCE_RATIO
             orig_f = f"{base_val:.0f} N in the source environment"
-            orig_t = f"{base_torque:.0f} N\u00b7m in the source environment"
+            orig_t = (
+                f"{base_torque:.0f} ({WELD_TORQUE_FORCE_RATIO:.1f}× force cap; timestep-scaled) in the source environment"
+            )
 
         def _joint_repl(m: re.Match[str]) -> str:
             return (
                 f"{m.group(1)}Maximum joint reaction force {target_val:.0f} N "
                 f"(originally {orig_f}); "
-                f"reaction torque limit {torque_limit:.0f} N\u00b7m "
+                f"coupled torque threshold {torque_limit:.0f} "
+                f"({WELD_TORQUE_FORCE_RATIO:.1f}× the force cap; same timestep-scaled Box2D reaction sampling as force) "
                 f"(originally {orig_t}). "
                 "A weld fails when simulated reaction force exceeds the force limit or "
-                "simulated reaction torque exceeds the torque limit."
+                "simulated reaction torque exceeds the torque threshold."
             )
 
         if re.search(pattern_generic, criteria):
             criteria = re.sub(pattern_generic, _joint_repl, criteria, count=1)
         elif re.search(pattern_configured, criteria):
             criteria = re.sub(pattern_configured, _joint_repl, criteria, count=1)
+    elif re.search(pattern_configured, criteria):
+        criteria = re.sub(pattern_configured, joint_limits_generic, criteria, count=1)
 
     default_mass = 60.0
     target_mass = float(target_terrain_config.get("max_structure_mass", default_mass))
@@ -550,11 +663,38 @@ def build_f05_uniform_suffix(
     if (h_ld, h_ad) != (0.1, 0.05):
         add("Hull and beam motion damping")
     if not math.isclose(float(tc.get("current_strength", 0.35)), 0.35, rel_tol=0.0, abs_tol=1e-6):
-        add("Water-current bias")
-    if not math.isclose(float(tc.get("wind_amplitude", 5.0)), 5.0, rel_tol=0.0, abs_tol=1e-6):
+        add("Water current effects")
+    if (
+        not math.isclose(float(tc.get("wind_amplitude", 5.0)), 5.0, rel_tol=0.0, abs_tol=1e-6)
+        or not math.isclose(float(tc.get("wind_frequency", 0.15)), 0.15, rel_tol=0.0, abs_tol=1e-6)
+    ):
         add("Lateral wind forcing")
-    if not math.isclose(float(tc.get("lateral_impulse_amplitude", 68.0)), 68.0, rel_tol=0.0, abs_tol=1e-6):
+    if (
+        not math.isclose(float(tc.get("lateral_impulse_amplitude", 68.0)), 68.0, rel_tol=0.0, abs_tol=1e-6)
+        or int(tc.get("lateral_impulse_interval_steps", 200)) != 200
+    ):
         add("Periodic lateral impulse kicks")
+    if (
+        not math.isclose(float(tc.get("wave_amplitude", 10.0)), 10.0, rel_tol=0.0, abs_tol=1e-6)
+        or not math.isclose(float(tc.get("wave_frequency", 0.5)), 0.5, rel_tol=0.0, abs_tol=1e-6)
+    ):
+        add("Wave-driven vertical forcing")
+    if (
+        not math.isclose(float(tc.get("wave2_amplitude", 5.0)), 5.0, rel_tol=0.0, abs_tol=1e-6)
+        or not math.isclose(float(tc.get("wave2_frequency", 0.27)), 0.27, rel_tol=0.0, abs_tol=1e-6)
+    ):
+        add("Secondary wave modulation")
+    if (
+        not math.isclose(float(tc.get("gust_amplitude", 4.0)), 4.0, rel_tol=0.0, abs_tol=1e-6)
+        or int(tc.get("gust_interval_steps", 80)) != 80
+    ):
+        add("Vertical gust cadence")
+    if (
+        not math.isclose(float(tc.get("rogue_amplitude", 14.0)), 14.0, rel_tol=0.0, abs_tol=1e-6)
+        or int(tc.get("rogue_interval_steps", 380)) != 380
+        or int(tc.get("rogue_double_step", 5)) != 5
+    ):
+        add("Large transient wave impulses")
     if not math.isclose(float(tc.get("cargo_water_y", 1.98)), 1.98, rel_tol=0.0, abs_tol=1e-6):
         add("Cargo loss-plane height")
     h_amp = float(tc.get("hull_roll_impulse_amplitude", 0.0))
@@ -577,7 +717,7 @@ def build_f05_uniform_suffix(
     return f"""
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
 {bullet_block}
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze failure modes from simulation feedback and adapt your design.

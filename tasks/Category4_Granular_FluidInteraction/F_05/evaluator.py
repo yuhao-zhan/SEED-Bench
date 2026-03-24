@@ -110,7 +110,7 @@ class Evaluator:
             metrics = self._collect_metrics(step_count, success=False, failed=False, failure_reason=None)
             return False, 0.0, metrics
 
-        cargo_in_water = self.environment.get_cargo_in_water_count()
+        cargo_in_water = self.environment.get_cargo_below_loss_plane_count()
         initial_cargo = self.environment.get_initial_cargo_count()
         boat_angle = self.environment.get_boat_angle()
         angle_deg = math.degrees(abs(boat_angle)) if boat_angle is not None else 0.0
@@ -166,7 +166,7 @@ class Evaluator:
                          cargo_in_water=None, initial_cargo=None, boat_angle_rad=None, boat_angle_deg=None,
                          boat_peak_angle_deg=None, cargo_ever_below_loss_plane=None):
         if cargo_in_water is None:
-            cargo_in_water = self.environment.get_cargo_in_water_count()
+            cargo_in_water = self.environment.get_cargo_below_loss_plane_count()
         if initial_cargo is None:
             initial_cargo = self.environment.get_initial_cargo_count()
         if boat_angle_rad is None:
@@ -190,13 +190,13 @@ class Evaluator:
         boat_pos = self.environment.get_boat_position() if hasattr(self.environment, 'get_boat_position') else None
         boat_x = boat_pos[0] if boat_pos else None
         boat_y = boat_pos[1] if boat_pos else None
-        # Align with scorer: retention failure is *ever* below the loss plane, not end-state count only.
-        if cargo_ever_below_loss_plane and initial_cargo is not None:
-            cargo_retained = 0
-            cargo_retained_ratio = 0.0
+        # End-state counts (centers below loss plane at this step); scoring still uses cargo_ever_below_loss_plane.
+        if initial_cargo is not None:
+            cargo_retained = initial_cargo - cargo_in_water
+            cargo_retained_ratio = (cargo_retained / initial_cargo) if initial_cargo > 0 else None
         else:
-            cargo_retained = (initial_cargo - cargo_in_water) if initial_cargo is not None else None
-            cargo_retained_ratio = (cargo_retained / initial_cargo) if (initial_cargo and initial_cargo > 0) else None
+            cargo_retained = None
+            cargo_retained_ratio = None
 
         return {
             "step_count": step_count,
@@ -271,18 +271,23 @@ class Evaluator:
         if jmf < float("inf"):
             tertiary = (
                 "Welds can break when simulated per-weld reaction force or torque exceeds the numeric "
-                "caps listed in Success Criteria (force cap and 0.4× force-cap torque limit)."
+                "caps listed in Success Criteria (force cap **F_max** and coupled **0.4×F_max** torque "
+                "threshold in the same timestep-scaled Box2D sampling)."
             )
+        grace_steps = int(getattr(self.environment, "_cargo_loss_grace_steps", 120))
         return {
             "task": "F-05: The Boat",
-            "description": f"Keep cargo on boat in rough water; boat must not capsize (angle <= {max_angle_deg:.0f}°)",
+            "description": f"Keep cargo on boat in rough water; boat must not capsize (angle <= {max_angle_deg:.1f}°)",
             "terrain": self.terrain_bounds,
             "success_criteria": {
                 "primary": (
                     f"No cargo below loss plane after the grace window (center y < {self.CARGO_WATER_Y:.2f} m; "
-                    f"first {getattr(self.environment, '_cargo_loss_grace_steps', 120)} physics steps ignored for this rule)"
+                    f"first {grace_steps} physics steps ignored for this rule)"
                 ),
-                "secondary": f"Boat peak |roll angle| <= {max_angle_deg:.0f}° for full episode",
+                "secondary": (
+                    f"Boat peak |roll angle| stays at or below {max_angle_deg:.1f}° after the same settling window "
+                    f"as cargo retention (first {grace_steps} physics steps ignored for this roll metric)"
+                ),
                 "tertiary": tertiary,
             },
             "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},

@@ -11,6 +11,9 @@ from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody,
 import math
 import random
 
+# Coupled weld-break limit: |reaction torque| threshold = ratio × per-weld force cap (keep in sync with prompt / stages).
+WELD_TORQUE_FORCE_RATIO = 0.4
+
 
 class Sandbox:
     """Sandbox environment wrapper for F-05: The Boat"""
@@ -211,7 +214,7 @@ class Sandbox:
 
     @staticmethod
     def _weld_reaction_force_torque(joint, inv_dt: float) -> tuple[float, float]:
-        """Best-effort reaction force magnitude and |torque| (N, N·m) for weld break logic."""
+        """Best-effort reaction force magnitude and |torque| from Box2D (timestep-scaled via inv_dt); used for weld-break heuristics."""
         force = 0.0
         torque = 0.0
         try:
@@ -346,7 +349,7 @@ class Sandbox:
                     boat.ApplyForceToCenter((0, self._rogue_amplitude), wake=True)
                 if step_int > rd and (step_int - rd) % ri == 0:
                     boat.ApplyForceToCenter((0, self._rogue_amplitude * 0.6), wake=True)
-                # Lateral impulse (sudden gust)
+                # Periodic lateral force pulse (terrain key name retains "lateral_impulse_*" for configs)
                 if step_int > 0 and step_int % self._lateral_impulse_interval == 0:
                     sign = 1.0 if (step_int // self._lateral_impulse_interval) % 2 == 0 else -1.0
                     boat.ApplyForceToCenter((sign * self._lateral_impulse_amplitude, 0), wake=True)
@@ -371,6 +374,7 @@ class Sandbox:
                     buoyancy = 0.5 * c.mass * g
                     c.ApplyForceToCenter((0, buoyancy), wake=True)
         self._sim_time += time_step
+        # Fixed iteration counts (disclosed in prompt); weld checks use inv_dt = 1/time_step below.
         self._world.Step(time_step, 10, 10)
 
         # Break joints if force/torque exceeds limit (fragile anchor points)
@@ -379,7 +383,7 @@ class Sandbox:
             inv_dt = 1.0 / time_step
             for j in list(self._joints):
                 force, torque = self._weld_reaction_force_torque(j, inv_dt)
-                if force > self.JOINT_MAX_FORCE or torque > self.JOINT_MAX_FORCE * 0.4:
+                if force > self.JOINT_MAX_FORCE or torque > self.JOINT_MAX_FORCE * WELD_TORQUE_FORCE_RATIO:
                     broken_joints.append(j)
             for j in broken_joints:
                 if j in self._joints:
@@ -428,13 +432,21 @@ class Sandbox:
     def get_initial_cargo_count(self):
         return self._initial_cargo_count
 
-    def get_cargo_in_water_count(self):
+    def get_cargo_below_loss_plane_count(self):
         """Count cargo disks whose center is currently below the evaluator loss plane (y < CARGO_WATER_Y).
 
-        Not "in water" in the visual sense: CARGO_WATER_Y may lie above the nominal free surface, so this
-        can count particles that are still above y = WATER_SURFACE_Y. Name kept for API compatibility.
+        CARGO_WATER_Y may lie above the nominal free surface, so this need not imply submergence.
+
+        During the first ``cargo_loss_grace_steps`` physics steps, returns 0 so this count matches the same
+        grace window used for ``_cargo_ever_below_loss_plane`` and evaluator retention metrics.
         """
+        if self._physics_steps_done <= self._cargo_loss_grace_steps:
+            return 0
         return sum(1 for c in self._cargo if c.active and c.position.y < self.CARGO_WATER_Y)
+
+    def get_cargo_in_water_count(self):
+        """Backward-compatible alias for :meth:`get_cargo_below_loss_plane_count`."""
+        return self.get_cargo_below_loss_plane_count()
 
     def get_peak_abs_boat_angle_rad(self):
         """Largest |hull angle| observed so far this episode (radians)."""

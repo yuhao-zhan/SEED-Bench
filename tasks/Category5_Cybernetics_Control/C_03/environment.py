@@ -36,6 +36,14 @@ COOLDOWN_MAX_THRUST = 40.0   # N during cooldown
 # Rendezvous capture x-band (evaluator must use same bounds; overridable via terrain_config)
 RENDEZVOUS_ZONE_X_MIN = 10.0
 RENDEZVOUS_ZONE_X_MAX = 20.0
+# Default capture radius (m); evaluator / prompt use the same symbol via imports
+RENDEZVOUS_DISTANCE_DEFAULT = 6.0
+# Evaluator / prompt defaults (overridable via terrain_config)
+RENDEZVOUS_REL_SPEED_DEFAULT = 1.8
+TRACK_DISTANCE_DEFAULT = 8.5
+RENDEZVOUS_HEADING_TOLERANCE_DEG_DEFAULT = 55.0
+# Heading alignment: use target velocity direction when |v_target| exceeds this (m/s); else seeker→target
+HEADING_REFERENCE_MIN_TARGET_SPEED = 0.15
 
 # Body-fixed thruster (nonholonomic): thrust is applied ONLY along seeker's current heading;
 # heading turns toward commanded direction at limited rate (rad/step) — discover via feedback
@@ -51,6 +59,9 @@ MAX_THRUST_MAGNITUDE = 200.0
 ACTUATION_DELAY_STEPS = 1
 # Intermittent target position: sensor returns a NEW reading only every N steps (otherwise last value)
 TARGET_POSITION_UPDATE_PERIOD = 5
+
+# Display-only radius for target marker in viewers (target is a point for physics/scoring)
+TARGET_SENSOR_VISUAL_RADIUS = 0.25
 
 # Obstacle definitions: (center_x, center_y, half_width, half_height)
 OBSTACLES = [
@@ -70,10 +81,11 @@ MOVING_AMP_2 = 0.5
 MOVING_PERIOD_2 = 3.5
 MOVING_PHASE_2 = 0.8  # phase offset
 
-# Ice zones: ((cx, cy, hw, hh), friction)
+# Ice zones: ((cx, cy, hw, hh), friction); coefficient is stated in the task prompt (VISIBLE)
+ICE_PATCH_FRICTION_DEFAULT = 0.08
 ICE_ZONES = [
-    ((9.0, 1.25, 1.0, 0.12), 0.08),
-    ((16.5, 1.25, 1.0, 0.12), 0.08),
+    ((9.0, 1.25, 1.0, 0.12), ICE_PATCH_FRICTION_DEFAULT),
+    ((16.5, 1.25, 1.0, 0.12), ICE_PATCH_FRICTION_DEFAULT),
 ]
 
 # Wind zone: (x_min, x_max); (ax, ay) is time-varying: base + amplitude*sin(omega*t)
@@ -102,7 +114,10 @@ CORRIDOR_OMEGA = 0.4  # rad/s
 CORRIDOR_PINCH_MARGIN = 2.0   # extra narrowing (m each side) when pinch active
 CORRIDOR_PINCH_OMEGA = 0.35   
 CORRIDOR_PINCH_PHASE = 32.0   
-CORRIDOR_PINCH_THRESHOLD = 0.25  
+CORRIDOR_PINCH_THRESHOLD = 0.25
+
+# Default top surface y of the ground segment (terrain_config["ground_y_top"] overrides)
+DEFAULT_GROUND_Y_TOP = 1.0
 
 
 class Sandbox:
@@ -146,7 +161,7 @@ class Sandbox:
 
         self._target_speed = float(terrain_config.get("target_speed", 1.5))
         self._target_change_interval = float(terrain_config.get("target_change_interval", 1.2))
-        self._ground_y_top = float(terrain_config.get("ground_y_top", 1.0))
+        self._ground_y_top = float(terrain_config.get("ground_y_top", DEFAULT_GROUND_Y_TOP))
         self._seeker_mass = float(terrain_config.get("seeker_mass", 20.0))
         self._seeker_radius = float(terrain_config.get("seeker_radius", 0.35))
         self._spawn_x = float(terrain_config.get("spawn_x", 11.0))
@@ -177,6 +192,9 @@ class Sandbox:
         self._cooldown_steps = int(terrain_config.get("cooldown_steps", COOLDOWN_STEPS))
         self._blind_zone_x_min = float(terrain_config.get("blind_zone_x_min", BLIND_ZONE_X_MIN))
         self._blind_zone_x_max = float(terrain_config.get("blind_zone_x_max", BLIND_ZONE_X_MAX))
+        self._speed_blind_threshold = float(
+            terrain_config.get("speed_blind_threshold_mps", SPEED_BLIND_THRESHOLD)
+        )
         self._rendezvous_zone_x_min = float(
             terrain_config.get("rendezvous_zone_x_min", RENDEZVOUS_ZONE_X_MIN)
         )
@@ -202,6 +220,15 @@ class Sandbox:
         # Thrust commanded at step t is applied at step t+1 (body-fixed along heading at application time)
         self._thrust_delayed_mag = 0.0
         self._obstacle_collision = False
+
+        wz = terrain_config.get("wind_zone_x", WIND_ZONE_X)
+        if wz is not None and len(wz) >= 2:
+            self._wind_zone_x = (float(wz[0]), float(wz[1]))
+        else:
+            self._wind_zone_x = (float(WIND_ZONE_X[0]), float(WIND_ZONE_X[1]))
+        self._wind_base_x = float(terrain_config.get("wind_base_x", WIND_BASE_X))
+        self._wind_amp_x = float(terrain_config.get("wind_amp_x", WIND_AMP_X))
+        self._wind_omega = float(terrain_config.get("wind_omega", WIND_OMEGA))
 
     def _create_ground(self, terrain_config: dict):
         ground_len = 30.0
@@ -336,7 +363,7 @@ class Sandbox:
         vx, vy = self.get_seeker_velocity()
         seeker_speed = math.sqrt(vx * vx + vy * vy)
         in_blind = self._blind_zone_x_min <= sx <= self._blind_zone_x_max
-        speed_blind = seeker_speed > SPEED_BLIND_THRESHOLD
+        speed_blind = seeker_speed > self._speed_blind_threshold
         if in_blind or speed_blind:
             return self._last_reported_target
         if self._step_count % TARGET_POSITION_UPDATE_PERIOD != 0:
@@ -350,6 +377,27 @@ class Sandbox:
                 return out
         self._last_reported_target = (self._target_x, self._target_y)
         return self._last_reported_target
+
+    def peek_target_position_sensor(self):
+        """
+        Same reading as get_target_position() but does not update _last_reported_target.
+        Use for visualization so render passes do not advance sensor state.
+        """
+        sx, sy = self.get_seeker_position()
+        vx, vy = self.get_seeker_velocity()
+        seeker_speed = math.sqrt(vx * vx + vy * vy)
+        in_blind = self._blind_zone_x_min <= sx <= self._blind_zone_x_max
+        speed_blind = seeker_speed > self._speed_blind_threshold
+        if in_blind or speed_blind:
+            return self._last_reported_target
+        if self._step_count % TARGET_POSITION_UPDATE_PERIOD != 0:
+            return self._last_reported_target
+        delay = min(len(self._target_history) - 1, max(0, self._current_delay_steps))
+        if delay >= 0 and self._target_history:
+            idx = len(self._target_history) - 1 - delay
+            if idx >= 0:
+                return self._target_history[idx]
+        return (self._target_x, self._target_y)
 
     def apply_seeker_force(self, force_x, force_y):
         fx, fy = float(force_x), float(force_y)
@@ -379,9 +427,9 @@ class Sandbox:
 
     def get_local_wind(self):
         sx, sy = self.get_seeker_position()
-        x_min, x_max = WIND_ZONE_X
+        x_min, x_max = self._wind_zone_x
         if x_min <= sx <= x_max:
-            wx = WIND_BASE_X + WIND_AMP_X * math.sin(WIND_OMEGA * self._sim_time)
+            wx = self._wind_base_x + self._wind_amp_x * math.sin(self._wind_omega * self._sim_time)
             wy = 0.0
             return (wx, wy)
         return (0.0, 0.0)
@@ -558,11 +606,22 @@ class Sandbox:
             "ground_y_top": self._ground_y_top,
             "ground_length": self._ground_length,
             "seeker_radius": self._seeker_radius,
-            "rendezvous_distance": self._terrain_config.get("rendezvous_distance", 6.0),
-            "rendezvous_rel_speed": self._terrain_config.get("rendezvous_rel_speed", 1.8),
-            "track_distance": self._terrain_config.get("track_distance", 8.5),
+            "rendezvous_distance": self._terrain_config.get(
+                "rendezvous_distance", RENDEZVOUS_DISTANCE_DEFAULT
+            ),
+            "rendezvous_rel_speed": self._terrain_config.get(
+                "rendezvous_rel_speed", RENDEZVOUS_REL_SPEED_DEFAULT
+            ),
+            "track_distance": self._terrain_config.get("track_distance", TRACK_DISTANCE_DEFAULT),
             "rendezvous_heading_tolerance_deg": float(
-                self._terrain_config.get("rendezvous_heading_tolerance_deg", 55.0)
+                self._terrain_config.get(
+                    "rendezvous_heading_tolerance_deg", RENDEZVOUS_HEADING_TOLERANCE_DEG_DEFAULT
+                )
+            ),
+            "heading_reference_min_target_speed": float(
+                self._terrain_config.get(
+                    "heading_reference_min_target_speed", HEADING_REFERENCE_MIN_TARGET_SPEED
+                )
             ),
             "rendezvous_zone_x_min": self._rendezvous_zone_x_min,
             "rendezvous_zone_x_max": self._rendezvous_zone_x_max,
@@ -570,6 +629,14 @@ class Sandbox:
             "activation_zone_x_max": self._activation_zone_x_max,
             "activation_required_steps": self._activation_required_steps,
             "cooldown_steps": self._cooldown_steps,
+            "impulse_budget": self._impulse_budget,
+            "max_thrust_magnitude": self._max_thrust_magnitude,
+            "cooldown_threshold": self._cooldown_threshold,
+            "cooldown_max_thrust": self._cooldown_max_thrust,
+            "blind_zone_x_min": self._blind_zone_x_min,
+            "blind_zone_x_max": self._blind_zone_x_max,
+            "speed_blind_threshold_mps": self._speed_blind_threshold,
+            "target_sensor_visual_radius": TARGET_SENSOR_VISUAL_RADIUS,
         }
         if "slots_phase1" in self._terrain_config:
             out["slots_phase1"] = self._terrain_config["slots_phase1"]

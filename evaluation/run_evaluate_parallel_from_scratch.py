@@ -214,7 +214,7 @@ def _build_base_argv(args, scripts_dir, evaluate_script):
         base += ["--discover-adv-estimator-beta", str(getattr(args, "discover_adv_estimator_beta", 2.0))]
         base += ["--discover-loss-fn", getattr(args, "discover_loss_fn", "importance_sampling")]
         base += ["--discover-lora-rank", str(getattr(args, "discover_lora_rank", 32))]
-        base += ["--discover-max-tokens", str(getattr(args, "discover_max_tokens", 65536))]
+        base += ["--discover-max-tokens", str(getattr(args, "discover_max_tokens", 26000))]
         base += ["--discover-temperature", str(getattr(args, "discover_temperature", 1.0))]
         base += ["--discover-num-substeps", str(getattr(args, "discover_num_substeps", 1))]
         base += ["--discover-max-expansion-rounds", str(getattr(args, "discover_max_expansion_rounds", 2))]
@@ -286,7 +286,7 @@ def main():
     parser.add_argument("--discover-adv-estimator-beta", type=float, default=2.0, dest="discover_adv_estimator_beta")
     parser.add_argument("--discover-loss-fn", type=str, default="importance_sampling", dest="discover_loss_fn")
     parser.add_argument("--discover-lora-rank", type=int, default=32, dest="discover_lora_rank")
-    parser.add_argument("--discover-max-tokens", type=int, default=65536, dest="discover_max_tokens")
+    parser.add_argument("--discover-max-tokens", type=int, default=26000, dest="discover_max_tokens")
     parser.add_argument("--discover-temperature", type=float, default=1.0, dest="discover_temperature")
     parser.add_argument("--discover-num-substeps", type=int, default=1, dest="discover_num_substeps")
     parser.add_argument("--discover-max-expansion-rounds", type=int, default=2, dest="discover_max_expansion_rounds")

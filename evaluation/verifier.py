@@ -839,6 +839,7 @@ class CodeVerifier:
             # For Category1 tasks (S_01-S_06), evaluator doesn't need agent_body (tracks structure/vehicle via environment)
             # For K_03 (gripper), evaluate every 10 steps so success (hold 80 steps) is detected before object may fall
             # For C_03 (seeker), evaluate every 10 steps to detect "target lost" (distance > 6m) promptly
+            # For C_01 (cart-pole), evaluate every step so lock-in matches consecutive simulation steps.
             # For C_02 (lander), evaluate every step so landing (and success/failure) is detected immediately
             task_lower = self.task_name.lower()
             is_category1 = any(x in task_lower for x in ['s_01', 's_02', 's_03', 's_04', 's_05', 's_06', 'category1', 'category_1'])
@@ -846,8 +847,9 @@ class CodeVerifier:
             is_category3 = 'category3' in task_lower or 'd_01' in task_lower or 'd_02' in task_lower or 'd_03' in task_lower or 'd04' in task_lower or 'd05' in task_lower or 'd06' in task_lower
             is_category5_c03 = 'c_03' in task_lower or ('category_5_03' in task_lower)
             is_category5_c02 = 'c_02' in task_lower or ('category_5_02' in task_lower)
+            is_category5_c01 = 'c_01' in task_lower or ('category_5_01' in task_lower)
             is_e05_magnet = 'e_05' in task_lower
-            eval_interval = 1 if (is_category5_c02 or is_e05_magnet or is_category3) else (10 if (is_category2_k03 or is_category5_c03) else 100)
+            eval_interval = 1 if (is_category5_c01 or is_category5_c02 or is_e05_magnet or is_category3) else (10 if (is_category2_k03 or is_category5_c03) else 100)
             # For process_n: sample more frequently to ensure we have data at t/3, 2t/3, t
             # Use finer sampling interval when granularity is process_n
             if n_moments > 1:

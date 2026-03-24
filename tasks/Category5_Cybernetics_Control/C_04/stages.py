@@ -1,8 +1,10 @@
 """
 C-04 curriculum stages. mutation_description is for logs/orchestration only — not shown to the agent.
 Visible prompt deltas use: [new_value] (originally [old_value] in the source environment).
-Viscous drag, turbulence, control reversal, and magnetic floor are not spelled out in the base prompt
-(numbers leak hidden physics); UNIFORM_SUFFIX covers those channels for mutated stages.
+Viscous drag, turbulence, control reversal, magnetic floor, time-varying horizontal forcing, and similar
+channels stay non-numeric in the base prompt; contact/damping coefficients are qualitative in prompt.py.
+Mutated runs append **Environmental Anomalies Detected** via `_build_environmental_anomalies_suffix_curriculum_union()`
+(S-01-style union over Stage-1…Stage-4 channels; no numeric leaks in the suffix).
 """
 from typing import Any, Dict, List, Optional, Tuple
 import re
@@ -34,6 +36,7 @@ _DEFAULT_PHYSICS = {
     "magnetic_floor_force": 0.0,
     "current_force_back": 0.0,
     "shear_wind_gradient": 0.0,
+    "shear_wind_reference_y": float(c04_env.SHEAR_WIND_REFERENCE_Y),
     "oneway_force_right": float(c04_env.ONEWAY_FORCE_RIGHT),
     "lock_gate_fx": float(c04_env.LOCK_GATE_FX),
     "wind_oscillation_amp": float(c04_env.WIND_OSCILLATION_AMP),
@@ -157,8 +160,8 @@ def _configs_differ_from_base(
         return True
     blo, bhi = float(bt.get("whisker_blind_front_x_lo", -999.0)), float(bt.get("whisker_blind_front_x_hi", -999.0))
     tlo, thi = float(tt.get("whisker_blind_front_x_lo", -999.0)), float(tt.get("whisker_blind_front_x_hi", -999.0))
-    base_blind = "none" if not _blind_active(blo, bhi) else f"x in [{blo:g}, {bhi:g}] m"
-    tgt_blind = "none" if not _blind_active(tlo, thi) else f"x in [{tlo:g}, {thi:g}] m"
+    base_blind = "none" if not _blind_active(blo, bhi) else f"x in [{blo:.1f}, {bhi:.1f}] m"
+    tgt_blind = "none" if not _blind_active(tlo, thi) else f"x in [{tlo:.1f}, {thi:.1f}] m"
     if tgt_blind != base_blind:
         return True
     wdb, pdb = _terrain_delays(bt)
@@ -200,6 +203,7 @@ def _configs_differ_from_base(
         "magnetic_floor_force",
         "current_force_back",
         "shear_wind_gradient",
+        "shear_wind_reference_y",
         "oneway_force_right",
         "lock_gate_fx",
         "lock_gate_x_min",
@@ -215,10 +219,6 @@ def _configs_differ_from_base(
     return False
 
 
-_UNIFORM_SUFFIX_HEADER = """## Environmental Anomalies Detected
-Sensors indicate that this region exhibits non-standard physical properties.
-While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
-"""
 _UNIFORM_SUFFIX_GRAVITY_BULLET = (
     " - **Gravitational acceleration**: Vertical loads may differ from the nominal environment.\n"
 )
@@ -228,8 +228,6 @@ _UNIFORM_SUFFIX_BULLETS_REST = """ - **Control Lag**: May have changed from the 
  - **Stochastic forcing / turbulence**: Random lateral disturbances may differ from the nominal environment.
  - **Control Reversal Zone**: May have changed from the nominal environment.
  - **Magnetic Floor Anomaly**: May have changed from the nominal environment (low-altitude zone).
- - **Wall / contact friction**: May have changed from the nominal environment.
- - **Environmental horizontal drift, shear, and periodic wind**: Steady bias, height-dependent horizontal shear, or smooth oscillatory horizontal forcing may differ from the nominal environment.
  - **Structural Fragility**: The collision impulse threshold above which structural failure occurs may have changed; use feedback to infer the current limit and avoid high-speed impacts.
  - **Dynamic Terrain Obstruction**: Wall configurations may have changed from the standard layout.
 
@@ -238,16 +236,24 @@ _UNIFORM_SUFFIX_BULLETS_REST = """ - **Control Lag**: May have changed from the 
 
 
 def _uniform_suffix(include_gravity_mutation: bool) -> str:
-    """Union of mutated channels only: gravity bullet appears iff gravity differs from base."""
+    """Full curriculum superset appended to mutated task prompts (agent-facing)."""
+    header = """## Environmental Anomalies Detected
+Sensors indicate that this region exhibits non-standard physical properties.
+While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+"""
     g = _UNIFORM_SUFFIX_GRAVITY_BULLET if include_gravity_mutation else ""
-    return _UNIFORM_SUFFIX_HEADER + g + _UNIFORM_SUFFIX_BULLETS_REST
+    return header + g + _UNIFORM_SUFFIX_BULLETS_REST
 
 
-# Backward-compatible: fixed variant without the gravity bullet (curriculum stages 1–4 do not mutate gravity).
-# For gravity-aware text, call `_uniform_suffix(include_gravity_mutation=True)` (used inside `update_task_description_for_visible_changes`).
-UNIFORM_SUFFIX = _uniform_suffix(include_gravity_mutation=False)
+def _build_environmental_anomalies_suffix_curriculum_union() -> str:
+    """Union of qualitative warnings for every channel touched by Stage-1…Stage-4 (no per-stage diff, no numerics)."""
+    return _uniform_suffix(include_gravity_mutation=False).strip()
 
-# Shown under success criteria for mutated stages (full UNIFORM_SUFFIX stays on task_description).
+
+# Same text appended to mutated task descriptions (single source; gravity omitted—no stage mutates gravity).
+UNIFORM_SUFFIX = _build_environmental_anomalies_suffix_curriculum_union()
+
+# Shown under success criteria for mutated stages (dynamic anomaly list is appended to task_description).
 MUTATED_SUCCESS_CRITERIA_POINTER = """
 ---
 **Mutated environment:** The **Environmental Anomalies Detected** section at the end of the Task Environment above lists physical channels that may differ from the source environment; apply that notice when solving this stage.
@@ -271,7 +277,6 @@ def update_task_description_for_visible_changes(
     tp = _merge_physics(target_physics_config)
 
     mutated = _configs_differ_from_base(tt, tp_raw, bt, bp, bp_raw)
-    gravity_mutated = _gravity_y(tp_raw) != _gravity_y(bp_raw)
     # Gravity: do not inject numeric values into the prompt (hidden physics). Agents use world.gravity.y.
 
     # --- Maze outer shell (indices 0-3) ---
@@ -325,15 +330,15 @@ def update_task_description_for_visible_changes(
     # --- Whisker blind band ---
     blo, bhi = float(bt.get("whisker_blind_front_x_lo", -999.0)), float(bt.get("whisker_blind_front_x_hi", -999.0))
     tlo, thi = float(tt.get("whisker_blind_front_x_lo", -999.0)), float(tt.get("whisker_blind_front_x_hi", -999.0))
-    base_blind = "none" if not _blind_active(blo, bhi) else f"x in [{blo:g}, {bhi:g}] m"
-    tgt_blind = "none" if not _blind_active(tlo, thi) else f"x in [{tlo:g}, {thi:g}] m"
+    base_blind = "none" if not _blind_active(blo, bhi) else f"x in [{blo:.1f}, {bhi:.1f}] m"
+    tgt_blind = "none" if not _blind_active(tlo, thi) else f"x in [{tlo:.1f}, {thi:.1f}] m"
     if tgt_blind != base_blind or (tgt_blind != "none" and base_blind == "none"):
         if _blind_active(tlo, thi) and not _blind_active(blo, bhi):
-            new_val = f"x in [{tlo:g}, {thi:g}] m (originally none in the source environment)"
+            new_val = f"x in [{tlo:.1f}, {thi:.1f}] m (originally none in the source environment)"
         elif not _blind_active(tlo, thi) and _blind_active(blo, bhi):
-            new_val = f"none (originally x in [{blo:g}, {bhi:g}] m in the source environment)"
+            new_val = f"none (originally x in [{blo:.1f}, {bhi:.1f}] m in the source environment)"
         elif _blind_active(tlo, thi) and _blind_active(blo, bhi) and (tlo != blo or thi != bhi):
-            new_val = f"x in [{tlo:g}, {thi:g}] m (originally x in [{blo:g}, {bhi:g}] m in the source environment)"
+            new_val = f"x in [{tlo:.1f}, {thi:.1f}] m (originally x in [{blo:.1f}, {bhi:.1f}] m in the source environment)"
         else:
             new_val = None
         if new_val:
@@ -374,7 +379,7 @@ def update_task_description_for_visible_changes(
             new_one = (
                 f"While **reported** x **>** **{oxt:.1f}** m, an additional constant **+{oft:.1f}** N horizontal force "
                 f"acts on the agent in +x (in addition to any other environmental horizontal forcing) "
-                f"(originally **{oxb:.1f}** m threshold and **+{ofb:.1f}** N in the source environment)"
+                f"(originally {oxb:.1f} m threshold and +{ofb:.1f} N in the source environment)"
             )
             description = re.sub(pat, lambda m: f"{m.group(1)}{new_one}{m.group(3)}", description, count=1)
         else:
@@ -411,13 +416,18 @@ def update_task_description_for_visible_changes(
     lkb_lo, lkb_hi = float(bp["lock_gate_x_min"]), float(bp["lock_gate_x_max"])
     lkt_lo, lkt_hi = float(tp["lock_gate_x_min"]), float(tp["lock_gate_x_max"])
     if (lkt_lo, lkt_hi) != (lkb_lo, lkb_hi):
-        pat = r"(while \*\*reported\*\* x is in \[)([\d.]+),\s*([\d.]+)(\]\s+m \(\s*an additional)"
+        pat = (
+            r"(while \*\*reported\*\* x is in \[)"
+            r"[\d.]+,\s*[\d.]+\]\s+m"
+            r"(?: \(originally \[[\d.]+,\s*[\d.]+\]\s+m in the source environment\))?"
+            r" \(\s*an additional repelling horizontal force"
+        )
         if re.search(pat, description):
             description = re.sub(
                 pat,
                 lambda m: (
                     f"{m.group(1)}{lkt_lo:.1f}, {lkt_hi:.1f}] m (originally [{lkb_lo:.1f}, {lkb_hi:.1f}] m in the "
-                    f"source environment) (an additional"
+                    f"source environment) (an additional repelling horizontal force"
                 ),
                 description,
                 count=1,
@@ -433,7 +443,12 @@ def update_task_description_for_visible_changes(
     axb_lo, axb_hi = float(bp["activation_x_min"]), float(bp["activation_x_max"])
     axt_lo, axt_hi = float(tp["activation_x_min"]), float(tp["activation_x_max"])
     if (axt_lo, axt_hi) != (axb_lo, axb_hi):
-        pat = r"(To unlock: \*\*reported\*\* position x in \[)([\d.]+),\s*([\d.]+)(\]\s+m with)"
+        pat = (
+            r"(To unlock: \*\*reported\*\* position x in \[)"
+            r"[\d.]+,\s*[\d.]+\]\s+m"
+            r"(?: \(originally \[[\d.]+,\s*[\d.]+\]\s+m in the source environment\))?"
+            r" with"
+        )
         if re.search(pat, description):
             description = re.sub(
                 pat,
@@ -457,9 +472,9 @@ def update_task_description_for_visible_changes(
     nt, nb = int(tp["backward_steps_required"]), int(bp["backward_steps_required"])
     if fxt != fxb:
         fx_pat = (
-            r"\*\*strictly less than \-?\d+\.\d+ N\*\*"
-            r"(?: \(originally \*\*strictly less than \-?\d+\.\d+ N\*\* in the source environment\))?"
-            r" \(e\.g\. \-?\d+ N qualifies; \-?\d+\.\d+ N does not\)"
+            r"\*\*strictly less than \-?\d+(?:\.\d+)? N\*\*"
+            r"(?: \(originally \*\*strictly less than \-?\d+(?:\.\d+)? N\*\* in the source environment\))?"
+            r" \(e\.g\. \-?\d+(?:\.\d+)? N qualifies; \-?\d+(?:\.\d+)? N does not\)"
         )
         qual = int(round(fxt - 1.0))
         rep = (
@@ -476,8 +491,8 @@ def update_task_description_for_visible_changes(
             )
     if st != sb:
         sp_pat = (
-            r"(\*\*< )(\d+\.\d+)( m/s\*\*)"
-            r"(?: \(originally \*\*< \d+\.\d+ m/s\*\* in the source environment\))?"
+            r"(\*\*< )(\d+(?:\.\d+)?)( m/s\*\*)"
+            r"(?: \(originally \*\*< \d+(?:\.\d+)? m/s\*\* in the source environment\))?"
         )
         if re.search(sp_pat, description):
             description = re.sub(
@@ -493,33 +508,37 @@ def update_task_description_for_visible_changes(
                 stacklevel=2,
             )
     if nt != nb:
-        plain = f"for at least **{nb}** consecutive steps"
+        hold_rx = re.compile(
+            rf"for at least \*\*{re.escape(str(nb))}\*\* consecutive steps(?!\s+\(originally)",
+        )
         new_steps = (
             f"for at least **{nt}** consecutive steps "
             f"(originally **{nb}** consecutive steps in the source environment)"
         )
-        if plain not in description:
+        description, n_hold = hold_rx.subn(new_steps, description, count=3)
+        if n_hold < 3:
             warnings.warn(
-                "C_04 stages: backward_steps_required mutation but baseline consecutive-steps phrase not found.",
+                "C_04 stages: backward_steps_required mutation but fewer than 3 consecutive-steps phrases matched.",
                 RuntimeWarning,
                 stacklevel=2,
             )
-        else:
-            description = description.replace(plain, new_steps)
 
-    # --- Contact friction (visible); restitution is fixed in source environment unless prompt extended ---
+    # --- Contact friction (qualitative baseline; mutation appends visibility note + originally clause) ---
     sfb, sft = float(bp["slip_friction"]), float(tp["slip_friction"])
     if sft != sfb:
-        pat = (
-            r"(- \*\*Contact dynamics\*\*: Wall and agent fixture friction coefficient )\*\*([\d.]+)\*\*"
-            r"(; coefficient of restitution )\*\*([\d.]+)\*\*(\.\n|$)"
+        pat_contact = (
+            r"(- \*\*Contact dynamics\*\*: Wall–agent friction and restitution are set on \*\*Box2D\*\* fixtures; )"
+            r"(numeric coefficients are \*\*not stated in this document\*\*—infer from motion and impacts )"
+            r"(\(see \*\*Environmental Anomalies Detected\*\* when present on mutated runs\)\.)"
         )
-        if re.search(pat, description):
+        if re.search(pat_contact, description):
             description = re.sub(
-                pat,
+                pat_contact,
                 lambda m: (
-                    f"{m.group(1)}**{sft:.1f}** (originally **{sfb:.1f}** in the source environment)"
-                    f"{m.group(3)}**{m.group(4)}**{m.group(5)}"
+                    f"{m.group(1)}numeric coefficients are **not stated in this document**—infer from motion and impacts; "
+                    f"**wall–agent friction may differ from the nominal environment** "
+                    f"(originally the same qualitative contact model as in the source environment) "
+                    f"{m.group(3)}"
                 ),
                 description,
                 count=1,
@@ -539,8 +558,8 @@ def update_task_description_for_visible_changes(
         pat = (
             r"(- \*\*Structural k \(failure if collision normal impulse exceeds k \* agent mass [\d.]+ kg\)\*\*: )([^\n]+)"
         )
-        old_val = f"k={bk:.1f} (impulse threshold {_fmt_impulse_ns(imp_b)})"
-        new_val = f"k={tk:.1f} (impulse threshold {_fmt_impulse_ns(imp_t)})"
+        old_val = f"k={bk:.1f}, impulse threshold {_fmt_impulse_ns(imp_b)}"
+        new_val = f"k={tk:.1f}, impulse threshold {_fmt_impulse_ns(imp_t)}"
         new_line = (
             f"{new_val} (originally {old_val} in the source environment). "
             f"Here the failure condition is **normal impulse > (k × {am:g}) N·s** "
@@ -598,13 +617,14 @@ def update_task_description_for_visible_changes(
 
     # --- Time limit (MAX_STEPS) ---
     if int(tp["max_steps"]) != int(bp["max_steps"]):
-        pat = r"(- \*\*Time limit\*\*: At most )([\d,]+)( simulation steps)"
+        pat = r"(- \*\*Time limit\*\*: At most )([\d,]+)( simulation steps)(\.)"
         if re.search(pat, description):
             description = re.sub(
                 pat,
                 lambda m: (
                     f"{m.group(1)}{int(tp['max_steps']):,}{m.group(3)} "
-                    f"(originally {int(bp['max_steps']):,}{m.group(3)} in the source environment)."
+                    f"(originally {int(bp['max_steps']):,}{m.group(3)} in the source environment)"
+                    f"{m.group(4)}"
                 ),
                 description,
                 count=1,
@@ -618,7 +638,7 @@ def update_task_description_for_visible_changes(
 
     out = description.strip()
     if mutated:
-        out = out + "\n\n" + _uniform_suffix(include_gravity_mutation=gravity_mutated).strip()
+        out = out + "\n\n" + _build_environmental_anomalies_suffix_curriculum_union()
     return out
 
 
@@ -656,14 +676,15 @@ def update_success_criteria_for_visible_changes(
             )
     nb_hold, nt_hold = int(bp["backward_steps_required"]), int(tp["backward_steps_required"])
     if nt_hold != nb_hold:
-        plain_hold = f"at least **{nb_hold}** consecutive steps"
+        hold_crit_rx = re.compile(
+            rf"at least \*\*{re.escape(str(nb_hold))}\*\* consecutive steps(?!\s+\(originally)",
+        )
         new_hold = (
             f"at least **{nt_hold}** consecutive steps "
             f"(originally **{nb_hold}** consecutive steps in the source environment)"
         )
-        if plain_hold in criteria:
-            criteria = criteria.replace(plain_hold, new_hold, 1)
-        else:
+        criteria, nhc = hold_crit_rx.subn(new_hold, criteria, count=1)
+        if nhc < 1:
             warnings.warn(
                 "C_04 stages: backward_steps_required mutation but success criteria Hold line not updated.",
                 RuntimeWarning,
@@ -677,6 +698,11 @@ def update_success_criteria_for_visible_changes(
 def get_source_base_physics_config() -> Dict[str, Any]:
     """Merged defaults aligned with `environment.Sandbox` when `physics_config` is empty."""
     return dict(_merge_physics(None))
+
+
+def get_source_base_terrain_config() -> Dict[str, Any]:
+    """Canonical source terrain for staging comparisons (empty dict = default maze / delays in `environment.Sandbox`)."""
+    return {}
 
 
 def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
@@ -708,7 +734,7 @@ def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-3",
             "title": "Turbulent Narrowway",
-            "mutation_description": "Tighter vertical gaps in places, viscous drag and random forcing in a mid-maze band, higher collision impulse ceiling.",
+            "mutation_description": "Taller internal wall segment near x=5 m, adjusted obstacle geometry near x=9 m, viscous drag and random forcing in a mid-maze band, higher collision impulse ceiling.",
             "terrain_config": {
                 "wall_overrides": {
                     "4": (5.0, 0.0, 0.2, 1.6),
@@ -726,7 +752,7 @@ def get_c04_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-4",
             "title": "The Magnetic Reversal Storm",
-            "mutation_description": "Horizontal control inversion throughout the maze, strong downward bias near the floor, high turbulence, and near-instant actuation.",
+            "mutation_description": "Horizontal control inversion throughout the maze, strong downward bias near the floor, high turbulence; control lag matches the source environment (0 steps).",
             "terrain_config": {},
             "physics_config": {
                 "control_reversal_x_min": 0.0,

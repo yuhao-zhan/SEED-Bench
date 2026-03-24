@@ -565,12 +565,17 @@ def run_single_pair(evaluator, initial_ref_code, base_task_name, pair_name):
                 gif_base_dir=get_gif_base_dir(),
                 initial_code=None,
                 model_path=getattr(evaluator.solver, "model_path", None),
-                device=getattr(evaluator.solver, "device", None),
+                device=getattr(evaluator, "requested_device", None),
                 env_overrides=evaluator.env_overrides or {},
                 theta_evolve_num_rollout=getattr(evaluator, "theta_evolve_num_rollout", 10000),
                 theta_evolve_rollout_batch_size=getattr(evaluator, "theta_evolve_rollout_batch_size", 32),
                 training_log_dir=evaluator._get_training_log_dir(),
             )
+            if _exit_code != 0:
+                raise RuntimeError(
+                    f"ThetaEvolve training failed with exit code {_exit_code}. "
+                    "Check training log and Ray actor traceback above."
+                )
             report["iterations"] = len(report.get("iteration_history", []))
             evaluator.verifier.cleanup()
             evaluator.save_report(report, output_dir="evaluation_results")

@@ -135,8 +135,26 @@ def get_training_log_root() -> str:
     return os.path.join(script_dir, "training_log")
 
 
-def get_training_log_dir(task_name: str, model_id: str, method: str) -> str:
-    """Directory for one run: training_log/{category}/{task}/{model_id}/{method}/"""
+def _safe_training_log_segment(label: str) -> str:
+    """Filesystem-safe single path segment for training logs."""
+    t = (label or "").strip()
+    if not t:
+        return "unknown"
+    t = re.sub(r"[^\w.\-]+", "_", t)
+    return (t[:200] if len(t) > 200 else t) or "unknown"
+
+
+def get_training_log_dir(
+    task_name: str,
+    model_id: str,
+    method: str,
+    mutated_task_label: Optional[str] = None,
+) -> str:
+    """Directory for one run: training_log/{cat}/{task_subdir}/{model}/{method}/{task_key}/{run_key}/.
+
+    ``task_key`` is derived from ``task_name`` (e.g. category_1_01) so multiple tasks under the same
+    S_01 folder do not overwrite logs. ``run_key`` is ``mutated_task_label`` when set, else ``raw``.
+    """
     from evaluation.prompt import parse_task_name
     try:
         task_path, _ = parse_task_name(task_name)
@@ -144,11 +162,21 @@ def get_training_log_dir(task_name: str, model_id: str, method: str) -> str:
     except Exception:
         cat_dir, task_subdir = "other", task_name
     root = get_training_log_root()
-    return os.path.join(root, cat_dir, task_subdir, model_id, method)
+    base = os.path.join(root, cat_dir, task_subdir, model_id, method)
+    task_key = _safe_training_log_segment(task_name)
+    run_key = _safe_training_log_segment(mutated_task_label) if mutated_task_label else "raw"
+    return os.path.join(base, task_key, run_key)
 
 
-def run_is_complete(task_name: str, model_type: str, model_name: str, method: str,
-                    context: str, mutated_task_name: Optional[str] = None) -> bool:
+def run_is_complete(
+    task_name: str,
+    model_type: str,
+    model_name: str,
+    method: str,
+    context: str,
+    mutated_task_name: Optional[str] = None,
+    results_base_dir: Optional[str] = None,
+) -> bool:
     """Check if the single run has the result JSON."""
     from evaluation.prompt import parse_task_name
     try:
@@ -159,7 +187,7 @@ def run_is_complete(task_name: str, model_type: str, model_name: str, method: st
         task_subdir = task_name
 
     model_identifier = get_model_identifier(model_type, model_name)
-    json_base_dir = get_evaluation_results_dir()
+    json_base_dir = results_base_dir if results_base_dir else get_evaluation_results_dir()
     json_base_path = os.path.join(json_base_dir, cat_dir, task_subdir, model_identifier, method)
 
     if os.path.exists(json_base_path):
@@ -235,7 +263,7 @@ def get_max_steps_for_task(task_name: str) -> int:
         'category_3_06': 15000,
         'category_4_03': 2400,   # F_03: 40s at 60 fps
         'category_4_05': 10000,  # F_05: align with prompt.py / test_mutated_tasks.py / run_test.py
-        'category_5_01': 20000,  # C_01: pendulum swing-up from inverted (Stage-1) needs enough steps
+        'category_5_01': 20000,  # C_01: cart-pole balance; baseline horizon is long (curriculum stages override max_steps)
         # C_02: must match tasks/.../C_02/environment.MAX_EPISODE_STEPS
         'category_5_02': 5000,
         'category_5_04': 250000,  # C_04 The Escaper: maze unlock + exit hold; long horizon for laggy control

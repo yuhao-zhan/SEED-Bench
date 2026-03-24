@@ -43,10 +43,10 @@ PLATFORM_HALF_WIDTH = 2.0
 # Forces trajectory: climb above barrier, then cross right, then descend and land.
 BARRIER_X_LEFT = 10.5
 BARRIER_X_RIGHT = 13.5
+# In [BARRIER_X_LEFT, BARRIER_X_RIGHT]: fail if any hull corner has y below this (obstacle top).
 BARRIER_Y_TOP = 6.0
-# In the barrier x-band: mission fails if any hull corner has y below this (obstacle top / corridor floor).
+# In [BARRIER_X_LEFT, BARRIER_X_RIGHT]: fail if any hull corner has y above this (ceiling).
 BARRIER_Y_BOTTOM = 20.0
-# In the barrier x-band: mission fails if any hull corner has y above this (ceiling).
 
 # Episode horizon (must match prompt and evaluation harness default for this task)
 MAX_EPISODE_STEPS = 5000
@@ -55,6 +55,9 @@ MAX_EPISODE_STEPS = 5000
 DEFAULT_TIME_STEP = 1.0 / 60.0
 # Human-readable timestep text in TASK_PROMPT (must correspond to DEFAULT_TIME_STEP)
 DEFAULT_TIME_STEP_LABEL = "1/60"
+
+# Curriculum Stage-2 only: relaxed upright landing angle (rad), referenced from stages.py
+CURRICULUM_STAGE2_MAX_LANDING_ANGLE_RAD = 1.2
 
 # Touchdown: lander bottom within this distance of ground top counts as contact (evaluator + prompt)
 LAND_TOLERANCE = 0.02
@@ -70,6 +73,8 @@ SPAWN_Y = 12.0
 # Ground surface and lander geometry defaults (prompt-visible; mutable via terrain_config)
 GROUND_Y_TOP = 1.0
 GROUND_LENGTH = 30.0
+# Full vertical extent of the static ground fixture (m); top of the slab is ``GROUND_Y_TOP``.
+GROUND_SLAB_HEIGHT = 0.5
 LANDER_HALF_WIDTH = 0.4
 LANDER_HALF_HEIGHT = 0.3
 LANDER_MASS = 50.0
@@ -180,7 +185,8 @@ class Sandbox:
     def _create_ground(self, terrain_config: dict):
         """Create horizontal ground (static)."""
         ground_len = float(terrain_config.get("ground_length", GROUND_LENGTH))
-        ground_h = 0.5
+        ground_h = float(terrain_config.get("ground_slab_height", GROUND_SLAB_HEIGHT))
+        self._ground_slab_height = ground_h
         center_y = self._ground_y_top - ground_h / 2
         ground = self._world.CreateStaticBody(
             position=(ground_len / 2, center_y),
@@ -306,8 +312,8 @@ class Sandbox:
         self._sim_time += time_step
         self._step_count += 1
 
-        # Gravity mutation: after completing step `at_step`, subsequent steps use gravity_after
-        # (i.e. steps 1..at_step use initial gravity; step at_step+1 onward use the new vector).
+        # Gravity mutation: after the Step that increments _step_count to ``at_step``, set
+        # ``world.gravity`` to ``gravity_after`` so subsequent Steps integrate with the new vector.
         if self._gravity_mutation:
             at_step = self._gravity_mutation.get("at_step")
             if at_step is not None and self._step_count >= int(at_step):
@@ -334,7 +340,7 @@ class Sandbox:
                         break
 
     def get_barrier_hit(self):
-        """True if the lander breached the no-fly corridor (obstacle band below y=BARRIER_Y_TOP or ceiling above y=BARRIER_Y_BOTTOM)."""
+        """True if the lander breached the no-fly corridor (corner below ``_barrier_y_top`` or above ``_barrier_y_bottom`` in the barrier x-band)."""
         return getattr(self, "_barrier_hit", False)
 
     def get_barrier_failure_kind(self):
@@ -346,6 +352,10 @@ class Sandbox:
         return {
             "ground_y_top": self._ground_y_top,
             "ground_length": self._ground_length,
+            "ground_slab_height": getattr(self, "_ground_slab_height", GROUND_SLAB_HEIGHT),
+            "spawn_x": self._spawn_x,
+            "spawn_y": self._spawn_y,
+            "lander_mass": self._lander_mass,
             "lander_half_width": self._lander_half_width,
             "lander_half_height": self._lander_half_height,
             "max_safe_vertical_speed": self._max_safe_vertical_speed,
@@ -360,6 +370,12 @@ class Sandbox:
             "min_fuel_remaining_at_landing": self._min_fuel_remaining_at_landing,
             "max_episode_steps": self._max_episode_steps,
             "land_tolerance": self._land_tolerance,
+            "platform_center_base": self._platform_center_base,
+            "platform_amplitude": self._platform_amplitude,
+            "platform_period": self._platform_period,
+            "platform_half_width": self._platform_half_width,
+            "max_thrust": self._max_thrust,
+            "max_torque": self._max_torque,
         }
 
     def get_platform_center_at_time(self, sim_time: float) -> float:
@@ -391,17 +407,18 @@ class Sandbox:
         )
 
     def get_lander_bottom_y(self):
-        """Lowest y of the box in world frame."""
+        """Lowest world-frame y among hull corners (same corner transform as barrier checks)."""
         lander = self._terrain_bodies.get("lander")
         if lander is None:
             return 0.0
         x, y = lander.position.x, lander.position.y
         a = lander.angle
         hw, hh = self._lander_half_width, self._lander_half_height
-        # Bottom = y + min over corners of (sin(a)*bx + cos(a)*by)
-        # Corners (±hw, ±hh): by = -hh gives -cos(a)*hh; bx = ±hw gives ±sin(a)*hw
-        bottom = y - abs(math.sin(a)) * hw - math.cos(a) * hh
-        return bottom
+        corners = ((-hw, -hh), (hw, -hh), (hw, hh), (-hw, hh))
+        min_wy = min(
+            y + math.sin(a) * bx + math.cos(a) * by for bx, by in corners
+        )
+        return min_wy
 
     def get_lander_bottom_contact_x_span(self):
         """

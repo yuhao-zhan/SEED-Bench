@@ -3,6 +3,7 @@ C-03: The Seeker task rendering module
 """
 import sys
 import os
+import importlib.util
 import pygame
 import math
 import Box2D
@@ -11,9 +12,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.."))
 from common.renderer import Renderer
 from Box2D.b2 import dynamicBody, staticBody
 
+_rdir = os.path.dirname(os.path.abspath(__file__))
+_spec_vis = importlib.util.spec_from_file_location(
+    "c03_environment_renderer", os.path.join(_rdir, "environment.py")
+)
+_c03_environment_renderer = importlib.util.module_from_spec(_spec_vis)
+_spec_vis.loader.exec_module(_c03_environment_renderer)
+TARGET_SENSOR_VISUAL_RADIUS = _c03_environment_renderer.TARGET_SENSOR_VISUAL_RADIUS
+
 
 class C03Renderer(Renderer):
-    """C-03: The Seeker. Draws ground, seeker, and target (virtual point)."""
+    """C-03: The Seeker. Draws ground, seeker, and the target at the delayed sensor reading (API-consistent)."""
 
     def __init__(self, simulator):
         super().__init__(simulator)
@@ -42,6 +51,7 @@ class C03Renderer(Renderer):
             if hasattr(sandbox, "_terrain_bodies")
             else None
         )
+        kinematic_type = getattr(Box2D.b2, "kinematicBody", 1)
 
         for body in sandbox.world.bodies:
             if body.type == staticBody:
@@ -62,7 +72,7 @@ class C03Renderer(Renderer):
                     outline_color=OUTLINE_COLOR,
                     outline_width=2,
                 )
-            elif body.type == dynamicBody or (hasattr(Box2D.b2, "kinematicBody") and body.type == Box2D.b2.kinematicBody) or (not hasattr(Box2D.b2, "kinematicBody") and body.type == 1):
+            elif body.type == dynamicBody or body.type == kinematic_type:
                 # Kinematic or other dynamic bodies (Obstacles)
                 self.draw_body(
                     body,
@@ -72,13 +82,20 @@ class C03Renderer(Renderer):
                     outline_width=2,
                 )
 
-        # True target position — matches evaluator/scoring (`get_target_position_true`).
-        if hasattr(sandbox, "get_target_position_true"):
-            tx, ty = sandbox.get_target_position_true()
+        # Delayed/stale sensor reading — matches `get_target_position` without mutating sensor state.
+        if hasattr(sandbox, "peek_target_position_sensor"):
+            tx, ty = sandbox.peek_target_position_sensor()
         elif hasattr(sandbox, "get_target_position"):
             tx, ty = sandbox.get_target_position()
+        elif hasattr(sandbox, "get_target_position_true"):
+            tx, ty = sandbox.get_target_position_true()
         else:
             tx, ty = target_x, 0.0
         self.draw_circle(
-            tx, ty, 0.25, ENVIRONMENT_COLOR, outline_color=OUTLINE_COLOR, outline_width=2
+            tx,
+            ty,
+            TARGET_SENSOR_VISUAL_RADIUS,
+            ENVIRONMENT_COLOR,
+            outline_color=OUTLINE_COLOR,
+            outline_width=2,
         )

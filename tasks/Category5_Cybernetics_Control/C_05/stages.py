@@ -1,9 +1,9 @@
 """
 C-05: The Logic Lock task curriculum stages (mutations).
 
-Mutation dimensions: trigger time window, false-trigger penalty, forces, and friction.
+Mutation dimensions: dwell (activation duration), zone dynamics (speed cap, in-zone force limit, repulsion), temporal windows, C altitude lookback, barrier delay, and terrain friction.
 Visible parameters are updated in the prompt with format: [new_value] (originally [old_value] in the source environment).
-Terrain friction keys in ``terrain_config`` (ground / ramp / platform) are synced into the prompt when they differ from the source environment; agent and barrier fixture friction are fixed in ``environment.py`` and stay at baseline values unless those constants change.
+Terrain keys in ``terrain_config`` for ground / ramp / platform friction and optional ``agent_fixture_friction`` / ``barrier_fixture_friction`` are synced into the prompt when they differ from the source environment; effective values resolve target overrides then base overrides then module defaults (matching ``Sandbox`` in ``environment.py``).
 
 mutation_description is for logs and orchestration only and must NOT be shown to the agent.
 """
@@ -13,29 +13,32 @@ from __future__ import annotations
 import re
 from typing import Any, Dict, List
 
-# Baseline values from environment.py (source environment)
-_BASE_TRIGGER_STAY = 25
-_BASE_SPEED_CAP = 0.5
-_BASE_COOLDOWN = 55
-_BASE_BARRIER_DELAY = 70
-_BASE_C_REQUIRED_MAX_Y = 2.9
-_BASE_C_HIGH_HISTORY = 150
-_BASE_RECENT_A_FOR_B = 160
-_BASE_RECENT_B_FOR_C = 400
-_BASE_FORCE_LIMIT = 60.0
-_BASE_REPULSION_MAG = 22.0
-_BASE_REPULSION_TANGENTIAL_MAG = 0.0
-_BASE_BARRIER_X = 4.5
-_BASE_SPAWN_X = 0.5
-_BASE_SPAWN_Y = 1.95
-_BASE_AGENT_RADIUS = 0.2
-_BASE_AGENT_MASS = 3.0
-_BASE_REPULSION_RANGE = 1.5
-_BASE_GROUND_FRICTION = 0.5
-_BASE_RAMP_FRICTION = 0.12
-_BASE_PLATFORM_FRICTION = 0.45
-_BASE_AGENT_BODY_FRICTION = 0.4
-_BARRIER_BODY_FRICTION = 0.3
+from tasks.Category5_Cybernetics_Control.C_05 import environment as _env
+
+# Baseline values from environment.py (single source of truth)
+_BASE_TRIGGER_STAY = _env.TRIGGER_STAY_STEPS
+_BASE_SPEED_CAP = _env.SPEED_CAP_INSIDE
+_BASE_COOLDOWN = _env.COOLDOWN_STEPS
+_BASE_BARRIER_DELAY = _env.BARRIER_DELAY_STEPS
+_BASE_C_REQUIRED_MAX_Y = _env.C_REQUIRED_MAX_Y
+_BASE_C_HIGH_HISTORY = _env.C_HIGH_HISTORY
+_BASE_RECENT_A_FOR_B = _env.RECENT_A_FOR_B
+_BASE_RECENT_B_FOR_C = _env.RECENT_B_FOR_C
+_BASE_FORCE_LIMIT = _env.FORCE_LIMIT_INSIDE
+_BASE_REPULSION_MAG = _env.REPULSION_MAG
+_BASE_REPULSION_TANGENTIAL_MAG = _env.REPULSION_TANGENTIAL_MAG
+_BASE_BARRIER_X = _env.BARRIER_X
+_BASE_SPAWN_X = _env.SPAWN_X
+_BASE_SPAWN_Y = _env.SPAWN_Y
+_BASE_AGENT_RADIUS = _env.AGENT_RADIUS
+_BASE_AGENT_MASS = _env.AGENT_MASS
+_BASE_MAX_AGENT_FORCE_PER_AXIS = _env.MAX_AGENT_FORCE_PER_AXIS
+_BASE_REPULSION_RANGE = _env.REPULSION_RANGE
+_BASE_GROUND_FRICTION = _env.GROUND_FRICTION_DEFAULT
+_BASE_RAMP_FRICTION = _env.RAMP_FRICTION_DEFAULT
+_BASE_PLATFORM_FRICTION = _env.PLATFORM_FRICTION_DEFAULT
+_BASE_AGENT_BODY_FRICTION = _env.AGENT_FIXTURE_FRICTION
+_BARRIER_BODY_FRICTION = _env.BARRIER_FIXTURE_FRICTION
 
 
 def _fmt_scalar_prompt(x: float) -> str:
@@ -46,6 +49,11 @@ def _fmt_scalar_prompt(x: float) -> str:
     return format(xf, ".15g").rstrip("0").rstrip(".") or "0"
 
 
+def _fmt_repulsion_peak(x: float) -> str:
+    """One-decimal Newton magnitudes for repulsion lines (matches baseline e.g. 22.0 N)."""
+    return f"{float(x):.1f}"
+
+
 def _friction_component(tv: float, bv: float) -> str:
     ts = _fmt_scalar_prompt(tv)
     if abs(float(tv) - float(bv)) < 1e-12:
@@ -53,45 +61,63 @@ def _friction_component(tv: float, bv: float) -> str:
     return f"{ts} (originally {_fmt_scalar_prompt(bv)} in the source environment)"
 
 
+def _effective_terrain(
+    target_tc: Dict[str, Any], base_tc: Dict[str, Any], key: str, default: float
+) -> float:
+    if target_tc and key in target_tc:
+        return float(target_tc[key])
+    if base_tc and key in base_tc:
+        return float(base_tc[key])
+    return float(default)
+
+
+def _base_terrain(base_tc: Dict[str, Any], key: str, default: float) -> float:
+    if base_tc and key in base_tc:
+        return float(base_tc[key])
+    return float(default)
+
+
 def _task_friction_line(target_tc: Dict[str, Any], base_tc: Dict[str, Any]) -> str:
-    tg = _float_terrain(target_tc, "ground_friction", _BASE_GROUND_FRICTION)
-    bg = _float_terrain(base_tc, "ground_friction", _BASE_GROUND_FRICTION)
-    tr = _float_terrain(target_tc, "ramp_friction", _BASE_RAMP_FRICTION)
-    br = _float_terrain(base_tc, "ramp_friction", _BASE_RAMP_FRICTION)
-    tp = _float_terrain(target_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
-    bp = _float_terrain(base_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
+    tg = _effective_terrain(target_tc, base_tc, "ground_friction", _BASE_GROUND_FRICTION)
+    bg = _base_terrain(base_tc, "ground_friction", _BASE_GROUND_FRICTION)
+    tr = _effective_terrain(target_tc, base_tc, "ramp_friction", _BASE_RAMP_FRICTION)
+    br = _base_terrain(base_tc, "ramp_friction", _BASE_RAMP_FRICTION)
+    tp = _effective_terrain(target_tc, base_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
+    bp = _base_terrain(base_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
+    ta = _effective_terrain(target_tc, base_tc, "agent_fixture_friction", _BASE_AGENT_BODY_FRICTION)
+    ba = _base_terrain(base_tc, "agent_fixture_friction", _BASE_AGENT_BODY_FRICTION)
+    tb = _effective_terrain(target_tc, base_tc, "barrier_fixture_friction", _BARRIER_BODY_FRICTION)
+    bb = _base_terrain(base_tc, "barrier_fixture_friction", _BARRIER_BODY_FRICTION)
     return (
         "- **Terrain & contact friction (Box2D coefficients)**: "
         f"Ground {_friction_component(tg, bg)}; "
         f"ramps {_friction_component(tr, br)}; "
         f"platform {_friction_component(tp, bp)}; "
-        f"agent body {_friction_component(_BASE_AGENT_BODY_FRICTION, _BASE_AGENT_BODY_FRICTION)}; "
-        f"barrier {_friction_component(_BARRIER_BODY_FRICTION, _BARRIER_BODY_FRICTION)}."
+        f"agent body {_friction_component(ta, ba)}; "
+        f"barrier {_friction_component(tb, bb)}."
     )
 
 
 def _criteria_friction_line(target_tc: Dict[str, Any], base_tc: Dict[str, Any]) -> str:
-    tg = _float_terrain(target_tc, "ground_friction", _BASE_GROUND_FRICTION)
-    bg = _float_terrain(base_tc, "ground_friction", _BASE_GROUND_FRICTION)
-    tr = _float_terrain(target_tc, "ramp_friction", _BASE_RAMP_FRICTION)
-    br = _float_terrain(base_tc, "ramp_friction", _BASE_RAMP_FRICTION)
-    tp = _float_terrain(target_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
-    bp = _float_terrain(base_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
+    tg = _effective_terrain(target_tc, base_tc, "ground_friction", _BASE_GROUND_FRICTION)
+    bg = _base_terrain(base_tc, "ground_friction", _BASE_GROUND_FRICTION)
+    tr = _effective_terrain(target_tc, base_tc, "ramp_friction", _BASE_RAMP_FRICTION)
+    br = _base_terrain(base_tc, "ramp_friction", _BASE_RAMP_FRICTION)
+    tp = _effective_terrain(target_tc, base_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
+    bp = _base_terrain(base_tc, "platform_friction", _BASE_PLATFORM_FRICTION)
+    ta = _effective_terrain(target_tc, base_tc, "agent_fixture_friction", _BASE_AGENT_BODY_FRICTION)
+    ba = _base_terrain(base_tc, "agent_fixture_friction", _BASE_AGENT_BODY_FRICTION)
+    tb = _effective_terrain(target_tc, base_tc, "barrier_fixture_friction", _BARRIER_BODY_FRICTION)
+    bb = _base_terrain(base_tc, "barrier_fixture_friction", _BARRIER_BODY_FRICTION)
     return (
         "- **Friction**: "
         f"Ground {_friction_component(tg, bg)}; "
         f"ramps {_friction_component(tr, br)}; "
         f"platform {_friction_component(tp, bp)}; "
-        f"agent {_friction_component(_BASE_AGENT_BODY_FRICTION, _BASE_AGENT_BODY_FRICTION)}; "
-        f"barrier {_friction_component(_BARRIER_BODY_FRICTION, _BARRIER_BODY_FRICTION)} "
+        f"agent {_friction_component(ta, ba)}; "
+        f"barrier {_friction_component(tb, bb)} "
         "(Box2D coefficients)."
     )
-
-
-def _float_terrain(tc: Dict[str, Any], key: str, default: float) -> float:
-    if not tc or key not in tc:
-        return float(default)
-    return float(tc[key])
 
 
 def _get_physics(base_physics: Dict[str, Any], key: str, default: Any) -> Any:
@@ -128,17 +154,16 @@ def update_task_description_for_visible_changes(
     t_trigger = int(target_phys("trigger_stay_steps", _BASE_TRIGGER_STAY))
     b_trigger = int(base_phys("trigger_stay_steps", _BASE_TRIGGER_STAY))
     if t_trigger != b_trigger:
-        # Match baseline or already-mutated: "... N consecutive steps [(originally ...)] (with speed..."
         pattern = (
-            r"(- \*\*Activation duration\*\*: The agent must stay inside a zone for )(\d+) consecutive steps"
-            r"(?: \(originally \d+ consecutive steps in the source environment\))? "
+            r"(- \*\*Activation duration\*\*: The agent must stay inside a zone for )"
+            r"(\d+) consecutive steps(?: \(originally \d+ consecutive steps in the source environment\))? "
             r"(\(with speed and force constraints below\) to trigger it\.)"
         )
         if re.search(pattern, description):
             description = re.sub(
                 pattern,
-                f"\\g<1>{t_trigger} consecutive steps (originally {b_trigger} consecutive steps "
-                f"in the source environment) \\g<3>",
+                f"\\g<1>{t_trigger} consecutive steps (originally {b_trigger} consecutive steps in the source environment) "
+                f"\\g<3>",
                 description,
             )
 
@@ -154,17 +179,6 @@ def update_task_description_for_visible_changes(
             description = re.sub(
                 pattern,
                 f"\\g<1>{t_speed} m/s (originally {b_speed} m/s in the source environment); exceeding this resets",
-                description,
-            )
-        # Only replace the speed-cap parenthetical; keep " and force limit (...)" intact.
-        pattern_obj = (
-            r"(speed cap \()([\d.]+ m/s(?: \(originally [\d.]+ m/s in the source environment\))?)(\))"
-            r"(?= and force limit)"
-        )
-        if re.search(pattern_obj, description):
-            description = re.sub(
-                pattern_obj,
-                f"\\g<1>{t_speed} m/s (originally {b_speed} m/s in the source environment))",
                 description,
             )
 
@@ -239,8 +253,9 @@ def update_task_description_for_visible_changes(
     b_ch = int(base_phys("c_high_history", _BASE_C_HIGH_HISTORY))
     if t_cy != b_cy or t_ch != b_ch:
         c_alt_pat = (
-            r"(?m)^- \*\*C altitude requirement\*\*: Zone C only counts stay-steps if the agent's maximum y over the last \d+ steps"
-            r"(?: \(originally \d+ steps in the source environment\))? is at least [\d.]+ m"
+            r"(?m)^- \*\*C altitude requirement\*\*: Zone C only counts stay-steps if the agent's maximum y over the retained y-history window "
+            r"\(length up to \d+ simulation steps(?: \(originally \d+ simulation steps in the source environment\))?; "
+            r"shorter early in the episode\) is at least [\d.]+ m"
             r"(?: \(originally [\d.]+ m in the source environment\))? \(approach from elevated path\)\.\s*$"
         )
         if re.search(c_alt_pat, description):
@@ -250,13 +265,13 @@ def update_task_description_for_visible_changes(
                 else ""
             )
             ch_note = (
-                f" (originally {b_ch} steps in the source environment)"
+                f" (originally {b_ch} simulation steps in the source environment)"
                 if t_ch != b_ch
                 else ""
             )
             new_line = (
-                f"- **C altitude requirement**: Zone C only counts stay-steps if the agent's maximum y over "
-                f"the last {t_ch} steps{ch_note} is at least {t_cy} m{cy_note} "
+                f"- **C altitude requirement**: Zone C only counts stay-steps if the agent's maximum y over the retained y-history window "
+                f"(length up to {t_ch} simulation steps{ch_note}; shorter early in the episode) is at least {t_cy} m{cy_note} "
                 f"(approach from elevated path)."
             )
             description = re.sub(c_alt_pat, new_line, description, count=1)
@@ -265,28 +280,49 @@ def update_task_description_for_visible_changes(
     t_force = float(target_phys("force_limit_inside", _BASE_FORCE_LIMIT))
     b_force = float(base_phys("force_limit_inside", _BASE_FORCE_LIMIT))
     if t_force != b_force:
-        # Allow optional (originally …) between the limit and (same units …) so updates stay idempotent.
         pattern = (
             r"(- \*\*Force limit inside zone\*\*: Applying \*\*controller\*\* force with magnitude above )"
-            r"([\d.]+)"
-            r"(?: \(originally [\d.]+ in the source environment\))?"
-            r"( \(same units as per-step API force\))?"
+            r"[\d.]+ N \(Newtons\)"
+            r"(?: \(originally [\d.]+ N \(Newtons\) in the source environment\))?"
             r" while inside a zone resets"
         )
         if re.search(pattern, description):
             description = re.sub(
                 pattern,
-                f"\\g<1>{_fmt_scalar_prompt(t_force)} (originally {_fmt_scalar_prompt(b_force)} in the source environment)"
-                f"\\g<3> while inside a zone resets",
+                f"\\g<1>{_fmt_scalar_prompt(t_force)} N (Newtons) (originally {_fmt_scalar_prompt(b_force)} N (Newtons) in the source environment) "
+                f"while inside a zone resets",
                 description,
             )
-        pattern_obj = (
-            r"force limit ([\d.]+)(?: \(originally [\d.]+ in the source environment\))? inside zones"
+
+    # Task Objective item 4: keep numeric speed/force in sync when either physics value differs from base.
+    if t_speed != b_speed or t_force != b_force:
+        speed_txt = (
+            f"{t_speed} m/s (originally {b_speed} m/s in the source environment)"
+            if t_speed != b_speed
+            else f"{t_speed} m/s"
         )
-        if re.search(pattern_obj, description):
+        force_txt = (
+            f"{_fmt_scalar_prompt(t_force)} N (originally {_fmt_scalar_prompt(b_force)} N in the source environment)"
+            if t_force != b_force
+            else f"{_fmt_scalar_prompt(t_force)} N"
+        )
+        pattern_obj_speed = (
+            r"(speed cap \()([\d.]+ m/s(?: \(originally [\d.]+ m/s in the source environment\))?)(\))"
+            r"(?= and force limit)"
+        )
+        if re.search(pattern_obj_speed, description):
             description = re.sub(
-                pattern_obj,
-                f"force limit {_fmt_scalar_prompt(t_force)} (originally {_fmt_scalar_prompt(b_force)} in the source environment) inside zones",
+                pattern_obj_speed,
+                lambda m, st=speed_txt: f"{m.group(1)}{st}{m.group(3)}",
+                description,
+            )
+        pattern_obj_force = (
+            r"force limit [\d.]+\s+N(?:\s+\(originally [\d.]+\s+N in the source environment\))? inside zones"
+        )
+        if re.search(pattern_obj_force, description):
+            description = re.sub(
+                pattern_obj_force,
+                f"force limit {force_txt} inside zones",
                 description,
             )
 
@@ -295,14 +331,14 @@ def update_task_description_for_visible_changes(
     b_rep = float(base_phys("repulsion_mag", _BASE_REPULSION_MAG))
     if t_rep != b_rep:
         pattern = (
-            r"(The \*\*peak repulsion scale\*\* at each zone center is )([\d.]+)"
-            r"(?: \(originally [\d.]+ in the source environment\))?"
-            r"( \(same force units as per-step API force\))?; strength decreases linearly"
+            r"(The \*\*peak repulsion scale\*\* at each zone center is )"
+            r"[\d.]+ N \(Newtons\)"
+            r"(?: \(originally [\d.]+ N(?: \(Newtons\))? in the source environment\))?; strength decreases linearly"
         )
         if re.search(pattern, description):
             description = re.sub(
                 pattern,
-                f"\\g<1>{_fmt_scalar_prompt(t_rep)} (originally {_fmt_scalar_prompt(b_rep)} in the source environment)\\g<3>; strength decreases linearly",
+                f"\\g<1>{_fmt_repulsion_peak(t_rep)} N (Newtons) (originally {_fmt_repulsion_peak(b_rep)} N in the source environment); strength decreases linearly",
                 description,
             )
 
@@ -312,15 +348,15 @@ def update_task_description_for_visible_changes(
     if t_tan != b_tan:
         tan_pat = (
             r"(The \*\*peak tangential \(swirling\) scale\*\* at each zone center is )"
-            r"[\d.]+(?: \(originally [\d.]+ in the source environment\))? "
-            r"(\(same force units as per-step API force\)), with the same linear falloff to zero at the field edge\. "
+            r"[\d.]+ N \(Newtons\)"
+            r"(?: \(originally [\d.]+ N(?: \(Newtons\))? in the source environment\))?, with the same linear falloff to zero at the field edge\. "
             r"(The agent must navigate these fields)"
         )
         if re.search(tan_pat, description):
             description = re.sub(
                 tan_pat,
-                f"\\g<1>{_fmt_scalar_prompt(t_tan)} (originally {_fmt_scalar_prompt(b_tan)} in the source environment) "
-                f"\\g<2>, with the same linear falloff to zero at the field edge. \\g<3>",
+                f"\\g<1>{_fmt_repulsion_peak(t_tan)} N (Newtons) (originally {_fmt_repulsion_peak(b_tan)} N in the source environment), "
+                f"with the same linear falloff to zero at the field edge. \\g<2>",
                 description,
             )
 
@@ -340,12 +376,12 @@ def update_task_description_for_visible_changes(
             )
 
     # Barrier x position (terrain_config) — visible in task description
-    t_bx = _float_terrain(target_terrain_config, "barrier_x", _BASE_BARRIER_X)
-    b_bx = _float_terrain(base_terrain_config, "barrier_x", _BASE_BARRIER_X)
+    t_bx = _effective_terrain(target_terrain_config, base_terrain_config, "barrier_x", _BASE_BARRIER_X)
+    b_bx = _base_terrain(base_terrain_config, "barrier_x", _BASE_BARRIER_X)
     if t_bx != b_bx:
         bpat = (
             r"(- \*\*Barrier\*\*: A narrow vertical gate \(half-width ≈ 0\.08 m\) at x = )"
-            r"[\d.]+(?: \(originally [\d.]+ m in the source environment\))? m, spanning y from 0 to 4 m, "
+            r"[\d.]+ m(?: \(originally [\d.]+ m in the source environment\))?, spanning y from 0 to 4 m, "
             r"blocks passage until it opens according to \*\*Barrier delay after A\*\* below\."
         )
         if re.search(bpat, description):
@@ -355,22 +391,34 @@ def update_task_description_for_visible_changes(
                 r"blocks passage until it opens according to **Barrier delay after A** below.",
                 description,
             )
+        auth_bpat = (
+            r"(The vertical barrier is a separate static box at x = )"
+            r"[\d.]+ m(?: \(originally [\d.]+ m in the source environment\))? \(same centerline x as the \*\*Barrier\*\* bullet below\)\."
+        )
+        if re.search(auth_bpat, description):
+            description = re.sub(
+                auth_bpat,
+                f"\\g<1>{t_bx} m (originally {b_bx} m in the source environment) "
+                f"(same centerline x as the **Barrier** bullet below).",
+                description,
+            )
 
     # Spawn and agent body (terrain_config) — visible in task description
-    t_sx = _float_terrain(target_terrain_config, "spawn_x", _BASE_SPAWN_X)
-    b_sx = _float_terrain(base_terrain_config, "spawn_x", _BASE_SPAWN_X)
-    t_sy = _float_terrain(target_terrain_config, "spawn_y", _BASE_SPAWN_Y)
-    b_sy = _float_terrain(base_terrain_config, "spawn_y", _BASE_SPAWN_Y)
-    t_ar = _float_terrain(target_terrain_config, "agent_radius", _BASE_AGENT_RADIUS)
-    b_ar = _float_terrain(base_terrain_config, "agent_radius", _BASE_AGENT_RADIUS)
-    t_am = _float_terrain(target_terrain_config, "agent_mass", _BASE_AGENT_MASS)
-    b_am = _float_terrain(base_terrain_config, "agent_mass", _BASE_AGENT_MASS)
+    t_sx = _effective_terrain(target_terrain_config, base_terrain_config, "spawn_x", _BASE_SPAWN_X)
+    b_sx = _base_terrain(base_terrain_config, "spawn_x", _BASE_SPAWN_X)
+    t_sy = _effective_terrain(target_terrain_config, base_terrain_config, "spawn_y", _BASE_SPAWN_Y)
+    b_sy = _base_terrain(base_terrain_config, "spawn_y", _BASE_SPAWN_Y)
+    t_ar = _effective_terrain(target_terrain_config, base_terrain_config, "agent_radius", _BASE_AGENT_RADIUS)
+    b_ar = _base_terrain(base_terrain_config, "agent_radius", _BASE_AGENT_RADIUS)
+    t_am = _effective_terrain(target_terrain_config, base_terrain_config, "agent_mass", _BASE_AGENT_MASS)
+    b_am = _base_terrain(base_terrain_config, "agent_mass", _BASE_AGENT_MASS)
     if (t_sx, t_sy, t_ar, t_am) != (b_sx, b_sy, b_ar, b_am):
         apat = (
             r"(?m)^- \*\*Agent\*\*: Spawn at \([^)]+\) m(?: \(originally \([^)]+\) m in the source environment\))?; "
             r"radius [\d.]+ m(?: \(originally [\d.]+ m in the source environment\))?; "
             r"mass [\d.]+ kg(?: \(originally [\d.]+ kg in the source environment\))?\. "
-            r"(Passive velocity decay between control inputs follows unstated internal parameters.*)$"
+            r"(Linear damping \*\*[\d.]+\*\* and angular damping \*\*[\d.]+\*\* on the agent body \(Box2D\)\. "
+            r"Other simulator-side motion details not listed here may still require inference from observations\.)$"
         )
 
         def _agent_repl(m: re.Match) -> str:
@@ -390,6 +438,25 @@ def update_task_description_for_visible_changes(
 
         if re.search(apat, description):
             description = re.sub(apat, _agent_repl, description, count=1)
+
+    # Max controller force per axis (physics_config max_agent_force_per_axis)
+    t_maf = float(target_phys("max_agent_force_per_axis", _BASE_MAX_AGENT_FORCE_PER_AXIS))
+    b_maf = float(base_phys("max_agent_force_per_axis", _BASE_MAX_AGENT_FORCE_PER_AXIS))
+    if t_maf != b_maf:
+        maf_pat = (
+            r"(- \*\*Agent max applied force\*\*: The controller can apply at most )"
+            r"[\d.]+ N \(Newtons\) per axis per step"
+            r"(?: \(originally [\d.]+ N \(Newtons\) per axis per step in the source environment\))?"
+            r" \(same convention as \*\*apply_agent_force\*\* in the API below\)\."
+        )
+        if re.search(maf_pat, description):
+            description = re.sub(
+                maf_pat,
+                f"\\g<1>{_fmt_scalar_prompt(t_maf)} N (Newtons) per axis per step "
+                f"(originally {_fmt_scalar_prompt(b_maf)} N (Newtons) per axis per step in the source environment) "
+                f"(same convention as **apply_agent_force** in the API below).",
+                description,
+            )
 
     friction_task_pat = r"(?m)^- \*\*Terrain & contact friction \(Box2D coefficients\)\*\*:.*$"
     if re.search(friction_task_pat, description):
@@ -430,14 +497,14 @@ def update_success_criteria_for_visible_changes(
     b_trigger = int(base_phys("trigger_stay_steps", _BASE_TRIGGER_STAY))
     if t_trigger != b_trigger:
         pattern_act = (
-            r"(- \*\*Activation duration\*\*: )(\d+) steps(?: \(originally \d+ steps in the source environment\))? "
+            r"(- \*\*Activation duration\*\*: )(\d+) consecutive steps(?: \(originally \d+ consecutive steps in the source environment\))? "
             r"per zone \(with speed <= (.+?) and force <= (.+?)( inside zone\)\.)"
         )
         if re.search(pattern_act, criteria):
             criteria = re.sub(
                 pattern_act,
                 lambda m: (
-                    f"{m.group(1)}{t_trigger} steps (originally {b_trigger} steps in the source environment) "
+                    f"{m.group(1)}{t_trigger} consecutive steps (originally {b_trigger} consecutive steps in the source environment) "
                     f"per zone (with speed <= {m.group(3)} and force <= {m.group(4)}{m.group(5)}"
                 ),
                 criteria,
@@ -460,14 +527,13 @@ def update_success_criteria_for_visible_changes(
                 count=1,
             )
     if t_force != b_force:
-        # Ends with ")." closing the outer "(with speed ..." parenthetical on the activation line
         pattern = (
-            r"(force <= )([\d.]+(?: \(originally [\d.]+ in the source environment\))?)( inside zone\)\.)"
+            r"(force <= )([\d.]+)\s+N(?:\s+\(originally [\d.]+\s+N in the source environment\))?( inside zone\)\.)"
         )
         if re.search(pattern, criteria):
             criteria = re.sub(
                 pattern,
-                f"\\g<1>{_fmt_scalar_prompt(t_force)} (originally {_fmt_scalar_prompt(b_force)} in the source environment)\\g<3>",
+                f"\\g<1>{_fmt_scalar_prompt(t_force)} N (originally {_fmt_scalar_prompt(b_force)} N in the source environment)\\g<3>",
                 criteria,
                 count=1,
             )
@@ -497,6 +563,40 @@ def update_success_criteria_for_visible_changes(
             criteria = re.sub(
                 pattern,
                 f"\\g<1>{t_barrier} steps (originally {b_barrier} steps in the source environment) after A before gate opens.",
+                criteria,
+            )
+
+    t_bx_c = _effective_terrain(target_terrain_config, base_terrain_config, "barrier_x", _BASE_BARRIER_X)
+    b_bx_c = _base_terrain(base_terrain_config, "barrier_x", _BASE_BARRIER_X)
+    if t_bx_c != b_bx_c:
+        crit_geom_pat = (
+            r"(- \*\*Barrier geometry\*\*: Vertical gate at x = )"
+            r"[\d.]+ m(?: \(originally [\d.]+ m in the source environment\))? \(centerline\), half-width ≈ 0\.08 m, spanning y from 0 to 4 m; "
+            r"blocks passage until opened per \*\*Barrier delay\*\* below\."
+        )
+        if re.search(crit_geom_pat, criteria):
+            criteria = re.sub(
+                crit_geom_pat,
+                f"\\g<1>{t_bx_c} m (originally {b_bx_c} m in the source environment) (centerline), half-width ≈ 0.08 m, spanning y from 0 to 4 m; "
+                r"blocks passage until opened per **Barrier delay** below.",
+                criteria,
+            )
+
+    t_mafc = float(target_phys("max_agent_force_per_axis", _BASE_MAX_AGENT_FORCE_PER_AXIS))
+    b_mafc = float(base_phys("max_agent_force_per_axis", _BASE_MAX_AGENT_FORCE_PER_AXIS))
+    if t_mafc != b_mafc:
+        maf_crit_pat = (
+            r"(- \*\*Agent max applied force\*\*: At most )"
+            r"[\d.]+ N per axis per simulation step"
+            r"(?: \(originally [\d.]+ N per axis per simulation step in the source environment\))?"
+            r" \(\*\*apply_agent_force\*\*\), matching the task API\."
+        )
+        if re.search(maf_crit_pat, criteria):
+            criteria = re.sub(
+                maf_crit_pat,
+                f"\\g<1>{_fmt_scalar_prompt(t_mafc)} N per axis per simulation step "
+                f"(originally {_fmt_scalar_prompt(b_mafc)} N per axis per simulation step in the source environment) "
+                f"(**apply_agent_force**), matching the task API.",
                 criteria,
             )
 
@@ -535,21 +635,25 @@ def update_success_criteria_for_visible_changes(
     b_ch = int(base_phys("c_high_history", _BASE_C_HIGH_HISTORY))
     if t_cy != b_cy or t_ch != b_ch:
         pattern = (
-            r"(- \*\*C altitude\*\*: Recent max y >= )[\d.]+"
-            r"(?: \(originally [\d.]+ m in the source environment\))?"
-            r"( m over last )\d+"
-            r"(?: \(originally \d+ steps in the source environment\))?"
-            r"( steps\.)"
+            r"(?m)^- \*\*C altitude\*\*: Recent max y >= [\d.]+(?: \(originally [\d.]+ m in the source environment\))? "
+            r"m over a rolling window of up to \d+ simulation steps"
+            r"(?: \(originally \d+ simulation steps in the source environment\))? "
+            r"\(all elapsed steps count until the buffer is full\)\.\s*$"
         )
         if re.search(pattern, criteria):
-            tail = f"{t_cy} m"
+            ypart = f"{t_cy} m"
             if t_cy != b_cy:
-                tail += f" (originally {b_cy} m in the source environment)"
-            tail += f" over last {t_ch} steps"
+                ypart += f" (originally {b_cy} m in the source environment)"
+            spart = f"{t_ch} simulation steps"
             if t_ch != b_ch:
-                tail += f" (originally {b_ch} steps in the source environment)"
-            tail += "."
-            criteria = re.sub(pattern, f"\\g<1>{tail}", criteria)
+                spart = (
+                    f"{t_ch} simulation steps (originally {b_ch} simulation steps in the source environment)"
+                )
+            new_line = (
+                f"- **C altitude**: Recent max y >= {ypart} over a rolling window of up to {spart} "
+                f"(all elapsed steps count until the buffer is full)."
+            )
+            criteria = re.sub(pattern, new_line, criteria, count=1)
 
     t_rr = float(target_phys("repulsion_range", _BASE_REPULSION_RANGE))
     b_rr = float(base_phys("repulsion_range", _BASE_REPULSION_RANGE))
@@ -571,13 +675,13 @@ def update_success_criteria_for_visible_changes(
     if t_rep != b_rep:
         pat_rep = (
             r"(Peak scale \(radial component\) )"
-            r"[\d.]+(?: \(originally [\d.]+ in the source environment\))? "
-            r"(at zone centers;)"
+            r"[\d.]+(?: N)?(?: \(originally [\d.]+(?: N)? in the source environment\))?"
+            r"( at zone centers;)"
         )
         if re.search(pat_rep, criteria):
             criteria = re.sub(
                 pat_rep,
-                f"\\g<1>{_fmt_scalar_prompt(t_rep)} (originally {_fmt_scalar_prompt(b_rep)} in the source environment) \\g<2>",
+                f"\\g<1>{_fmt_repulsion_peak(t_rep)} N (originally {_fmt_repulsion_peak(b_rep)} N in the source environment)\\g<2>",
                 criteria,
             )
 
@@ -586,13 +690,13 @@ def update_success_criteria_for_visible_changes(
     if t_tan != b_tan:
         pat_tan = (
             r"(peak tangential \(swirling\) scale )"
-            r"[\d.]+(?: \(originally [\d.]+ in the source environment\))? "
-            r"(\(same units\); field radius )"
+            r"[\d.]+(?: N)?(?: \(originally [\d.]+(?: N)? in the source environment\))? "
+            r"(; field radius )"
         )
         if re.search(pat_tan, criteria):
             criteria = re.sub(
                 pat_tan,
-                f"\\g<1>{_fmt_scalar_prompt(t_tan)} (originally {_fmt_scalar_prompt(b_tan)} in the source environment) \\g<2>",
+                f"\\g<1>{_fmt_repulsion_peak(t_tan)} N (originally {_fmt_repulsion_peak(b_tan)} N in the source environment)\\g<2>",
                 criteria,
             )
 
@@ -623,6 +727,7 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Activation duration**: The required continuous time to stay within a zone to successfully trigger it.
 - **Temporal sequencing windows**: Changes in the allowed time between sequential interactions (e.g., A to B or B to C).
 - **State persistence requirements**: Changes in how long prior motion history (e.g., elevated trajectory) is remembered for downstream triggers.
+- **Ambient wind / lateral forcing**: Time-varying lateral disturbances may or may not be present; magnitudes are not disclosed.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; use run feedback to infer effective constraints and adapt your strategy.
 """

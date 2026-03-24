@@ -18,6 +18,19 @@ from tasks.Category5_Cybernetics_Control.C_05.environment import (
     REPULSION_STRONG_THRESHOLD as _SOURCE_REPULSION_STRONG_THRESHOLD,
 )
 
+
+def _distance_point_to_switch_zone(x: float, y: float, cx: float, cy: float, hw: float, hh: float) -> float:
+    """Shortest distance from (x,y) to the axis-aligned switch zone rectangle (same predicate as the environment)."""
+    closest_x = min(max(x, cx - hw), cx + hw)
+    closest_y = min(max(y, cy - hh), cy + hh)
+    return math.hypot(x - closest_x, y - closest_y)
+
+
+def _agent_center_in_zone(x: float, y: float, cx: float, cy: float, hw: float, hh: float) -> bool:
+    """True iff agent center (x,y) lies inside the switch zone AABB (same test as environment._point_in_zone)."""
+    return (cx - hw <= x <= cx + hw) and (cy - hh <= y <= cy + hh)
+
+
 class Evaluator:
     """
     C-05: sequence A→B→C with dwell steps per zone, speed/force limits in zones,
@@ -87,12 +100,19 @@ class Evaluator:
                 else 0.0
             )
 
-        # Physical metrics for feedback: distance to next zone, speed, progress
-        zone_centers = {name: (cx, cy) for name, (cx, cy, hw, hh) in self.terrain_bounds.get("zones", {}).items()}
+        # Physical metrics for feedback: distance to next switch rectangle (not just its center), speed, progress
+        zones = self.terrain_bounds.get("zones", {})
+        tb_fn = getattr(self.environment, "get_terrain_bounds", None)
+        if callable(tb_fn):
+            live_tb = tb_fn()
+            if isinstance(live_tb, dict) and live_tb.get("zones"):
+                zones = live_tb["zones"]
         distance_to_next = None
-        if next_req and next_req in zone_centers:
-            tx, ty = zone_centers[next_req]
-            distance_to_next = math.sqrt((tx - x) ** 2 + (ty - y) ** 2)
+        inside_next_required_zone = False
+        if next_req and next_req in zones:
+            cx, cy, hw, hh = zones[next_req]
+            distance_to_next = _distance_point_to_switch_zone(x, y, cx, cy, hw, hh)
+            inside_next_required_zone = _agent_center_in_zone(x, y, cx, cy, hw, hh)
         speed = math.sqrt(vx * vx + vy * vy)
         progress_percent = (
             (len(triggered) / float(n_milestones) * 100.0) if self._required_order else 0.0
@@ -113,6 +133,7 @@ class Evaluator:
             "failed": failed,
             "failure_reason": failure_reason,
             "distance_to_next_zone": distance_to_next,
+            "inside_next_required_zone": inside_next_required_zone,
             "speed": speed,
             "progress_percent": progress_percent,
             "steps_in_current_zone": steps_in_current_zone,
@@ -121,8 +142,7 @@ class Evaluator:
             "timed_out": timed_out,
         }
 
-        # Agent-facing: only speed cap (also stated in prompt) plus coarse flags. Do not expose
-        # raw hidden physics numerics (repulsion, delays, recency windows, etc.) in metrics.
+        # Agent-facing: live zone speed cap (numeric) for feedback; curriculum booleans for other axes.
         if self.environment is not None:
             env = self.environment
             metrics["env_speed_cap_inside"] = getattr(env, "_speed_cap_inside", None)
@@ -157,8 +177,8 @@ class Evaluator:
     def get_task_description(self):
         """High-level tooling summary only.
 
-        Does not echo live physics/timing numerics (those may differ per curriculum stage).
-        Canonical agent-facing text is ``prompt.py`` TASK_PROMPT plus ``stages.py`` updates.
+        Per-step metrics may include the live zone speed cap and boolean curriculum flags;
+        canonical prose is ``prompt.py`` TASK_PROMPT plus ``stages.py`` updates.
         """
         desc = (
             "Trigger switches A, then B, then C in order. Rules for dwell time, speed/force limits "

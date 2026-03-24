@@ -1,5 +1,7 @@
 import math
 
+_INITIAL_REF_BARRIER_Y_BOTTOM = 20.0
+
 def _get_thrust_torque_limits(sandbox):
     return getattr(sandbox, '_max_thrust', 600.0), getattr(sandbox, '_max_torque', 120.0)
 
@@ -33,6 +35,15 @@ def _barrier_geometry(sandbox):
     yb = float(getattr(sandbox, "_barrier_y_bottom", 20.0))
     return xr, yt, yb
 
+def _corridor_target_altitude(yt, yb, clearance_obstacle=2.5, clearance_ceiling=1.5):
+    y_lo = yt + clearance_obstacle
+    y_hi = yb - clearance_ceiling
+    if y_hi <= y_lo:
+        return 0.5 * (yt + yb)
+    inner = y_hi - y_lo
+    y_pref = y_lo + 0.35 * inner
+    return max(y_lo, min(y_pref, y_hi))
+
 def _thrust_delay_steps(sandbox):
     if hasattr(sandbox, "get_thrust_delay_steps"):
         return int(sandbox.get_thrust_delay_steps())
@@ -53,10 +64,12 @@ class BaselineLanderAgent:
         t_sim = step_count * dt
         t_p = t_sim + 0.15
         plat_x, plat_vx = _platform_kinematics(sandbox, t_p)
-        xr, yt, yb = _barrier_geometry(sandbox)
+        xr, yt, _yb_actual = _barrier_geometry(sandbox)
         if x < xr + 0.5:
             tx = xr + 1.5
-            ty = max(yt + 2.5, min(12.0, yb - 1.5))
+            ty = _corridor_target_altitude(
+                yt, _INITIAL_REF_BARRIER_Y_BOTTOM, clearance_obstacle=2.5, clearance_ceiling=1.5
+            )
             tvx, tvy = 2.5, 0.0
         else:
             tx, ty = plat_x, 1.05

@@ -1,6 +1,14 @@
 """
-C-01: Cart-pole balance evaluation (pole starts upright).
-Success = consecutive in-band upright hold, then remain on track until horizon with terminal in-band angle.
+C-01: Cart-pole balance evaluation (pole starts upright; grading uses true pole angle).
+
+Rules (see TASK_PROMPT for full detail):
+- Track: fail if |cart_x - TRACK_CENTER_X| > SAFE_HALF_RANGE (anytime).
+- Lock-in: need BALANCE_HOLD_EVALS_REQUIRED consecutive **simulation** steps with |true angle| ≤ BALANCE_ANGLE_DEG;
+  counted in the sandbox after each `environment.step` (not per `evaluate` call).
+- Before lock-in: |true angle| > BALANCE_ANGLE_DEG resets the sandbox consecutive counter; no angle-only early failure.
+- After lock-in: |true angle| > FAILURE_ANGLE_DEG fails; BALANCE_ANGLE_DEG < |angle| ≤ FAILURE_ANGLE_DEG does not end the episode by itself.
+- Horizon: step_limit = min(max_steps, sandbox.MAX_STEPS). At the final step, success requires
+  lock-in achieved and |true angle| ≤ BALANCE_ANGLE_DEG; otherwise time-out or “pole not upright at end” failure.
 """
 
 from __future__ import annotations
@@ -8,19 +16,36 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, List
 
-# Evaluation Constants
-BALANCE_ANGLE_DEG = 45.0
-FAILURE_ANGLE_DEG = 90.0
-BALANCE_HOLD_EVALS_REQUIRED = 200
+try:
+    from .environment import (
+        BALANCE_ANGLE_DEG,
+        BALANCE_HOLD_STEPS_REQUIRED,
+        FAILURE_ANGLE_DEG,
+    )
+except ImportError:
+    from environment import (
+        BALANCE_ANGLE_DEG,
+        BALANCE_HOLD_STEPS_REQUIRED,
+        FAILURE_ANGLE_DEG,
+    )
+
+# Backward-compatible name used throughout this module and tests
+BALANCE_HOLD_EVALS_REQUIRED = BALANCE_HOLD_STEPS_REQUIRED
 
 class Evaluator:
     def __init__(self, sandbox: Any):
         self.sandbox = sandbox
-        self.balance_angle_rad = math.radians(BALANCE_ANGLE_DEG)
-        self.failure_angle_rad = math.radians(FAILURE_ANGLE_DEG)
-        
+        self.balance_angle_rad = math.radians(
+            float(getattr(self.sandbox, "balance_angle_deg", BALANCE_ANGLE_DEG))
+        )
+        self.failure_angle_rad = math.radians(
+            float(getattr(self.sandbox, "failure_angle_deg", FAILURE_ANGLE_DEG))
+        )
+        self._balance_hold_required = int(
+            getattr(self.sandbox, "balance_hold_steps_required", BALANCE_HOLD_STEPS_REQUIRED)
+        )
+
         self._balance_achieved = False
-        self._consecutive_upright_evals = 0
 
     def evaluate(self, agent_body: Any, step_count: int, max_steps: int) -> tuple[bool, float, dict]:
         """
@@ -57,6 +82,12 @@ class Evaluator:
             "safe_half_range": safe_range,
             "step_count": step_count,
             "balance_achieved": self._balance_achieved,
+            "grading_balance_angle_deg": float(
+                getattr(self.sandbox, "balance_angle_deg", BALANCE_ANGLE_DEG)
+            ),
+            "grading_failure_angle_deg": float(
+                getattr(self.sandbox, "failure_angle_deg", FAILURE_ANGLE_DEG)
+            ),
             "success": False,
             "failed": False
         }
@@ -66,22 +97,26 @@ class Evaluator:
             metrics.update({"failed": True, "reason": "Cart left safe zone", "failure_reason": "Cart left safe zone"})
             return True, 0.0, metrics
             
-        # 2. Check upright condition
+        # 2. Check upright condition (lock-in only after real steps: step_count 0 is pre-loop probe)
         is_upright = abs(pole_angle_true) <= self.balance_angle_rad
-        
-        if not self._balance_achieved:
-            if is_upright:
-                self._consecutive_upright_evals += 1
-                if self._consecutive_upright_evals >= BALANCE_HOLD_EVALS_REQUIRED:
+
+        if step_count > 0:
+            if not self._balance_achieved:
+                n_up = self.sandbox.get_consecutive_upright_sim_steps()
+                if n_up >= self._balance_hold_required:
                     self._balance_achieved = True
                     metrics["balance_achieved"] = True
             else:
-                self._consecutive_upright_evals = 0
-        else:
-            # Once balance is achieved, pole MUST stay within failure angle (90 deg)
-            if abs(pole_angle_true) > self.failure_angle_rad:
-                metrics.update({"failed": True, "reason": "Pole fell after balancing", "failure_reason": "Pole fell after balancing"})
-                return True, 0.0, metrics
+                # Once balance is achieved, pole MUST stay within failure angle (90 deg)
+                if abs(pole_angle_true) > self.failure_angle_rad:
+                    metrics.update(
+                        {
+                            "failed": True,
+                            "reason": "Pole fell after balancing",
+                            "failure_reason": "Pole fell after balancing",
+                        }
+                    )
+                    return True, 0.0, metrics
         
         # 3. Handle termination (horizon follows sandbox.MAX_STEPS so it matches physics_config / prompt)
         done = step_count >= step_limit
@@ -113,7 +148,15 @@ def score_to_metrics(score: float, metrics: Dict[str, Any]) -> Dict[str, Any]:
 def get_evaluation_config() -> Dict[str, Any]:
     return {
         "task_name": "Cart-Pole Balance",
-        "description": "Keep an upright pole balanced on a cart within track limits until the episode ends",
-        "metrics": {"balance_achieved": "Reached upright region", "success": "Passed entire duration"},
+        "description": (
+            f"Balance using true pole angle: ≥{int(BALANCE_HOLD_EVALS_REQUIRED)} consecutive simulation steps with "
+            f"|angle| ≤ {int(BALANCE_ANGLE_DEG)}° (after step 0), stay on track, after lock-in survive until "
+            f"horizon unless |angle| > {int(FAILURE_ANGLE_DEG)}° or track/time failure; "
+            f"final success requires |angle| ≤ {int(BALANCE_ANGLE_DEG)}° at last step."
+        ),
+        "metrics": {
+            "balance_achieved": f"≥{int(BALANCE_HOLD_EVALS_REQUIRED)} consecutive in-band (≤{int(BALANCE_ANGLE_DEG)}°) true-angle steps",
+            "success": f"Lock-in achieved, on track, terminal |true angle| ≤ {int(BALANCE_ANGLE_DEG)}° at horizon",
+        },
         "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},
     }

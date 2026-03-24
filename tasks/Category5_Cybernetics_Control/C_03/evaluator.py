@@ -21,15 +21,18 @@ SLOTS_PHASE1 = _c03_environment.SLOTS_PHASE1
 SLOTS_PHASE2 = _c03_environment.SLOTS_PHASE2
 RENDEZVOUS_ZONE_X_MIN = _c03_environment.RENDEZVOUS_ZONE_X_MIN
 RENDEZVOUS_ZONE_X_MAX = _c03_environment.RENDEZVOUS_ZONE_X_MAX
+RENDEZVOUS_DISTANCE_DEFAULT = _c03_environment.RENDEZVOUS_DISTANCE_DEFAULT
+RENDEZVOUS_REL_SPEED_DEFAULT = _c03_environment.RENDEZVOUS_REL_SPEED_DEFAULT
+TRACK_DISTANCE_DEFAULT = _c03_environment.TRACK_DISTANCE_DEFAULT
+RENDEZVOUS_HEADING_TOLERANCE_DEG_DEFAULT = _c03_environment.RENDEZVOUS_HEADING_TOLERANCE_DEG_DEFAULT
+# Single source of truth (environment.py); re-export for feedback / callers
+HEADING_REFERENCE_MIN_TARGET_SPEED = _c03_environment.HEADING_REFERENCE_MIN_TARGET_SPEED
 
-# Default constants
-RENDEZVOUS_DISTANCE_DEF = 6.0   
-RENDEZVOUS_REL_SPEED_DEF = 1.8  
-TRACK_DISTANCE_DEF = 8.5        
-# Default heading tolerance (deg); overridden by terrain_bounds["rendezvous_heading_tolerance_deg"] when set.
-RENDEZVOUS_HEADING_TOLERANCE_DEG_DEF = 55.0
-# Heading alignment: use velocity direction above this target speed (m/s); else seeker→target (matches prompt).
-HEADING_REFERENCE_MIN_TARGET_SPEED = 0.15
+# Default constants (aliases for Evaluator init / external imports)
+RENDEZVOUS_DISTANCE_DEF = RENDEZVOUS_DISTANCE_DEFAULT
+RENDEZVOUS_REL_SPEED_DEF = RENDEZVOUS_REL_SPEED_DEFAULT
+TRACK_DISTANCE_DEF = TRACK_DISTANCE_DEFAULT
+RENDEZVOUS_HEADING_TOLERANCE_DEG_DEF = RENDEZVOUS_HEADING_TOLERANCE_DEG_DEFAULT
 
 
 class Evaluator:
@@ -65,6 +68,7 @@ class Evaluator:
             )
         )
         self.heading_tolerance_rad = math.radians(heading_deg)
+        self.heading_tolerance_deg = heading_deg
         self.track_distance = float(
             self.terrain_bounds.get("track_distance", TRACK_DISTANCE_DEF)
         )
@@ -82,6 +86,11 @@ class Evaluator:
         )
         self.activation_required_steps = int(
             self.terrain_bounds.get("activation_required_steps", ACTIVATION_REQUIRED_STEPS)
+        )
+        self.heading_ref_min_target_speed = float(
+            self.terrain_bounds.get(
+                "heading_reference_min_target_speed", HEADING_REFERENCE_MIN_TARGET_SPEED
+            )
         )
         self._rendezvous_count = 0  # 0, 1, or 2
 
@@ -117,7 +126,7 @@ class Evaluator:
         in_any_slot2 = any(lo <= step_count <= hi for (lo, hi) in self.slots_phase2)
         seeker_heading = getattr(self.environment, "get_seeker_heading", lambda: 0.0)()
         target_speed = math.sqrt(tvx * tvx + tvy * tvy)
-        if target_speed >= HEADING_REFERENCE_MIN_TARGET_SPEED:
+        if target_speed >= self.heading_ref_min_target_speed:
             target_dir = math.atan2(tvy, tvx)
         else:
             target_dir = math.atan2(ty - sy, tx - sx)
@@ -220,6 +229,7 @@ class Evaluator:
         metrics["activation_zone_x_min"] = self.activation_zone_x_min
         metrics["activation_zone_x_max"] = self.activation_zone_x_max
         metrics["activation_required_steps"] = self.activation_required_steps
+        metrics["heading_reference_min_target_speed"] = self.heading_ref_min_target_speed
 
         done = failed or (step_count >= max_steps - 1)
         return done, score, metrics
@@ -233,8 +243,9 @@ class Evaluator:
                 f"x∈[{self.activation_zone_x_min:g},{self.activation_zone_x_max:g}] m) required before rendezvous register; "
                 f"capture needs x∈[{self.rendezvous_zone_x_min:g},{self.rendezvous_zone_x_max:g}] m, "
                 f"distance≤{self.rendezvous_distance:g} m, "
-                f"relative speed<{self.rendezvous_rel_speed:g} m/s threshold, heading vs target velocity "
-                f"if |v|≥{HEADING_REFERENCE_MIN_TARGET_SPEED:g} m/s."
+                f"relative speed<{self.rendezvous_rel_speed:g} m/s threshold, heading within "
+                f"{self.heading_tolerance_deg:g}° of reference (target velocity if |v|≥"
+                f"{self.heading_ref_min_target_speed:g} m/s, else seeker→target)."
             ),
             "rendezvous_distance": self.rendezvous_distance,
             "rendezvous_rel_speed": self.rendezvous_rel_speed,
@@ -242,14 +253,15 @@ class Evaluator:
             "activation_zone_x": [self.activation_zone_x_min, self.activation_zone_x_max],
             "activation_required_consecutive_steps": self.activation_required_steps,
             "rendezvous_zone_x": [self.rendezvous_zone_x_min, self.rendezvous_zone_x_max],
-            "heading_reference_min_target_speed": HEADING_REFERENCE_MIN_TARGET_SPEED,
+            "heading_tolerance_deg": self.heading_tolerance_deg,
+            "heading_reference_min_target_speed": self.heading_ref_min_target_speed,
             "success_criteria": {
                 "phase1": "First rendezvous in a phase-1 slot before phase-1 window ends",
                 "phase2": "Second rendezvous in a phase-2 slot before phase-2 window ends",
                 "phase3": f"After second rendezvous, distance <= {self.track_distance} m until episode end",
                 "capture": (
                     f"distance<={self.rendezvous_distance} m, relative_speed<{self.rendezvous_rel_speed} m/s, "
-                    f"heading within configured tolerance, seeker x in "
+                    f"heading within {self.heading_tolerance_deg:g}° of reference direction, seeker x in "
                     f"[{self.rendezvous_zone_x_min:g},{self.rendezvous_zone_x_max:g}] m, activation satisfied"
                 ),
                 "failure": "Miss slots, obstacles, corridor exit, impulse budget, or lose target after rendezvous",
