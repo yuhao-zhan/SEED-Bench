@@ -1,21 +1,95 @@
 #!/bin/bash
+# to kill the process: `pkill -9 -f "/bin/bash ./auto_audit.sh --task all"`
 
-if [ -z "$1" ]; then
-  echo "Usage: ./auto_audit.sh <task_directory>"
-  echo "Example: ./auto_audit.sh tasks/Category1_Statics_Equilibrium/S_01"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RESOLVER="$REPO_ROOT/scripts/resolve_task_dirs.py"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [--task <spec>] [--start_from <task_id>] | [<path>]
+
+  --task, -t   Task spec (same as evaluation/run_evaluate_parallel.py --task):
+               all | category_N | category_N_MM | CategoryN_.../S_XX | tasks/...
+  --start_from Start from a task id within the resolved set (e.g. S_03, K_02).
+               Useful when --task expands to multiple tasks (e.g. category_1).
+  <path>       Legacy: tasks/Category1_Statics_Equilibrium/S_01
+
+Examples:
+  $(basename "$0") --task category_1_01
+  $(basename "$0") --task category_1 --start_from S_03
+  $(basename "$0") --task all
+  $(basename "$0") tasks/Category1_Statics_Equilibrium/S_01
+EOF
+}
+
+TASK_SPEC=""
+START_FROM=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -t|--task)
+      [ -n "${2:-}" ] || { echo "Missing value for $1" >&2; exit 1; }
+      TASK_SPEC="$2"
+      shift 2
+      ;;
+    --start_from)
+      [ -n "${2:-}" ] || { echo "Missing value for $1" >&2; exit 1; }
+      START_FROM="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      if [ -n "$TASK_SPEC" ]; then
+        echo "Unexpected argument: $1" >&2
+        usage >&2
+        exit 1
+      fi
+      TASK_SPEC="$1"
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$TASK_SPEC" ]; then
+  usage >&2
   exit 1
 fi
 
-# Remove trailing slash if user provided one
-TASK_DIR=${1%/}
+TASK_DIRS=()
+while IFS= read -r rel; do
+  [ -z "$rel" ] && continue
+  TASK_DIRS+=("$REPO_ROOT/$rel")
+done < <(cd "$REPO_ROOT" && python3 "$RESOLVER" "$TASK_SPEC") || exit 1
 
-# ==========================================
-# SETUP REVISION TRACKING
-# ==========================================
-echo "📦 Backing up initial state for revision tracking..."
-ORIGINAL_STATE_DIR=$(mktemp -d)
-# Copy the contents of the target directory to our temp folder
-cp -r "$TASK_DIR/"* "$ORIGINAL_STATE_DIR/"
+if [ ${#TASK_DIRS[@]} -eq 0 ]; then
+  echo "No task directories resolved for: $TASK_SPEC" >&2
+  exit 1
+fi
+
+if [ -n "$START_FROM" ]; then
+  if ! [[ "$START_FROM" =~ ^[A-Za-z]_[0-9]{2}$ ]]; then
+    echo "Invalid --start_from value: $START_FROM (expected format like S_03 or K_02)" >&2
+    exit 1
+  fi
+  FILTERED_TASK_DIRS=()
+  SEEN_START=0
+  for dir in "${TASK_DIRS[@]}"; do
+    task_id=$(basename "$dir")
+    if [ "$SEEN_START" -eq 0 ] && [ "$task_id" = "$START_FROM" ]; then
+      SEEN_START=1
+    fi
+    if [ "$SEEN_START" -eq 1 ]; then
+      FILTERED_TASK_DIRS+=("$dir")
+    fi
+  done
+  if [ "$SEEN_START" -eq 0 ]; then
+    echo "--start_from $START_FROM was not found in resolved tasks for spec: $TASK_SPEC" >&2
+    exit 1
+  fi
+  TASK_DIRS=("${FILTERED_TASK_DIRS[@]}")
+fi
 
 # ==========================================
 # MODEL CONFIGURATION
@@ -297,6 +371,17 @@ run_gemini_with_fallback() {
     echo "$OUTPUT"
 }
 
+run_auto_audit_for_task() {
+    local TASK_DIR ORIGINAL_STATE_DIR
+    TASK_DIR="${1%/}"
+
+    # ==========================================
+    # SETUP REVISION TRACKING
+    # ==========================================
+    echo "📦 Backing up initial state for revision tracking..."
+    ORIGINAL_STATE_DIR=$(mktemp -d)
+    cp -r "$TASK_DIR/"* "$ORIGINAL_STATE_DIR/"
+
 # ==========================================
 # PROMPTS
 # ==========================================
@@ -309,6 +394,20 @@ You are acting as an auditor AND an engineer. Your final output must consist of 
 
 ## STRICT RULE 2: ANTI-LAZINESS & EXHAUSTIVE COMPLETENESS (CRITICAL)
 You must NOT stop after finding 1 or 2 errors. Do not provide "examples" of violations; you must provide an EXHAUSTIVE, line-by-line enumeration of EVERY SINGLE violation in the entire directory. To ensure completeness, you must mentally extract a full list of every physical parameter in \`environment.py\` and trace EACH ONE through every other module. 
+
+## STRICT RULE 3: DO-NOT-RETUNE ENVIRONMENT (NON-NEGOTIABLE)
+Fix violations only. Do not retune environment behavior.
+
+Allowed:
+- Prompt/description sync for VISIBLE variables.
+- Regex/string fix in \`stages.py\`.
+- Evaluator/feedback alignment with existing values.
+- Additive telemetry fields only.
+
+Forbidden:
+- Changing existing numeric defaults/thresholds in \`environment.py\` or evaluator pass/fail semantics.
+- Changing stage mutation values in \`stages.py\` (unless syntax/runtime broken).
+- Any behavior-changing "stability fix" without explicit violation proof.
 
 Please perform the following audit steps for every task in the directory:
 
@@ -346,7 +445,7 @@ Carefully scrutinize how physical variables and constraints are handled across t
 ### ACTION REQUIRED based on your findings:
 **Final Deliverable:** Provide an exhaustively detailed list of all violations categorized by the steps above. If a category has no violations, explicitly state "No violations found for [Category]". Do not summarize; be hyper-specific.
 
-**CRITICAL FIXING STEP:** After listing the violations, you MUST immediately use your tools to modify the files to fix EVERY SINGLE VIOLATION you found. You are not just auditing; you are fixing the code in this same turn.
+**CRITICAL FIXING STEP:** After listing violations, immediately fix all violations in this turn, but obey STRICT RULE 3. If a fix would change baseline physics/default thresholds, do not apply it; mark it as "requires manual product decision".
 EOM
 
 # ==========================================
@@ -418,3 +517,11 @@ fi
 # Cleanup temp dir
 rm -rf "$ORIGINAL_STATE_DIR"
 echo "========================================================"
+}
+
+for TASK_DIR in "${TASK_DIRS[@]}"; do
+    echo "========================================================"
+    echo "▶ Auto-audit task: $TASK_DIR  (spec: $TASK_SPEC, ${#TASK_DIRS[@]} total)"
+    echo "========================================================"
+    run_auto_audit_for_task "$TASK_DIR" || exit 1
+done

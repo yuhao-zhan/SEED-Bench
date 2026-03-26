@@ -1,28 +1,94 @@
 #!/bin/bash
 
-if [ -z "$1" ]; then
-  echo "Usage: ./auto_feedback.sh <task_directory>"
-  echo "Example: ./auto_feedback.sh tasks/Category1_Statics_Equilibrium/S_06"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RESOLVER="$REPO_ROOT/scripts/resolve_task_dirs.py"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [--task <spec>] [--start_from <task_id>] | [<path>]
+
+  --task, -t   Task spec (same as evaluation/run_evaluate_parallel.py --task):
+               all | category_N | category_N_MM | CategoryN_.../S_XX | tasks/...
+  --start_from Start from a task id within the resolved set (e.g. S_03, K_02).
+               Useful when --task expands to multiple tasks (e.g. category_1).
+  <path>       Legacy: tasks/Category1_Statics_Equilibrium/S_06
+
+Examples:
+  $(basename "$0") --task category_1_01
+  $(basename "$0") --task category_1 --start_from S_03
+  $(basename "$0") --task all
+  $(basename "$0") tasks/Category1_Statics_Equilibrium/S_06
+EOF
+}
+
+TASK_SPEC=""
+START_FROM=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -t|--task)
+      [ -n "${2:-}" ] || { echo "Missing value for $1" >&2; exit 1; }
+      TASK_SPEC="$2"
+      shift 2
+      ;;
+    --start_from)
+      [ -n "${2:-}" ] || { echo "Missing value for $1" >&2; exit 1; }
+      START_FROM="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      if [ -n "$TASK_SPEC" ]; then
+        echo "Unexpected argument: $1" >&2
+        usage >&2
+        exit 1
+      fi
+      TASK_SPEC="$1"
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$TASK_SPEC" ]; then
+  usage >&2
   exit 1
 fi
 
-# Remove trailing slash if user provided one
-TASK_DIR=${1%/}
+TASK_DIRS=()
+while IFS= read -r rel; do
+  [ -z "$rel" ] && continue
+  TASK_DIRS+=("$REPO_ROOT/$rel")
+done < <(cd "$REPO_ROOT" && python3 "$RESOLVER" "$TASK_SPEC") || exit 1
 
-# Extract relative path (e.g., Category1_Statics_Equilibrium/S_06)
-REL_PATH=$(echo "$TASK_DIR" | sed 's|^tasks/||')
-TASK_NAME=$(basename "$REL_PATH")
+if [ ${#TASK_DIRS[@]} -eq 0 ]; then
+  echo "No task directories resolved for: $TASK_SPEC" >&2
+  exit 1
+fi
 
-# Dynamically construct the JSON paths based on the target task
-JSON_BASE="evaluation_results/${REL_PATH}/Qwen3-8B/baseline"
-JSON_FILES="@${JSON_BASE}/all_Initial_to_Stage-1.json @${JSON_BASE}/all_Initial_to_Stage-2.json @${JSON_BASE}/all_Initial_to_Stage-3.json @${JSON_BASE}/all_Initial_to_Stage-4.json"
-
-# ==========================================
-# SETUP REVISION TRACKING
-# ==========================================
-echo "📦 Backing up initial state for revision tracking..."
-ORIGINAL_STATE_DIR=$(mktemp -d)
-cp -r "$TASK_DIR/"* "$ORIGINAL_STATE_DIR/"
+if [ -n "$START_FROM" ]; then
+  if ! [[ "$START_FROM" =~ ^[A-Za-z]_[0-9]{2}$ ]]; then
+    echo "Invalid --start_from value: $START_FROM (expected format like S_03 or K_02)" >&2
+    exit 1
+  fi
+  FILTERED_TASK_DIRS=()
+  SEEN_START=0
+  for dir in "${TASK_DIRS[@]}"; do
+    task_id=$(basename "$dir")
+    if [ "$SEEN_START" -eq 0 ] && [ "$task_id" = "$START_FROM" ]; then
+      SEEN_START=1
+    fi
+    if [ "$SEEN_START" -eq 1 ]; then
+      FILTERED_TASK_DIRS+=("$dir")
+    fi
+  done
+  if [ "$SEEN_START" -eq 0 ]; then
+    echo "--start_from $START_FROM was not found in resolved tasks for spec: $TASK_SPEC" >&2
+    exit 1
+  fi
+  TASK_DIRS=("${FILTERED_TASK_DIRS[@]}")
+fi
 
 # ==========================================
 # MODEL CONFIGURATION & FALLBACK
@@ -294,6 +360,18 @@ run_gemini_with_fallback() {
     echo "$OUTPUT"
 }
 
+run_feedback_for_task() {
+    local TASK_DIR ORIGINAL_STATE_DIR REL_PATH TASK_NAME JSON_BASE JSON_FILES
+    TASK_DIR="${1%/}"
+    REL_PATH=$(echo "$TASK_DIR" | sed 's|^tasks/||')
+    TASK_NAME=$(basename "$REL_PATH")
+    JSON_BASE="evaluation_results/${REL_PATH}/Qwen3-8B/baseline"
+    JSON_FILES="@${JSON_BASE}/all_Initial_to_Stage-1.json @${JSON_BASE}/all_Initial_to_Stage-2.json @${JSON_BASE}/all_Initial_to_Stage-3.json @${JSON_BASE}/all_Initial_to_Stage-4.json"
+
+    echo "📦 Backing up initial state for revision tracking..."
+    ORIGINAL_STATE_DIR=$(mktemp -d)
+    cp -r "$TASK_DIR/"* "$ORIGINAL_STATE_DIR/"
+
 # ==========================================
 # PROMPT DEFINITIONS
 # ==========================================
@@ -367,11 +445,13 @@ Refer to the **Forensic Analysis** just provided. Identify the "Blind Spots" men
 2.  **Supportive Additions:** To provide high-resolution feedback, you may find that the \`metrics\` dictionary does not yet contain the necessary data. You are **PERMITTED** to make **minimal, additive changes** to \`environment.py\` (e.g., adding a list to track joint break events or peak stress) and \`evaluator.py\` (e.g., including those tracked values in the returned \`metrics\` dict).
 3.  **Strictly Additive:** You must **NOT** modify any existing underlying physics logic, backbone environmental settings, task constraints, or success criteria. You are only adding variables for tracking and reporting.
 4.  **No Hallucinations:** Do not report metrics in \`feedback.py\` that you have not explicitly ensured are being tracked and returned by the \`environment\` and \`evaluator\`.
+5.  **Zero-Tolerance on Environment Retuning:** Do NOT change existing numeric defaults in \`environment.py\` or pass/fail semantics in \`evaluator.py\`. Add telemetry only.
 
 ## 4. Strict Constraints
 1.  **No Spoilers:** \`format_task_metrics\` must remain strictly objective. It should report **what happened**, **where**, and **to what magnitude**. It must **NEVER** provide engineering advice (e.g., "use pivot joints").
 2.  **No Hardcoding:** Never use fixed environmental thresholds (e.g., \`if mass > 2000\`). Always compare current values against limit values provided in the \`metrics\` dict (e.g., \`metrics.get('max_structure_mass')\`).
 3.  **Function Isolation:** Do **NOT** modify \`get_improvement_suggestions\`. We are only optimizing the objective data stream.
+4.  **Safety Gate:** Before finalizing, verify no pre-existing numeric defaults or success/failure semantics were changed.
 
 ## 5. Engineering Requirements for \`format_task_metrics\`
 Deepen the physical output by focusing on:
@@ -431,6 +511,9 @@ Execute the following 4 audits step-by-step. If \`format_task_metrics\` fails an
 *   **Action:** Verify that **ONLY** the necessary parts of \`feedback.py\` (and the supporting tracking in \`environment\`/\`evaluator\`) have been modified.
 *   **Rule:** \`get_improvement_suggestions\` and unrelated functions must remain untouched. If any changes were made outside of the scope of high-resolution objective metrics, **REVERT THEM**.
 
+### Audit 5: Environment Drift Guard
+*   **Rule:** Any edit to pre-existing numeric defaults or pass/fail semantics in \`environment.py\`/\`evaluator.py\` is a hard failure; revert it. Only additive telemetry is allowed.
+
 ## 3. Empirical Verification Audit (Mandatory)
 Before finalizing the audit, you must empirically verify the feedback's behavior:
 1.  **Execute Mutated Tests:** Identify and run the appropriate test script (e.g., \`python @${TASK_DIR}/test_initial_on_mutated.py\` or similar).
@@ -441,8 +524,9 @@ Before finalizing the audit, you must empirically verify the feedback's behavior
 ## 4. Execution Steps
 1.  **Static Analysis:** Compare \`format_task_metrics\` against the \`evaluator.py\` return dictionary.
 2.  **Sanitize:** Apply the Audit Checklist to remove hallucinations and hardcoded values.
-3.  **Empirical Test:** Run the tests as described in Section 3 to see the feedback in action.
-4.  **Final Output:**
+3.  **Environment Drift Check:** Confirm no forbidden behavior-changing edits exist (Audit 5).
+4.  **Empirical Test:** Run the tests as described in Section 3.
+5.  **Final Output:**
     *   **If issues were found/corrected:** Immediately use your tools to modify the files and fix the issues. Provide the complete, fully audited, and purified code. Briefly summarize the verification result.
     *   **If NO issues were found:** Do **NOT** modify the code. Simply state: "Audit complete: No issues found. Verified against simulation logs (Reference passes base, fails mutants with accurate forensic data). No modifications required."
 
@@ -522,3 +606,11 @@ fi
 
 rm -rf "$ORIGINAL_STATE_DIR"
 echo "========================================================"
+}
+
+for TASK_DIR in "${TASK_DIRS[@]}"; do
+    echo "========================================================"
+    echo "▶ Auto-feedback task: $TASK_DIR  (spec: $TASK_SPEC, ${#TASK_DIRS[@]} total)"
+    echo "========================================================"
+    run_feedback_for_task "$TASK_DIR" || exit 1
+done
