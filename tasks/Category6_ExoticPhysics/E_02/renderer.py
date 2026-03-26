@@ -89,10 +89,12 @@ class E02Renderer(Renderer):
                     )
 
         # Target zone
-        tx_min = getattr(sandbox, "TARGET_X_MIN", 28.0)
-        tx_max = getattr(sandbox, "TARGET_X_MAX", 32.0)
-        ty_min = getattr(sandbox, "TARGET_Y_MIN", 2.0)
-        ty_max = getattr(sandbox, "TARGET_Y_MAX", 5.0)
+        bounds = sandbox.get_terrain_bounds()
+        tz = bounds.get("target_zone", {})
+        tx_min = float(tz.get("x_min", 28.0))
+        tx_max = float(tz.get("x_max", 32.0))
+        ty_min = float(tz.get("y_min", 2.0))
+        ty_max = float(tz.get("y_max", 5.0))
         self.draw_line(tx_min, ty_min, tx_max, ty_min, COLOR_TARGET, 2)
         self.draw_line(tx_max, ty_min, tx_max, ty_max, COLOR_TARGET, 2)
         self.draw_line(tx_max, ty_max, tx_min, ty_max, COLOR_TARGET, 2)

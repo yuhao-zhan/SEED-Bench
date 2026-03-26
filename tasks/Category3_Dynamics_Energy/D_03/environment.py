@@ -66,7 +66,7 @@ class Sandbox:
 
         # Gate open window: angle in [pi/2 - delta, pi/2 + delta] (rad) — narrow for true phase-lock
         self._gate_open_half_width = float(terrain_config.get("gate_open_half_width", 0.56))
-        self._target_x_min = float(terrain_config.get("target_x_min", 11.75))
+        self._target_x_min = float(terrain_config.get("target_x_min", 12.75))
         self._target_speed_min = float(terrain_config.get("target_speed_min", 0.45))
         self._target_speed_max = float(terrain_config.get("target_speed_max", 2.6))
         # Mud zone [x_min, x_max]: strong velocity damping (N·s/m)
@@ -98,7 +98,7 @@ class Sandbox:
         self._decel_zone_x_min = float(terrain_config.get("decel_zone_x_min", 9.5))
         self._decel_zone_x_max = float(terrain_config.get("decel_zone_x_max", 11.0))
         self._decel_damping = float(terrain_config.get("decel_damping", 3.2))
-        # Checkpoint at x=11: first time crossing x=11, speed MUST be in [1.3, 2.5] — couples to gate phase timing
+        # Checkpoint at x=11: first time crossing x=11, speed MUST be in [1.1, 2.7] — couples to gate phase timing
         self._checkpoint_11_x = float(terrain_config.get("checkpoint_11_x", 11.0))
         self._checkpoint_11_speed_min = float(terrain_config.get("checkpoint_11_speed_min", 1.1))
         self._checkpoint_11_speed_max = float(terrain_config.get("checkpoint_11_speed_max", 2.7))
@@ -213,6 +213,10 @@ class Sandbox:
         jd.collideConnected = False
         self._world.CreateJoint(jd)
         self._gate2_pivot_x = gate_x
+        self._gate2_pivot_y = gate_y
+        self._gate2_rod_length = rod_len
+        self._gate2_omega = omega
+        self._gate2_initial_angle = theta0
         self._gate2_open_half_width = float(terrain_config.get("gate2_open_half_width", 1.50))
 
     def _create_third_gate(self, terrain_config: dict):
@@ -248,6 +252,10 @@ class Sandbox:
         jd.collideConnected = False
         self._world.CreateJoint(jd)
         self._gate3_pivot_x = gate_x
+        self._gate3_pivot_y = gate_y
+        self._gate3_rod_length = rod_len
+        self._gate3_omega = omega
+        self._gate3_initial_angle = theta0
         self._gate3_open_half_width = float(terrain_config.get("gate3_open_half_width", 0.60))
 
     def _create_fourth_gate(self, terrain_config: dict):
@@ -283,7 +291,12 @@ class Sandbox:
         jd.collideConnected = False
         self._world.CreateJoint(jd)
         self._gate4_pivot_x = gate_x
+        self._gate4_pivot_y = gate_y
+        self._gate4_rod_length = rod_len
+        self._gate4_omega = omega
+        self._gate4_initial_angle = theta0
         self._gate4_open_half_width = float(terrain_config.get("gate4_open_half_width", 0.56))
+
 
     def _install_contact_listener(self):
         self._gate_collision_occurred = False
@@ -573,6 +586,9 @@ class Sandbox:
     def get_terrain_bounds(self):
         return {
             "ground_y": self._ground_y,
+            "ground_friction": self._terrain_config.get("ground_friction", 0.45),
+            "cabin_density": 120.0,
+            "rod_density": 80.0,
             "build_zone": {
                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX],
@@ -582,26 +598,57 @@ class Sandbox:
                 self._terrain_config.get("cart_spawn_y", 2.5),
             ),
             "cart_initial_speed": self._terrain_config.get("cart_initial_speed", 10.0),
-            "gate_pivot_x": getattr(self, "_gate_pivot_x", 10.0),
-            "gate2_pivot_x": getattr(self, "_gate2_pivot_x", 11.5),
-            "gate3_pivot_x": getattr(self, "_gate3_pivot_x", 11.75),
-            "gate4_pivot_x": getattr(self, "_gate4_pivot_x", 12.5),
-            "gate_angular_velocity": getattr(self, "_gate_omega", 1.8),
+            "gate1": {
+                "pivot_x": getattr(self, "_gate_pivot_x", 10.0),
+                "pivot_y": getattr(self, "_gate_pivot_y", 2.5),
+                "rod_length": self._terrain_config.get("gate_rod_length", 0.9),
+                "omega": getattr(self, "_gate_omega", 1.8),
+                "initial_angle": self._terrain_config.get("gate_initial_angle", 0.38),
+                "open_half_width": self._gate_open_half_width,
+            },
+            "gate2": {
+                "pivot_x": getattr(self, "_gate2_pivot_x", 11.5),
+                "pivot_y": getattr(self, "_gate2_pivot_y", 2.5),
+                "rod_length": self._terrain_config.get("gate2_rod_length", 0.75),
+                "omega": self._terrain_config.get("gate2_angular_velocity", 0.58),
+                "initial_angle": self._terrain_config.get("gate2_initial_angle", 0.63),
+                "open_half_width": getattr(self, "_gate2_open_half_width", 1.50),
+            },
+            "gate3": {
+                "pivot_x": getattr(self, "_gate3_pivot_x", 11.75),
+                "pivot_y": getattr(self, "_gate3_pivot_y", 2.5),
+                "rod_length": self._terrain_config.get("gate3_rod_length", 0.7),
+                "omega": self._terrain_config.get("gate3_angular_velocity", 1.2),
+                "initial_angle": self._terrain_config.get("gate3_initial_angle", 0.0),
+                "open_half_width": getattr(self, "_gate3_open_half_width", 0.60),
+            },
+            "gate4": {
+                "pivot_x": getattr(self, "_gate4_pivot_x", 12.5),
+                "pivot_y": getattr(self, "_gate4_pivot_y", 2.5),
+                "rod_length": self._terrain_config.get("gate4_rod_length", 0.65),
+                "omega": self._terrain_config.get("gate4_angular_velocity", 0.9),
+                "initial_angle": self._terrain_config.get("gate4_initial_angle", 0.4),
+                "open_half_width": getattr(self, "_gate4_open_half_width", 0.56),
+            },
             "speed_trap_x": getattr(self, "_speed_trap_x", 9.0),
             "speed_trap_min": getattr(self, "_speed_trap_min", 2.8),
             "decel_zone": [getattr(self, "_decel_zone_x_min", 9.5), getattr(self, "_decel_zone_x_max", 11.0)],
+            "decel_damping": getattr(self, "_decel_damping", 3.2),
             "checkpoint_11_x": getattr(self, "_checkpoint_11_x", 11.0),
             "checkpoint_11_speed_min": getattr(self, "_checkpoint_11_speed_min", 1.1),
             "checkpoint_11_speed_max": getattr(self, "_checkpoint_11_speed_max", 2.7),
             "min_beam_count": getattr(self, "MIN_BEAM_COUNT", 4),
             "impulse_zone": [getattr(self, "_impulse_zone_x_min", 8.0), getattr(self, "_impulse_zone_x_max", 9.0)],
+            "impulse_magnitude": getattr(self, "_impulse_magnitude", 1.5),
             "impulse2_zone": [getattr(self, "_impulse2_zone_x_min", 10.5), getattr(self, "_impulse2_zone_x_max", 11.0)],
-            "gate_open_half_width": self._gate_open_half_width,
+            "impulse2_magnitude": getattr(self, "_impulse2_magnitude", 0.55),
             "target_x_min": self._target_x_min,
             "target_speed_min": self._target_speed_min,
             "target_speed_max": self._target_speed_max,
             "mud_zone": [self._mud_zone_x_min, self._mud_zone_x_max],
+            "mud_damping": self._mud_damping,
             "brake_zone": [self._brake_zone_x_min, self._brake_zone_x_max],
+            "brake_damping": self._brake_damping,
             "max_beam_count": getattr(self, "MAX_BEAM_COUNT", 5),
             "max_structure_mass": getattr(self, "MAX_STRUCTURE_MASS", 14.0),
         }

@@ -41,6 +41,8 @@ class Sandbox:
         # Track walker components
         self._walker_bodies = {}
         self._walker_joints = []
+        self._broken_joints = []
+        self._peak_joint_force = 0.0
         
         # For backward compatibility, keep public attributes (but recommend using controlled API)
         self.world = self._world  # Reserved for renderer use
@@ -210,6 +212,17 @@ class Sandbox:
                 collideConnected=False
             )
         elif type == 'pivot':
+            if lower_limit is None and upper_limit is None:
+                if def_lo is not None and def_hi is not None:
+                    lower_limit = float(def_lo)
+                    upper_limit = float(def_hi)
+            else:
+                # If agent provides limits, they must be within environment limits
+                if def_lo is not None:
+                    lower_limit = max(float(lower_limit), float(def_lo))
+                if def_hi is not None:
+                    upper_limit = min(float(upper_limit), float(def_hi))
+
             # Revolute joint (allows rotation) - can be motor-driven
             joint_kwargs = {
                 'bodyA': body_a,
@@ -220,8 +233,8 @@ class Sandbox:
             
             # Set joint limits if provided
             if lower_limit is not None and upper_limit is not None:
-                joint_kwargs['lowerAngle'] = max(self.MIN_JOINT_LIMIT, min(lower_limit, self.MAX_JOINT_LIMIT))
-                joint_kwargs['upperAngle'] = min(self.MAX_JOINT_LIMIT, max(upper_limit, self.MIN_JOINT_LIMIT))
+                joint_kwargs['lowerAngle'] = max(self.MIN_JOINT_LIMIT, min(float(lower_limit), self.MAX_JOINT_LIMIT))
+                joint_kwargs['upperAngle'] = min(self.MAX_JOINT_LIMIT, max(float(upper_limit), self.MIN_JOINT_LIMIT))
                 joint_kwargs['enableLimit'] = True
             
             joint = self._world.CreateRevoluteJoint(**joint_kwargs)
@@ -278,8 +291,25 @@ class Sandbox:
             body.fixedRotation = bool(fixed)
 
     def step(self, time_step):
-        """Physics step"""
+        """Physics step, tracking joint stress"""
         self._world.Step(time_step, 10, 10)
+        
+        # Track joint stresses
+        for joint in self._joints:
+            try:
+                # Get reaction force
+                force = joint.GetReactionForce(1.0 / time_step).length
+                if force > self._peak_joint_force:
+                    self._peak_joint_force = force
+            except:
+                pass
+    
+    def get_joint_stress(self):
+        """API: Returns peak joint stress and broken count"""
+        return {
+            "peak_joint_force": self._peak_joint_force,
+            "broken_joints": len(self._broken_joints)
+        }
     
     def get_terrain_bounds(self):
         """Get terrain bounds (for evaluation and renderer). Includes target_distance and initial_x."""

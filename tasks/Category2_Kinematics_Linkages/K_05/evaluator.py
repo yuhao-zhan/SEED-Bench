@@ -29,11 +29,16 @@ class Evaluator:
         self.terrain_bounds = terrain_bounds
         self.environment = environment
         
-        # Target: object must be lifted to at least 8m from ground (y>=9m); mutated tasks can override via environment
-        self.start_object_y = OBJECT_START_Y
+        # Target: object must be lifted to at least target_object_y from ground (y>=target_object_y); mutated tasks can override via environment
+        self.start_object_y = getattr(environment, 'OBJECT_START_Y', OBJECT_START_Y)
+        self.start_object_x = getattr(environment, 'OBJECT_START_X', 4.0)
         self.target_object_y = getattr(environment, 'target_object_y', None) if environment else None
         if self.target_object_y is None:
             self.target_object_y = TARGET_OBJECT_Y
+        
+        # Calculate lift height dynamically
+        self.lift_height_from_ground = self.target_object_y - GROUND_Y
+        
         self.min_simulation_time = getattr(environment, 'min_sustain_s', None) if environment else None
         if self.min_simulation_time is None:
             self.min_simulation_time = MIN_SUSTAIN_S
@@ -164,6 +169,7 @@ class Evaluator:
                 structure_score = 0.0
             height_maintenance_score = min(self.steps_with_object_above_target / self.min_simulation_steps, 1.0) * 20.0  # Max 20 points for sustained height
             score = max(0.0, height_score + structure_score + height_maintenance_score)
+
         
         obj_vel_x = obj_vel_y = 0.0
         if self.environment._object_to_lift:
@@ -221,19 +227,18 @@ class Evaluator:
     
     def get_task_description(self):
         """Return task description (aligned with design constants and prompt)."""
-        lift_height_from_ground = self.target_object_y - GROUND_Y
         return {
             'task': 'K-05: The Lifter',
             'description': 'Design a scissor lift mechanism that lifts objects vertically using motor rotation',
             'target_position': self.target_object_y,
             'ground_y': GROUND_Y,
             'object_start_y': OBJECT_START_Y,
-            'lift_height_from_ground': lift_height_from_ground,
+            'lift_height_from_ground': self.lift_height_from_ground,
             'terrain': {
                 'ground': self.terrain_bounds.get('ground', {}),
             },
             'success_criteria': {
-                'primary': f'Object is lifted to height of at least {lift_height_from_ground}m from ground (y >= {self.target_object_y}m)',
+                'primary': f'Object is lifted to height of at least {self.lift_height_from_ground}m from ground (y >= {self.target_object_y}m)',
                 'secondary': 'Lifter structure remains intact (no joints break)',
                 'tertiary': f'Object maintains height for at least {self.min_simulation_time}s, and not sliding (velocity_y >= {SUSTAIN_VELOCITY_THRESHOLD} m/s)',
             },

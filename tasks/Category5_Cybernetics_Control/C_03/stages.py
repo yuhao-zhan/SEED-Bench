@@ -28,10 +28,10 @@ RENDEZVOUS_DISTANCE_DEFAULT = _c03_env_st.RENDEZVOUS_DISTANCE_DEFAULT
 DEFAULT_IMPULSE_BUDGET = _c03_env_st.IMPULSE_BUDGET
 DEFAULT_TRACK_DISTANCE = _c03_env_st.TRACK_DISTANCE_DEFAULT
 DEFAULT_RENDEZVOUS_REL_SPEED = _c03_env_st.RENDEZVOUS_REL_SPEED_DEFAULT
-DEFAULT_TARGET_SPEED = 1.5
-DEFAULT_GROUND_FRICTION = 0.4
-DEFAULT_SPAWN_X = 11.0
-DEFAULT_SPAWN_Y = 1.35
+DEFAULT_TARGET_SPEED = _c03_env_st.DEFAULT_TARGET_SPEED
+DEFAULT_GROUND_FRICTION = _c03_env_st.DEFAULT_GROUND_FRICTION
+DEFAULT_SPAWN_X = _c03_env_st.DEFAULT_SPAWN_X
+DEFAULT_SPAWN_Y = _c03_env_st.DEFAULT_SPAWN_Y
 DEFAULT_SLOTS_PHASE1 = list(_c03_env_st.SLOTS_PHASE1)
 DEFAULT_SLOTS_PHASE2 = list(_c03_env_st.SLOTS_PHASE2)
 DEFAULT_LINEAR_DAMPING = 0.5
@@ -49,11 +49,11 @@ DEFAULT_RENDEZVOUS_DISTANCE = RENDEZVOUS_DISTANCE_DEFAULT
 DEFAULT_RENDEZVOUS_ZONE_X_MIN = _c03_env_st.RENDEZVOUS_ZONE_X_MIN
 DEFAULT_RENDEZVOUS_ZONE_X_MAX = _c03_env_st.RENDEZVOUS_ZONE_X_MAX
 DEFAULT_GROUND_Y_TOP = _c03_env_st.DEFAULT_GROUND_Y_TOP
-DEFAULT_SEEKER_MASS = 20.0
-DEFAULT_SEEKER_RADIUS = 0.35
-DEFAULT_TARGET_START_X = 12.0
-DEFAULT_TARGET_START_Y = 2.0
-DEFAULT_TARGET_CHANGE_INTERVAL = 1.2
+DEFAULT_SEEKER_MASS = _c03_env_st.DEFAULT_SEEKER_MASS
+DEFAULT_SEEKER_RADIUS = _c03_env_st.DEFAULT_SEEKER_RADIUS
+DEFAULT_TARGET_START_X = _c03_env_st.DEFAULT_TARGET_START_X
+DEFAULT_TARGET_START_Y = _c03_env_st.DEFAULT_TARGET_START_Y
+DEFAULT_TARGET_CHANGE_INTERVAL = _c03_env_st.DEFAULT_TARGET_CHANGE_INTERVAL
 
 # Static corridor boxes use these fixture material values in environment._create_obstacles (always).
 STATIC_OBSTACLE_FIXTURE_SNIPPET = "fixture friction 0.5, restitution 0.1"
@@ -366,10 +366,15 @@ def update_task_description_for_visible_changes(
             r"(?: \(originally \d+(?:\.\d+)? kg, \d+(?:\.\d+)? m in the source environment\))?"
         )
         if re.search(seeker_mr_pat, description):
+            m_disp = f"{target_sm:.1f} kg"
+            if abs(target_sm - base_sm) > 1e-9:
+                m_disp += f" (originally {base_sm:.1f} kg in the source environment)"
+            r_disp = f"{target_sr:.2f} m"
+            if abs(target_sr - base_sr) > 1e-9:
+                r_disp += f" (originally {base_sr:.2f} m in the source environment)"
             description = re.sub(
                 seeker_mr_pat,
-                f"Mass {target_sm:.1f} kg, radius {target_sr:.2f} m "
-                f"(originally {base_sm:.1f} kg, {base_sr:.2f} m in the source environment).",
+                f"Mass {m_disp}, radius {r_disp}.",
                 description,
                 count=1,
             )
@@ -688,9 +693,16 @@ def update_task_description_for_visible_changes(
             r"(?: \(originally \[\d+, \d+\] and \[\d+, \d+\] steps in the source environment\))?(\))"
         )
         if re.search(window_pat, description):
+            w1_disp = f"[{t_lo1}, {t_hi1}] steps"
+            if (t_lo1, t_hi1) != (b_lo1, b_hi1):
+                w1_disp += f" (originally [{b_lo1}, {b_hi1}] steps in the source environment)"
+            w2_disp = f"[{t_lo2}, {t_hi2}] steps"
+            if (t_lo2, t_hi2) != (b_lo2, b_hi2):
+                w2_disp += f" (originally [{b_lo2}, {b_hi2}] steps in the source environment)"
+
             description = re.sub(
                 window_pat,
-                f"\\g<1>[{t_lo1}, {t_hi1}] and [{t_lo2}, {t_hi2}] steps (originally [{b_lo1}, {b_hi1}] and [{b_lo2}, {b_hi2}] steps in the source environment)\\g<2>",
+                f"\\g<1>{w1_disp} and {w2_disp}\\g<2>",
                 description,
                 count=1,
             )
@@ -711,12 +723,36 @@ def update_task_description_for_visible_changes(
             t_f2 = _format_slot_bands(t_s2)
             b_f1 = _format_slot_bands(b_s1)
             b_f2 = _format_slot_bands(b_s2)
+
+            s1_disp = t_f1
+            if t_s1 != b_s1:
+                s1_disp += f" (originally {b_f1} in the source environment)"
+            s2_disp = t_f2
+            if t_s2 != b_s2:
+                s2_disp += f" (originally {b_f2} in the source environment)"
+
             description = re.sub(
                 slots_pat,
-                f"\\g<1>{t_f1}\\g<2>{t_f2} (originally phase 1 {b_f1}; phase 2 {b_f2} in the source environment)\\g<3>",
+                f"\\g<1>{s1_disp}\\g<2>{s2_disp}\\g<3>",
                 description,
                 count=1,
             )
+
+        # Latest phase-2 slot bound (Horizon section)
+        t_lo1, t_hi1, t_lo2, t_hi2 = _slot_window_bounds(t_s1, t_s2)
+        b_lo1, b_hi1, b_lo2, b_hi2 = _slot_window_bounds(b_s1, b_s2)
+        if t_hi2 != b_hi2:
+            horizon_pat = (
+                r"(the latest such bound is step \*\*)(\d+)(\*\*\))(\.)"
+                r"(?: \(originally step \*\*\d+\*\* in the source environment\))?"
+            )
+            if re.search(horizon_pat, description):
+                description = re.sub(
+                    horizon_pat,
+                    f"\\g<1>{t_hi2} (originally step **{b_hi2}** in the source environment)\\g<3>\\g<4>",
+                    description,
+                    count=1,
+                )
 
     return description
 
@@ -753,13 +789,16 @@ def update_success_criteria_for_visible_changes(
             r"(; seeker x ∈ )"
         )
         if re.search(act_succ_pat, criteria):
-            orig_act = (
-                f"; (originally ≥{base_ast} consecutive steps with seeker x ∈ "
-                f"[{base_az0:.1f}, {base_az1:.1f}] m in the source environment)"
-            )
+            step_disp = f"{target_ast} consecutive steps"
+            if target_ast != base_ast:
+                step_disp += f" (originally ≥{base_ast} consecutive steps in the source environment)"
+            x_disp = f"seeker x ∈ [{target_az0:.1f}, {target_az1:.1f}] m"
+            if abs(target_az0 - base_az0) > 1e-9 or abs(target_az1 - base_az1) > 1e-9:
+                x_disp += f" (originally seeker x ∈ [{base_az0:.1f}, {base_az1:.1f}] m in the source environment)"
+            
             criteria = re.sub(
                 act_succ_pat,
-                f"\\g<1>{target_ast}\\g<3>[{target_az0:.1f}, {target_az1:.1f}] m){orig_act}\\g<6>",
+                f"\\g<1>{step_disp} with {x_disp})\\g<6>",
                 criteria,
                 count=1,
             )
@@ -910,12 +949,35 @@ def update_success_criteria_for_visible_changes(
             r"(?: \(originally \[\d+, \d+\] and \[\d+, \d+\] steps in the source environment\))?(\))"
         )
         if re.search(window_pat, criteria):
+            w1_disp = f"[{t_lo1}, {t_hi1}] steps"
+            if (t_lo1, t_hi1) != (b_lo1, b_hi1):
+                w1_disp += f" (originally [{b_lo1}, {b_hi1}] steps in the source environment)"
+            w2_disp = f"[{t_lo2}, {t_hi2}] steps"
+            if (t_lo2, t_hi2) != (b_lo2, b_hi2):
+                w2_disp += f" (originally [{b_lo2}, {b_hi2}] steps in the source environment)"
+
             criteria = re.sub(
                 window_pat,
-                f"\\g<1>[{t_lo1}, {t_hi1}] and [{t_lo2}, {t_hi2}] steps (originally [{b_lo1}, {b_hi1}] and [{b_lo2}, {b_hi2}] steps in the source environment)\\g<2>",
+                f"\\g<1>{w1_disp} and {w2_disp}\\g<2>",
                 criteria,
                 count=1,
             )
+
+        # Latest phase-2 slot bound (Success Criteria 6)
+        t_lo1, t_hi1, t_lo2, t_hi2 = _slot_window_bounds(t_s1, t_s2)
+        b_lo1, b_hi1, b_lo2, b_hi2 = _slot_window_bounds(b_s1, b_s2)
+        if t_hi2 != b_hi2:
+            sc6_pat = (
+                r"(last such index \*\*)(\d+)(\*\*\))(\.)"
+                r"(?: \(originally last such index \*\*\d+\*\* in the source environment\))?"
+            )
+            if re.search(sc6_pat, criteria):
+                criteria = re.sub(
+                    sc6_pat,
+                    f"\\g<1>{t_hi2} (originally last such index **{b_hi2}** in the source environment)\\g<3>\\g<4>",
+                    criteria,
+                    count=1,
+                )
 
     return criteria
 
@@ -966,7 +1028,7 @@ def get_c03_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-2",
             "title": "Hurricane Void",
-            "mutation_description": "Curriculum variant: surface interaction, spawn location, obstacle/ice layout, and bulk body forces differ from the source task.",
+            "mutation_description": "Curriculum variant: surface interaction, spawn location, obstacle/ice layout, fuel budget, and bulk body forces differ from the source task.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "ground_friction": 0.0,
@@ -982,7 +1044,7 @@ def get_c03_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-3",
             "title": "Submerged Abyss",
-            "mutation_description": "Curriculum variant: damping, bulk body forces, friction, rendezvous tolerances, thrust limits, sensor blind band, obstacles, and slot timing differ from the source task.",
+            "mutation_description": "Curriculum variant: damping, bulk body forces, friction, fuel budget, rendezvous tolerances, thrust limits, sensor blind band, obstacles, and slot timing differ from the source task.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "ground_friction": 0.05,

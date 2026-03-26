@@ -54,12 +54,12 @@ def update_task_description_for_visible_changes(
                 description
             )
         
-        # Update Build Zone description (x max = target position); (originally ...) inline after new value
-        build_zone_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[10, )(\d+\.?\d*)(\], y=\[5, 15\] \([^)]+\)\.)"
+        # Update Build Zone description (x max = target position)
+        build_zone_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[10, )(\d+\.?\d*)(\], (y=\[5, 15\](?:\s+\([^)]+\))?\.))"
         if re.search(build_zone_pattern, description):
             description = re.sub(
                 build_zone_pattern,
-                lambda m: f"{m.group(1)}{target_x:.1f}] (originally [10, {base_target_x:.1f}] in the source environment), y=[5, 15] (the upper x-bound is the target position so the deck can reach the goal).",
+                lambda m: f"{m.group(1)}{target_x:.1f}] (originally [10, {base_target_x:.1f}] in the source environment), {m.group(4)}",
                 description
             )
             
@@ -74,20 +74,20 @@ def update_task_description_for_visible_changes(
 
     if target_max_mass != base_max_mass:
         # Update Mass Budget in constraints
-        mass_desc_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*) kg\."
+        mass_desc_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*) kg"
         if re.search(mass_desc_pattern, description):
             description = re.sub(
                 mass_desc_pattern,
-                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
+                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment)",
                 description
             )
 
     # Sync Joint/Anchor Strength if mutated
     for key, label, default in [
-        ("joint_max_force", "Joint Strength", 80.0),
-        ("joint_max_torque", "Joint Strength", 300.0),
-        ("anchor_max_force", "Anchor Strength", 100.0),
-        ("anchor_max_torque", "Anchor Strength", 500.0)
+        ("joint_max_force", "Joint Strength", 150000.0),
+        ("joint_max_torque", "Joint Strength", 500000.0),
+        ("anchor_max_force", "Anchor Strength", 200000.0),
+        ("anchor_max_torque", "Anchor Strength", 800000.0)
     ]:
         target_val = target_physics_config.get(key, default)
         base_val = base_physics_config.get(key, default)
@@ -96,7 +96,7 @@ def update_task_description_for_visible_changes(
                 pattern = rf"(- \*\*{label}\*\*: Maximum linear force for .* is )(\d+\.?\d*);"
                 replacement = f"\\g<1>{target_val:.1f} (originally {base_val:.1f} in the source environment);"
             else:
-                pattern = rf"(- \*\*{label}\*\*: .* maximum torque is )(\d+\.?\d*)\."
+                pattern = rf"(- \*\*{label}\*\*: .*? maximum torque is )(\d+\.?\d*)\."
                 replacement = f"\\g<1>{target_val:.1f} (originally {base_val:.1f} in the source environment)."
             
             if re.search(pattern, description):
@@ -105,16 +105,30 @@ def update_task_description_for_visible_changes(
     return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(
+    base_success_criteria: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+) -> str:
     criteria = base_success_criteria
     default_gap_width = 15.0
     default_max_structure_mass = 2000.0
+    
+    target_terrain_config = target_terrain_config or {}
+    base_terrain_config = base_terrain_config or {}
+    target_physics_config = target_physics_config or {}
+    base_physics_config = base_physics_config or {}
+
     target_gap_width = target_terrain_config.get("gap_width", default_gap_width)
     base_gap_width = base_terrain_config.get("gap_width", default_gap_width)
     target_right_cliff_start = 10.0 + target_gap_width
     base_right_cliff_start = 10.0 + base_gap_width
+    
     target_max_mass = target_terrain_config.get("max_structure_mass", default_max_structure_mass)
     base_max_mass = base_terrain_config.get("max_structure_mass", default_max_structure_mass)
+
     if target_gap_width != base_gap_width:
         base_target_x = base_right_cliff_start + 5.0
         target_x = target_right_cliff_start + 5.0
@@ -125,6 +139,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
                 f"\\g<1>{target_x:.1f}m (originally {base_target_x:.1f}m in the source environment).",
                 criteria
             )
+            
     if target_max_mass != base_max_mass:
         mass_pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*) kg\."
         if re.search(mass_pattern, criteria):
@@ -133,6 +148,21 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
                 f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
                 criteria
             )
+
+    # Sync Acceleration Limit if gravity changes (Keep absolute threshold hidden if invisible mutation)
+    target_gravity = abs(target_physics_config.get("gravity", (0, -10.0))[1])
+    base_gravity = 10.0
+    if target_gravity != base_gravity:
+        accel_pattern = r"(3\. \*\*Smoothness\*\*: The vehicle's vertical acceleration must remain < )(\d+\.?\d*) m/s² \(3\.0g\)\."
+        if re.search(accel_pattern, criteria):
+            # Do NOT show the new absolute value to avoid leaking gravity.
+            # Just emphasize that it is 3.0g.
+            criteria = re.sub(
+                accel_pattern,
+                f"\\g<1>3.0g.",
+                criteria
+            )
+
     return criteria
 
 
@@ -147,14 +177,14 @@ def get_s01_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Joint torque resilience**: The maximum torque structural joints can withstand before failing.
- - **Anchor torque resilience**: The maximum torque cliff anchors can withstand before breaking.
- - **Joint force resilience**: The maximum linear force structural joints can withstand before failing.
- - **Anchor force resilience**: The maximum linear force cliff anchors can withstand before breaking.
- - **Mass limit**: The total allowed mass budget for your structure.
- - **Gravitational acceleration**: The strength and direction of the vertical gravitational force.
- - **Atmospheric wind**: Constant lateral and vertical forces acting on all bodies in the environment.
- - **Terrain gap width**: The horizontal distance between the starting cliff and the destination cliff.
+ - **Joint torque strength**: The maximum torque structural joints can withstand; rotational loads may cause premature failure.
+ - **Anchor torque strength**: The maximum torque cliff anchors can withstand; connection points may be more susceptible to rotational stress.
+ - **Joint force resilience**: The maximum linear force structural joints can withstand; heavy loads may cause structural separation.
+ - **Anchor force resilience**: The maximum linear force cliff anchors can withstand; high tension or compression at cliffs may break the support.
+ - **Mass limit**: The total allowed mass budget; material efficiency may be more critical.
+ - **Gravitational acceleration**: The strength and direction of vertical forces; vertical loads and weight distribution may be significantly different.
+ - **Atmospheric wind**: Lateral and vertical forces acting on the structure; constant pressure may induce unexpected deflection or instability.
+ - **Terrain gap width**: The horizontal distance between cliffs; span requirements and structural leverage may vary.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -167,8 +197,8 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "joint_max_torque": 0.1,
-                "anchor_max_torque": 0.1,
+                "joint_max_torque": 1.0,
+                "anchor_max_torque": 1.0,
             },
         },
         {
@@ -178,8 +208,8 @@ While the following variables **MIGHT** have changed from the initial environmen
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {},
             "physics_config": {
-                "joint_max_force": 8.0,
-                "joint_max_torque": 15.0,
+                "joint_max_force": 30000.0,
+                "joint_max_torque": 50000.0,
             },
         },
         {
@@ -194,9 +224,9 @@ While the following variables **MIGHT** have changed from the initial environmen
             "physics_config": {
                 "gravity": (0, -22.0),
                 "wind_force": (-20.0, -5.0),
-                "joint_max_force": 20.0,
-                "anchor_max_force": 30.0,
-                "joint_max_torque": 40.0,
+                "joint_max_force": 60000.0,
+                "anchor_max_force": 80000.0,
+                "joint_max_torque": 80000.0,
             },
         },
         {
@@ -211,9 +241,9 @@ While the following variables **MIGHT** have changed from the initial environmen
             "physics_config": {
                 "gravity": (0, -25.0),
                 "wind_force": (-35.0, -10.0),
-                "joint_max_force": 40.0,
-                "anchor_max_force": 60.0,
-                "joint_max_torque": 50.0,
+                "joint_max_force": 100000.0,
+                "anchor_max_force": 120000.0,
+                "joint_max_torque": 180000.0,
             },
         },
     ]

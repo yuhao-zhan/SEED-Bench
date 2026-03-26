@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from evaluation.verifier import CodeVerifier
 from tasks.Category1_Statics_Equilibrium.S_01.stages import get_s01_curriculum_stages
+from tasks.Category1_Statics_Equilibrium.S_01.feedback import format_task_metrics
 
 def read_agent_code():
     agent_path = os.path.join(os.path.dirname(__file__), 'agent.py')
@@ -24,7 +25,7 @@ def main():
     
     for stage in stages:
         stage_id = stage['stage_id']
-        print(f"\nChecking INITIAL build_agent on {stage_id}...")
+        print(f"\n\n{'='*20} Checking INITIAL build_agent on {stage_id} {'='*20}")
         
         env_overrides = {
             "terrain_config": stage.get("terrain_config", {}),
@@ -45,7 +46,14 @@ def main():
         
         print(f"Result for {stage_id}: Success={success}, Score={score}")
         if not success:
-            print(f"✅ Correct: Initial solution failed as expected. Reason: {metrics.get('failure_reason')}")
+            print(f"✅ Correct: Initial solution failed as expected.")
+            if metrics:
+                print("--- Forensic Feedback ---")
+                feedback = format_task_metrics(metrics)
+                for line in feedback:
+                    print(line)
+                print("-------------------------")
+
         else:
             print(f"❌ Error: Initial solution passed {stage_id} but it should have failed!")
 

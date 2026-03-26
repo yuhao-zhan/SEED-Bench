@@ -27,13 +27,14 @@ You cannot use joints or any form of artificial bonding. The structure must rely
 - **Table**: A horizontal surface extending from x=-20 to x=0. The table edge is at x=0.
 - **Table Height**: The table surface is at y=0.0.
 - **Surface Properties**: Both the table and the blocks provide friction, which you must utilize to stabilize the stack.
-- **Table Friction**: Table friction coefficient is 0.8.
-- **Block Friction**: Block friction coefficient is 0.6.
 - **Goal**: Reach x >= 0.1m beyond the edge.
 - **Block Dimensions**: width <= 1.0m, height <= 0.2m.
 - **Spawn Rule**: Blocks must be initialized within the permitted build access zone: x in [-10.0, 0.0].
+- **Build Access Zone**: The x-interval for block placement is constrained; check stage requirements.
 - **Block Count**: You are limited to a maximum of 100 blocks.
+- **Block Density**: The default density for all blocks is 1.0 units per square meter.
 - **Mass Budget**: Total structure mass must be less than or equal to 20000.0 units.
+- **Stability Requirement**: The structure must remain static for at least 10.0 seconds to be considered stable.
 - **Support Boundary**: If any part of the structure falls below y = -5.0 m, the structure is considered to have left the support and the task fails.
 - **Clearance**: Watch out for overhead obstacles (ceilings) in some regions. Current clearance y: 100.0m.
 """,

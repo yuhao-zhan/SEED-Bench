@@ -66,7 +66,7 @@ def _labeled_inner_walls_subset(terrain: Dict[str, Any] | None, indices: List[in
     raw = _effective_walls_subset(terrain, indices)
     parts = raw.split("; ")
     labels = _MAZE_INNER_WALL_LABELS
-    return "; ".join(f"{labels[i]} {parts[i]}" for i in range(len(parts)))
+    return "; ".join(f"{labels[idx - 4]} {parts[i]}" for i, idx in enumerate(indices))
 
 
 def _gravity_y(pc: Optional[Dict[str, Any]]) -> float:
@@ -118,12 +118,6 @@ def _fmt_impulse_ns(v: float) -> str:
     return f"{v:.1f} N·s"
 
 
-# Appended after any whisker-blind value so mutation regex does not strip this disclosure.
-_WHISKER_BLIND_NOTE = (
-    " (When active, suppression uses **physical** body x—whisker raycasts use true pose—not reported position.)"
-)
-
-
 def _position_delay_reported_tail(delay_steps: int) -> str:
     if delay_steps <= 0:
         # Must stay aligned with baseline bullet in prompt.py (delay == 0).
@@ -131,15 +125,13 @@ def _position_delay_reported_tail(delay_steps: int) -> str:
             "**Reported vs physical pose**: When delay is 0, reported position matches physical position for exit, "
             "unlock, lock gate, and one-way bias. Other environmental effects may use **reported** pose, **physical** "
             "linear velocity, or **physical** height for participation rules depending on the active simulator "
-            "configuration; those rules are **not** fully enumerated here (see **Environmental Anomalies Detected** "
-            "when present on mutated runs). When delay is N>0, x-band memberships that rely on **reported** pose lag "
-            "physical state by N simulation steps."
+            "configuration; those rules are **not** fully enumerated here. When delay is N>0, x-band memberships "
+            "that rely on **reported** pose lag physical state by N simulation steps."
         )
     return (
         f"**Reported vs physical pose**: When delay is {delay_steps}, exit/unlock, lock gate, and one-way bias use "
         f"reported position lagging physical state by {delay_steps} simulation steps. Other environmental effects may "
-        f"still combine reported pose with physical velocity or height per simulator rules; infer from interaction "
-        f"(see **Environmental Anomalies Detected** when present)."
+        f"still combine reported pose with physical velocity or height per simulator rules; infer from interaction."
     )
 
 
@@ -222,7 +214,11 @@ def _configs_differ_from_base(
 _UNIFORM_SUFFIX_GRAVITY_BULLET = (
     " - **Gravitational acceleration**: Vertical loads may differ from the nominal environment.\n"
 )
-_UNIFORM_SUFFIX_BULLETS_REST = """ - **Viscous Fluid Drag**: May have changed from the nominal environment.
+_UNIFORM_SUFFIX_BULLETS_REST = """ - **Control Actuation Lag**: The delay between command issuance and physical execution may differ from the nominal environment.
+ - **Structural Integrity**: The maximum collision impulse the agent can withstand may have changed.
+ - **Whisker Sensor Coverage**: Some regions may exhibit sensor interference or blind spots.
+ - **Maze Structural Geometry**: Internal wall positions and dimensions may differ from the nominal layout.
+ - **Viscous Fluid Drag**: May have changed from the nominal environment.
  - **Stochastic forcing / turbulence**: Random lateral disturbances may differ from the nominal environment.
  - **Control Reversal Zone**: May have changed from the nominal environment.
  - **Magnetic Floor Anomaly**: May have changed from the nominal environment (low-altitude zone).
@@ -519,33 +515,6 @@ def update_task_description_for_visible_changes(
                 stacklevel=2,
             )
 
-    # --- Contact friction (qualitative baseline; mutation appends visibility note + originally clause) ---
-    sfb, sft = float(bp["slip_friction"]), float(tp["slip_friction"])
-    if sft != sfb:
-        pat_contact = (
-            r"(- \*\*Contact dynamics\*\*: Wall–agent friction and restitution are set on \*\*Box2D\*\* fixtures; )"
-            r"(numeric coefficients are \*\*not stated in this document\*\*—infer from motion and impacts )"
-            r"(\(see \*\*Environmental Anomalies Detected\*\* when present on mutated runs\)\.)"
-        )
-        if re.search(pat_contact, description):
-            description = re.sub(
-                pat_contact,
-                lambda m: (
-                    f"{m.group(1)}numeric coefficients are **not stated in this document**—infer from motion and impacts; "
-                    f"**wall–agent friction may differ from the nominal environment** "
-                    f"(originally the same qualitative contact model as in the source environment) "
-                    f"{m.group(3)}"
-                ),
-                description,
-                count=1,
-            )
-        else:
-            warnings.warn(
-                "C_04 stages: slip_friction mutation but contact-dynamics regex did not match.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
-
     # --- Structural k (impulse-per-mass scale); format: new (originally old in the source environment) ---
     tk, bk = float(tp["structural_impulse_scale_k"]), float(bp["structural_impulse_scale_k"])
     if tk != bk:
@@ -558,7 +527,7 @@ def update_task_description_for_visible_changes(
         new_val = f"k={tk:.1f}, impulse threshold {_fmt_impulse_ns(imp_t)}"
         new_line = (
             f"{new_val} (originally {old_val} in the source environment). "
-            f"Here the failure condition is **normal impulse > (k × {am:g}) N·s** "
+            f"Here the failure condition is **normal impulse > (k × {am:g} kg) N·s** "
             f"(k acts as an impulse-per-mass scale in N·s per kg)."
         )
         if re.search(pat, description):

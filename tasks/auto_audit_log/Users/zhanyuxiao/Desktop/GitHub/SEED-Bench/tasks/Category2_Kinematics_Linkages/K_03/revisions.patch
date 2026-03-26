@@ -1,0 +1,318 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/environment.py	2026-03-25 11:02:50
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/environment.py	2026-03-25 12:41:08
+@@ -92,11 +92,12 @@
+         # Gantry: static horizontal support for gripper base (embodied primitive: fixed anchor)
+         gantry_y = 10.0
+         gantry_length = 4.0
++        gantry_friction = float(terrain_config.get("gantry_friction", 0.6))
+         gantry = self._world.CreateStaticBody(
+             position=(5.0, gantry_y),
+             fixtures=Box2D.b2FixtureDef(
+                 shape=polygonShape(box=(gantry_length / 2, 0.15)),
+-                friction=0.6,
++                friction=gantry_friction,
+             ),
+         )
+         self._terrain_bodies["gantry"] = gantry
+@@ -106,14 +107,24 @@
+         object_config = terrain_config.get("objects", {})
+         obj_x = float(object_config.get("x", 5.0))
+         obj_y = float(object_config.get("y", 2.0))
+-        obj_h = 0.4  # object height (box half-extent * 2)
+-        platform_top = obj_y - obj_h / 2  # 1.8 for obj_y=2
++        object_shape = object_config.get("shape", "box")
++        
++        # Calculate object height based on shape to set platform top correctly
++        if object_shape == "circle":
++            obj_h = 0.5  # radius 0.25 * 2
++        elif object_shape == "triangle":
++            obj_h = 0.4  # vertices from -0.2 to 0.2
++        else: # box
++            obj_h = 0.4  # height 0.4
++
++        platform_top = obj_y - obj_h / 2
+         platform_h = 0.4
++        platform_friction = float(terrain_config.get("platform_friction", 0.25))
+         platform = self._world.CreateStaticBody(
+             position=(obj_x, platform_top - platform_h / 2),
+             fixtures=Box2D.b2FixtureDef(
+                 shape=polygonShape(box=(0.6, platform_h / 2)),
+-                friction=0.25,
++                friction=platform_friction,
+             ),
+         )
+         self._terrain_bodies["platform"] = platform
+@@ -249,8 +260,8 @@
+         self._bodies.append(body)
+         return body
+ 
+-    def add_joint(self, body_a, body_b, anchor_point, type='pivot', lower_limit=None, upper_limit=None, enable_motor=False, motor_speed=0.0, max_motor_torque=0.0,
+-                  axis=None, lower_translation=None, upper_translation=None, max_motor_force=0.0):
++    def add_joint(self, body_a, body_b, anchor_point, type='pivot', lower_limit=None, upper_limit=None, enable_motor=False, motor_speed=0.0, max_motor_torque=5000.0,
++                  axis=None, lower_translation=None, upper_translation=None, max_motor_force=10000.0):
+         """
+         API: Add a joint between two bodies
+         - type='rigid': Locks relative rotation (Weld)
+@@ -281,7 +292,7 @@
+                 enableLimit=True,
+                 enableMotor=bool(enable_motor),
+                 motorSpeed=float(motor_speed),
+-                maxMotorForce=float(max_motor_force) if max_motor_force else 5000.0,
++                maxMotorForce=float(max_motor_force) if max_motor_force is not None else 10000.0,
+             )
+         elif type == 'pivot':
+             joint_kwargs = {
+@@ -301,7 +312,7 @@
+         self._joints.append(joint)
+         return joint
+ 
+-    def set_motor(self, joint, motor_speed, max_torque=100.0):
++    def set_motor(self, joint, motor_speed, max_torque=5000.0):
+         """Set motor for revolute (pivot) joint: motor_speed in rad/s, max_torque in N·m."""
+         if isinstance(joint, Box2D.b2RevoluteJoint):
+             joint.enableMotor = True
+@@ -310,7 +321,7 @@
+             return
+         raise ValueError("set_motor: joint must be a pivot/revolute joint")
+ 
+-    def set_slider_motor(self, joint, speed, max_force=5000.0):
++    def set_slider_motor(self, joint, speed, max_force=10000.0):
+         """
+         API: Set motor for prismatic (slider) joint — vertical伸缩
+         - speed: linear velocity (m/s). Positive = extend down, negative = retract up
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/evaluator.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/evaluator.py	2026-03-25 11:02:50
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/evaluator.py	2026-03-25 12:41:22
+@@ -238,7 +238,7 @@
+                 'ground': self.terrain_bounds.get('ground', {}),
+             },
+             'success_criteria': {
+-                'primary': f'Object is lifted to red line (y >= {self.target_object_y}m) and held there',
++                'primary': f'Object is lifted to goldenrod line (y >= {self.target_object_y}m) and held there',
+                 'secondary': f'Object never falls below {self.min_object_height}m after being lifted',
+                 'tertiary': f'Object maintains grip at/above target for required time (~{self.min_simulation_time}s)',
+             },
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/prompt.py	2026-03-25 11:02:50
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/prompt.py	2026-03-25 12:41:14
+@@ -25,18 +25,18 @@
+ Design a robotic gripper attached to a gantry that can grasp an object on a platform and lift it vertically.
+ 
+ ## Task Environment
+-- **Gantry**: A static support at y=10.0m. Use `get_anchor_for_gripper()` to anchor your base.
+-- **Target Object**: An object of mass 1.0 kg with surface friction coefficient 0.6 at x=5.0m, y=2.0m (on a platform at y=1.8m; platform surface friction coefficient 0.25).
++- **Gantry**: A static horizontal support at y=10.0m (spans x=[3.0, 7.0]; surface friction coefficient 0.6). Use `get_anchor_for_gripper()` to anchor your base.
++- **Target Object**: A rectangular block (0.4m x 0.4m) of mass 1.0 kg with surface friction coefficient 0.6 at x=5.0m, y=2.0m (on a platform at y=1.8m; platform surface friction coefficient 0.25).
+ - **Target Height**: Lift the object so its center reaches at least y=3.5m.
+ - **Build Zone**: x=[0, 10], y=[5, 15]. The gripper base must be anchored to the gantry. Ground surface friction 0.8.
+ 
+ ## Constraints (must satisfy)
+ - **Object Hold**: The object must be held above y=3.5m for at least 1.34 seconds (approx. 80 steps).
+-- **Mass Budget**: Total gripper structure mass must be less than 30 kg.
+-- **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters.
++- **Mass Budget**: Total gripper structure mass must be <= 30 kg.
++- **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters. Default density: 1.0 kg/m³.
+ - **Revolute joint angle limits**: Lower/upper angle limits must be in [-π, π] radians if specified.
+-- **Pivot motor**: Default maximum torque 100 N·m (revolute joints).
+-- **Slider motor**: Default maximum force 5000 N (prismatic joints). Slider vertical travel: 0 to 8 m (lower_translation to upper_translation).
++- **Pivot motor**: Default maximum torque 5000 N·m (revolute joints).
++- **Slider motor**: Default maximum force 10000 N (prismatic joints). Slider vertical travel: 0 to 8 m (positive translation is downwards by default).
+ 
+ ## Instructions
+ 1. **Anchor**: Weld your gripper base to the gantry anchor.
+@@ -52,7 +52,7 @@
+ 4. **Integrity**: Gripper remains intact and within constraints.
+ 
+ ## Design Constraints
+-- **Mass Budget**: < 30 kg.
++- **Mass Budget**: <= 30 kg.
+ - **APIs**: Use only the primitives documented below.
+ """,
+     
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/renderer.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/renderer.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/renderer.py	2026-03-25 11:02:50
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/renderer.py	2026-03-25 11:24:43
+@@ -131,7 +131,8 @@
+ 
+         # Target line (Goldenrod Yellow)
+         if target_x and target_x > 0:
+-            self.draw_line(0, target_x, 10.0, target_x, COLOR_ENV, 3)
++            x_max = getattr(sandbox, 'BUILD_ZONE_X_MAX', 10.0)
++            self.draw_line(0, target_x, x_max, target_x, COLOR_ENV, 3)
+         
+         # Build zone (Goldenrod Yellow)
+         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.TXU4iSNey4/stages.py	2026-03-25 11:02:50
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_03/stages.py	2026-03-25 13:02:34
+@@ -20,21 +20,55 @@
+     base_friction = float(base_obj.get("friction", 0.6))
+     
+     if target_shape != base_shape:
+-        # Update Target Object description (shape); prompt line includes "of mass X kg" and optional platform friction
+-        pattern = r"(- \*\*Target Object\*\*: An object)( of mass \d+\.?\d* kg with surface friction coefficient \d+\.?\d* at x=5\.0m, y=2\.0m \(on a platform at y=1\.8m)(; platform surface friction coefficient 0\.25)?\)\."
++        # Update Target Object description (shape) and platform height
++        # Matches "- **Target Object**: [Shape Description] of mass..." and replaces shape part.
++        # Use more robust regex that doesn't hardcode mass/friction values
++        pattern = r"(- \*\*Target Object\*\*: )(.*?)(?! \(originally)( of mass .*? kg with surface friction coefficient .*? at x=.*?m, y=.*?m \(on a platform at y=)(\d+\.?\d*)(.*?)"
+         if re.search(pattern, description):
+-            shape_name = "a circular disk" if target_shape == "circle" else "a triangular block" if target_shape == "triangle" else "a rectangular block"
+-            orig_name = "a rectangular block" if base_shape == "box" else "a triangular block" if base_shape == "triangle" else "a circular disk"
++            shape_name = "A circular disk (radius 0.25m)" if target_shape == "circle" else "A triangular block (approx 0.4m)" if target_shape == "triangle" else "A rectangular block (0.4m x 0.4m)"
++            orig_name = "A rectangular block (0.4m x 0.4m)" if base_shape == "box" else "A triangular block (approx 0.4m)" if base_shape == "triangle" else "A circular disk (radius 0.25m)"
++            
++            # Platform height depends on shape height: platform_top = obj_y - obj_h / 2
++            # box: h=0.4 -> 1.8; triangle: h=0.4 -> 1.8; circle: h=0.5 -> 1.75
++            target_platform_y = 1.75 if target_shape == "circle" else 1.8
++            base_platform_y = 1.75 if base_shape == "circle" else 1.8
++            
++            if target_platform_y != base_platform_y:
++                platform_y_str = f"{target_platform_y} (originally {base_platform_y} in the source environment)"
++            else:
++                platform_y_str = str(target_platform_y)
++
+             description = re.sub(
+                 pattern,
+-                lambda m: f"- **Target Object**: {shape_name} (originally {orig_name} in the source environment){m.group(2)}{m.group(3) or ''}).",
++                lambda m: f"{m.group(1)}{shape_name} (originally {orig_name} in the source environment){m.group(3)}{platform_y_str}{m.group(5)}",
+                 description
+             )
+     
++    # Exhaustive sync for object position if it changes
++    target_obj_x = float(target_obj.get("x", 5.0))
++    base_obj_x = float(base_obj.get("x", 5.0))
++    if target_obj_x != base_obj_x:
++        obj_x_pattern = r"( at x=)(\d+\.?\d*)(m, y=)(?! \(originally)"
++        description = re.sub(
++            obj_x_pattern,
++            lambda m: f"{m.group(1)}{target_obj_x}m (originally {m.group(2)}m in the source environment), y=",
++            description
++        )
++    
++    target_obj_y = float(target_obj.get("y", 2.0))
++    base_obj_y = float(base_obj.get("y", 2.0))
++    if target_obj_y != base_obj_y:
++        obj_y_pattern = r"(, y=)(\d+\.?\d*)(m \(on a platform)(?! \(originally)"
++        description = re.sub(
++            obj_y_pattern,
++            lambda m: f"{m.group(1)}{target_obj_y}m (originally {m.group(2)}m in the source environment) (on a platform",
++            description
++        )
++    
+     if target_mass != base_mass:
+         # Update object mass with format [new_value] (originally [old_value] in the source environment)
+-        # Only match the first "of mass X kg" not the one inside "(originally X kg ...)"
+-        mass_pattern = r"(of mass )(\d+\.?\d*)( kg)(?! \()"
++        # Avoid double-replacement by checking for existing "(originally"
++        mass_pattern = r"(of mass )(\d+\.?\d*)( kg)(?! \(originally)"
+         if re.search(mass_pattern, description):
+             description = re.sub(
+                 mass_pattern,
+@@ -45,21 +79,101 @@
+     
+     if target_friction != base_friction:
+         # Update object friction with format [new_value] (originally [old_value] in the source environment)
+-        # Capture full position suffix including optional platform friction so output is not truncated
+-        friction_pattern = r"(with surface friction coefficient )(\d+\.?\d*)( at x=5\.0m, y=2\.0m \(on a platform at y=1\.8m)(; platform surface friction coefficient 0\.25)?\)\."
++        friction_pattern = r"(with surface friction coefficient )(\d+\.?\d*)( at x=)(?! \(originally)"
+         if re.search(friction_pattern, description):
+             description = re.sub(
+                 friction_pattern,
+-                lambda m: f"{m.group(1)}{target_friction} (originally {m.group(2)} in the source environment){m.group(3)}{m.group(4) or ''}).",
++                lambda m: f"{m.group(1)}{target_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
+                 description,
+                 count=1,
+             )
++
++    # Exhaustive sync for other visible parameters if they change
++    target_gantry_friction = float(target_terrain_config.get("gantry_friction", 0.6))
++    base_gantry_friction = float(base_terrain_config.get("gantry_friction", 0.6))
++    if target_gantry_friction != base_gantry_friction:
++        gantry_pattern = r"(surface friction coefficient )(\d+\.?\d*)(\)\. Use `get_anchor_for_gripper\(\)`)(?! \(originally)"
++        description = re.sub(
++            gantry_pattern,
++            lambda m: f"{m.group(1)}{target_gantry_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
++            description
++        )
++
++    target_platform_friction = float(target_terrain_config.get("platform_friction", 0.25))
++    base_platform_friction = float(base_terrain_config.get("platform_friction", 0.25))
++    if target_platform_friction != base_platform_friction:
++        platform_friction_pattern = r"(platform surface friction coefficient )(\d+\.?\d*)(\))(?! \(originally)"
++        description = re.sub(
++            platform_friction_pattern,
++            lambda m: f"{m.group(1)}{target_platform_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
++            description
++        )
++
++    target_budget = float(target_terrain_config.get("max_structure_mass", 30.0))
++    base_budget = float(base_terrain_config.get("max_structure_mass", 30.0))
++    if target_budget != base_budget:
++        budget_pattern = r"(Mass Budget\*\*: .*?<= )(\d+\.?\d*)( kg)(?! \(originally)"
++        description = re.sub(
++            budget_pattern,
++            lambda m: f"{m.group(1)}{target_budget}{m.group(3)} (originally {m.group(2)} kg in the source environment)",
++            description
++        )
++
++    target_y = float(target_terrain_config.get("target_object_y", 3.5))
++    base_y = float(base_terrain_config.get("target_object_y", 3.5))
++    if target_y != base_y:
++        # Update target height in multiple places
++        y_pattern = r"(at least y=|above y=|reaches y >= )(\d+\.?\d*)(m)(?! \(originally)"
++        description = re.sub(
++            y_pattern,
++            lambda m: f"{m.group(1)}{target_y}{m.group(3)} (originally {m.group(2)}m in the source environment)",
++            description
++        )
++
++    target_time = float(target_terrain_config.get("min_simulation_time", 1.34))
++    base_time = float(base_terrain_config.get("min_simulation_time", 1.34))
++    if target_time != base_time:
++        time_pattern = r"(for at least |Sustain\*\*: Object held at target height for >= )(\d+\.?\d*)( seconds)(?! \(originally)"
++        description = re.sub(
++            time_pattern,
++            lambda m: f"{m.group(1)}{target_time}{m.group(3)} (originally {m.group(2)} seconds in the source environment)",
++            description
++        )
++        
++        # Also update the (approx. N steps) part
++        steps_pattern = r"(\(approx\. )(\d+)( steps\))(?! \(originally)"
++        target_steps = int(target_time / 0.016666666666666666)  # 1/60s
++        description = re.sub(
++            steps_pattern,
++            lambda m: f"{m.group(1)}{target_steps} (originally {m.group(2)} in the source environment){m.group(3)}",
++            description
++        )
++
++    target_ground_friction = float(target_terrain_config.get("ground_friction", 0.8))
++    base_ground_friction = float(base_terrain_config.get("ground_friction", 0.8))
++    if target_ground_friction != base_ground_friction:
++        ground_pattern = r"(Ground surface friction )(\d+\.?\d*)(\.)(?! \(originally)"
++        description = re.sub(
++            ground_pattern,
++            lambda m: f"{m.group(1)}{target_ground_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
++            description
++        )
++    
++    target_min_h = float(target_terrain_config.get("min_object_height", 2.0))
++    base_min_h = float(base_terrain_config.get("min_object_height", 2.0))
++    if target_min_h != base_min_h:
++        min_h_pattern = r"(falls below y=|below )(\d+\.?\d*)(m after being lifted)(?! \(originally)"
++        description = re.sub(
++            min_h_pattern,
++            lambda m: f"{m.group(1)}{target_min_h}{m.group(3)} (originally {m.group(2)}m in the source environment)",
++            description
++        )
+             
+     return description
+ 
+ def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+-    # No visible changes in success criteria for K_03 currently
+-    return base_success_criteria
++    # Use the same logic as task description since success criteria is part of the same prompt set
++    return update_task_description_for_visible_changes(base_success_criteria, target_terrain_config, base_terrain_config)
+ 
+ def get_k03_curriculum_stages():
+     task_description_suffix = """

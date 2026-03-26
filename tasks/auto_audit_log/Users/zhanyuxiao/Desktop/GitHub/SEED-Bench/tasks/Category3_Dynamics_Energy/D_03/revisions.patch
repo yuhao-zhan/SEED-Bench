@@ -1,0 +1,404 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/environment.py	2026-03-26 12:51:51
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/environment.py	2026-03-26 13:32:20
+@@ -66,7 +66,7 @@
+ 
+         # Gate open window: angle in [pi/2 - delta, pi/2 + delta] (rad) — narrow for true phase-lock
+         self._gate_open_half_width = float(terrain_config.get("gate_open_half_width", 0.56))
+-        self._target_x_min = float(terrain_config.get("target_x_min", 11.75))
++        self._target_x_min = float(terrain_config.get("target_x_min", 12.75))
+         self._target_speed_min = float(terrain_config.get("target_speed_min", 0.45))
+         self._target_speed_max = float(terrain_config.get("target_speed_max", 2.6))
+         # Mud zone [x_min, x_max]: strong velocity damping (N·s/m)
+@@ -98,7 +98,7 @@
+         self._decel_zone_x_min = float(terrain_config.get("decel_zone_x_min", 9.5))
+         self._decel_zone_x_max = float(terrain_config.get("decel_zone_x_max", 11.0))
+         self._decel_damping = float(terrain_config.get("decel_damping", 3.2))
+-        # Checkpoint at x=11: first time crossing x=11, speed MUST be in [1.3, 2.5] — couples to gate phase timing
++        # Checkpoint at x=11: first time crossing x=11, speed MUST be in [1.1, 2.7] — couples to gate phase timing
+         self._checkpoint_11_x = float(terrain_config.get("checkpoint_11_x", 11.0))
+         self._checkpoint_11_speed_min = float(terrain_config.get("checkpoint_11_speed_min", 1.1))
+         self._checkpoint_11_speed_max = float(terrain_config.get("checkpoint_11_speed_max", 2.7))
+@@ -213,6 +213,10 @@
+         jd.collideConnected = False
+         self._world.CreateJoint(jd)
+         self._gate2_pivot_x = gate_x
++        self._gate2_pivot_y = gate_y
++        self._gate2_rod_length = rod_len
++        self._gate2_omega = omega
++        self._gate2_initial_angle = theta0
+         self._gate2_open_half_width = float(terrain_config.get("gate2_open_half_width", 1.50))
+ 
+     def _create_third_gate(self, terrain_config: dict):
+@@ -248,6 +252,10 @@
+         jd.collideConnected = False
+         self._world.CreateJoint(jd)
+         self._gate3_pivot_x = gate_x
++        self._gate3_pivot_y = gate_y
++        self._gate3_rod_length = rod_len
++        self._gate3_omega = omega
++        self._gate3_initial_angle = theta0
+         self._gate3_open_half_width = float(terrain_config.get("gate3_open_half_width", 0.60))
+ 
+     def _create_fourth_gate(self, terrain_config: dict):
+@@ -283,8 +291,13 @@
+         jd.collideConnected = False
+         self._world.CreateJoint(jd)
+         self._gate4_pivot_x = gate_x
++        self._gate4_pivot_y = gate_y
++        self._gate4_rod_length = rod_len
++        self._gate4_omega = omega
++        self._gate4_initial_angle = theta0
+         self._gate4_open_half_width = float(terrain_config.get("gate4_open_half_width", 0.56))
+ 
++
+     def _install_contact_listener(self):
+         self._gate_collision_occurred = False
+         self._cart_assembly = set()
+@@ -573,6 +586,9 @@
+     def get_terrain_bounds(self):
+         return {
+             "ground_y": self._ground_y,
++            "ground_friction": self._terrain_config.get("ground_friction", 0.45),
++            "cabin_density": 120.0,
++            "rod_density": 80.0,
+             "build_zone": {
+                 "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
+                 "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX],
+@@ -582,26 +598,57 @@
+                 self._terrain_config.get("cart_spawn_y", 2.5),
+             ),
+             "cart_initial_speed": self._terrain_config.get("cart_initial_speed", 10.0),
+-            "gate_pivot_x": getattr(self, "_gate_pivot_x", 10.0),
+-            "gate2_pivot_x": getattr(self, "_gate2_pivot_x", 11.5),
+-            "gate3_pivot_x": getattr(self, "_gate3_pivot_x", 11.75),
+-            "gate4_pivot_x": getattr(self, "_gate4_pivot_x", 12.5),
+-            "gate_angular_velocity": getattr(self, "_gate_omega", 1.8),
++            "gate1": {
++                "pivot_x": getattr(self, "_gate_pivot_x", 10.0),
++                "pivot_y": getattr(self, "_gate_pivot_y", 2.5),
++                "rod_length": self._terrain_config.get("gate_rod_length", 0.9),
++                "omega": getattr(self, "_gate_omega", 1.8),
++                "initial_angle": self._terrain_config.get("gate_initial_angle", 0.38),
++                "open_half_width": self._gate_open_half_width,
++            },
++            "gate2": {
++                "pivot_x": getattr(self, "_gate2_pivot_x", 11.5),
++                "pivot_y": getattr(self, "_gate2_pivot_y", 2.5),
++                "rod_length": self._terrain_config.get("gate2_rod_length", 0.75),
++                "omega": self._terrain_config.get("gate2_angular_velocity", 0.58),
++                "initial_angle": self._terrain_config.get("gate2_initial_angle", 0.63),
++                "open_half_width": getattr(self, "_gate2_open_half_width", 1.50),
++            },
++            "gate3": {
++                "pivot_x": getattr(self, "_gate3_pivot_x", 11.75),
++                "pivot_y": getattr(self, "_gate3_pivot_y", 2.5),
++                "rod_length": self._terrain_config.get("gate3_rod_length", 0.7),
++                "omega": self._terrain_config.get("gate3_angular_velocity", 1.2),
++                "initial_angle": self._terrain_config.get("gate3_initial_angle", 0.0),
++                "open_half_width": getattr(self, "_gate3_open_half_width", 0.60),
++            },
++            "gate4": {
++                "pivot_x": getattr(self, "_gate4_pivot_x", 12.5),
++                "pivot_y": getattr(self, "_gate4_pivot_y", 2.5),
++                "rod_length": self._terrain_config.get("gate4_rod_length", 0.65),
++                "omega": self._terrain_config.get("gate4_angular_velocity", 0.9),
++                "initial_angle": self._terrain_config.get("gate4_initial_angle", 0.4),
++                "open_half_width": getattr(self, "_gate4_open_half_width", 0.56),
++            },
+             "speed_trap_x": getattr(self, "_speed_trap_x", 9.0),
+             "speed_trap_min": getattr(self, "_speed_trap_min", 2.8),
+             "decel_zone": [getattr(self, "_decel_zone_x_min", 9.5), getattr(self, "_decel_zone_x_max", 11.0)],
++            "decel_damping": getattr(self, "_decel_damping", 3.2),
+             "checkpoint_11_x": getattr(self, "_checkpoint_11_x", 11.0),
+             "checkpoint_11_speed_min": getattr(self, "_checkpoint_11_speed_min", 1.1),
+             "checkpoint_11_speed_max": getattr(self, "_checkpoint_11_speed_max", 2.7),
+             "min_beam_count": getattr(self, "MIN_BEAM_COUNT", 4),
+             "impulse_zone": [getattr(self, "_impulse_zone_x_min", 8.0), getattr(self, "_impulse_zone_x_max", 9.0)],
++            "impulse_magnitude": getattr(self, "_impulse_magnitude", 1.5),
+             "impulse2_zone": [getattr(self, "_impulse2_zone_x_min", 10.5), getattr(self, "_impulse2_zone_x_max", 11.0)],
+-            "gate_open_half_width": self._gate_open_half_width,
++            "impulse2_magnitude": getattr(self, "_impulse2_magnitude", 0.55),
+             "target_x_min": self._target_x_min,
+             "target_speed_min": self._target_speed_min,
+             "target_speed_max": self._target_speed_max,
+             "mud_zone": [self._mud_zone_x_min, self._mud_zone_x_max],
++            "mud_damping": self._mud_damping,
+             "brake_zone": [self._brake_zone_x_min, self._brake_zone_x_max],
++            "brake_damping": self._brake_damping,
+             "max_beam_count": getattr(self, "MAX_BEAM_COUNT", 5),
+             "max_structure_mass": getattr(self, "MAX_STRUCTURE_MASS", 14.0),
+         }
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/evaluator.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/evaluator.py	2026-03-26 12:51:51
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/evaluator.py	2026-03-26 12:54:01
+@@ -18,7 +18,7 @@
+         self.environment = environment
+         
+         # Read from terrain_bounds so mutated stages stay in sync (aligned with environment.py defaults)
+-        self._target_x_min = float(terrain_bounds.get("target_x_min", 11.75))
++        self._target_x_min = float(terrain_bounds.get("target_x_min", 12.75))
+         self._target_speed_min = float(terrain_bounds.get("target_speed_min", 0.45))
+         self._target_speed_max = float(terrain_bounds.get("target_speed_max", 2.6))
+         self._speed_trap_x = float(terrain_bounds.get("speed_trap_x", 9.0))
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/prompt.py	2026-03-26 12:51:51
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/prompt.py	2026-03-26 13:27:59
+@@ -22,36 +22,42 @@
+ Design an attachment for a cart to help it pass through multiple rotating gates at precise moments.
+ 
+ ## Task Environment
+-- **Ground**: Ground friction coefficient 0.45.
+-- **The Cart**: A cabin starts at x=4.0m, y=2.5m with an initial horizontal speed of 10.0m/s.
+-- **Rotating Gates**: Four gates with rotating rods are located at x=10.0, 11.5, 11.75, and 12.5. Each gate is only 'open' (passable) during a narrow angular window around vertical (half-widths in rad: gate 1 and 4 ≈ 0.56, gate 2 ≈ 1.50, gate 3 ≈ 0.60).
+-- **Mud zone**: x=[5.5, 7.5] m; linear velocity damping coefficient 4.2 N·s/m applied while the cart is in this zone.
+-- **First impulse zone**: x=[8.0, 9.0] m; a one-time backward impulse of magnitude 1.5 N·s is applied when the cart first enters.
+-- **Second impulse zone**: x=[10.5, 11.0] m; a one-time backward impulse of magnitude 0.55 N·s is applied when the cart first enters.
+-- **Decel zone**: x=[9.5, 11.0] m; linear velocity damping coefficient 3.2 N·s/m.
+-- **Brake zone**: x=[12.0, 15.0] m; extra damping (default 0) for final speed tuning.
++- **Ground**: Non-standard terrain with varying physical properties.
++- **The Cart**: A cabin (0.7m wide x 0.35m high, density 120.0 kg/m^3) starts at x=4.0m, y=2.5m with an initial horizontal speed of 10.0m/s.
++- **Rotating Gates**: Four gates are located at x=10.0, 11.5, 11.75, and 12.5. All gates have a pivot height of y=2.5m and all gate rods have a thickness of 0.12m and a density of 80.0 kg/m^3. Each gate is driven by a motor with a maximum torque of 5000.0 N·m.
++  - Gate 1 (x=10.0): Rod length 0.9m, angular velocity 1.8 rad/s, initial angle 0.38 rad. Open window half-width: 0.56 rad.
++  - Gate 2 (x=11.5): Rod length 0.75m, angular velocity 0.58 rad/s, initial angle 0.63 rad. Open window half-width: 1.50 rad.
++  - Gate 3 (x=11.75): Rod length 0.7m, angular velocity 1.2 rad/s, initial angle 0.0 rad. Open window half-width: 0.60 rad.
++  - Gate 4 (x=12.5): Rod length 0.65m, angular velocity 0.9 rad/s, initial angle 0.4 rad. Open window half-width: 0.56 rad.
++  Note: Gates are only 'open' (passable) when the rod angle is within the vertical window [pi/2 - half, pi/2 + half].
++- **Mud zone**: x=[5.5, 7.5] m; linear velocity damping coefficient 4.2 N·s/m (applied to each structural component) applied while the cart is in this zone.
++- **First impulse zone**: x=[8.0, 9.0] m; a one-time backward impulse of magnitude 1.5 N·s (per component) is applied when the cart first enters.
++- **Second impulse zone**: x=[10.5, 11.0] m; a one-time backward impulse of magnitude 0.55 N·s (per component) is applied when the cart first enters.
++- **Decel zone**: x=[9.5, 11.0] m; linear velocity damping coefficient 3.2 N·s/m (applied to each structural component).
++- **Brake zone**: x=[12.0, 15.0] m; extra damping (default 0 per component) for final speed tuning.
+ - **Speed trap**: When the cart center first crosses x=9 m, its speed must be at least 2.8 m/s or the run fails.
+ - **Checkpoint at x=11**: When the cart center first crosses x=11 m, its speed must be in the band [1.1, 2.7] m/s or the run fails.
+ - **Build Zone**: x=[4.8, 9.0] m, y=[2.0, 3.2] m. All beams must be attached to the cart cabin.
+-- **Success Criteria**: The cart must reach the target zone (x >= 11.75m) with a final speed between 0.45m/s and 2.6m/s, having passed all four gates when they were open.
++- **Time Limit**: The simulation will terminate after 10,000 steps (200 seconds).
++- **Success Criteria**: The cart must reach the target zone (x >= 12.75m) within the time limit with a final speed between 0.45m/s and 2.6m/s, having passed all four gates when they were open.
+ 
+ ## Task Objective
+ Design an attachment that:
+-1. Uses a specific number of beams (between 4 and 5) to adjust the cart's mass and momentum.
++1. Uses exactly 4 or 5 beams to adjust the cart's mass and momentum.
+ 2. Carefully tunes the cart's arrival time at each gate to match the 'open' phase.
+-3. Successfully passes the rotating gates and reaches the target distance.
++3. Successfully passes the rotating gates and reaches the target distance within the time limit.
+ """,
+     "success_criteria": """
+ ## Success Criteria
+ 1. **Gate Clearance**: Pass all four rotating gates without collision (only when open).
+ 2. **Speed trap**: When first crossing x=9 m, cart speed must be >= 2.8 m/s.
+ 3. **Checkpoint at x=11**: When first crossing x=11 m, cart speed must be in [1.1, 2.7] m/s.
+-4. **Target**: Reach x >= 11.75m with final speed in [0.45, 2.6] m/s.
++4. **Target**: Reach x >= 12.75m within 10,000 steps with final speed in [0.45, 2.6] m/s.
+ 
+ ## Design Constraints
+ - **Beam Count**: Exactly 4 or 5 beams must be used.
+ - **Beam dimensions**: Each beam width and height must be in [0.08, 2.0] m (min 0.08 m, max 2.0 m per dimension).
+-- **Mass Budget**: Total structure mass < 14.0 kg.
++- **Mass Budget**: Total structure mass must not exceed 14.0 kg.
+ - **APIs**: Use only the primitives documented below.
+ """,
+     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['D_03'].values()),
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/renderer.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/renderer.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/renderer.py	2026-03-26 12:51:51
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/renderer.py	2026-03-26 12:54:08
+@@ -41,8 +41,8 @@
+         AGENT_OUTLINE = (26, 125, 30)    # Darker Green
+ 
+         # Draw environmental zones using ENV_COLOR
+-        # Target zone (x >= 11.75)
+-        tx = getattr(sandbox, "_target_x_min", 11.75)
++        # Target zone (x >= 12.75)
++        tx = getattr(sandbox, "_target_x_min", 12.75)
+         self.draw_line(tx, 0.4, tx, 4.0, ENV_COLOR, 3)
+         self.draw_line(tx + 2, 0.4, tx + 2, 4.0, ENV_COLOR, 1)
+ 
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.VA5mIVZBen/stages.py	2026-03-26 12:51:51
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category3_Dynamics_Energy/D_03/stages.py	2026-03-26 13:28:16
+@@ -19,60 +19,54 @@
+ def update_task_description_for_visible_changes(
+     base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
+ ) -> str:
+-    """Update task description with visible changes: [new_value] (originally [old_value] in the source environment).
++    """Update task description with visible changes: [new_value] [unit] (originally [old_value] [unit] in the source environment).
+ 
+     Callers MUST pass the pristine, unmodified base task description in base_description.
+-    If an already-modified description (e.g. one containing '(originally X in the source environment)')
+-    is passed, the regex may match the wrong number and produce malformed output with duplicate
+-    '(originally ...)' clauses.
+     """
+     if "(originally " in base_description and " in the source environment)" in base_description:
+         raise ValueError(
+-            "update_task_description_for_visible_changes requires a pristine base task description. "
+-            "The passed description already contains '(originally ... in the source environment)'; "
+-            "callers must pass the unmodified base prompt, not an already-updated description."
++            "update_task_description_for_visible_changes requires a pristine base task description."
+         )
+     description = base_description
+     target = target_terrain_config or {}
+     base = base_terrain_config or {}
+ 
+     # First impulse zone magnitude
+-    # Substitute whenever target differs from pristine so prompt always shows target env's value
+-    # (fixes cross-mutated case where base and target share same mutated value)
+     target_imp = target.get("impulse_magnitude", _DEFAULT_IMPULSE_MAGNITUDE)
+     base_imp = base.get("impulse_magnitude", _DEFAULT_IMPULSE_MAGNITUDE)
+-    if target_imp != _DEFAULT_IMPULSE_MAGNITUDE:
+-        pattern = r"(- \*\*First impulse zone\*\*: x=\[8\.0, 9\.0\] m; a one-time backward impulse of magnitude )(\d+\.?\d*)( N·s is applied when the cart first enters\.)"
++    if target_imp != _DEFAULT_IMPULSE_MAGNITUDE or base_imp != _DEFAULT_IMPULSE_MAGNITUDE:
++        # Capture: (intro)(value)(unit)(rest)
++        pattern = r"(- \*\*First impulse zone\*\*: x=\[8\.0, 9\.0\] m; a one-time backward impulse of magnitude )(\d+\.?\d*)( N·s \(per component\))( is applied when the cart first enters\.)"
+         if re.search(pattern, description):
+-            description = re.sub(
+-                pattern,
+-                lambda m: f"{m.group(1)}{target_imp:.2g} (originally {base_imp:.2g} in the source environment){m.group(3)}",
+-                description,
+-            )
++            if target_imp != base_imp:
++                replacement = lambda m: f"{m.group(1)}{target_imp:.2g}{m.group(3)} (originally {base_imp:.2g}{m.group(3)} in the source environment){m.group(4)}"
++            else:
++                replacement = lambda m: f"{m.group(1)}{target_imp:.2g}{m.group(3)}{m.group(4)}"
++            description = re.sub(pattern, replacement, description)
+ 
+     # Second impulse zone magnitude
+     target_imp2 = target.get("impulse2_magnitude", _DEFAULT_IMPULSE2_MAGNITUDE)
+     base_imp2 = base.get("impulse2_magnitude", _DEFAULT_IMPULSE2_MAGNITUDE)
+-    if target_imp2 != _DEFAULT_IMPULSE2_MAGNITUDE:
+-        pattern = r"(- \*\*Second impulse zone\*\*: x=\[10\.5, 11\.0\] m; a one-time backward impulse of magnitude )(\d+\.?\d*)( N·s is applied when the cart first enters\.)"
++    if target_imp2 != _DEFAULT_IMPULSE2_MAGNITUDE or base_imp2 != _DEFAULT_IMPULSE2_MAGNITUDE:
++        pattern = r"(- \*\*Second impulse zone\*\*: x=\[10\.5, 11\.0\] m; a one-time backward impulse of magnitude )(\d+\.?\d*)( N·s \(per component\))( is applied when the cart first enters\.)"
+         if re.search(pattern, description):
+-            description = re.sub(
+-                pattern,
+-                lambda m: f"{m.group(1)}{target_imp2:.2g} (originally {base_imp2:.2g} in the source environment){m.group(3)}",
+-                description,
+-            )
++            if target_imp2 != base_imp2:
++                replacement = lambda m: f"{m.group(1)}{target_imp2:.2g}{m.group(3)} (originally {base_imp2:.2g}{m.group(3)} in the source environment){m.group(4)}"
++            else:
++                replacement = lambda m: f"{m.group(1)}{target_imp2:.2g}{m.group(3)}{m.group(4)}"
++            description = re.sub(pattern, replacement, description)
+ 
+     # Decel zone damping
+     target_decel = target.get("decel_damping", _DEFAULT_DECEL_DAMPING)
+     base_decel = base.get("decel_damping", _DEFAULT_DECEL_DAMPING)
+-    if target_decel != _DEFAULT_DECEL_DAMPING:
+-        pattern = r"(- \*\*Decel zone\*\*: x=\[9\.5, 11\.0\] m; linear velocity damping coefficient )(\d+\.?\d*)( N·s/m\.)"
++    if target_decel != _DEFAULT_DECEL_DAMPING or base_decel != _DEFAULT_DECEL_DAMPING:
++        pattern = r"(- \*\*Decel zone\*\*: x=\[9\.5, 11\.0\] m; linear velocity damping coefficient )(\d+\.?\d*)( N·s/m \(applied to each structural component\))(\.)"
+         if re.search(pattern, description):
+-            description = re.sub(
+-                pattern,
+-                lambda m: f"{m.group(1)}{target_decel:.2g} (originally {base_decel:.2g} in the source environment){m.group(3)}",
+-                description,
+-            )
++            if target_decel != base_decel:
++                replacement = lambda m: f"{m.group(1)}{target_decel:.2g}{m.group(3)} (originally {base_decel:.2g}{m.group(3)} in the source environment){m.group(4)}"
++            else:
++                replacement = lambda m: f"{m.group(1)}{target_decel:.2g}{m.group(3)}{m.group(4)}"
++            description = re.sub(pattern, replacement, description)
+ 
+     return description
+ 
+@@ -84,32 +78,51 @@
+     return base_success_criteria
+ 
+ 
+-_D03_SUFFIX = """
+-## Environmental Anomalies Detected
+-Sensors indicate that this region exhibits non-standard physical properties.
+-While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+-- **First impulse zone**: The magnitude of the backward impulse applied in the first track zone may vary.
+-- **Second impulse zone**: The magnitude of the backward impulse applied in the second track zone may vary.
+-- **Ambient Resistance**: Linear or angular damping across the environment may be altered, causing the cart to shed speed differently.
+-- **Deceleration Zone Damping**: The resistance within specific slowing zones may have been adjusted, altering how effectively the cart is braked.
+-- **Gravity**: Changes in the gravitational field may affect the effective weight and friction of the cart as it moves.
++def get_task_description_suffix(stages: List[Dict[str, Any]]) -> str:
++    """Generate a dynamic suffix based on the union of all mutated variables."""
++    union_keys = set()
++    for s in stages:
++        union_keys.update(s.get("terrain_config", {}).keys())
++        union_keys.update(s.get("physics_config", {}).keys())
+ 
+-**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+-"""
++    mapping = {
++        "impulse_magnitude": "- **First impulse zone**: The magnitude of the backward impulse applied in the first track zone may vary.",
++        "impulse2_magnitude": "- **Second impulse zone**: The magnitude of the backward impulse applied in the second track zone may vary.",
++        "linear_damping": "- **Ambient Resistance**: Linear or angular damping across the environment may be altered, causing the cart to shed speed differently.",
++        "angular_damping": "- **Ambient Resistance**: Linear or angular damping across the environment may be altered, causing the cart to shed speed differently.",
++        "decel_damping": "- **Deceleration Zone Damping**: The resistance within specific slowing zones may have been adjusted, altering how effectively the cart is braked.",
++        "gravity": "- **Gravity**: Changes in the gravitational field may affect the effective weight and friction of the cart as it moves.",
++    }
+ 
++    detected_messages = []
++    for key in sorted(mapping.keys()):
++        if key in union_keys:
++            msg = mapping[key]
++            if msg not in detected_messages:
++                detected_messages.append(msg)
+ 
++    if not detected_messages:
++        return ""
++
++    suffix = "\n## Environmental Anomalies Detected\n"
++    suffix += "Sensors indicate that this region exhibits non-standard physical properties.\n"
++    suffix += "While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:\n"
++    suffix += "\n".join(detected_messages) + "\n"
++    suffix += "\n**Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.\n"
++    return suffix
++
++
+ def get_d03_curriculum_stages() -> List[Dict[str, Any]]:
+     """
+     Return ordered stage configs for D-03 mutated tasks.
+     Stage-1/2: single physical parameter change (harder so original solution fails).
+     Stage-3/4: multiple parameter changes (progressively harder).
+     """
+-    return [
++    stages = [
+         {
+             "stage_id": "Stage-1",
+             "title": "Stronger first impulse",
+             "mutation_description": "Impulse magnitude in zone [8,9] increased; need more mass to survive speed trap v(9)≥2.8.",
+-            "task_description_suffix": _D03_SUFFIX,
+             "terrain_config": {
+                 "impulse_magnitude": 2.5,  # default 1.5 — stronger backward kick, original solution may fail v(9)≥2.8
+             },
+@@ -119,7 +132,6 @@
+             "stage_id": "Stage-2",
+             "title": "Higher ambient damping",
+             "mutation_description": "Linear and angular damping increased; cart sheds more speed everywhere, v(11) band and gate timing harder.",
+-            "task_description_suffix": _D03_SUFFIX,
+             "terrain_config": {},
+             "physics_config": {
+                 "linear_damping": 0.55,
+@@ -130,7 +142,6 @@
+             "stage_id": "Stage-3",
+             "title": "Stronger impulses and decel zone",
+             "mutation_description": "First impulse, second impulse, and decel zone damping all increased; v(9) and v(11) both harder to meet.",
+-            "task_description_suffix": _D03_SUFFIX,
+             "terrain_config": {
+                 "impulse_magnitude": 2.5,
+                 "impulse2_magnitude": 0.95,
+@@ -142,7 +153,6 @@
+             "stage_id": "Stage-4",
+             "title": "Heavy world and strong impulses",
+             "mutation_description": "Gravity increased, both impulses and decel damping stronger, plus ambient damping; full profile and phase must be re-tuned.",
+-            "task_description_suffix": _D03_SUFFIX,
+             "terrain_config": {
+                 "impulse_magnitude": 2.6,
+                 "impulse2_magnitude": 0.95,
+@@ -155,3 +165,10 @@
+             },
+         },
+     ]
++
++    # Apply the dynamic suffix to all stages
++    suffix = get_task_description_suffix(stages)
++    for s in stages:
++        s["task_description_suffix"] = suffix
++
++    return stages

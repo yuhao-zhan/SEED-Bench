@@ -25,18 +25,18 @@ TASK_PROMPT = {
 Design a robotic gripper attached to a gantry that can grasp an object on a platform and lift it vertically.
 
 ## Task Environment
-- **Gantry**: A static support at y=10.0m. Use `get_anchor_for_gripper()` to anchor your base.
-- **Target Object**: An object of mass 1.0 kg with surface friction coefficient 0.6 at x=5.0m, y=2.0m (on a platform at y=1.8m; platform surface friction coefficient 0.25).
+- **Gantry**: A static horizontal support at y=10.0m (spans x=[3.0, 7.0]; surface friction coefficient 0.6). Use `get_anchor_for_gripper()` to anchor your base.
+- **Target Object**: A rectangular block (0.4m x 0.4m) of mass 1.0 kg with surface friction coefficient 0.6 at x=5.0m, y=2.0m (on a platform at y=1.8m; platform surface friction coefficient 0.25).
 - **Target Height**: Lift the object so its center reaches at least y=3.5m.
 - **Build Zone**: x=[0, 10], y=[5, 15]. The gripper base must be anchored to the gantry. Ground surface friction 0.8.
 
 ## Constraints (must satisfy)
 - **Object Hold**: The object must be held above y=3.5m for at least 1.34 seconds (approx. 80 steps).
-- **Mass Budget**: Total gripper structure mass must be less than 30 kg.
-- **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters.
+- **Mass Budget**: Total gripper structure mass must be <= 30 kg.
+- **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters. Default density: 1.0 kg/m³.
 - **Revolute joint angle limits**: Lower/upper angle limits must be in [-π, π] radians if specified.
-- **Pivot motor**: Default maximum torque 100 N·m (revolute joints).
-- **Slider motor**: Default maximum force 5000 N (prismatic joints). Slider vertical travel: 0 to 8 m (lower_translation to upper_translation).
+- **Pivot motor**: Default maximum torque 5000 N·m (revolute joints).
+- **Slider motor**: Default maximum force 10000 N (prismatic joints). Slider vertical travel: 0 to 8 m (positive translation is downwards by default).
 
 ## Instructions
 1. **Anchor**: Weld your gripper base to the gantry anchor.
@@ -52,7 +52,7 @@ Design a robotic gripper attached to a gantry that can grasp an object on a plat
 4. **Integrity**: Gripper remains intact and within constraints.
 
 ## Design Constraints
-- **Mass Budget**: < 30 kg.
+- **Mass Budget**: <= 30 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     

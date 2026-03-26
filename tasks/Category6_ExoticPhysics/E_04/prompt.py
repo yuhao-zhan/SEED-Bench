@@ -23,8 +23,8 @@ Design a complex structure that remains intact under sinusoidally varying mass a
 
 ## Task Environment
 - **Mass Variation**: Every beam's mass varies over time according to multiple frequency components.
-- **Base Excitation**: The ground support oscillates vertically and horizontally (elliptical vibration).
-- **Fatigue**: Joint strength (force and torque limits) decays exponentially over time; effective limits depend on cumulative load.
+- **Base Excitation**: The ground support undergoes periodic vertical and horizontal oscillation.
+- **Fatigue**: Joint strength (force and torque limits) decays exponentially over time with a time constant of 100.0 s.
 - **Joint Limits (nominal)**: Joints fail if reaction force exceeds 6.0 N or reaction torque exceeds 10.0 N·m (before fatigue decay).
 - **Beam Size**: Each beam dimension (width, height) is clamped by the environment to [0.1, 4.0] m.
 - **Build Zone**: x in [5.0, 15.0] m, y in [1.5, 8.0] m.

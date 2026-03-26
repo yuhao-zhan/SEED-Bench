@@ -4,9 +4,6 @@ CART_FORCE_LIMIT_NEWTONS = 450.0
 
 INITIAL_REF_TRACK_CENTER_X = 10.0
 
-def _vertical_gravity_magnitude(sandbox):
-    return abs(float(sandbox.world.gravity.y))
-
 def normalize_angle(theta):
     return math.atan2(math.sin(theta), math.cos(theta))
 
@@ -22,7 +19,7 @@ def agent_action(sandbox, cart, step_count):
     sandbox.apply_cart_force(max(-lim, min(lim, force)))
 
 def robust_control(sandbox, l, m_p, m_c, delay_steps=0, kx=150.0, kv=400.0):
-    g = _vertical_gravity_magnitude(sandbox)
+    g = 10.0
     theta = normalize_angle(sandbox.get_pole_angle())
     omega = sandbox.get_pole_angular_velocity()
     x, v = sandbox.get_cart_position(), sandbox.get_cart_velocity()

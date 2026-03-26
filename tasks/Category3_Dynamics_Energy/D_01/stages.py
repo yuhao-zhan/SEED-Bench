@@ -17,25 +17,62 @@ def update_task_description_for_visible_changes(
     base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
     """
-    Update task description for visible terrain/config changes (e.g. target zone position/size).
+    Update task description for visible terrain/config changes.
     """
-    tx_min = target_terrain_config.get("target_x_min")
-    tx_max = target_terrain_config.get("target_x_max")
-    ty_min = target_terrain_config.get("target_y_min")
-    ty_max = target_terrain_config.get("target_y_max")
-    
+    out = base_description
+
+    # Target Zone
+    tx_min = target_terrain_config.get("target_x_min", base_terrain_config.get("target_x_min", 40.0))
+    tx_max = target_terrain_config.get("target_x_max", base_terrain_config.get("target_x_max", 45.0))
     base_tx_min = base_terrain_config.get("target_x_min", 40.0)
     base_tx_max = base_terrain_config.get("target_x_max", 45.0)
+
+    if tx_min != base_tx_min or tx_max != base_tx_max:
+        pattern = r"(x from 40 m to 45 m)"
+        if re.search(pattern, out):
+            out = re.sub(pattern, f"x from {tx_min:.1f} m to {tx_max:.1f} m (originally 40 m to 45 m in the source environment)", out)
+    
+    ty_min = target_terrain_config.get("target_y_min", base_terrain_config.get("target_y_min", 2.0))
+    ty_max = target_terrain_config.get("target_y_max", base_terrain_config.get("target_y_max", 5.0))
     base_ty_min = base_terrain_config.get("target_y_min", 2.0)
     base_ty_max = base_terrain_config.get("target_y_max", 5.0)
 
-    out = base_description
-    # Replace target zone numbers when explicitly overridden (task_description has "x from 40 m to 45 m", no "[40, 45]" literal)
-    if tx_min is not None and tx_max is not None and (tx_min != base_tx_min or tx_max != base_tx_max):
-        out = re.sub(r"x from 40 m to 45 m", f"x from {tx_min:.0f} m to {tx_max:.0f} m (originally x from {base_tx_min:.0f} m to {base_tx_max:.0f} m in the source environment)", out)
+    if ty_min != base_ty_min or ty_max != base_ty_max:
+        pattern = r"(y from 2 m to 5 m)"
+        if re.search(pattern, out):
+            out = re.sub(pattern, f"y from {ty_min:.1f} m to {ty_max:.1f} m (originally 2 m to 5 m in the source environment)", out)
 
-    if ty_min is not None and ty_max is not None and (ty_min != base_ty_min or ty_max != base_ty_max):
-        out = re.sub(r"y from 2 m to 5 m", f"y from {ty_min:.0f} m to {ty_max:.0f} m (originally y from {base_ty_min:.0f} m to {base_ty_max:.0f} m in the source environment)", out)
+    # Build Zone
+    bx_min = target_terrain_config.get("build_zone_x_min", base_terrain_config.get("build_zone_x_min", 5.0))
+    bx_max = target_terrain_config.get("build_zone_x_max", base_terrain_config.get("build_zone_x_max", 15.0))
+    base_bx_min = base_terrain_config.get("build_zone_x_min", 5.0)
+    base_bx_max = base_terrain_config.get("build_zone_x_max", 15.0)
+
+    if bx_min != base_bx_min or bx_max != base_bx_max:
+        pattern = r"(x=\[5, 15\] m)"
+        if re.search(pattern, out):
+            out = re.sub(pattern, f"x=[{bx_min:.1f}, {bx_max:.1f}] m (originally [5, 15] m in the source environment)", out)
+            
+    by_min = target_terrain_config.get("build_zone_y_min", base_terrain_config.get("build_zone_y_min", 1.5))
+    by_max = target_terrain_config.get("build_zone_y_max", base_terrain_config.get("build_zone_y_max", 8.0))
+    base_by_min = base_terrain_config.get("build_zone_y_min", 1.5)
+    base_by_max = base_terrain_config.get("build_zone_y_max", 8.0)
+    
+    if by_min != base_by_min or by_max != base_by_max:
+        pattern = r"(y=\[1.5, 8\] m)"
+        if re.search(pattern, out):
+            out = re.sub(pattern, f"y=[{by_min:.1f}, {by_max:.1f}] m (originally [1.5, 8] m in the source environment)", out)
+
+    # Projectile Spawn
+    ps_x = target_terrain_config.get("projectile_spawn_x", base_terrain_config.get("projectile_spawn_x", 10.0))
+    ps_y = target_terrain_config.get("projectile_spawn_y", base_terrain_config.get("projectile_spawn_y", 3.0))
+    base_ps_x = base_terrain_config.get("projectile_spawn_x", 10.0)
+    base_ps_y = base_terrain_config.get("projectile_spawn_y", 3.0)
+    
+    if ps_x != base_ps_x or ps_y != base_ps_y:
+        pattern = r"(position \(10, 3\) m)"
+        if re.search(pattern, out):
+            out = re.sub(pattern, f"position ({ps_x:.1f}, {ps_y:.1f}) m (originally (10, 3) m in the source environment)", out)
 
     return out
 
@@ -44,31 +81,86 @@ def update_success_criteria_for_visible_changes(
     base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
 ) -> str:
     """Update success criteria for visible changes (e.g. target zone bounds)."""
-    tx_min = target_terrain_config.get("target_x_min")
-    tx_max = target_terrain_config.get("target_x_max")
-    ty_min = target_terrain_config.get("target_y_min")
-    ty_max = target_terrain_config.get("target_y_max")
-    
+    out = base_success_criteria
+
+    # Target Zone
+    tx_min = target_terrain_config.get("target_x_min", base_terrain_config.get("target_x_min", 40.0))
+    tx_max = target_terrain_config.get("target_x_max", base_terrain_config.get("target_x_max", 45.0))
     base_tx_min = base_terrain_config.get("target_x_min", 40.0)
     base_tx_max = base_terrain_config.get("target_x_max", 45.0)
+
+    if tx_min != base_tx_min or tx_max != base_tx_max:
+        pattern = r"(x in \[40, 45\] m)"
+        if re.search(pattern, out):
+            out = re.sub(
+                pattern,
+                f"x in [{tx_min:.1f}, {tx_max:.1f}] m (originally [40, 45] m in the source environment)",
+                out,
+            )
+            
+    ty_min = target_terrain_config.get("target_y_min", base_terrain_config.get("target_y_min", 2.0))
+    ty_max = target_terrain_config.get("target_y_max", base_terrain_config.get("target_y_max", 5.0))
     base_ty_min = base_terrain_config.get("target_y_min", 2.0)
     base_ty_max = base_terrain_config.get("target_y_max", 5.0)
+    
+    if ty_min != base_ty_min or ty_max != base_ty_max:
+        pattern = r"(y in \[2, 5\] m)"
+        if re.search(pattern, out):
+            out = re.sub(
+                pattern,
+                f"y in [{ty_min:.1f}, {ty_max:.1f}] m (originally [2, 5] m in the source environment)",
+                out,
+            )
 
-    out = base_success_criteria
-    # Single replacement including " m" so format is correct and no second match corrupts "(originally ...)"
-    if tx_min is not None and tx_max is not None and (tx_min != base_tx_min or tx_max != base_tx_max):
-        out = re.sub(
-            r"x in \[40, 45\] m",
-            f"x in [{tx_min:.0f}, {tx_max:.0f}] m (originally [{base_tx_min:.0f}, {base_tx_max:.0f}] m in the source environment)",
-            out,
-        )
-    if ty_min is not None and ty_max is not None and (ty_min != base_ty_min or ty_max != base_ty_max):
-        out = re.sub(
-            r"y in \[2, 5\] m",
-            f"y in [{ty_min:.0f}, {ty_max:.0f}] m (originally [{base_ty_min:.0f}, {base_ty_max:.0f}] m in the source environment)",
-            out,
-        )
+    # Mass Budget
+    max_mass = target_terrain_config.get("max_structure_mass", base_terrain_config.get("max_structure_mass", 500.0))
+    base_max_mass = base_terrain_config.get("max_structure_mass", 500.0)
+    if max_mass != base_max_mass:
+        pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must not exceed )(\d+)( kg)"
+        if re.search(pattern, out):
+            out = re.sub(
+                pattern,
+                rf"\g<1>{max_mass:.0f} kg (originally 500 kg in the source environment)",
+                out,
+            )
+
     return out
+
+
+def get_mutated_prompt(base_prompt: Dict[str, Any], stage_config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate a mutated prompt based on the curriculum stage configuration.
+    """
+    new_prompt = base_prompt.copy()
+    terrain_config = stage_config.get("terrain_config", {})
+    
+    # Use baseline values for comparison
+    base_terrain_config = {
+        "target_x_min": 40.0,
+        "target_x_max": 45.0,
+        "target_y_min": 2.0,
+        "target_y_max": 5.0,
+        "build_zone_x_min": 5.0,
+        "build_zone_x_max": 15.0,
+        "build_zone_y_min": 1.5,
+        "build_zone_y_max": 8.0,
+        "projectile_spawn_x": 10.0,
+        "projectile_spawn_y": 3.0,
+        "max_structure_mass": 500.0,
+    }
+
+    new_prompt["task_description"] = update_task_description_for_visible_changes(
+        base_prompt["task_description"], terrain_config, base_terrain_config
+    )
+    new_prompt["success_criteria"] = update_success_criteria_for_visible_changes(
+        base_prompt["success_criteria"], terrain_config, base_terrain_config
+    )
+
+    if "task_description_suffix" in stage_config:
+        new_prompt["task_description"] += stage_config["task_description_suffix"]
+
+    return new_prompt
+
 
 
 _D01_SUFFIX = """

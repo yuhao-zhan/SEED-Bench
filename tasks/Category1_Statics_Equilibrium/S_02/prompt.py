@@ -25,7 +25,7 @@ TASK_PROMPT = {
     ## Task Environment
     - **Foundation**: The allowed ground-contact zone is ±4.5 m from the foundation center (x=[-4.5, 4.5] when the foundation is at rest). All ground contact must lie within this zone; the foundation may move during seismic activity, and contact is evaluated relative to its current position. (The physical foundation platform may be smaller than this zone.)
     - **Seismic Activity**: The earthquake starts at t = 2.0 s. From that time, the foundation undergoes horizontal oscillations. Your structure must survive these vibrations.
-    - **Wind**: Lateral forces are applied to structural components at various altitudes, simulating wind pressure.
+    - **Wind**: Lateral forces are applied to structural components at altitudes above 20.0m, simulating wind pressure.
     - **Beam Dimensions**: 0.1 <= width, height <= 10.0 meters. Beams outside this range are rejected.
     - **Joint Strength**: Maximum linear force for a joint is inf; maximum torque is inf.
     - **Safety Limit**: If the structure's topmost point exceeds y=150.0m, it is considered physically unstable and the task fails.

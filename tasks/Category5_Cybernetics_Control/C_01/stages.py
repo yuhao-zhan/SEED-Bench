@@ -29,6 +29,10 @@ _BASE_SENSOR_DELAY_ANGLE_STEPS = _env_mod.DEFAULT_SENSOR_DELAY_ANGLE_STEPS
 _BASE_SENSOR_DELAY_OMEGA_STEPS = _env_mod.DEFAULT_SENSOR_DELAY_OMEGA_STEPS
 _BASE_CART_FORCE_LIMIT_NEWTONS = _env_mod.CART_FORCE_LIMIT_NEWTONS
 _BASE_CART_RAIL_CENTER_Y = _env_mod.CART_RAIL_CENTER_Y
+_BASE_POLE_WIDTH = _env_mod.POLE_WIDTH
+_BASE_BALANCE_ANGLE_DEG = _env_mod.BALANCE_ANGLE_DEG
+_BASE_FAILURE_ANGLE_DEG = _env_mod.FAILURE_ANGLE_DEG
+_BASE_BALANCE_HOLD_STEPS_REQUIRED = _env_mod.BALANCE_HOLD_STEPS_REQUIRED
 
 
 def _fmt_track_center_m(x: float) -> str:
@@ -52,39 +56,6 @@ def _scalar_physics_differs(a: float, b: float) -> bool:
     return not math.isclose(float(a), float(b), rel_tol=1e-12, abs_tol=1e-9)
 
 
-def _task_sensor_delay_angle_line(target: int, old: int) -> str:
-    """Full sensor (angle) line; S-01-style provenance on the delay count + unit."""
-    if target == _BASE_SENSOR_DELAY_ANGLE_STEPS:
-        return (
-            f"- **Sensor reporting (angle)**: {target} simulation steps of delay from true state."
-        )
-    orig_suffix = (
-        " in the source environment"
-        if old == _BASE_SENSOR_DELAY_ANGLE_STEPS
-        else ""
-    )
-    return (
-        f"- **Sensor reporting (angle)**: {target} simulation steps of delay from true state "
-        f"(originally {old} simulation steps of delay{orig_suffix})."
-    )
-
-
-def _task_sensor_delay_omega_line(target: int, old: int) -> str:
-    if target == _BASE_SENSOR_DELAY_OMEGA_STEPS:
-        return (
-            f"- **Sensor reporting (angular velocity)**: {target} simulation steps of delay from true state."
-        )
-    orig_suffix = (
-        " in the source environment"
-        if old == _BASE_SENSOR_DELAY_OMEGA_STEPS
-        else ""
-    )
-    return (
-        f"- **Sensor reporting (angular velocity)**: {target} simulation steps of delay from true state "
-        f"(originally {old} simulation steps of delay{orig_suffix})."
-    )
-
-
 def _parse_task_center_x(description: str) -> Optional[float]:
     m = re.search(r"center x\s*=\s*(\d+\.?\d*)m", description)
     return float(m.group(1)) if m else None
@@ -97,6 +68,21 @@ def _parse_task_safe_half(description: str) -> Optional[float]:
 
 def _parse_task_episode_steps(description: str) -> Optional[int]:
     m = re.search(r"- \*\*Episode length\*\*: At most (\d+) simulation steps", description)
+    return int(m.group(1)) if m else None
+
+
+def _parse_task_balance_angle(description: str) -> Optional[float]:
+    m = re.search(r"\|angle\| <= (\d+\.?\d*)°", description)
+    return float(m.group(1)) if m else None
+
+
+def _parse_task_failure_angle(description: str) -> Optional[float]:
+    m = re.search(r"\|angle\| > (\d+\.?\d*)°", description)
+    return float(m.group(1)) if m else None
+
+
+def _parse_task_hold_steps(description: str) -> Optional[int]:
+    m = re.search(r"for at least \*\*(\d+) consecutive simulation steps\*\*", description)
     return int(m.group(1)) if m else None
 
 
@@ -115,9 +101,25 @@ def _parse_success_episode_steps(description: str) -> Optional[int]:
     return int(m.group(1)) if m else None
 
 
+def _parse_success_balance_angle(description: str) -> Optional[float]:
+    m = re.search(r"\|angle\| <= (\d+\.?\d*)°\)", description)
+    return float(m.group(1)) if m else None
+
+
+def _parse_success_failure_angle(description: str) -> Optional[float]:
+    m = re.search(r"\|angle\| > (\d+\.?\d*)°", description)
+    return float(m.group(1)) if m else None
+
+
+def _parse_success_hold_steps(description: str) -> Optional[int]:
+    m = re.search(r"for at least (\d+) consecutive simulation steps", description)
+    return int(m.group(1)) if m else None
+
+
 def _success_track_limits_line(target_track_center: float, target_safe_range: float) -> str:
     """S-01-style inline (originally … in the source environment) for success criteria track limits."""
-    core = f"|x - {target_track_center:.1f}| ≤ {target_safe_range:.1f}m"
+    target_cx = _fmt_track_center_num(target_track_center)
+    core = f"|x - {target_cx}| ≤ {target_safe_range:.1f}m"
     if math.isclose(target_track_center, _BASE_TRACK_CENTER_X, rel_tol=0.0, abs_tol=1e-6) and math.isclose(
         target_safe_range, _BASE_SAFE_HALF_RANGE, rel_tol=0.0, abs_tol=1e-6
     ):
@@ -157,20 +159,16 @@ def _parse_task_rail_y(description: str) -> Optional[float]:
     return float(m.group(1)) if m else None
 
 
-def _parse_task_sensor_angle_delay(description: str) -> Optional[int]:
-    m = re.search(
-        r"\*\*Sensor reporting \(angle\)\*\*: (\d+) simulation steps of delay from true state",
-        description,
-    )
-    return int(m.group(1)) if m else None
+def _parse_task_pole_width(description: str) -> Optional[float]:
+    m = re.search(r"width (\d+\.?\d*)m", description)
+    return float(m.group(1)) if m else None
 
 
-def _parse_task_sensor_omega_delay(description: str) -> Optional[int]:
-    m = re.search(
-        r"\*\*Sensor reporting \(angular velocity\)\*\*: (\d+) simulation steps of delay from true state",
-        description,
-    )
-    return int(m.group(1)) if m else None
+def _parse_task_pole_start_angle(description: str) -> Optional[float]:
+    if "Initially upright (angle = 0° or 0rad)" in description:
+        return 0.0
+    m = re.search(r"Initially at angle = [\d.]+° \(([-\d.eE]+) rad\)", description)
+    return float(m.group(1)) if m else None
 
 
 def _verify_task_description_sync(
@@ -185,6 +183,11 @@ def _verify_task_description_sync(
     target_sensor_delay_angle: int,
     target_sensor_delay_omega: int,
     target_cart_rail_center_y: float,
+    target_balance_angle: float,
+    target_failure_angle: float,
+    target_hold_steps: int,
+    target_pole_width: float,
+    target_pole_start_angle: float,
 ) -> None:
     pc = _parse_task_center_x(description)
     if pc is not None and not math.isclose(pc, target_track_center, rel_tol=0.0, abs_tol=1e-6):
@@ -221,20 +224,35 @@ def _verify_task_description_sync(
         raise RuntimeError(
             f"C-01 prompt sync: task_description actuator limit text ({pact}) != target ({target_cart_force_limit})."
         )
-    psda = _parse_task_sensor_angle_delay(description)
-    if psda is not None and psda != target_sensor_delay_angle:
-        raise RuntimeError(
-            f"C-01 prompt sync: task_description sensor angle delay text ({psda}) != target ({target_sensor_delay_angle})."
-        )
-    psdw = _parse_task_sensor_omega_delay(description)
-    if psdw is not None and psdw != target_sensor_delay_omega:
-        raise RuntimeError(
-            f"C-01 prompt sync: task_description sensor omega delay text ({psdw}) != target ({target_sensor_delay_omega})."
-        )
     pry = _parse_task_rail_y(description)
     if pry is not None and not math.isclose(pry, target_cart_rail_center_y, rel_tol=0.0, abs_tol=1e-6):
         raise RuntimeError(
             f"C-01 prompt sync: task_description rail y text ({pry}) != target ({target_cart_rail_center_y})."
+        )
+    pba = _parse_task_balance_angle(description)
+    if pba is not None and not math.isclose(pba, target_balance_angle, rel_tol=0.0, abs_tol=1e-6):
+        raise RuntimeError(
+            f"C-01 prompt sync: task_description balance angle text ({pba}) != target ({target_balance_angle})."
+        )
+    pfa = _parse_task_failure_angle(description)
+    if pfa is not None and not math.isclose(pfa, target_failure_angle, rel_tol=0.0, abs_tol=1e-6):
+        raise RuntimeError(
+            f"C-01 prompt sync: task_description failure angle text ({pfa}) != target ({target_failure_angle})."
+        )
+    phs = _parse_task_hold_steps(description)
+    if phs is not None and phs != target_hold_steps:
+        raise RuntimeError(
+            f"C-01 prompt sync: task_description hold steps text ({phs}) != target ({target_hold_steps})."
+        )
+    ppw = _parse_task_pole_width(description)
+    if ppw is not None and not math.isclose(ppw, target_pole_width, rel_tol=0.0, abs_tol=1e-6):
+        raise RuntimeError(
+            f"C-01 prompt sync: task_description pole width text ({ppw}) != target ({target_pole_width})."
+        )
+    pps = _parse_task_pole_start_angle(description)
+    if pps is not None and not math.isclose(pps, target_pole_start_angle, rel_tol=0.0, abs_tol=1e-5):
+        raise RuntimeError(
+            f"C-01 prompt sync: task_description pole start angle text ({pps}) != target ({target_pole_start_angle})."
         )
 
     _require_task_description_parses(description)
@@ -250,9 +268,12 @@ def _require_task_description_parses(description: str) -> None:
         (_parse_task_pole_mass(description), "pole mass line"),
         (_parse_task_pole_length_m(description), "pole length line"),
         (_parse_task_actuator_limit_n(description), "actuator limit line"),
-        (_parse_task_sensor_angle_delay(description), "sensor angle delay line"),
-        (_parse_task_sensor_omega_delay(description), "sensor omega delay line"),
         (_parse_task_rail_y(description), "cart rail y (horizontal track at y=…m)"),
+        (_parse_task_balance_angle(description), "balance angle"),
+        (_parse_task_failure_angle(description), "failure angle"),
+        (_parse_task_hold_steps(description), "hold steps"),
+        (_parse_task_pole_width(description), "pole width"),
+        (_parse_task_pole_start_angle(description), "pole start angle"),
     ]
     for val, label in checks:
         if val is None:
@@ -270,6 +291,11 @@ def _verify_success_criteria_sync(
     target_track_center: float,
     target_safe_range: float,
     target_cart_force_limit: float,
+    target_balance_angle: float,
+    target_failure_angle: float,
+    target_hold_steps: int,
+    target_sensor_delay_angle: int,
+    target_sensor_delay_omega: int,
 ) -> None:
     pt = _parse_success_episode_steps(description)
     if pt is not None and pt != target_max_steps:
@@ -291,17 +317,38 @@ def _verify_success_criteria_sync(
         raise RuntimeError(
             f"C-01 prompt sync: success_criteria actuator text ({sa}) != target ({target_cart_force_limit})."
         )
+    sba = _parse_success_balance_angle(description)
+    if sba is not None and not math.isclose(sba, target_balance_angle, rel_tol=0.0, abs_tol=1e-6):
+        raise RuntimeError(
+            f"C-01 prompt sync: success_criteria balance angle text ({sba}) != target ({target_balance_angle})."
+        )
+    sfa = _parse_success_failure_angle(description)
+    if sfa is not None and not math.isclose(sfa, target_failure_angle, rel_tol=0.0, abs_tol=1e-6):
+        raise RuntimeError(
+            f"C-01 prompt sync: success_criteria failure angle text ({sfa}) != target ({target_failure_angle})."
+        )
+    shs = _parse_success_hold_steps(description)
+    if shs is not None and shs != target_hold_steps:
+        raise RuntimeError(
+            f"C-01 prompt sync: success_criteria hold steps text ({shs}) != target ({target_hold_steps})."
+        )
 
     _require_success_criteria_parses(description)
 
 
 def _require_success_criteria_parses(description: str) -> None:
-    if _parse_success_episode_steps(description) is None:
-        raise RuntimeError("C-01 prompt sync: could not parse episode length from success_criteria.")
-    if _parse_success_track(description) is None:
-        raise RuntimeError("C-01 prompt sync: could not parse track limits from success_criteria.")
-    if _parse_success_actuator_limit_n(description) is None:
-        raise RuntimeError("C-01 prompt sync: could not parse actuator limit from success_criteria.")
+    checks = [
+        (_parse_success_episode_steps(description), "episode length"),
+        (_parse_success_track(description), "track limits"),
+        (_parse_success_actuator_limit_n(description), "actuator limit"),
+        (_parse_success_balance_angle(description), "balance angle"),
+        (_parse_success_failure_angle(description), "failure angle"),
+        (_parse_success_hold_steps(description), "hold steps"),
+    ]
+    for val, label in checks:
+        if val is None:
+            raise RuntimeError(f"C-01 prompt sync: could not parse {label} from success_criteria.")
+
 
 
 def update_task_description_for_visible_changes(
@@ -336,8 +383,10 @@ def update_task_description_for_visible_changes(
     target_cart_rail_center_y = float(
         target_physics_config.get("cart_rail_center_y", _BASE_CART_RAIL_CENTER_Y)
     )
-
-    display_base_pole_start_angle = float(base_physics_config.get("pole_start_angle", _BASE_POLE_START_ANGLE))
+    target_pole_width = float(target_physics_config.get("pole_width", _BASE_POLE_WIDTH))
+    target_balance_angle_deg = float(target_physics_config.get("balance_angle_deg", _BASE_BALANCE_ANGLE_DEG))
+    target_failure_angle_deg = float(target_physics_config.get("failure_angle_deg", _BASE_FAILURE_ANGLE_DEG))
+    target_hold_steps = int(target_physics_config.get("balance_hold_steps_required", _BASE_BALANCE_HOLD_STEPS_REQUIRED))
 
     # Track center: sync when description text disagrees with target (fixes pristine prompt + prior-stage physics).
     parsed_cx = _parse_task_center_x(description)
@@ -346,11 +395,11 @@ def update_task_description_for_visible_changes(
             r"center x\s*=\s*\d+\.?\d*m(?: \(originally \d+\.?\d*m in the source environment\))?"
         )
         if center_pat.search(description):
-            description = center_pat.sub(
-                f"center x={_fmt_track_center_m(target_track_center)} (originally {_fmt_track_center_m(_BASE_TRACK_CENTER_X)} in the source environment)",
-                description,
-                count=1,
-            )
+            if math.isclose(target_track_center, _BASE_TRACK_CENTER_X, rel_tol=0.0, abs_tol=1e-6):
+                repl = f"center x={_fmt_track_center_m(target_track_center)}"
+            else:
+                repl = f"center x={_fmt_track_center_m(target_track_center)} (originally {_fmt_track_center_m(_BASE_TRACK_CENTER_X)} in the source environment)"
+            description = center_pat.sub(repl, description, count=1)
 
     parsed_safe = _parse_task_safe_half(description)
     if parsed_safe is not None and not math.isclose(parsed_safe, target_safe_range, rel_tol=0.0, abs_tol=1e-6):
@@ -358,11 +407,11 @@ def update_task_description_for_visible_changes(
             r"safe range ±\d+\.?\d*m inclusive(?: \(originally ±\d+\.?\d*m in the source environment\))?"
         )
         if safe_flex.search(description):
-            description = safe_flex.sub(
-                f"safe range ±{target_safe_range:.1f}m inclusive (originally ±{_BASE_SAFE_HALF_RANGE:.1f}m in the source environment)",
-                description,
-                count=1,
-            )
+            if math.isclose(target_safe_range, _BASE_SAFE_HALF_RANGE, rel_tol=0.0, abs_tol=1e-6):
+                repl = f"safe range ±{target_safe_range:.1f}m inclusive"
+            else:
+                repl = f"safe range ±{target_safe_range:.1f}m inclusive (originally ±{_BASE_SAFE_HALF_RANGE:.1f}m in the source environment)"
+            description = safe_flex.sub(repl, description, count=1)
 
     parsed_ep = _parse_task_episode_steps(description)
     if parsed_ep is not None and parsed_ep != target_max_steps:
@@ -378,19 +427,6 @@ def update_task_description_for_visible_changes(
                     f"(originally {_BASE_MAX_STEPS} simulation steps in the source environment)"
                 )
             description = ep_pat.sub(repl, description, count=1)
-        else:
-            ep_fallback = re.compile(
-                r"(?m)^- \*\*Episode length\*\*: At most (\d+) simulation steps(?: \(originally [^)]+\))?\s*$"
-            )
-            if ep_fallback.search(description):
-                if target_max_steps == _BASE_MAX_STEPS:
-                    repl_fb = f"- **Episode length**: At most {target_max_steps} simulation steps"
-                else:
-                    repl_fb = (
-                        f"- **Episode length**: At most {target_max_steps} simulation steps "
-                        f"(originally {_BASE_MAX_STEPS} simulation steps in the source environment)"
-                    )
-                description = ep_fallback.sub(repl_fb, description, count=1)
 
     parsed_ry = _parse_task_rail_y(description)
     if parsed_ry is not None and not math.isclose(
@@ -401,10 +437,10 @@ def update_task_description_for_visible_changes(
         )
         if rail_flex.search(description):
             if math.isclose(target_cart_rail_center_y, _BASE_CART_RAIL_CENTER_Y):
-                description = rail_flex.sub(rf"\g<1>{target_cart_rail_center_y:g}m", description, count=1)
+                description = rail_flex.sub(rf"\g<1>{target_cart_rail_center_y:.1f}m", description, count=1)
             else:
                 description = rail_flex.sub(
-                    rf"\g<1>{target_cart_rail_center_y:g}m (originally {_BASE_CART_RAIL_CENTER_Y:g}m in the source environment)",
+                    rf"\g<1>{target_cart_rail_center_y:.1f}m (originally {_BASE_CART_RAIL_CENTER_Y:.1f}m in the source environment)",
                     description,
                     count=1,
                 )
@@ -452,14 +488,34 @@ def update_task_description_for_visible_changes(
                 count=1,
             )
 
+    # Pole width sync
+    pw_flex = re.compile(
+        r"(width )(\d+\.?\d*)m(?: \(originally [\d.]+m in the source environment\))?"
+    )
+    pwm = pw_flex.search(description)
+    if pwm and not math.isclose(float(pwm.group(2)), target_pole_width, rel_tol=0.0, abs_tol=1e-6):
+        if math.isclose(target_pole_width, _BASE_POLE_WIDTH):
+            description = pw_flex.sub(rf"\g<1>{target_pole_width:g}m", description, count=1)
+        else:
+            description = pw_flex.sub(
+                rf"\g<1>{target_pole_width:g}m (originally {_BASE_POLE_WIDTH:g}m in the source environment)",
+                description,
+                count=1,
+            )
+
     # Initial pole angle
-    if _scalar_physics_differs(target_pole_start_angle, display_base_pole_start_angle):
-        ang_deg_new = math.degrees(target_pole_start_angle)
-        upright_pat = r"Initially upright \(angle = 0° or 0rad\)\."
-        mutated_ang_pat = re.compile(
-            r"Initially at angle = ([\d.]+)° \(([-\d.eE]+) rad\) \(originally [\d.]+° / [-\d.eE]+ rad in the source environment\)\."
-        )
-        if abs(display_base_pole_start_angle) < 1e-5 and re.search(upright_pat, description):
+    ang_deg_new = math.degrees(target_pole_start_angle)
+    upright_pat = r"Initially upright \(angle = 0° or 0rad\)\."
+    mutated_ang_pat = re.compile(
+        r"Initially at angle = ([\d.]+)° \(([-\d.eE]+) rad\) \(originally [\d.]+° / [-\d.eE]+ rad in the source environment\)\."
+    )
+    if math.isclose(target_pole_start_angle, _BASE_POLE_START_ANGLE, abs_tol=1e-5):
+        # Revert to baseline if currently mutated
+        if mutated_ang_pat.search(description):
+            description = mutated_ang_pat.sub("Initially upright (angle = 0° or 0rad).", description, count=1)
+    else:
+        # Mutated state
+        if re.search(upright_pat, description):
             replacement = (
                 f"Initially at angle = {ang_deg_new:.1f}° ({target_pole_start_angle:.3f} rad) "
                 f"(originally {math.degrees(_BASE_POLE_START_ANGLE):.1f}° / {_BASE_POLE_START_ANGLE:.3f} rad in the source environment)."
@@ -467,44 +523,93 @@ def update_task_description_for_visible_changes(
             description = re.sub(upright_pat, replacement, description, count=1)
         else:
             am = mutated_ang_pat.search(description)
-            if am and math.isclose(float(am.group(2)), float(display_base_pole_start_angle), rel_tol=0.0, abs_tol=1e-5):
+            if am:
                 replacement = (
                     f"Initially at angle = {ang_deg_new:.1f}° ({target_pole_start_angle:.3f} rad) "
                     f"(originally {math.degrees(_BASE_POLE_START_ANGLE):.1f}° / {_BASE_POLE_START_ANGLE:.3f} rad in the source environment)."
                 )
                 description = mutated_ang_pat.sub(replacement, description, count=1)
 
-    # Sensor delay — angle (full “N simulation steps … (originally M simulation steps of delay …)”)
-    sd_ang_pat = re.compile(
-        r"- \*\*Sensor reporting \(angle\)\*\*: (\d+) simulation steps of delay from true state"
-        r"(?: \(originally (\d+) simulation steps of delay(?: in the source environment)?\))?\."
+    # Grading thresholds / Goal sync
+    # 1. Primary Goal sentence
+    goal_pat = re.compile(
+        r"(Maintain the pole in the upright position \(\|angle\| <= )(\d+\.?\d*)(°\) for at least \*\*)(\d+)( consecutive simulation steps\*\*)"
+        r"(?: \(originally [\d.]+° and \d+ steps in the source environment\))?"
     )
-    sam = sd_ang_pat.search(description)
-    if sam and int(sam.group(1)) != target_sensor_delay_angle:
-        old_ang = int(sam.group(1))
-        description = sd_ang_pat.sub(
-            _task_sensor_delay_angle_line(target_sensor_delay_angle, old_ang),
-            description,
-            count=1,
-        )
+    if goal_pat.search(description):
+        if math.isclose(target_balance_angle_deg, _BASE_BALANCE_ANGLE_DEG) and target_hold_steps == _BASE_BALANCE_HOLD_STEPS_REQUIRED:
+            description = goal_pat.sub(rf"\g<1>{target_balance_angle_deg:g}\g<3>{target_hold_steps}\g<5>", description, count=1)
+        else:
+            description = goal_pat.sub(
+                rf"\g<1>{target_balance_angle_deg:g}\g<3>{target_hold_steps}\g<5> (originally {_BASE_BALANCE_ANGLE_DEG:g}° and {_BASE_BALANCE_HOLD_STEPS_REQUIRED} steps in the source environment)",
+                description,
+                count=1,
+            )
 
-    # Sensor delay — angular velocity
-    sd_om_pat = re.compile(
-        r"- \*\*Sensor reporting \(angular velocity\)\*\*: (\d+) simulation steps of delay from true state"
-        r"(?: \(originally (\d+) simulation steps of delay(?: in the source environment)?\))?\."
+    # 2. Other occurrences of balance/failure angle in Goal section
+    # Use negative lookahead for goal_pat's specific structure to avoid double provenance.
+    bal_exceed_pat = re.compile(
+        r"(\|angle\| (?:exceeds|briefly exceeds|<=) )(\d+\.?\d*)(°)(?: \(originally [\d.]+° in the source environment\))?(?!\) for at least \*\*[\d.]+ consecutive)"
     )
-    som = sd_om_pat.search(description)
-    if som and int(som.group(1)) != target_sensor_delay_omega:
-        old_om = int(som.group(1))
-        description = sd_om_pat.sub(
-            _task_sensor_delay_omega_line(target_sensor_delay_omega, old_om),
-            description,
-            count=1,
-        )
+    description = bal_exceed_pat.sub(
+        lambda m: (
+            f"{m.group(1)}{target_balance_angle_deg:g}{m.group(3)}"
+            if math.isclose(target_balance_angle_deg, _BASE_BALANCE_ANGLE_DEG)
+            else (
+                f"{m.group(1)}{target_balance_angle_deg:g}{m.group(3)} "
+                f"(originally {_BASE_BALANCE_ANGLE_DEG:g}° in the source environment)"
+            )
+        ),
+        description
+    )
+
+    obj_hold_pat = re.compile(
+        r"(\*\*Balance\*\*: Achieve )(\d+)( consecutive simulation steps)"
+        r"(?: \(originally \d+ steps in the source environment\))?"
+    )
+    if obj_hold_pat.search(description):
+        if target_hold_steps == _BASE_BALANCE_HOLD_STEPS_REQUIRED:
+            description = obj_hold_pat.sub(rf"\g<1>{target_hold_steps}\g<3>", description, count=1)
+        else:
+            description = obj_hold_pat.sub(
+                rf"\g<1>{target_hold_steps}\g<3> (originally {_BASE_BALANCE_HOLD_STEPS_REQUIRED} steps in the source environment)",
+                description,
+                count=1,
+            )
+
+    fail_goal_pat = re.compile(
+        r"(\|angle\| > )(\d+\.?\d*)(°)(?: \(originally [\d.]+° in the source environment\))?"
+    )
+    description = fail_goal_pat.sub(
+        lambda m: (
+            f"{m.group(1)}{target_failure_angle_deg:g}{m.group(3)}"
+            if math.isclose(target_failure_angle_deg, _BASE_FAILURE_ANGLE_DEG)
+            else (
+                f"{m.group(1)}{target_failure_angle_deg:g}{m.group(3)} "
+                f"(originally {_BASE_FAILURE_ANGLE_DEG:g}° in the source environment)"
+            )
+        ),
+        description
+    )
+
+    # 3. "Grading vs sensors" line synchronization
+    grading_vs_sensors_pat = re.compile(
+        r"(All angle conditions above \()(\d+\.?\d*)(°, )(\d+\.?\d*)(°, lock-in count, and terminal check\))"
+        r"(?: \(originally [\d.]+° and [\d.]+° in the source environment\))?"
+    )
+    if grading_vs_sensors_pat.search(description):
+        if math.isclose(target_balance_angle_deg, _BASE_BALANCE_ANGLE_DEG) and math.isclose(target_failure_angle_deg, _BASE_FAILURE_ANGLE_DEG):
+            description = grading_vs_sensors_pat.sub(rf"\g<1>{target_balance_angle_deg:g}\g<3>{target_failure_angle_deg:g}\g<5>", description, count=1)
+        else:
+            description = grading_vs_sensors_pat.sub(
+                rf"\g<1>{target_balance_angle_deg:g}\g<3>{target_failure_angle_deg:g}\g<5> (originally {_BASE_BALANCE_ANGLE_DEG:g}° and {_BASE_FAILURE_ANGLE_DEG:g}° in the source environment)",
+                description,
+                count=1,
+            )
 
     # Actuator limit (visible); "(originally …)" only when deviating from source clamp.
     act_task = re.compile(
-        r"(\*\*Actuator Limit\*\*: The cart force is limited to ±)(\d+(?:\.\d+)?)\s*N\.(?: \(originally [^)]+\))?"
+        r"(\*\*Actuator Limit\*\*: The cart force is limited to ±)(\d+(?:\.\d+)?)\s*N\.?(?: \(originally [^)]+\))?"
     )
     am_act = act_task.search(description)
     if am_act:
@@ -533,6 +638,11 @@ def update_task_description_for_visible_changes(
         target_sensor_delay_angle,
         target_sensor_delay_omega,
         target_cart_rail_center_y,
+        target_balance_angle_deg,
+        target_failure_angle_deg,
+        target_hold_steps,
+        target_pole_width,
+        target_pole_start_angle,
     )
     return description
 
@@ -562,12 +672,11 @@ def update_success_criteria_for_visible_changes(
     target_cart_force_limit = float(
         target_physics_config.get("cart_force_limit_newtons", _BASE_CART_FORCE_LIMIT_NEWTONS)
     )
+    target_balance_angle_deg = float(target_physics_config.get("balance_angle_deg", _BASE_BALANCE_ANGLE_DEG))
+    target_failure_angle_deg = float(target_physics_config.get("failure_angle_deg", _BASE_FAILURE_ANGLE_DEG))
+    target_hold_steps = int(target_physics_config.get("balance_hold_steps_required", _BASE_BALANCE_HOLD_STEPS_REQUIRED))
 
     display_base_steps = int(base_physics_config.get("max_steps", _BASE_MAX_STEPS))
-    display_base_center = float(base_physics_config.get("track_center_x", _BASE_TRACK_CENTER_X))
-    display_base_safe = float(base_physics_config.get("safe_half_range", _BASE_SAFE_HALF_RANGE))
-    display_base_sensor_delay_angle = int(base_physics_config.get("sensor_delay_angle_steps", _BASE_SENSOR_DELAY_ANGLE_STEPS))
-    display_base_sensor_delay_omega = int(base_physics_config.get("sensor_delay_omega_steps", _BASE_SENSOR_DELAY_OMEGA_STEPS))
 
     # Episode length — sync stale text; "(originally …)" references source environment only.
     parsed_sc_steps = _parse_success_episode_steps(description)
@@ -588,26 +697,6 @@ def update_success_criteria_for_visible_changes(
                 description,
                 count=1,
             )
-    elif target_max_steps != display_base_steps:
-        sc_ep_pat = re.compile(
-            r"3\. \*\*Episode length\*\*: At most (\d+) simulation steps(?: \(originally [^)]+\))?(\.)"
-        )
-        if sc_ep_pat.search(description):
-            if target_max_steps == _BASE_MAX_STEPS:
-                description = sc_ep_pat.sub(
-                    lambda m: f"3. **Episode length**: At most {target_max_steps} simulation steps{m.group(2)}",
-                    description,
-                    count=1,
-                )
-            else:
-                description = sc_ep_pat.sub(
-                    lambda m: (
-                        f"3. **Episode length**: At most {target_max_steps} simulation steps "
-                        f"(originally {_BASE_MAX_STEPS} simulation steps in the source environment){m.group(2)}"
-                    ),
-                    description,
-                    count=1,
-                )
 
     # Track limits — S-01-style inline (originally … in the source environment).
     parsed_tr = _parse_success_track(description)
@@ -621,41 +710,46 @@ def update_success_criteria_for_visible_changes(
             )
             if track_any.search(description):
                 description = track_any.sub(
-                    _success_track_limits_line(target_track_center, target_safe_range),
+                    f"{_success_track_limits_line(target_track_center, target_safe_range)}",
                     description,
                     count=1,
                 )
 
-    # Stability criterion — explicit sensor delays when mutated from base (or when base prompt still shows 0 while target differs).
-    if target_sensor_delay_angle != _BASE_SENSOR_DELAY_ANGLE_STEPS or target_sensor_delay_omega != _BASE_SENSOR_DELAY_OMEGA_STEPS:
-        oda = display_base_sensor_delay_angle
-        odw = display_base_sensor_delay_omega
-        frag_new = (
-            "(which may differ from `get_pole_angle` and `get_pole_angular_velocity`: angle reports lag by {da} simulation steps and angular velocity "
-            "reports lag by {dw} simulation steps (originally {oda} and {odw} simulation steps in the source environment))"
-        ).format(
-            da=target_sensor_delay_angle,
-            dw=target_sensor_delay_omega,
-            oda=oda,
-            odw=odw,
-        )
-        frag_old_pat = re.compile(
-            r"\(which may differ from `get_pole_angle` and `get_pole_angular_velocity` when \*\*Sensor reporting \(angle\)\*\* or "
-            r"\*\*Sensor reporting \(angular velocity\)\*\* delays are non-zero\)"
-        )
-        frag_mut_pat = re.compile(
-            r"\(which may differ from `get_pole_angle` and `get_pole_angular_velocity`: angle reports lag by \d+ simulation steps and angular velocity "
-            r"reports lag by \d+ simulation steps \(originally \d+ and \d+ simulation steps in the source environment\)\)"
-        )
-        if frag_old_pat.search(description):
-            description = frag_old_pat.sub(frag_new, description, count=1)
-        elif frag_mut_pat.search(description):
-            description = frag_mut_pat.sub(frag_new, description, count=1)
+    # Success Criteria grading band sync
+
+    sc_bal_pat = re.compile(
+        r"(\|angle\| <= )(\d+\.?\d*)(°\)) for at least (\d+)( consecutive simulation steps)"
+        r"(?: \(originally [\d.]+° and \d+ steps in the source environment\))?"
+    )
+    if sc_bal_pat.search(description):
+        if math.isclose(target_balance_angle_deg, _BASE_BALANCE_ANGLE_DEG) and target_hold_steps == _BASE_BALANCE_HOLD_STEPS_REQUIRED:
+            description = sc_bal_pat.sub(rf"\g<1>{target_balance_angle_deg:g}\g<3> for at least {target_hold_steps}\g<5>", description, count=1)
+        else:
+            description = sc_bal_pat.sub(
+                rf"\g<1>{target_balance_angle_deg:g}\g<3> for at least {target_hold_steps}\g<5> (originally {_BASE_BALANCE_ANGLE_DEG:g}° and {_BASE_BALANCE_HOLD_STEPS_REQUIRED} steps in the source environment)",
+                description,
+                count=1,
+            )
+
+    sc_fail_pat = re.compile(
+        r"(\|angle\| > )(\d+\.?\d*)(°; \*\*final\*\* success requires \|angle\| <= )(\d+\.?\d*)(°)"
+        r"(?: \(originally [\d.]+° and [\d.]+° in the source environment\))?"
+    )
+    if sc_fail_pat.search(description):
+        if math.isclose(target_failure_angle_deg, _BASE_FAILURE_ANGLE_DEG) and math.isclose(target_balance_angle_deg, _BASE_BALANCE_ANGLE_DEG):
+            description = sc_fail_pat.sub(rf"\g<1>{target_failure_angle_deg:g}\g<3>{target_balance_angle_deg:g}\g<5>", description, count=1)
+        else:
+            description = sc_fail_pat.sub(
+                rf"\g<1>{target_failure_angle_deg:g}\g<3>{target_balance_angle_deg:g}\g<5> (originally {_BASE_FAILURE_ANGLE_DEG:g}° and {_BASE_BALANCE_ANGLE_DEG:g}° in the source environment)",
+                description,
+                count=1,
+            )
 
     # Design Constraints — actuator
     sc_act = re.compile(
-        r"(- \*\*Actuator\*\*: Cart force must not exceed ±)(\d+(?:\.\d+)?)\s*N\.(?: \(originally [^)]+\))?"
+        r"(- \*\*Actuator\*\*: Cart force must not exceed ±)(\d+(?:\.\d+)?)\s*N\.?(?: \(originally [^)]+\))?"
     )
+
     am_sca = sc_act.search(description)
     if am_sca:
         cur_fl = float(am_sca.group(2))
@@ -672,9 +766,19 @@ def update_success_criteria_for_visible_changes(
                 )
 
     _verify_success_criteria_sync(
-        description, target_max_steps, target_track_center, target_safe_range, target_cart_force_limit
+        description,
+        target_max_steps,
+        target_track_center,
+        target_safe_range,
+        target_cart_force_limit,
+        target_balance_angle_deg,
+        target_failure_angle_deg,
+        target_hold_steps,
+        target_sensor_delay_angle,
+        target_sensor_delay_omega,
     )
     return description
+
 
 
 # Union of all physical variables modified across Stage-1–4:

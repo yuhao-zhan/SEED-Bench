@@ -1,0 +1,53 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.opkXxC497o/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.opkXxC497o/environment.py	2026-03-26 15:33:47
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/environment.py	2026-03-26 15:39:01
+@@ -84,6 +84,7 @@
+         self._step_count = 0
+         self._surge_steps_applied = 0
+         self._joint_force_history = {}  # joint -> list of recent force magnitudes for break check
++        self._first_joint_break_step = None
+         # Critical-threshold mutation: fewer consecutive over-threshold steps => welds fail faster (not just lower N·threshold)
+         self._joint_force_history_len = int(terrain_config.get("joint_break_consecutive_steps", 3))
+         self._joint_force_history_len = max(1, min(self._joint_force_history_len, 10))
+@@ -367,6 +368,8 @@
+                 except Exception:
+                     pass
+             for joint in to_remove:
++                if self._first_joint_break_step is None:
++                    self._first_joint_break_step = self._step_count
+                 self._joint_force_history.pop(joint, None)
+                 try:
+                     self._world.DestroyJoint(joint)
+@@ -398,6 +401,9 @@
+                         vx, vy = p.linearVelocity
+                         p.linearVelocity = (vx, vy + self._upward_surge_impulse_y)
+                 break
++
++    def get_first_joint_break_step(self):
++        return self._first_joint_break_step
+ 
+     def get_terrain_bounds(self):
+         res_x_min = getattr(self, "RESERVOIR_X_MIN", 1.0)
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.opkXxC497o/evaluator.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.opkXxC497o/evaluator.py	2026-03-26 15:33:47
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/evaluator.py	2026-03-26 15:39:15
+@@ -159,6 +159,7 @@
+             "structure_mass": self.environment.get_structure_mass(),
+             "max_structure_mass": self.MAX_STRUCTURE_MASS,
+             "structure_broken": self.structure_broken,
++            "first_joint_break_step": self.environment.get_first_joint_break_step() if hasattr(self.environment, 'get_first_joint_break_step') else None,
+             "joint_count": len(self.environment._joints),
+             "terrain_joint_count": self.environment.get_terrain_joint_count() if hasattr(self.environment, 'get_terrain_joint_count') else 0,
+             "max_beam_count": self.MAX_BEAM_COUNT,
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.opkXxC497o/feedback.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/feedback.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.opkXxC497o/feedback.py	2026-03-26 15:33:47
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/feedback.py	2026-03-26 15:39:18
+@@ -91,6 +91,8 @@
+     if "structure_broken" in metrics:
+         integrity = "BROKEN" if metrics["structure_broken"] else "INTACT"
+         lines.append(f"- Structural Integrity Flag: {integrity}")
++        if metrics["structure_broken"] and metrics.get("first_joint_break_step"):
++            lines.append(f"- First Joint Failure Step: {metrics['first_joint_break_step']}")
+ 
+     lines.append("\n### 2. Containment State")
+     if "initial_particle_count" in metrics:

@@ -19,9 +19,9 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_physics_config = base_physics_config or {}
 
     # Sync Joint Strength if mutated (torque pattern uses (inf|\d+\.?\d*) so trailing period is not consumed)
-    for key, pattern, default, suffix in [
-        ("max_joint_force", r"(- \*\*Joint Strength\*\*: Maximum linear force for a joint is )(\w+\.?\d*)", float('inf'), ";"),
-        ("max_joint_torque", r"(; maximum torque is )(inf|\d+\.?\d*)", float('inf'), ".")
+    for key, pattern, default in [
+        ("max_joint_force", r"(- \*\*Joint Strength\*\*: Maximum linear force for a joint is )(inf|\d+\.?\d*)", float('inf')),
+        ("max_joint_torque", r"(; maximum torque is )(inf|\d+\.?\d*)", float('inf'))
     ]:
         target_val = target_physics_config.get(key, default)
         base_val = base_physics_config.get(key, default)
@@ -36,6 +36,19 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                     f"\\g<1>{target_str} (originally {base_str} in the source environment)",
                     description
                 )
+
+    # Sync Wind Height Threshold
+    key = "wind_height_threshold"
+    pattern = r"(at altitudes above )(\d+\.?\d*m)(, simulating wind pressure)"
+    target_val = target_terrain_config.get(key, 20.0)
+    base_val = base_terrain_config.get(key, 20.0)
+    if target_val != base_val:
+        if re.search(pattern, description):
+            description = re.sub(
+                pattern,
+                f"\\g<1>{target_val:.1f}m (originally {base_val:.1f}m in the source environment)\\g<3>",
+                description
+            )
     
     return description
 

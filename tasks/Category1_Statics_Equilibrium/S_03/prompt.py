@@ -41,7 +41,7 @@ Design a robust cantilever structure that can:
 - **Goal**: Reach x >= 12.0m.
 2. Support all applied payloads for 10 seconds each without collapsing or excessive sagging.
 3. Manage internal stresses so that the wall anchors and structural joints remain intact.
-- **Mass Limit**: < 15,000 kg.
+- **Mass Limit**: <= 15,000 kg.
 """,
     
     'success_criteria': """
@@ -52,8 +52,9 @@ Design a robust cantilever structure that can:
 4. **Stability**: No part of the structure may go below the allowed vertical threshold (y >= -15.0 m).
 
 ## Design Constraints
-- **Mass Budget**: < 15,000 kg.
+- **Mass Budget**: <= 15,000 kg.
 - **Payload Mass**: 500 kg per applied load.
+- **Load Duration**: Support each payload for 10.0 seconds.
 - **Payload application**: Static (placed on structure at the given times) in the source environment.
 - **Anchor Limit**: Maximum 2 anchor points on the wall.
 - **Forbidden Anchor Zones**: None in the source environment.

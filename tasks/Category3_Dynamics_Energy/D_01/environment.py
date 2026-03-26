@@ -61,6 +61,11 @@ class Sandbox:
         self.BUILD_ZONE_Y_MIN = float(terrain_config.get("build_zone_y_min", 1.5))
         self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 8.0))
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 500.0))
+        
+        # Tracking telemetry
+        self._peak_ke = 0.0
+        self._first_collision_step = None
+        self._step_counter = 0
 
     def _create_terrain(self, terrain_config: dict):
         """Create ground: long flat static surface."""
@@ -97,6 +102,7 @@ class Sandbox:
         projectile.linearDamping = self._default_linear_damping
         projectile.angularDamping = self._default_angular_damping
         self._terrain_bodies["projectile"] = projectile
+        self._projectile_mass = projectile.mass
 
     def _create_target_zone(self, terrain_config: dict):
         """Define target zone bounds (no physical body; used for evaluation).
@@ -135,6 +141,7 @@ class Sandbox:
                 shape=polygonShape(box=(width / 2, height / 2)),
                 density=density,
                 friction=0.5,
+                restitution=0.2,
             ),
         )
         body.linearDamping = self._default_linear_damping
@@ -203,7 +210,7 @@ class Sandbox:
         bx, by = anchor_b[0], anchor_b[1]
         if rest_length is None:
             rest_length = math.sqrt((bx - ax) ** 2 + (by - ay) ** 2)
-            rest_length = max(0.1, rest_length)
+        rest_length = max(0.1, rest_length)
 
         defn = distanceJointDef()
         defn.bodyA = body_a
@@ -239,6 +246,22 @@ class Sandbox:
     def step(self, time_step):
         """Advance physics by one time step."""
         self._world.Step(time_step, 10, 10)
+        self._step_counter += 1
+
+        # Track telemetry
+        proj = self._terrain_bodies.get("projectile")
+        if proj:
+            vx, vy = proj.linearVelocity.x, proj.linearVelocity.y
+            ke = 0.5 * self._projectile_mass * (vx * vx + vy * vy)
+            if ke > self._peak_ke:
+                self._peak_ke = ke
+
+            if self._first_collision_step is None and len(proj.contacts) > 0:
+                self._first_collision_step = self._step_counter
+
+    def get_ground(self):
+        """API: Return ground body."""
+        return self._terrain_bodies.get("ground")
 
     def get_terrain_bounds(self):
         """Return terrain and target zone bounds for evaluation and rendering."""
@@ -274,9 +297,11 @@ class Sandbox:
             return None
         return (proj.linearVelocity.x, proj.linearVelocity.y)
 
-    def get_ground(self):
-        """Return ground body for anchoring or spring attachment."""
-        return self._terrain_bodies.get("ground")
+    def get_peak_kinetic_energy(self):
+        return self._peak_ke
+    
+    def get_first_collision_step(self):
+        return self._first_collision_step
 
     def get_projectile(self):
         """Return projectile body (ball to be launched)."""

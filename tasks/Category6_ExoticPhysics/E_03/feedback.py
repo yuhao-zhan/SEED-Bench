@@ -79,6 +79,20 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "step_count" in metrics:
         parts.append(f"**Simulation step index (at evaluation)**: {metrics['step_count']}")
 
+    # Zone Status
+    zones = {
+        "in_momentum_drain_zone": "Momentum Drain",
+        "in_wind_zone": "Wind",
+        "in_thrust_scale_zone": "Thrust Scaling",
+        "in_horizontal_reverse_zone": "Horizontal Thrust Reverse",
+        "in_oscillating_force_zone": "Oscillating Force",
+        "in_speed_penalty_zone": "Speed Penalty",
+        "in_vertical_reverse_zone": "Vertical Thrust Reverse",
+    }
+    active_zones = [name for key, name in zones.items() if metrics.get(key)]
+    if active_zones:
+        parts.append(f"**Active Environment Zones**: {', '.join(active_zones)}")
+
     sx = _as_float(metrics.get("sled_x"))
     sy = _as_float(metrics.get("sled_y"))
     if sx is not None and sy is not None:

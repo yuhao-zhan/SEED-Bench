@@ -91,6 +91,8 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "structure_broken" in metrics:
         integrity = "BROKEN" if metrics["structure_broken"] else "INTACT"
         lines.append(f"- Structural Integrity Flag: {integrity}")
+        if metrics["structure_broken"] and metrics.get("first_joint_break_step"):
+            lines.append(f"- First Joint Failure Step: {metrics['first_joint_break_step']}")
 
     lines.append("\n### 2. Containment State")
     if "initial_particle_count" in metrics:

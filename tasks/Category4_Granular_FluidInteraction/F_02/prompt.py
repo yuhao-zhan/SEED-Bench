@@ -43,7 +43,7 @@ Design a vehicle that:
     "success_criteria": """
 ## Success Criteria
 1. **Goal Reach**: Vehicle front reaches x >= 26.0m.
-2. **Survival**: Vehicle does not sink (lowest point y < -0.5m).
+2. **Survival**: Vehicle does not sink (lowest point must remain y >= -0.5m).
 
 ## Design Constraints
 - **Mass Budget**: Total structure mass <= 600 kg.

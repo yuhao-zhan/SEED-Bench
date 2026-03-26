@@ -108,6 +108,8 @@ class Sandbox:
         self._bodies = []
         self._joints = []
         self._terrain_bodies = {}
+        self._broken_joints = []  # Added for forensic tracking
+        self._peak_joint_stress = 0.0  # Added for forensic tracking
 
         self.world = self._world
         self.bodies = self._bodies
@@ -234,12 +236,15 @@ class Sandbox:
                 try:
                     # Reaction force is returned for the given time step
                     force = j.GetReactionForce(1.0 / time_step).length
+                    if force > self._peak_joint_stress:
+                        self._peak_joint_stress = force
                     if force > self._joint_force_limit:
                         to_break.append(j)
                 except Exception:
                     continue
             
             for j in to_break:
+                self._broken_joints.append(self._time)
                 self._world.DestroyJoint(j)
                 if j in self._joints:
                     self._joints.remove(j)
@@ -370,7 +375,9 @@ class Sandbox:
             ],
         }
 
-    def get_gravity_at_time(self, t=None):
-        """Current or specified-time gravity vector (for feedback/display)."""
-        t = t if t is not None else self._time
-        return self._gravity_function(t)
+    def get_joint_forensics(self):
+        return {
+            "broken_joint_times": self._broken_joints,
+            "peak_joint_stress": self._peak_joint_stress,
+            "limit": self._joint_force_limit
+        }

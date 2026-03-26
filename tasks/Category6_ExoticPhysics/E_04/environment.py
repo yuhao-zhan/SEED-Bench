@@ -31,6 +31,7 @@ class Sandbox:
     # Minimum structure complexity (enforced by evaluator)
     MIN_BEAMS = 5
     MIN_JOINTS = 6
+    REQUIRE_PIVOT_JOINT = True
 
     # Span requirement: at least one beam center x <= SPAN_LEFT, one >= SPAN_RIGHT
     SPAN_LEFT_X = 6.0
@@ -166,7 +167,7 @@ class Sandbox:
         if ground is not None:
             omega = 2.0 * math.pi * self.BASE_EXCITATION_FREQUENCY
             vx = self.BASE_EXCITATION_HORIZONTAL_AMPLITUDE * omega * math.cos(omega * t)
-            vy = self.BASE_EXCITATION_VERTICAL_AMPLITUDE * omega * math.cos(omega * t)
+            vy = self.BASE_EXCITATION_VERTICAL_AMPLITUDE * omega * math.sin(omega * t)
             ground.linearVelocity = (vx, vy)
         self._time += time_step
         try:

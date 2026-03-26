@@ -154,9 +154,9 @@ def get_improvement_suggestions(
         )
 
     # --- Design constraint: mass budget (threshold from metrics only) ---
-    if max_mass is not None and max_mass > 0 and structure_mass > max_mass:
+    if max_mass is not None and max_mass > 0 and structure_mass >= max_mass:
         suggestions.append(
-            "- **Design constraint violation**: The structure mass exceeds the permitted budget "
+            "- **Design constraint violation**: The structure mass exceeds or meets the permitted budget "
             "(structure_mass vs max_structure_mass in metrics). The failure is at build time; "
             "reconcile the design with the allowed mass limit before trajectory tuning."
         )

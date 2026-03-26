@@ -37,72 +37,48 @@ def update_task_description_for_visible_changes(
     base_obj = base_terrain_config.get("object", {})
     target_mass = float(target_obj.get("mass", 20.0))
     base_mass = float(base_obj.get("mass", 20.0))
-    target_obj_friction = float(target_obj.get("friction", 0.6))
-    base_obj_friction = float(base_obj.get("friction", 0.6))
     default_sustain_s = 3.0
     default_max_structure_mass = 60.0
     target_sustain_s = float(target_terrain_config.get("min_sustain_s", default_sustain_s))
     base_sustain_s = float(base_terrain_config.get("min_sustain_s", default_sustain_s))
     target_max_mass = float(target_terrain_config.get("max_structure_mass", default_max_structure_mass))
     base_max_mass = float(base_terrain_config.get("max_structure_mass", default_max_structure_mass))
-    target_ground_friction = float(target_terrain_config.get("ground_friction", 0.8))
-    base_ground_friction = float(base_terrain_config.get("ground_friction", 0.8))
 
     if target_y != base_y:
         # Update "at least y=9.0m"
-        pattern = r"(at least y=)(\d+\.?\d*)m"
+        pattern = r"(at least y=)(\d+\.?\d*)m( \(originally y=[\d.]+m in the source environment\))?"
         description = re.sub(pattern, f"\\g<1>{target_y:.1f}m (originally y={base_y:.1f}m in the source environment)", description)
         # Update "Object center reaches y >= 9.0m" (constraints section)
-        pattern_y_ge = r"(reaches y >= )(\d+\.?\d*)m"
+        pattern_y_ge = r"(reaches y >= )(\d+\.?\d*)m( \(originally y >= [\d.]+m in the source environment\))?"
         description = re.sub(pattern_y_ge, f"\\g<1>{target_y:.1f}m (originally y >= {base_y:.1f}m in the source environment)", description)
 
     if target_mass != base_mass:
-        # Update "A 20 kg block" or "A 20 kg block (0.6 m × 0.4 m, ...)" (target object mass); allow optional ", friction coefficient X.X"
-        mass_pattern = r"(- \*\*Target Object\*\*: A )(\d+\.?\d*)( kg)( block(?: \([\d.]+ m × [\d.]+ m, width × height\))?(?:, friction coefficient [\d.]+)?, resting at x=)"
+        # Update "A 20 kg block"
+        mass_pattern = r"(- \*\*Target Object\*\*: A )(\d+\.?\d*)( kg)( \(originally [\d.]+ kg in the source environment\))?( block(?: \([\d.]+ m × [\d.]+ m, width × height\))?, resting at x=)"
         if re.search(mass_pattern, description):
             description = re.sub(
                 mass_pattern,
-                f"\\g<1>{target_mass:.0f} kg (originally {base_mass:.0f} kg in the source environment)\\g<4>",
-                description,
-            )
-
-    if target_ground_friction != base_ground_friction:
-        # Update "friction coefficient 0.8" for Ground
-        ground_friction_pattern = r"(- \*\*Ground\*\*: A flat horizontal surface at y=1\.0m \()(friction coefficient )(\d+\.?\d*)(\)\.)"
-        if re.search(ground_friction_pattern, description):
-            description = re.sub(
-                ground_friction_pattern,
-                f"\\g<1>\\g<2>{target_ground_friction:.1f} (originally {base_ground_friction:.1f} in the source environment).",
-                description,
-            )
-
-    if target_obj_friction != base_obj_friction:
-        # Update "friction coefficient 0.6" for Target Object
-        friction_pattern = r"(friction coefficient )(\d+\.?\d*)(, resting at x=)"
-        if re.search(friction_pattern, description):
-            description = re.sub(
-                friction_pattern,
-                f"\\g<1>{target_obj_friction:.1f} (originally {base_obj_friction:.1f} in the source environment), resting at x=",
+                f"\\g<1>{target_mass:.0f} kg (originally {base_mass:.0f} kg in the source environment)\\g<5>",
                 description,
             )
 
     if target_sustain_s != base_sustain_s:
         # Update "for at least 3.0 seconds" in constraints
-        sustain_pattern = r"(for at least )(\d+\.?\d*)( seconds \()"
+        sustain_pattern = r"(for at least )(\d+\.?\d*)( seconds)( \(originally [\d.]+ seconds in the source environment\))?( \()"
         if re.search(sustain_pattern, description):
             description = re.sub(
                 sustain_pattern,
-                f"\\g<1>{target_sustain_s:.1f} seconds (originally {base_sustain_s:.1f} seconds in the source environment) (",
+                f"\\g<1>{target_sustain_s:.1f}\\g<3> (originally {base_sustain_s:.1f} seconds in the source environment)\\g<5>",
                 description,
             )
 
     if target_max_mass != base_max_mass:
         # Update "must be less than 60 kg" in constraints
-        mass_budget_pattern = r"(Total structure mass must be less than )(\d+\.?\d*)( kg\.)"
+        mass_budget_pattern = r"(Total structure mass must be less than )(\d+\.?\d*)( kg)( \(originally [\d.]+ kg in the source environment\))?(\.)"
         if re.search(mass_budget_pattern, description):
             description = re.sub(
                 mass_budget_pattern,
-                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
+                f"\\g<1>{target_max_mass:.0f}\\g<3> (originally {base_max_mass:.0f} kg in the source environment)\\g<5>",
                 description,
             )
 
@@ -163,15 +139,49 @@ def update_task_description_for_visible_changes(
                 description,
             )
         else:
-            # Already has a limit (e.g. from prior stage); update numeric value and originally
             joint_limit_numeric_pattern = r"(- \*\*Joint reaction limit\*\*: Structural joints break if reaction force exceeds )(\d+\.?\d*)( N \(originally )(no limit|[^)]+)( in the source environment\)\.)"
             if re.search(joint_limit_numeric_pattern, description):
                 base_str = f"{base_max_joint_force:.0f} N" if base_max_joint_force < float("inf") else "no limit"
                 description = re.sub(
                     joint_limit_numeric_pattern,
-                    f"\\g<1>{target_max_joint_force:.0f} N (originally {base_str} in the source environment).",
+                    f"\\g<1>{target_max_joint_force:.0f} N (originally {base_str}\\g<5>",
                     description,
                 )
+
+    target_lifting_threshold = float(target_terrain_config.get("LIFTING_THRESHOLD_M", 0.5))
+    base_lifting_threshold = float(base_terrain_config.get("LIFTING_THRESHOLD_M", 0.5))
+    target_start_x = float(target_terrain_config.get("OBJECT_START_X", 4.0))
+    base_start_x = float(base_terrain_config.get("OBJECT_START_X", 4.0))
+    target_start_y = float(target_terrain_config.get("OBJECT_START_Y", 1.8))
+    base_start_y = float(base_terrain_config.get("OBJECT_START_Y", 1.8))
+
+    if target_start_x != base_start_x or target_start_y != base_start_y:
+        # Update "resting at x=4.0m, y=1.8m"
+        start_pos_pattern = r"(resting at x=)(\d+\.?\d*)(m, y=)(\d+\.?\d*)(m)"
+        if re.search(start_pos_pattern, description):
+            description = re.sub(
+                start_pos_pattern,
+                f"\\g<1>{target_start_x:.1f}\\g<3>{target_start_y:.1f}\\g<5> (originally x={base_start_x:.1f}m, y={base_start_y:.1f}m in the source environment)",
+                description,
+            )
+
+    if target_lifting_threshold != base_lifting_threshold or target_start_y != base_start_y:
+        # Update "rises at least 0.5 m above its initial height (y=1.8 m)"
+        threshold_pattern = r"(rises at least )(\d+\.?\d*)( m)( above its initial height \(y=)(\d+\.?\d*)( m\))( \(originally rises at least [\d.]+ m above its initial height \(y=[\d.]+ m\) in the source environment\))?"
+        if re.search(threshold_pattern, description):
+            description = re.sub(
+                threshold_pattern,
+                f"\\g<1>{target_lifting_threshold:.1f}\\g<3>\\g<4>{target_start_y:.1f}\\g<6> (originally rises at least {base_lifting_threshold:.1f} m above its initial height (y={base_start_y:.1f} m) in the source environment)",
+                description,
+            )
+        else:
+            # Fallback for base environment string without "originally"
+            base_threshold_pattern = r"(rises at least )(\d+\.?\d*)( m)( above its initial height \(y=)(\d+\.?\d*)( m\))"
+            description = re.sub(
+                base_threshold_pattern,
+                f"\\g<1>{target_lifting_threshold:.1f}\\g<3>\\g<4>{target_start_y:.1f}\\g<6> (originally rises at least {base_lifting_threshold:.1f} m above its initial height (y={base_start_y:.1f} m) in the source environment)",
+                description,
+            )
 
     return description
 
@@ -194,7 +204,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
 
     if target_y != base_y:
         # Update "Object reaches y >= 9.0m" (lowercase "reaches" in prompt)
-        pattern = r"(reaches y >= )(\d+\.?\d*)m"
+        pattern = r"(reaches y >= )(\d+\.?\d*)m( \(originally y >= [\d.]+m in the source environment\))?"
         criteria = re.sub(pattern, f"\\g<1>{target_y:.1f}m (originally y >= {base_y:.1f}m in the source environment)", criteria, flags=re.IGNORECASE)
 
     if target_mass != base_mass:
@@ -204,22 +214,23 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         pass
 
     if target_sustain_s != base_sustain_s:
-        # Update ">= 3.0 seconds" in success criteria
-        sustain_pattern = r"(for >= )(\d+\.?\d*)( seconds \()"
+        # Update "for >= 3.0 seconds" in success criteria
+        sustain_pattern = r"(for >= )(\d+\.?\d*)( seconds)( \(originally [\d.]+ seconds in the source environment\))?( \()"
         if re.search(sustain_pattern, criteria):
             criteria = re.sub(
                 sustain_pattern,
-                f"\\g<1>{target_sustain_s:.1f} seconds (originally {base_sustain_s:.1f} seconds in the source environment) (",
+                f"\\g<1>{target_sustain_s:.1f}\\g<3> (originally {base_sustain_s:.1f} seconds in the source environment)\\g<5>",
                 criteria,
             )
 
+
     if target_max_mass != base_max_mass:
         # Update "Mass Budget**: < 60 kg" in success criteria
-        mass_budget_pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*)( kg\.)"
+        mass_budget_pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*)( kg)( \(originally [\d.]+ kg in the source environment\))?(\.)"
         if re.search(mass_budget_pattern, criteria):
             criteria = re.sub(
                 mass_budget_pattern,
-                f"\\g<1>{target_max_mass:.0f} kg (originally {base_max_mass:.0f} kg in the source environment).",
+                f"\\g<1>{target_max_mass:.0f}\\g<3> (originally {base_max_mass:.0f} kg in the source environment)\\g<5>",
                 criteria,
             )
 

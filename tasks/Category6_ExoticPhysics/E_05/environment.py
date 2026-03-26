@@ -64,6 +64,11 @@ class Sandbox:
     TARGET_Y_MIN = 6.0   # Unified with evaluator/prompt
     TARGET_Y_MAX = 9.0
 
+    # Pit zone (forbidden region) constants
+    PIT_X_MIN = 16.0
+    PIT_X_MAX = 24.0
+    PIT_Y_MAX = 5.5
+
     # Single source of truth for step limit; prompt time budget should match (see main.py when max_steps is None).
     MAX_STEPS = 10000
 
@@ -179,7 +184,7 @@ class Sandbox:
         return self._step_count
 
     def get_terrain_bounds(self):
-        """For evaluator/renderer: start, target zone. Magnets are not exposed (invisible)."""
+        """For evaluator/renderer: start, target zone, pit, and thrust limit. Magnets are not exposed (invisible)."""
         return {
             "ground_y": self._ground_y,
             "body_start": {"x": self._body_start_x, "y": self._body_start_y},
@@ -189,4 +194,10 @@ class Sandbox:
                 "y_min": self.TARGET_Y_MIN,
                 "y_max": self.TARGET_Y_MAX,
             },
+            "pit_zone": {
+                "x_min": self.PIT_X_MIN,
+                "x_max": self.PIT_X_MAX,
+                "y_max": self.PIT_Y_MAX,
+            },
+            "max_thrust": self._max_thrust_magnitude,
         }

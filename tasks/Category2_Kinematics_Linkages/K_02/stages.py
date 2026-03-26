@@ -49,12 +49,12 @@ def update_task_description_for_visible_changes(
     target_min_mass = target_terrain_config.get("min_structure_mass", default_min_mass)
     base_min_mass = base_terrain_config.get("min_structure_mass", default_min_mass)
     if target_min_mass != base_min_mass:
-        # Update Mass Budget line: "at least 0 kg and less than 50 kg" -> new min with (originally ...)
-        min_mass_pattern = r"(Total structure mass must be at least )(\d+\.?\d*)( kg and less than )(\d+\.?\d*)( kg\.)"
+        # Update Mass Budget line: "at least 0 kg and at most 50 kg" -> new min with (originally ...)
+        min_mass_pattern = r"(Total structure mass must be at least )(\d+\.?\d*)( kg and at most )(\d+\.?\d*)( kg\.)"
         if re.search(min_mass_pattern, description):
             description = re.sub(
                 min_mass_pattern,
-                f"\\g<1>{target_min_mass:.1f} kg (originally {base_min_mass:.1f} kg in the source environment) and less than \\g<4>\\g<5>",
+                f"\\g<1>{target_min_mass:.1f} kg (originally {base_min_mass:.1f} kg in the source environment) and at most \\g<4>\\g<5>",
                 description
             )
 
@@ -63,7 +63,7 @@ def update_task_description_for_visible_changes(
     target_max_mass = target_terrain_config.get("max_structure_mass", default_max_mass)
     base_max_mass = base_terrain_config.get("max_structure_mass", default_max_mass)
     if target_max_mass != base_max_mass:
-        max_mass_pattern = r"( and less than )(\d+\.?\d*)( kg\.)"
+        max_mass_pattern = r"( and at most )(\d+\.?\d*)( kg\.)"
         if re.search(max_mass_pattern, description):
             description = re.sub(
                 max_mass_pattern,
@@ -136,7 +136,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_max_mass = target_terrain_config.get("max_structure_mass", default_max_mass)
     base_max_mass = base_terrain_config.get("max_structure_mass", default_max_mass)
     if target_max_mass != base_max_mass:
-        max_mass_criteria_pattern = r"(maximum < )(\d+\.?\d*)( kg\.)"
+        max_mass_criteria_pattern = r"(maximum at most )(\d+\.?\d*)( kg\.)"
         if re.search(max_mass_criteria_pattern, criteria):
             criteria = re.sub(
                 max_mass_criteria_pattern,
@@ -167,7 +167,7 @@ def get_k02_curriculum_stages() -> List[Dict[str, Any]]:
 ## Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - **Build Zone (Vertical Extent)**: The allowed vertical range for placing and operating the structure may differ from the default.
+ - **Build Zone (Vertical Extent)**: The allowed vertical range for placing the structure at initialization may differ from the default.
  - **Structural Integrity Thresholds (Joint Force/Torque)**: Joints may snap if subjected to excessive reaction forces or if motors exert too much torque.
  - **Gravitational Instability (Gravity/Evolution)**: Gravitational acceleration or its variation over time may differ from the default; vertical loads may be significantly different.
  - **Surface Adhesion Gaps (Suction Zones)**: The wall's surface may be slick or non-adhesive in certain altitude bands, requiring long-reach transitions or robust timing.

@@ -65,7 +65,10 @@ class Sandbox:
         self.MAX_BEAM_COUNT = int(terrain_config.get("max_beam_count", 18))
         self.MIN_BEAM_COUNT = int(terrain_config.get("min_beam_count", 10))
         self.MAX_BEAMS_MIDDLE_STRIP = int(terrain_config.get("max_beams_middle_strip", 1))  # at most 1 beam in narrow middle — forces bridge topology
+        self.MIN_BEAMS_MIDDLE_STRIP = int(terrain_config.get("min_beams_middle_strip", 1))
         self.MAX_BEAMS_RIGHT_STRIP = int(terrain_config.get("max_beams_right_strip", 2))
+        self.MIN_BEAMS_LEFT_STRIP = int(terrain_config.get("min_beams_left_strip", 1))
+        self.MIN_BEAMS_RIGHT_STRIP = int(terrain_config.get("min_beams_right_strip", 1))
         self.RESERVOIR_FILL_HEIGHT = float(terrain_config.get("fluid_height", 7.0))
         self.MAX_TERRAIN_ANCHORS = 0  # ZERO floor anchors — dam must be free-standing
         self.MIN_BEAM_BOTTOM_Y = float(terrain_config.get("min_beam_bottom_y", 0.5))
@@ -81,6 +84,7 @@ class Sandbox:
         self._step_count = 0
         self._surge_steps_applied = 0
         self._joint_force_history = {}  # joint -> list of recent force magnitudes for break check
+        self._first_joint_break_step = None
         # Critical-threshold mutation: fewer consecutive over-threshold steps => welds fail faster (not just lower N·threshold)
         self._joint_force_history_len = int(terrain_config.get("joint_break_consecutive_steps", 3))
         self._joint_force_history_len = max(1, min(self._joint_force_history_len, 10))
@@ -242,14 +246,17 @@ class Sandbox:
         floor_body = self._terrain_bodies.get("floor")
         if body_b is None:
             body_b = floor_body
-        if body_b is None:
-            raise ValueError("add_joint: terrain body not found for anchor.")
-        if body_b == floor_body:
-            if len(self._terrain_joints) >= self.MAX_TERRAIN_ANCHORS:
-                raise ValueError(f"Terrain anchor count would exceed maximum {self.MAX_TERRAIN_ANCHORS}")
 
-        # Enforce max beam-to-beam joint count (no limit on terrain joints when 0)
-        if body_b != floor_body:
+        # Enforce anchor limits for ANY terrain/non-beam body
+        bodies_set = set(self._bodies)
+        is_terrain_anchor = (body_b not in bodies_set)
+
+        if is_terrain_anchor:
+            if len(self._terrain_joints) >= self.MAX_TERRAIN_ANCHORS:
+                raise ValueError(f"Terrain anchor count would exceed maximum {self.MAX_TERRAIN_ANCHORS} (dam must be free-standing)")
+
+        # Enforce max beam-to-beam joint count
+        if not is_terrain_anchor:
             beam_joints = len(self._joints) - len(self._terrain_joints)
             max_joints = getattr(self, 'MAX_JOINT_COUNT', 15)
             if beam_joints >= max_joints:
@@ -264,7 +271,7 @@ class Sandbox:
             collideConnected=False
         )
         self._joints.append(joint)
-        if body_b == floor_body:
+        if is_terrain_anchor:
             self._terrain_joints.append(joint)
         return joint
 
@@ -361,6 +368,8 @@ class Sandbox:
                 except Exception:
                     pass
             for joint in to_remove:
+                if self._first_joint_break_step is None:
+                    self._first_joint_break_step = self._step_count
                 self._joint_force_history.pop(joint, None)
                 try:
                     self._world.DestroyJoint(joint)
@@ -392,6 +401,9 @@ class Sandbox:
                         vx, vy = p.linearVelocity
                         p.linearVelocity = (vx, vy + self._upward_surge_impulse_y)
                 break
+
+    def get_first_joint_break_step(self):
+        return self._first_joint_break_step
 
     def get_terrain_bounds(self):
         res_x_min = getattr(self, "RESERVOIR_X_MIN", 1.0)

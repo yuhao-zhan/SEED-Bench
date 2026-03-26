@@ -4,7 +4,7 @@ Friction is near zero; movement requires thrust. The path contains:
 - Momentum drain, reversed horizontal thrust, oscillating crosswind (discoverable).
 - A checkpoint zone: sled must enter it before the final target counts (sequence constraint).
 - A speed-penalty zone: excessive speed is heavily damped (discoverable).
-- A vertical-thrust-reverse zone: vertical thrust effect is negated near the final target (discoverable).
+- A vertical-thrust-reverse zone: vertical thrust effect is negated near the final target.
 Checkpoint and target zone bounds are stated in the task prompt; path effects (momentum drain, thrust scale, etc.) are discoverable from feedback.
 """
 import math
@@ -17,7 +17,7 @@ class Sandbox:
     Sandbox for E-03: Slippery World (hard v2).
     - Checkpoint zone: must pass through (x in [17.5, 19], y in [3.8, 4.5]) before final target counts.
     - Speed-penalty zone [22, 26]: if speed > 4.0 m/s, velocity scaled down each step.
-    - Vertical-reverse zone [26.5, 28.5]: fy_actual = -fy (discoverable when approaching final band).
+    - Vertical-reverse zone [26.5, 28.5]: fy_actual = -fy (pushes down instead of up).
     Plus existing: momentum drain, reverse horizontal thrust, wind zone.
     """
 
@@ -91,7 +91,6 @@ class Sandbox:
         self._momentum_drain_factor = float(physics_config.get("momentum_drain_factor", self.MOMENTUM_DRAIN_FACTOR))
         self._thrust_scale_factor = float(physics_config.get("thrust_scale_factor", self.THRUST_SCALE_FACTOR))
         self._speed_penalty_factor = float(physics_config.get("speed_penalty_factor", self.SPEED_PENALTY_FACTOR))
-        self._speed_penalty_threshold = float(physics_config.get("speed_penalty_threshold", self.SPEED_PENALTY_THRESHOLD))
 
         self._world = world(gravity=self._gravity, doSleep=True)
         self._terrain_bodies = {}
@@ -106,6 +105,41 @@ class Sandbox:
 
         self._sled_start_x = float(terrain_config.get("sled_start_x", self.SLED_START_X))
         self._sled_start_y = float(terrain_config.get("sled_start_y", self.SLED_START_Y))
+
+        # Zone overrides (visible to agent in prompt)
+        self._target_x_min = float(terrain_config.get("target_x_min", self.TARGET_X_MIN))
+        self._target_x_max = float(terrain_config.get("target_x_max", self.TARGET_X_MAX))
+        self._target_y_min = float(terrain_config.get("target_y_min", self.TARGET_Y_MIN))
+        self._target_y_max = float(terrain_config.get("target_y_max", self.TARGET_Y_MAX))
+
+        self._checkpoint_a_x_lo = float(terrain_config.get("checkpoint_a_x_lo", self.CHECKPOINT_X_LO))
+        self._checkpoint_a_x_hi = float(terrain_config.get("checkpoint_a_x_hi", self.CHECKPOINT_X_HI))
+        self._checkpoint_a_y_lo = float(terrain_config.get("checkpoint_a_y_lo", self.CHECKPOINT_Y_LO))
+        self._checkpoint_a_y_hi = float(terrain_config.get("checkpoint_a_y_hi", self.CHECKPOINT_Y_HI))
+
+        self._checkpoint_b_x_lo = float(terrain_config.get("checkpoint_b_x_lo", self.CHECKPOINT_B_X_LO))
+        self._checkpoint_b_x_hi = float(terrain_config.get("checkpoint_b_x_hi", self.CHECKPOINT_B_X_HI))
+        self._checkpoint_b_y_lo = float(terrain_config.get("checkpoint_b_y_lo", self.CHECKPOINT_B_Y_LO))
+        self._checkpoint_b_y_hi = float(terrain_config.get("checkpoint_b_y_hi", self.CHECKPOINT_B_Y_HI))
+
+        self._speed_penalty_x_lo = float(terrain_config.get("speed_penalty_x_lo", self.SPEED_PENALTY_X_LO))
+        self._speed_penalty_x_hi = float(terrain_config.get("speed_penalty_x_hi", self.SPEED_PENALTY_X_HI))
+        self._speed_penalty_threshold = float(terrain_config.get("speed_penalty_threshold", self.SPEED_PENALTY_THRESHOLD))
+
+        self._vert_reverse_x_lo = float(terrain_config.get("vert_reverse_x_lo", self.VERT_REVERSE_X_LO))
+        self._vert_reverse_x_hi = float(terrain_config.get("vert_reverse_x_hi", self.VERT_REVERSE_X_HI))
+        self._reverse_thrust_x_lo = float(terrain_config.get("reverse_thrust_x_lo", self.REVERSE_THRUST_X_LO))
+        self._reverse_thrust_x_hi = float(terrain_config.get("reverse_thrust_x_hi", self.REVERSE_THRUST_X_HI))
+
+        self._momentum_drain_x_lo = float(terrain_config.get("momentum_drain_x_lo", self.MOMENTUM_DRAIN_X_LO))
+        self._momentum_drain_x_hi = float(terrain_config.get("momentum_drain_x_hi", self.MOMENTUM_DRAIN_X_HI))
+        self._wind_zone_x_lo = float(terrain_config.get("wind_zone_x_lo", self.WIND_ZONE_X_LO))
+        self._wind_zone_x_hi = float(terrain_config.get("wind_zone_x_hi", self.WIND_ZONE_X_HI))
+        self._thrust_scale_x_lo = float(terrain_config.get("thrust_scale_x_lo", self.THRUST_SCALE_X_LO))
+        self._thrust_scale_x_hi = float(terrain_config.get("thrust_scale_x_hi", self.THRUST_SCALE_X_HI))
+        self._oscillating_fx_x_lo = float(terrain_config.get("oscillating_fx_x_lo", self.OSCILLATING_FX_X_LO))
+        self._oscillating_fx_x_hi = float(terrain_config.get("oscillating_fx_x_hi", self.OSCILLATING_FX_X_HI))
+
         self._create_terrain(terrain_config)
         self._create_sled(terrain_config)
 
@@ -151,45 +185,46 @@ class Sandbox:
         sx, sy = sled.position.x, sled.position.y
 
         # Checkpoint A
-        if (self.CHECKPOINT_X_LO <= sx <= self.CHECKPOINT_X_HI and
-                self.CHECKPOINT_Y_LO <= sy <= self.CHECKPOINT_Y_HI):
+        if (self._checkpoint_a_x_lo <= sx <= self._checkpoint_a_x_hi and
+                self._checkpoint_a_y_lo <= sy <= self._checkpoint_a_y_hi):
             self._checkpoint_a_reached = True
-        # Checkpoint B (must pass A first; order enforced in evaluator)
-        if (self.CHECKPOINT_B_X_LO <= sx <= self.CHECKPOINT_B_X_HI and
-                self.CHECKPOINT_B_Y_LO <= sy <= self.CHECKPOINT_B_Y_HI):
+        # Checkpoint B (must pass A first)
+        if (self._checkpoint_a_reached and 
+                self._checkpoint_b_x_lo <= sx <= self._checkpoint_b_x_hi and
+                self._checkpoint_b_y_lo <= sy <= self._checkpoint_b_y_hi):
             self._checkpoint_b_reached = True
 
         # Thrust scaling zone: applied thrust reduced (discoverable: "barely moves here")
-        if self.THRUST_SCALE_X_LO <= sx <= self.THRUST_SCALE_X_HI:
+        if self._thrust_scale_x_lo <= sx <= self._thrust_scale_x_hi:
             fx *= self._thrust_scale_factor
             fy *= self._thrust_scale_factor
 
         # Reverse horizontal thrust zone
-        if self.REVERSE_THRUST_X_LO <= sx <= self.REVERSE_THRUST_X_HI:
+        if self._reverse_thrust_x_lo <= sx <= self._reverse_thrust_x_hi:
             fx = -fx
 
-        # Vertical thrust reverse zone: fy is negated (discoverable near final target)
-        if self.VERT_REVERSE_X_LO <= sx <= self.VERT_REVERSE_X_HI:
+        # Vertical thrust reverse zone: fy is negated
+        if self._vert_reverse_x_lo <= sx <= self._vert_reverse_x_hi:
             fy = -fy
 
         # Wind zone
-        if self.WIND_ZONE_X_LO <= sx <= self.WIND_ZONE_X_HI:
+        if self._wind_zone_x_lo <= sx <= self._wind_zone_x_hi:
             fy += self.WIND_FY_BASE + self.WIND_FY_AMP * math.sin(self._step_count * self.WIND_OMEGA)
 
         # Oscillating horizontal force zone (discoverable from feedback)
-        if self.OSCILLATING_FX_X_LO <= sx <= self.OSCILLATING_FX_X_HI:
+        if self._oscillating_fx_x_lo <= sx <= self._oscillating_fx_x_hi:
             fx += self.OSCILLATING_FX_AMP * math.sin(self._step_count * self.OSCILLATING_FX_OMEGA)
 
         sled.ApplyForceToCenter((fx, fy), wake=True)
         self._world.Step(time_step, 10, 10)
 
         # Momentum drain
-        if self.MOMENTUM_DRAIN_X_LO <= sled.position.x <= self.MOMENTUM_DRAIN_X_HI:
+        if self._momentum_drain_x_lo <= sled.position.x <= self._momentum_drain_x_hi:
             vx, vy = sled.linearVelocity.x, sled.linearVelocity.y
             sled.linearVelocity = (vx * self._momentum_drain_factor, vy * self._momentum_drain_factor)
 
         # Speed penalty: in zone, if speed > threshold, heavily damp velocity
-        if self.SPEED_PENALTY_X_LO <= sled.position.x <= self.SPEED_PENALTY_X_HI:
+        if self._speed_penalty_x_lo <= sled.position.x <= self._speed_penalty_x_hi:
             vx, vy = sled.linearVelocity.x, sled.linearVelocity.y
             speed = math.sqrt(vx * vx + vy * vy)
             if speed > self._speed_penalty_threshold:
@@ -227,21 +262,49 @@ class Sandbox:
             "ground_y": self._ground_y,
             "sled_start": {"x": self._sled_start_x, "y": self._sled_start_y},
             "target_zone": {
-                "x_min": self.TARGET_X_MIN,
-                "x_max": self.TARGET_X_MAX,
-                "y_min": self.TARGET_Y_MIN,
-                "y_max": self.TARGET_Y_MAX,
+                "x_min": self._target_x_min,
+                "x_max": self._target_x_max,
+                "y_min": self._target_y_min,
+                "y_max": self._target_y_max,
             },
             "checkpoint_zone": {
-                "x_min": self.CHECKPOINT_X_LO,
-                "x_max": self.CHECKPOINT_X_HI,
-                "y_min": self.CHECKPOINT_Y_LO,
-                "y_max": self.CHECKPOINT_Y_HI,
+                "x_min": self._checkpoint_a_x_lo,
+                "x_max": self._checkpoint_a_x_hi,
+                "y_min": self._checkpoint_a_y_lo,
+                "y_max": self._checkpoint_a_y_hi,
             },
             "checkpoint_b_zone": {
-                "x_min": self.CHECKPOINT_B_X_LO,
-                "x_max": self.CHECKPOINT_B_X_HI,
-                "y_min": self.CHECKPOINT_B_Y_LO,
-                "y_max": self.CHECKPOINT_B_Y_HI,
+                "x_min": self._checkpoint_b_x_lo,
+                "x_max": self._checkpoint_b_x_hi,
+                "y_min": self._checkpoint_b_y_lo,
+                "y_max": self._checkpoint_b_y_hi,
+            },
+            "speed_penalty_zone": {
+                "x_min": self._speed_penalty_x_lo,
+                "x_max": self._speed_penalty_x_hi,
+            },
+            "reverse_thrust_zone": {
+                "x_min": self._reverse_thrust_x_lo,
+                "x_max": self._reverse_thrust_x_hi,
+            },
+            "vert_reverse_zone": {
+                "x_min": self._vert_reverse_x_lo,
+                "x_max": self._vert_reverse_x_hi,
+            },
+            "momentum_drain_zone": {
+                "x_min": self._momentum_drain_x_lo,
+                "x_max": self._momentum_drain_x_hi,
+            },
+            "wind_zone": {
+                "x_min": self._wind_zone_x_lo,
+                "x_max": self._wind_zone_x_hi,
+            },
+            "thrust_scale_zone": {
+                "x_min": self._thrust_scale_x_lo,
+                "x_max": self._thrust_scale_x_hi,
+            },
+            "oscillating_fx_zone": {
+                "x_min": self._oscillating_fx_x_lo,
+                "x_max": self._oscillating_fx_x_hi,
             },
         }

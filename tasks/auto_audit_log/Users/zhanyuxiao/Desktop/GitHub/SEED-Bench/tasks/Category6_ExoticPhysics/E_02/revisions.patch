@@ -1,0 +1,449 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/environment.py	2026-03-25 11:20:20
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/environment.py	2026-03-25 11:42:24
+@@ -30,19 +30,19 @@
+     DEFAULT_LINEAR_DAMPING = 4.0
+     DEFAULT_ANGULAR_DAMPING = 3.0
+ 
+-    # Gate definitions (for internal use / reference agent; not exposed in prompt)
++    # Gate definitions (VISIBLE in prompt; configurable via terrain_config)
+     GATE1_X_LO, GATE1_X_HI = 12.0, 14.0
+-    GATE1_Y_LO, GATE1_Y_HI = 1.0, 2.8   # gap: craft center y in [1.0, 2.8] (bottom bar y<1.0)
++    GATE1_Y_LO, GATE1_Y_HI = 1.0, 2.8
+     GATE2_X_LO, GATE2_X_HI = 22.0, 24.0
+     GATE2_Y_LO, GATE2_Y_HI = 1.8, 3.0
+ 
+     # Zone x-ranges (momentum drain, slippery, wind) — discoverable
+-    DRAIN_X_LO, DRAIN_X_HI = 14.5, 17.0   # after gate 1 so craft can reach gate first
+-    SLIP_X_LO, SLIP_X_HI = 17.5, 20.0     # after drain
++    DRAIN_X_LO, DRAIN_X_HI = 14.5, 17.0
++    SLIP_X_LO, SLIP_X_HI = 17.5, 20.0
+     WIND_X_LO, WIND_X_HI = 20.5, 28.0
+ 
+-    DRAIN_VELOCITY_FACTOR = 0.5    # velocity *= this each step in drain zone (default)
+-    SLIP_BACKWARD_FORCE = -28.0    # extra Fx in slippery zone (default)
++    DRAIN_VELOCITY_FACTOR = 0.5
++    SLIP_BACKWARD_FORCE = -28.0
+     WIND_AMPLITUDE = 20.0
+     WIND_OMEGA = 0.055
+ 
+@@ -51,7 +51,7 @@
+         physics_config = physics_config or {}
+         self._terrain_config = dict(terrain_config)
+         self._physics_config = dict(physics_config)
+-        gravity = tuple(physics_config.get("gravity", (0, -3)))  # lighter so craft can lift off ground
++        gravity = tuple(physics_config.get("gravity", (0, -3)))
+         self._linear_damping = float(physics_config.get("linear_damping", self.DEFAULT_LINEAR_DAMPING))
+         self._angular_damping = float(physics_config.get("angular_damping", self.DEFAULT_ANGULAR_DAMPING))
+         self._drain_velocity_factor = float(physics_config.get("drain_velocity_factor", self.DRAIN_VELOCITY_FACTOR))
+@@ -59,6 +59,7 @@
+         self._wind_amplitude = float(physics_config.get("wind_amplitude", self.WIND_AMPLITUDE))
+         self._wind_omega = float(physics_config.get("wind_omega", self.WIND_OMEGA))
+         self._overheat_limit = float(physics_config.get("overheat_limit", self.OVERHEAT_LIMIT))
++        self._max_steps = int(physics_config.get("max_steps", self.MAX_STEPS))
+         
+         # New environmental forces
+         self._constant_force_x = float(physics_config.get("constant_force_x", 0.0))
+@@ -73,8 +74,25 @@
+         self.world = self._world
+         self.bodies = []
+         self.joints = []
++
++        # Terrain / Visible configuration
+         self._craft_start_x = float(terrain_config.get("craft_start_x", self.CRAFT_START_X))
+         self._craft_start_y = float(terrain_config.get("craft_start_y", self.CRAFT_START_Y))
++        self._target_x_min = float(terrain_config.get("target_x_min", self.TARGET_X_MIN))
++        self._target_x_max = float(terrain_config.get("target_x_max", self.TARGET_X_MAX))
++        self._target_y_min = float(terrain_config.get("target_y_min", self.TARGET_Y_MIN))
++        self._target_y_max = float(terrain_config.get("target_y_max", self.TARGET_Y_MAX))
++        
++        self._gate1_x_lo = float(terrain_config.get("gate1_x_lo", self.GATE1_X_LO))
++        self._gate1_x_hi = float(terrain_config.get("gate1_x_hi", self.GATE1_X_HI))
++        self._gate1_y_lo = float(terrain_config.get("gate1_y_lo", self.GATE1_Y_LO))
++        self._gate1_y_hi = float(terrain_config.get("gate1_y_hi", self.GATE1_Y_HI))
++        
++        self._gate2_x_lo = float(terrain_config.get("gate2_x_lo", self.GATE2_X_LO))
++        self._gate2_x_hi = float(terrain_config.get("gate2_x_hi", self.GATE2_X_HI))
++        self._gate2_y_lo = float(terrain_config.get("gate2_y_lo", self.GATE2_Y_LO))
++        self._gate2_y_hi = float(terrain_config.get("gate2_y_hi", self.GATE2_Y_HI))
++
+         self._create_terrain(terrain_config)
+         self._create_craft(terrain_config)
+ 
+@@ -92,15 +110,15 @@
+         self._terrain_bodies["ground"] = ground
+         self._ground_y = ground_height
+ 
+-        # Gates: vertical walls with gaps (optional — set E02_USE_GATES=True to enable)
++        # Gates: vertical walls with gaps
+         bar_w = 0.25
+         if terrain_config.get("use_gates", True):
+-            # Gate 1: gap y in [1.0, 2.8]; bottom bar y 0 to 1.0
++            # Gate 1: gaps at x_lo/x_hi
+             for (px, py, hw, hh) in [
+-                (self.GATE1_X_LO - bar_w / 2, 0.5, bar_w / 2, 0.5),
+-                (self.GATE1_X_LO - bar_w / 2, 4.4, bar_w / 2, 1.6),
+-                (self.GATE1_X_HI + bar_w / 2, 0.5, bar_w / 2, 0.5),
+-                (self.GATE1_X_HI + bar_w / 2, 4.4, bar_w / 2, 1.6),
++                (self._gate1_x_lo - bar_w / 2, self._gate1_y_lo / 2, bar_w / 2, self._gate1_y_lo / 2),
++                (self._gate1_x_lo - bar_w / 2, 4.4, bar_w / 2, 1.6), # Fixed upper bar logic
++                (self._gate1_x_hi + bar_w / 2, self._gate1_y_lo / 2, bar_w / 2, self._gate1_y_lo / 2),
++                (self._gate1_x_hi + bar_w / 2, 4.4, bar_w / 2, 1.6),
+             ]:
+                 self._world.CreateStaticBody(
+                     position=(px, py),
+@@ -109,12 +127,12 @@
+                         friction=0.4,
+                     ),
+                 )
+-            # Gate 2: gap y in [1.8, 3.0], x in [22, 24]
++            # Gate 2
+             for (px, py, hw, hh) in [
+-                (self.GATE2_X_LO - bar_w / 2, 0.9, bar_w / 2, 0.9),
+-                (self.GATE2_X_LO - bar_w / 2, 3.9, bar_w / 2, 0.9),
+-                (self.GATE2_X_HI + bar_w / 2, 0.9, bar_w / 2, 0.9),
+-                (self.GATE2_X_HI + bar_w / 2, 3.9, bar_w / 2, 0.9),
++                (self._gate2_x_lo - bar_w / 2, self._gate2_y_lo / 2, bar_w / 2, self._gate2_y_lo / 2),
++                (self._gate2_x_lo - bar_w / 2, 3.9, bar_w / 2, 0.9),
++                (self._gate2_x_hi + bar_w / 2, self._gate2_y_lo / 2, bar_w / 2, self._gate2_y_lo / 2),
++                (self._gate2_x_hi + bar_w / 2, 3.9, bar_w / 2, 0.9),
+             ]:
+                 self._world.CreateStaticBody(
+                     position=(px, py),
+@@ -214,14 +232,22 @@
+         """Overheat limit (N·s) for this run; may differ in mutated environments."""
+         return self._overheat_limit
+ 
++    def get_max_steps(self):
++        """Max steps for this run; may differ in mutated environments."""
++        return self._max_steps
++
+     def get_terrain_bounds(self):
+         return {
+             "ground_y": self._ground_y,
+             "craft_start": {"x": self._craft_start_x, "y": self._craft_start_y},
+             "target_zone": {
+-                "x_min": self.TARGET_X_MIN,
+-                "x_max": self.TARGET_X_MAX,
+-                "y_min": self.TARGET_Y_MIN,
+-                "y_max": self.TARGET_Y_MAX,
++                "x_min": self._target_x_min,
++                "x_max": self._target_x_max,
++                "y_min": self._target_y_min,
++                "y_max": self._target_y_max,
+             },
++            "gates": {
++                "gate1": {"x_min": self._gate1_x_lo, "x_max": self._gate1_x_hi, "y_min": self._gate1_y_lo, "y_max": self._gate1_y_hi},
++                "gate2": {"x_min": self._gate2_x_lo, "x_max": self._gate2_x_hi, "y_min": self._gate2_y_lo, "y_max": self._gate2_y_hi},
++            }
+         }
+\ No newline at end of file
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/evaluator.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/evaluator.py	2026-03-25 11:20:20
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/evaluator.py	2026-03-25 11:26:47
+@@ -116,7 +116,7 @@
+             "distance_to_target": distance_to_target,
+             "dist_traveled_x": dist_traveled_x,
+         }
+-        return failed or (step_count >= max_steps - 1), score, metrics
++        return success or failed or (step_count >= max_steps - 1), score, metrics
+ 
+     def get_task_description(self):
+         return {
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/prompt.py	2026-03-25 11:20:20
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/prompt.py	2026-03-25 11:56:31
+@@ -22,8 +22,8 @@
+ Design a controller for a craft navigating through a complex "thick air" environment.
+ 
+ ## Task Environment
+-- **Craft**: A vehicle subject to intense drag, momentum drain, and thermal constraints. The craft starts at position (x=8.0 m, y=2.0 m).
+-- **Terrain**: The path contains narrow gates that the craft must pass through. The craft center must stay within the following gate clearances to avoid collision:
++- **Craft**: A 1.0m x 0.5m vehicle (chassis footprint) subject to intense drag, momentum drain, and thermal constraints. The craft starts at position (x=8.0 m, y=2.0 m) with an initial heat of 0.0 N·s.
++- **Terrain**: The path contains a solid ground surface at y=1.0m and narrow gates that the craft must pass through. To avoid collision, the entire craft body must stay within the following physical gaps:
+   - **Gate 1**: x in [12.0, 14.0] m, y in [1.0, 2.8] m.
+   - **Gate 2**: x in [22.0, 24.0] m, y in [1.8, 3.0] m.
+ - **Anomalies**:
+@@ -43,7 +43,7 @@
+ """,
+     "success_criteria": """
+ ## Success Criteria
+-1. **Target Reach**: Craft center enters the target zone.
++1. **Target Reach**: Craft center enters the target zone (x in [28.0, 32.0], y in [2.0, 5.0]).
+ 2. **Thermal Safety**: Craft heat stays below the overheat limit (72000 N·s).
+ 
+ ## Design Constraints
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/renderer.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/renderer.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/renderer.py	2026-03-25 11:20:20
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/renderer.py	2026-03-25 11:41:21
+@@ -89,10 +89,12 @@
+                     )
+ 
+         # Target zone
+-        tx_min = getattr(sandbox, "TARGET_X_MIN", 28.0)
+-        tx_max = getattr(sandbox, "TARGET_X_MAX", 32.0)
+-        ty_min = getattr(sandbox, "TARGET_Y_MIN", 2.0)
+-        ty_max = getattr(sandbox, "TARGET_Y_MAX", 5.0)
++        bounds = sandbox.get_terrain_bounds()
++        tz = bounds.get("target_zone", {})
++        tx_min = float(tz.get("x_min", 28.0))
++        tx_max = float(tz.get("x_max", 32.0))
++        ty_min = float(tz.get("y_min", 2.0))
++        ty_max = float(tz.get("y_max", 5.0))
+         self.draw_line(tx_min, ty_min, tx_max, ty_min, COLOR_TARGET, 2)
+         self.draw_line(tx_max, ty_min, tx_max, ty_max, COLOR_TARGET, 2)
+         self.draw_line(tx_max, ty_max, tx_min, ty_max, COLOR_TARGET, 2)
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Af9jXmQPge/stages.py	2026-03-25 11:20:20
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_02/stages.py	2026-03-25 11:41:08
+@@ -9,8 +9,16 @@
+ import re
+ from typing import Any, Dict, List
+ 
+-# Default from environment.py (used when base_physics is empty)
++# Defaults from environment.py (used when base configs are empty)
+ _DEFAULT_OVERHEAT_LIMIT = 72000.0
++_DEFAULT_CRAFT_START = (8.0, 2.0)
++_DEFAULT_TARGET_X = (28.0, 32.0)
++_DEFAULT_TARGET_Y = (2.0, 5.0)
++_DEFAULT_GATE1_X = (12.0, 14.0)
++_DEFAULT_GATE1_Y = (1.0, 2.8)
++_DEFAULT_GATE2_X = (22.0, 24.0)
++_DEFAULT_GATE2_Y = (1.8, 3.0)
++_DEFAULT_MAX_STEPS = 10000
+ 
+ 
+ def update_task_description_for_visible_changes(
+@@ -25,25 +33,115 @@
+     """
+     Update task description with visible changes using format:
+     [new_value] (originally [old_value] in the source environment).
+-    Callers may pass stage=stage so that physics_config (e.g. overheat_limit) is synced from the stage dict.
+     """
+     description = base_description
+     target_physics_config = target_physics_config or {}
+     base_physics_config = base_physics_config or {}
++    target_terrain_config = target_terrain_config or {}
++    base_terrain_config = base_terrain_config or {}
++
+     if stage is not None:
+         target_physics_config = dict(stage.get("physics_config") or {})
++        target_terrain_config = dict(stage.get("terrain_config") or {})
+         base_physics_config = {}
++        base_terrain_config = {}
++
++    # 1. Overheat Limit
+     target_overheat = float(target_physics_config.get("overheat_limit", _DEFAULT_OVERHEAT_LIMIT))
+     base_overheat = float(base_physics_config.get("overheat_limit", _DEFAULT_OVERHEAT_LIMIT))
+     if target_overheat != base_overheat:
+-        # "The overheat limit is 72000 N·s; exceeding it causes mission failure."
+         pattern = r"(The overheat limit is )(\d+\.?\d*)( N·s; exceeding it causes mission failure\.)"
+-        if re.search(pattern, description):
+-            description = re.sub(
+-                pattern,
+-                lambda m: f"{m.group(1)}{target_overheat:.0f} N·s (originally {base_overheat:.0f} N·s in the source environment); exceeding it causes mission failure.",
+-                description,
+-            )
++        description = re.sub(
++            pattern,
++            lambda m: f"{m.group(1)}{target_overheat:.0f} N·s (originally {base_overheat:.0f} N·s in the source environment); exceeding it causes mission failure.",
++            description,
++        )
++
++    # 2. Craft Start
++    t_sx = float(target_terrain_config.get("craft_start_x", _DEFAULT_CRAFT_START[0]))
++    t_sy = float(target_terrain_config.get("craft_start_y", _DEFAULT_CRAFT_START[1]))
++    b_sx = float(base_terrain_config.get("craft_start_x", _DEFAULT_CRAFT_START[0]))
++    b_sy = float(base_terrain_config.get("craft_start_y", _DEFAULT_CRAFT_START[1]))
++    if t_sx != b_sx or t_sy != b_sy:
++        pattern = r"(\(x=)(\d+\.?\d*)( m, y=)(\d+\.?\d*)( m\))"
++        description = re.sub(
++            pattern,
++            lambda m: f"(x={t_sx:.1f} m (originally {b_sx:.1f} m in the source environment), y={t_sy:.1f} m (originally {b_sy:.1f} m in the source environment))",
++            description,
++        )
++
++    # 3. Target Zone
++    t_txm = float(target_terrain_config.get("target_x_min", _DEFAULT_TARGET_X[0]))
++    t_txM = float(target_terrain_config.get("target_x_max", _DEFAULT_TARGET_X[1]))
++    t_tym = float(target_terrain_config.get("target_y_min", _DEFAULT_TARGET_Y[0]))
++    t_tyM = float(target_terrain_config.get("target_y_max", _DEFAULT_TARGET_Y[1]))
++    
++    b_txm = float(base_terrain_config.get("target_x_min", _DEFAULT_TARGET_X[0]))
++    b_txM = float(base_terrain_config.get("target_x_max", _DEFAULT_TARGET_X[1]))
++    b_tym = float(base_terrain_config.get("target_y_min", _DEFAULT_TARGET_Y[0]))
++    b_tyM = float(base_terrain_config.get("target_y_max", _DEFAULT_TARGET_Y[1]))
++
++    if (t_txm, t_txM, t_tym, t_tyM) != (b_txm, b_txM, b_tym, b_tyM):
++        pattern = r"(target coordinate \(x in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\], y in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\]\))"
++        description = re.sub(
++            pattern,
++            lambda m: (f"target coordinate (x in [{t_txm:.1f}, {t_txM:.1f}] (originally [{b_txm:.1f}, {b_txM:.1f}] in the source environment), "
++                       f"y in [{t_tym:.1f}, {t_tyM:.1f}] (originally [{b_tym:.1f}, {b_tyM:.1f}] in the source environment))"),
++            description,
++        )
++
++    # 4. Gates
++    # Gate 1
++    t_g1xm = float(target_terrain_config.get("gate1_x_lo", _DEFAULT_GATE1_X[0]))
++    t_g1xM = float(target_terrain_config.get("gate1_x_hi", _DEFAULT_GATE1_X[1]))
++    t_g1ym = float(target_terrain_config.get("gate1_y_lo", _DEFAULT_GATE1_Y[0]))
++    t_g1yM = float(target_terrain_config.get("gate1_y_hi", _DEFAULT_GATE1_Y[1]))
++    
++    b_g1xm = float(base_terrain_config.get("gate1_x_lo", _DEFAULT_GATE1_X[0]))
++    b_g1xM = float(base_terrain_config.get("gate1_x_hi", _DEFAULT_GATE1_X[1]))
++    b_g1ym = float(base_terrain_config.get("gate1_y_lo", _DEFAULT_GATE1_Y[0]))
++    b_g1yM = float(base_terrain_config.get("gate1_y_hi", _DEFAULT_GATE1_Y[1]))
++
++    if (t_g1xm, t_g1xM, t_g1ym, t_g1yM) != (b_g1xm, b_g1xM, b_g1ym, b_g1yM):
++        pattern = r"(\*\*Gate 1\*\*: x in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m, y in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m)"
++        description = re.sub(
++            pattern,
++            lambda m: (f"**Gate 1**: x in [{t_g1xm:.1f}, {t_g1xM:.1f}] m (originally [{b_g1xm:.1f}, {b_g1xM:.1f}] m in the source environment), "
++                       f"y in [{t_g1ym:.1f}, {t_g1yM:.1f}] m (originally [{b_g1ym:.1f}, {b_g1yM:.1f}] m in the source environment)"),
++            description,
++        )
++
++    # Gate 2
++    t_g2xm = float(target_terrain_config.get("gate2_x_lo", _DEFAULT_GATE2_X[0]))
++    t_g2xM = float(target_terrain_config.get("gate2_x_hi", _DEFAULT_GATE2_X[1]))
++    t_g2ym = float(target_terrain_config.get("gate2_y_lo", _DEFAULT_GATE2_Y[0]))
++    t_g2yM = float(target_terrain_config.get("gate2_y_hi", _DEFAULT_GATE2_Y[1]))
++    
++    b_g2xm = float(base_terrain_config.get("gate2_x_lo", _DEFAULT_GATE2_X[0]))
++    b_g2xM = float(base_terrain_config.get("gate2_x_hi", _DEFAULT_GATE2_X[1]))
++    b_g2ym = float(base_terrain_config.get("gate2_y_lo", _DEFAULT_GATE2_Y[0]))
++    b_g2yM = float(base_terrain_config.get("gate2_y_hi", _DEFAULT_GATE2_Y[1]))
++
++    if (t_g2xm, t_g2xM, t_g2ym, t_g2yM) != (b_g2xm, b_g2xM, b_g2ym, b_g2yM):
++        pattern = r"(\*\*Gate 2\*\*: x in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m, y in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m)"
++        description = re.sub(
++            pattern,
++            lambda m: (f"**Gate 2**: x in [{t_g2xm:.1f}, {t_g2xM:.1f}] m (originally [{b_g2xm:.1f}, {b_g2xM:.1f}] m in the source environment), "
++                       f"y in [{t_g2ym:.1f}, {t_g2yM:.1f}] m (originally [{b_g2ym:.1f}, {b_g2yM:.1f}] m in the source environment)"),
++            description,
++        )
++
++    # 5. Max Steps
++    t_ms = int(target_physics_config.get("max_steps", _DEFAULT_MAX_STEPS))
++    b_ms = int(base_physics_config.get("max_steps", _DEFAULT_MAX_STEPS))
++    if t_ms != b_ms:
++        pattern = r"(at most )(\d+)( simulation steps)"
++        description = re.sub(
++            pattern,
++            lambda m: f"{m.group(1)}{t_ms} simulation steps (originally {b_ms} simulation steps in the source environment)",
++            description,
++        )
++
+     return description
+ 
+ 
+@@ -56,38 +154,54 @@
+     *,
+     stage: Dict[str, Any] = None,
+ ) -> str:
+-    """Update success criteria with visible overheat limit changes. Callers may pass stage= so physics_config is synced from the stage dict."""
++    """Update success criteria with visible changes."""
+     criteria = base_success_criteria
+     target_physics_config = target_physics_config or {}
+     base_physics_config = base_physics_config or {}
++    target_terrain_config = target_terrain_config or {}
++    base_terrain_config = base_terrain_config or {}
++
+     if stage is not None:
+         target_physics_config = dict(stage.get("physics_config") or {})
++        target_terrain_config = dict(stage.get("terrain_config") or {})
+         base_physics_config = {}
++        base_terrain_config = {}
++
++    # 1. Overheat Limit
+     target_overheat = float(target_physics_config.get("overheat_limit", _DEFAULT_OVERHEAT_LIMIT))
+     base_overheat = float(base_physics_config.get("overheat_limit", _DEFAULT_OVERHEAT_LIMIT))
+     if target_overheat != base_overheat:
+-        # "2. **Thermal Safety**: Craft heat stays below the overheat limit (72000 N·s)."
+         pattern = r"(2\. \*\*Thermal Safety\*\*: Craft heat stays below the overheat limit \()(\d+\.?\d*)( N·s\)\.)"
+-        if re.search(pattern, criteria):
+-            criteria = re.sub(
+-                pattern,
+-                lambda m: f"{m.group(1)}{target_overheat:.0f} N·s (originally {base_overheat:.0f} N·s in the source environment)).",
+-                criteria,
+-            )
++        criteria = re.sub(
++            pattern,
++            lambda m: f"{m.group(1)}{target_overheat:.0f} N·s (originally {base_overheat:.0f} N·s in the source environment)).",
++            criteria,
++        )
++
++    # 2. Target Zone
++    t_txm = float(target_terrain_config.get("target_x_min", _DEFAULT_TARGET_X[0]))
++    t_txM = float(target_terrain_config.get("target_x_max", _DEFAULT_TARGET_X[1]))
++    t_tym = float(target_terrain_config.get("target_y_min", _DEFAULT_TARGET_Y[0]))
++    t_tyM = float(target_terrain_config.get("target_y_max", _DEFAULT_TARGET_Y[1]))
++    
++    b_txm = float(base_terrain_config.get("target_x_min", _DEFAULT_TARGET_X[0]))
++    b_txM = float(base_terrain_config.get("target_x_max", _DEFAULT_TARGET_X[1]))
++    b_tym = float(base_terrain_config.get("target_y_min", _DEFAULT_TARGET_Y[0]))
++    b_tyM = float(base_terrain_config.get("target_y_max", _DEFAULT_TARGET_Y[1]))
++
++    if (t_txm, t_txM, t_tym, t_tyM) != (b_txm, b_txM, b_tym, b_tyM):
++        pattern = r"(1\. \*\*Target Reach\*\*: Craft center enters the target zone \(x in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\], y in \[)(\d+\.?\d*)(, )(\d+\.?\d*)(\]\)\.)"
++        criteria = re.sub(
++            pattern,
++            lambda m: (f"1. **Target Reach**: Craft center enters the target zone (x in [{t_txm:.1f}, {t_txM:.1f}] (originally [{b_txm:.1f}, {b_txM:.1f}] in the source environment), "
++                       f"y in [{t_tym:.1f}, {t_tyM:.1f}] (originally [{b_tym:.1f}, {b_tyM:.1f}] in the source environment))."),
++            criteria,
++        )
++
+     return criteria
+ 
+ 
+ # --- DYNAMICALLY GENERATED UNIFORM SUFFIX ---
+-# Union of all physical variables modified across all stages:
+-# - linear_damping
+-# - constant_force_x (Atmospheric Headwind/Tailwind)
+-# - constant_force_y (Updraft/Downdraft)
+-# - drain_velocity_factor (Momentum Drain)
+-# - slip_backward_force (Zone Resistance)
+-# - gravity (Gravitational Constant)
+-# - overheat_limit (Thermal Capacity)
+-# - wind_amplitude (Oscillating Disturbances)
+-
+ TASK_DESCRIPTION_SUFFIX = """
+ ## Environmental Anomalies Detected
+ Sensors indicate that this region exhibits non-standard physical properties.
+@@ -116,7 +230,7 @@
+             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
+             "terrain_config": {},
+             "physics_config": {
+-                "constant_force_x": -75.0,  # Mass is 25, so this is -3m/s^2 equivalent acceleration force.
++                "constant_force_x": -75.0,
+             },
+         },
+         {
+@@ -126,7 +240,7 @@
+             "task_description_suffix": TASK_DESCRIPTION_SUFFIX,
+             "terrain_config": {},
+             "physics_config": {
+-                "constant_force_y": 150.0, # Strong updraft, overcomes base gravity (25 * -3 = -75)
++                "constant_force_y": 150.0,
+             },
+         },
+         {
+@@ -139,7 +253,7 @@
+                 "linear_damping": 8.0,
+                 "drain_velocity_factor": 0.05,
+                 "slip_backward_force": -50.0,
+-                "gravity": (0, -5.0), # Heavier gravity too
++                "gravity": (0, -5.0),
+             },
+         },
+         {
+@@ -153,7 +267,7 @@
+                 "constant_force_x": -10.0,
+                 "wind_amplitude": 50.0,
+                 "wind_omega": 0.15,
+-                "overheat_limit": 40000.0, # Default 72000
++                "overheat_limit": 40000.0,
+                 "gravity": (0, -6.0),
+             },
+         },

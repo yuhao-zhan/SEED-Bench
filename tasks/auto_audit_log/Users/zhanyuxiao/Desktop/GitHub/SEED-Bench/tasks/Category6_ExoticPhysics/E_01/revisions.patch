@@ -1,0 +1,107 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Qa0CL8lyLU/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_01/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Qa0CL8lyLU/prompt.py	2026-03-25 10:44:16
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_01/prompt.py	2026-03-25 10:53:54
+@@ -27,7 +27,7 @@
+ - **Obstacles**: No beam center may lie inside these obstacle zones (structure overlapping any zone causes failure): Zone 1 — x in [18.0, 22.0] m, y in [9.75, 10.25] m; Zone 2 — x in [14.0, 26.0] m, y in [12.75, 13.25] m; Zone 3 — x in [18.5, 19.5] m, y in [13.75, 14.25] m.
+ - **Build Zone**: Structure must be built within x=[12.0, 28.0], y=[6.0, 18.0].
+ - **Beam dimensions**: Each beam's width and height must be between 0.1 m and 5.0 m (enforced by the simulator).
+-- **Forbidden zones**: Some regions disallow beam centers; placement there causes failure. Use environmental feedback to infer their locations.
++- **Forbidden zones**: Some regions disallow beam centers; placement there causes failure. Specifically: Zone 1 — x in [19.0, 20.0] m, y in [14.5, 15.5] m; Zone 2 — x in [18.0, 21.0] m, y in [15.9, 16.1] m. Use environmental feedback to infer their locations if others are added.
+ - **Anchors**: You can anchor your structure to the floor, ceiling, or walls by adding joints with `body_b=None` at appropriate coordinates.
+ - **Joint strength**: Joints have no force limit (they do not break from overload).
+ - **Simulation**: The run lasts 2,500 simulation steps. Success is evaluated at the end; the structure must remain in bounds and intact for the full run.
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Qa0CL8lyLU/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_01/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Qa0CL8lyLU/stages.py	2026-03-25 10:44:16
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_01/stages.py	2026-03-25 10:57:02
+@@ -75,7 +75,7 @@
+     target_arena_y_max = target_terrain_config.get("arena_y_max", 20.0)
+     base_arena_y_max = base_terrain_config.get("arena_y_max", 20.0)
+     if target_arena_y_max != base_arena_y_max:
+-        arena_pattern = r"(- \*\*Arena\*\*: A bounded region with x in \[0, 40\] m and y in \[0, )(\d+\.?\d*)(\] m\.)"
++        arena_pattern = r"(- \*\*Arena\*\*: A bounded region with x in \[0, 40\] m and y in \[0, )(\d+\.?\d*)(\] m\.)(?: \(originally .*? in the source environment\)\.)?"
+         if re.search(arena_pattern, description):
+             description = re.sub(
+                 arena_pattern,
+@@ -83,11 +83,11 @@
+                 description,
+             )
+ 
+-    # Update Build Zone y_max (pattern matches both "]. " and "] (" so substitution is re-applicable for cumulative updates)
++    # Update Build Zone y_max
+     target_bz_y_max = target_terrain_config.get("build_zone_y_max", 18.0)
+     base_bz_y_max = base_terrain_config.get("build_zone_y_max", 18.0)
+     if target_bz_y_max != base_bz_y_max:
+-        bz_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[12\.0, 28\.0\], y=\[6\.0, )(\d+\.?\d*)(\]\.|\] \()"
++        bz_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[12\.0, 28\.0\], y=\[6\.0, )(\d+\.?\d*)(\]\.)(?: \(originally .*? in the source environment\)\.)?"
+         if re.search(bz_pattern, description):
+             description = re.sub(
+                 bz_pattern,
+@@ -147,7 +147,7 @@
+     target_mass = target_physics_config.get("max_structure_mass", default_mass)
+     base_mass = base_physics_config.get("max_structure_mass", default_mass)
+     if target_mass != base_mass:
+-        mass_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d*)( kg\.)"
++        mass_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d*)( kg\.)(?: \(originally .*? in the source environment\)\.)?"
+         if re.search(mass_pattern, criteria):
+             criteria = re.sub(
+                 mass_pattern,
+@@ -159,7 +159,7 @@
+     target_beams = target_physics_config.get("max_beam_count", default_beams)
+     base_beams = base_physics_config.get("max_beam_count", default_beams)
+     if target_beams != base_beams:
+-        beam_pattern = r"(- \*\*Beam Limit\*\*: Maximum )(\d+)( beams\.)"
++        beam_pattern = r"(- \*\*Beam Limit\*\*: Maximum )(\d+)( beams\.)(?: \(originally .*? in the source environment\)\.)?"
+         if re.search(beam_pattern, criteria):
+             criteria = re.sub(
+                 beam_pattern,
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Qa0CL8lyLU/test_regex_e01.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_01/test_regex_e01.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.Qa0CL8lyLU/test_regex_e01.py	1970-01-01 08:00:00
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category6_ExoticPhysics/E_01/test_regex_e01.py	2026-03-25 10:53:40
+@@ -0,0 +1,47 @@
++import re
++
++# Mock base description and patterns used in stages.py
++description = """
++Design a stable structure that stays within the boundaries of a bounded arena under time-varying gravity.
++
++## Task Environment
++- **Arena**: A bounded region with x in [0, 40] m and y in [0, 20] m. 
++...
++- **Build Zone**: Structure must be built within x=[12.0, 28.0], y=[6.0, 18.0].
++...
++- **Joint strength**: Joints have no force limit (they do not break from overload).
++...
++"""
++
++# Regex patterns from stages.py
++arena_pattern = r"(- \*\*Arena\*\*: A bounded region with x in \[0, 40\] m and y in \[0, )(\d+\.?\d*)(\] m\.)"
++bz_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[12\.0, 28\.0\], y=\[6\.0, )(\d+\.?\d*)(\]\.|\] \()"
++joint_pattern = r"(- \*\*Joint strength\*\*: )Joints have no force limit \(they do not break from overload\)\."
++
++# Test substitutions
++target_arena_y_max = 16.8
++target_bz_y_max = 16.5
++target_joint_limit = 600.0
++base_arena_y_max = 20.0
++base_bz_y_max = 18.0
++
++print("--- Arena Pattern Match ---")
++match_arena = re.search(arena_pattern, description)
++print(f"Match: {bool(match_arena)}")
++if match_arena:
++    new_d = re.sub(arena_pattern, f"\g<1>{target_arena_y_max:.1f}\g<3> (originally y in [0, {base_arena_y_max:.1f}] m in the source environment).", description)
++    print(new_d)
++
++print("\n--- Build Zone Pattern Match ---")
++match_bz = re.search(bz_pattern, description)
++print(f"Match: {bool(match_bz)}")
++if match_bz:
++    new_d = re.sub(bz_pattern, f"\g<1>{target_bz_y_max:.1f}]. (originally y=[6.0, {base_bz_y_max:.1f}] in the source environment).", description)
++    print(new_d)
++
++print("\n--- Joint Pattern Match ---")
++match_joint = re.search(joint_pattern, description)
++print(f"Match: {bool(match_joint)}")
++if match_joint:
++    new_d = re.sub(joint_pattern, f"\g<1>Joints break when reaction force exceeds {target_joint_limit:.0f} N (originally no force limit in the source environment).", description)
++    print(new_d)

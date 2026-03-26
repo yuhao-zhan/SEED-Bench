@@ -32,7 +32,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_max_mass = float(base_terrain_config.get("max_structure_mass", _DEFAULT_MAX_STRUCTURE_MASS))
     if target_max_mass != base_max_mass:
         mass_desc_pattern = re.compile(
-            r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*) kg\."
+            r"(- \*\*Mass Budget\*\*: Total structure mass must be at most )(\d+\.?\d*) kg\."
         )
         if mass_desc_pattern.search(description):
             description = mass_desc_pattern.sub(
@@ -63,7 +63,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_max_mass = float(target_terrain_config.get("max_structure_mass", _DEFAULT_MAX_STRUCTURE_MASS))
     base_max_mass = float(base_terrain_config.get("max_structure_mass", _DEFAULT_MAX_STRUCTURE_MASS))
     if target_max_mass != base_max_mass:
-        mass_pattern = re.compile(r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*) kg\.")
+        mass_pattern = re.compile(r"(- \*\*Mass Budget\*\*: <= )(\d+\.?\d*) kg\.")
         if mass_pattern.search(criteria):
             criteria = mass_pattern.sub(
                 lambda m: f"{m.group(1)}{_mass_str(target_max_mass)} kg (originally {_mass_str(base_max_mass)} kg in the source environment).",

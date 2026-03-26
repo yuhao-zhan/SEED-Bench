@@ -24,6 +24,7 @@ class Sandbox:
         # Joint breaking: when set, joints are destroyed if reaction force/torque exceeds limit (default: no break)
         self._joint_max_force = float(physics_config.get("joint_max_force", float("inf")))
         self._joint_max_torque = float(physics_config.get("joint_max_torque", float("inf")))
+        self._max_motor_torque = float(physics_config.get("max_motor_torque", 100.0))
 
         self._world = world(gravity=gravity, doSleep=True)
         self._bodies = []
@@ -51,9 +52,9 @@ class Sandbox:
         self.HOPPER_CENTER_Y = 3.0
         self.BASE_X = -2.0
         self.BASE_Y = 0.0
-        self.BUILD_ZONE_X_MIN = -4.0
+        self.BUILD_ZONE_X_MIN = float(terrain_config.get("build_zone_x_min", -4.0))
         self.BUILD_ZONE_X_MAX = float(terrain_config.get("build_zone_x_max", 2.0))
-        self.BUILD_ZONE_Y_MIN = 0.0
+        self.BUILD_ZONE_Y_MIN = float(terrain_config.get("build_zone_y_min", 0.0))
         self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_zone_y_max", 5.0))
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 800.0))
         self.MIN_PARTICLES_IN_HOPPER = int(terrain_config.get("min_particles_in_hopper", 15))
@@ -65,8 +66,10 @@ class Sandbox:
         self.HOPPER_VALID_X_MAX = float(terrain_config.get("hopper_valid_x_max", self.HOPPER_X_MAX))
         self.HOPPER_VALID_Y_MIN = float(terrain_config.get("hopper_valid_y_min", self.HOPPER_Y_MIN))
         self.HOPPER_VALID_Y_MAX = float(terrain_config.get("hopper_valid_y_max", self.HOPPER_Y_MAX))
-        # Scoop capacity: max particles carried per scoop (set high for ref solution; lower for harder eval)
+        # Scoop capacity and mechanics
         self.SCOOP_CAPACITY = int(terrain_config.get("scoop_capacity", 999))
+        self.DUMP_ANGLE_THRESHOLD = float(terrain_config.get("dump_angle_threshold", 0.6))
+        self.CARRY_MARGIN = float(terrain_config.get("carry_margin", 2.0))
 
         self.agent_arm_joint = None  # Set by agent in build_agent for agent_action
         self.agent_bucket_joint = None
@@ -110,7 +113,7 @@ class Sandbox:
             self._terrain_bodies["central_wall"] = central_wall
 
         hopper_w = 2.0
-        hopper_h = 2.0
+        hopper_h = 4.5  # From y=0.5 to y=5.0
         hopper_body = self._world.CreateStaticBody(
             position=(self.HOPPER_CENTER_X, self.HOPPER_CENTER_Y),
             fixtures=Box2D.b2FixtureDef(
@@ -189,23 +192,25 @@ class Sandbox:
 
     def add_scoop(self, x, y, width, height, angle=0, density=280.0):
         """API: Add an L-shaped scoop (back + floor) so it can hold and carry particles. Returns the scoop body.
-        L opens toward -x (floor to the left); hinge corner at body position (x,y) for revolute at arm tip."""
-        # L-shape: corner at (0,0); back (vertical) + floor (horizontal toward -x so scoop stays in build zone)
+        L opens toward -x (floor to the left); hinge corner at body position (x,y)."""
+        width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_SIZE))
+        height = max(self.MIN_BEAM_SIZE, min(height, self.MAX_BEAM_SIZE))
         w, h = width, height
+        thickness = 0.15
         body = self._world.CreateDynamicBody(
             position=(x, y),
             angle=angle,
         )
-        # Back wall: local rect (-w/2, 0) to (0, h/2) — left of hinge so whole scoop stays in build zone
-        back_verts = [(-w/2, 0), (-w/2, h/2), (0, h/2), (0, 0)]
+        # Back wall: vertical centered on hinge (0,0)
+        back_verts = [(-thickness / 2, -h / 2), (thickness / 2, -h / 2), (thickness / 2, h / 2), (-thickness / 2, h / 2)]
         body.CreateFixture(
             shape=Box2D.b2PolygonShape(vertices=back_verts),
             density=density,
             friction=0.6,
             restitution=0.05,
         )
-        # Floor: local rect (-w/2, -h/2) to (0, 0) — opens toward -x so whole scoop stays left of arm tip
-        floor_verts = [(-w/2, -h/2), (-w/2, 0), (0, 0), (0, -h/2)]
+        # Floor: horizontal from bottom of back wall (-h/2) toward -x
+        floor_verts = [(-w, -h / 2 - thickness / 2), (0, -h / 2 - thickness / 2), (0, -h / 2 + thickness / 2), (-w, -h / 2 + thickness / 2)]
         body.CreateFixture(
             shape=Box2D.b2PolygonShape(vertices=floor_verts),
             density=density,
@@ -236,10 +241,17 @@ class Sandbox:
         self._joints.append(joint)
         return joint
 
-    def add_revolute_joint(self, body_a, body_b, anchor_point, enable_motor=False, motor_speed=0.0, max_motor_torque=100.0):
+    def add_revolute_joint(self, body_a, body_b, anchor_point, enable_motor=False, motor_speed=0.0, max_motor_torque=None):
         """API: Add revolute joint (for Arm or Bucket — 2 DOF). Returns joint so you can set motor in agent_action."""
         if body_a is None or body_b is None:
             raise ValueError("add_revolute_joint: body_a and body_b cannot be None.")
+        
+        limit = getattr(self, "_max_motor_torque", 100.0)
+        if max_motor_torque is None:
+            max_motor_torque = limit
+        else:
+            max_motor_torque = min(float(max_motor_torque), limit)
+
         anchor_x, anchor_y = anchor_point[0], anchor_point[1]
         anchor_world = Box2D.b2Vec2(anchor_x, anchor_y)
         jd = Box2D.b2RevoluteJointDef()
@@ -274,8 +286,8 @@ class Sandbox:
                 if self.PIT_X_MIN <= px <= self.PIT_X_MAX and self.PIT_Y_MIN <= py <= self.PIT_Y_MAX:
                     p.ApplyForce((drift, 0), p.position, wake=True)
 
-        DUMP_ANGLE_THRESHOLD = 0.6  # rad: dumping when angle > this
-        CARRY_MARGIN = 2.0  # capture zone so L-scoop holds many particles per cycle
+        dump_angle_limit = getattr(self, "DUMP_ANGLE_THRESHOLD", 0.6)
+        carry_margin = getattr(self, "CARRY_MARGIN", 2.0)
         scoop_cap = getattr(self, "SCOOP_CAPACITY", 999)
         for body in self._scoop_bodies:
             if not body.active:
@@ -298,10 +310,10 @@ class Sandbox:
                             h = max(h, max(ys) - min(ys) + 0.2)
             except Exception:
                 pass
-            dx = w / 2 + CARRY_MARGIN
-            dy = h / 2 + CARRY_MARGIN
+            dx = w / 2 + carry_margin
+            dy = h / 2 + carry_margin
             over_hopper = (self.HOPPER_X_MIN <= bx <= self.HOPPER_X_MAX and by >= self.HOPPER_Y_MIN)
-            dumping = ba > DUMP_ANGLE_THRESHOLD and over_hopper
+            dumping = ba > dump_angle_limit and over_hopper
             carried = 0
             for p in self._particles:
                 if p is None or not p.active:

@@ -1,0 +1,232 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/environment.py	2026-03-26 11:22:44
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/environment.py	2026-03-26 11:38:51
+@@ -64,12 +64,17 @@
+         self._create_terrain(terrain_config)
+         
+         # 3. Set build zone and constraints
+-        self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
+-        self.BUILD_ZONE_X_MAX = 8.0  # Build zone x end
+-        self.BUILD_ZONE_Y_MIN = 1.0  # Build zone y start (at ground level)
+-        self.BUILD_ZONE_Y_MAX = 12.0  # Build zone y end (high enough for lifting)
++        self.BUILD_ZONE_X_MIN = float(terrain_config.get("BUILD_ZONE_X_MIN", 0.0))
++        self.BUILD_ZONE_X_MAX = float(terrain_config.get("BUILD_ZONE_X_MAX", 8.0))
++        self.BUILD_ZONE_Y_MIN = float(terrain_config.get("BUILD_ZONE_Y_MIN", 1.0))
++        self.BUILD_ZONE_Y_MAX = float(terrain_config.get("BUILD_ZONE_Y_MAX", 12.0))
+         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 60.0))  # Maximum total structure mass (kg)
+         
++        # Start position and lifting threshold (sync with evaluator, prompt)
++        self.OBJECT_START_X = float(terrain_config.get("OBJECT_START_X", 4.0))
++        self.OBJECT_START_Y = float(terrain_config.get("OBJECT_START_Y", 1.8))
++        self.LIFTING_THRESHOLD_M = float(terrain_config.get("LIFTING_THRESHOLD_M", 0.5))
++
+         # Mutated tasks: optional target height and sustain time (evaluator reads these)
+         self.target_object_y = float(terrain_config.get("target_object_y", 9.0))
+         self.min_sustain_s = float(terrain_config.get("min_sustain_s", 3.0))
+@@ -143,8 +148,8 @@
+             com_offset = (float(com_offset[0]), float(com_offset[1]))
+         
+         # Object position
+-        object_x = 4.0
+-        object_y = 1.8  # On ground (slightly above ground surface)
++        object_x = self.OBJECT_START_X
++        object_y = self.OBJECT_START_Y
+         
+         # Rectangular object
+         width, height = 0.6, 0.4
+@@ -182,8 +187,8 @@
+         Create a simple placeholder lifter template to show the environment.
+         This is just for visualization - the solver must build their own lifter.
+         """
+-        spawn_x = 4.0
+-        spawn_y = 2.0  # Above object
++        spawn_x = self.OBJECT_START_X
++        spawn_y = self.OBJECT_START_Y + 0.2  # Above object
+         
+         # Simple body (small box) - just for visualization
+         body_width = 0.3
+@@ -210,18 +215,10 @@
+                 self._world.DestroyBody(body)
+ 
+     # --- Physical constraint constants ---
+-    LIFTING_THRESHOLD_M = 0.5  # Min height gain (m) above initial object y to count as "lifting started" (sync evaluator, prompt)
+     MIN_BEAM_SIZE = 0.05  # Minimum beam width/height (meters)
+     MAX_BEAM_SIZE = 4.0  # Maximum beam width/height (meters)
+     MIN_JOINT_LIMIT = -math.pi  # Minimum joint angle limit (radians)
+     MAX_JOINT_LIMIT = math.pi  # Maximum joint angle limit (radians)
+-    # BUILD_ZONE_X_MIN, BUILD_ZONE_X_MAX, BUILD_ZONE_Y_MIN, BUILD_ZONE_Y_MAX, MAX_STRUCTURE_MASS
+-    # are set in __init__ based on terrain_config
+-    BUILD_ZONE_X_MIN = 0.0  # Default, will be updated in __init__
+-    BUILD_ZONE_X_MAX = 8.0  # Default, will be updated in __init__
+-    BUILD_ZONE_Y_MIN = 1.0  # Build zone y start
+-    BUILD_ZONE_Y_MAX = 12.0  # Build zone y end
+-    MAX_STRUCTURE_MASS = 60.0  # Default, will be updated in __init__
+ 
+     # --- Below are Primitives API open to LLM (with physical constraints) ---
+ 
+@@ -445,12 +442,12 @@
+             self._object_to_lift.angularVelocity = 0
+ 
+     def enforce_object_at_ground(self):
+-        """Enforce object at ground (4, 1.8) at simulation start. Call after build so the object must be lifted by the mechanism.
++        """Enforce object at ground at simulation start. Call after build so the object must be lifted by the mechanism.
+         Set terrain_config['skip_enforce_object_at_ground']=True to skip (e.g. reference agent test)."""
+         if self._terrain_config.get('skip_enforce_object_at_ground'):
+             return
+         if self._object_to_lift:
+-            self._object_to_lift.position = (OBJECT_START_X, OBJECT_START_Y)
++            self._object_to_lift.position = (self.OBJECT_START_X, self.OBJECT_START_Y)
+             self._object_to_lift.linearVelocity = (0, 0)
+             self._object_to_lift.angularVelocity = 0
+ 
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/evaluator.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/evaluator.py	2026-03-26 11:22:44
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/evaluator.py	2026-03-26 11:39:01
+@@ -30,7 +30,8 @@
+         self.environment = environment
+         
+         # Target: object must be lifted to at least target_object_y from ground (y>=target_object_y); mutated tasks can override via environment
+-        self.start_object_y = OBJECT_START_Y
++        self.start_object_y = getattr(environment, 'OBJECT_START_Y', OBJECT_START_Y)
++        self.start_object_x = getattr(environment, 'OBJECT_START_X', 4.0)
+         self.target_object_y = getattr(environment, 'target_object_y', None) if environment else None
+         if self.target_object_y is None:
+             self.target_object_y = TARGET_OBJECT_Y
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/prompt.py	2026-03-26 11:22:44
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/prompt.py	2026-03-26 11:31:00
+@@ -30,8 +30,8 @@
+ Design a scissor lift mechanism that can lift objects vertically using motor rotation or linear forces.
+ 
+ ## Task Environment
+-- **Ground**: A flat horizontal surface at y=1.0m (friction coefficient 0.8).
+-- **Target Object**: A 20 kg block (0.6 m × 0.4 m, width × height), friction coefficient 0.6, resting at x=4.0m, y=1.8m.
++- **Ground**: A flat horizontal surface at y=1.0m.
++- **Target Object**: A 20 kg block (0.6 m × 0.4 m, width × height), resting at x=4.0m, y=1.8m.
+ - **Target Height**: Lift the object so its center reaches at least y=9.0m.
+ - **Build Zone**: x=[0.0, 8.0], y=[1.0, 12.0]. All structure components must be placed within this zone.
+ - **Ceiling**: None (no vertical obstacle).
+@@ -64,16 +64,5 @@
+ - **APIs**: Use only the primitives documented below.
+ """,
+     
+-    'primitives_api': API_INTRO + '\n\n' + '\n\n'.join(task_data.values()) + '\n\n' + """
+-## UNIFORM_SUFFIX (Warning: Potential Environmental Anomalies)
+-Sensors indicate that this region may exhibit non-standard physical properties.
+-While the following variables **MIGHT** have changed from the initial environment, **NOT ALL** of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
+-- **Atmospheric Wind**: Constant lateral wind forces may act on all objects.
+-- **Narrow Clearance Obstacles**: The environment may feature ceilings with narrow gaps that restrict the lifter platform's maximum width.
+-- **Object Center of Mass**: The internal weight distribution of the target object may be non-uniform, causing it to tilt or slide unpredictably.
+-- **Joint Fragility**: Mechanical joints may have a maximum tolerance and break under excessive stress or reaction forces.
+-- **Surface Friction**: The object and platform surfaces may have significantly different friction from the initial specification, affecting how securely the payload is held.
+-- **Target Height & Object Mass**: The required lifting height and the mass of the target object may differ from the initial specification.
+-- **Lifting threshold**: The vertical distance required to trigger the "lifted" state detection may differ from the initial specification.
+-""",
++    'primitives_api': API_INTRO + '\n\n' + '\n\n'.join(task_data.values()),
+ }
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.AY5MnsCaFD/stages.py	2026-03-26 11:22:44
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_05/stages.py	2026-03-26 11:39:12
+@@ -37,16 +37,12 @@
+     base_obj = base_terrain_config.get("object", {})
+     target_mass = float(target_obj.get("mass", 20.0))
+     base_mass = float(base_obj.get("mass", 20.0))
+-    target_obj_friction = float(target_obj.get("friction", 0.6))
+-    base_obj_friction = float(base_obj.get("friction", 0.6))
+     default_sustain_s = 3.0
+     default_max_structure_mass = 60.0
+     target_sustain_s = float(target_terrain_config.get("min_sustain_s", default_sustain_s))
+     base_sustain_s = float(base_terrain_config.get("min_sustain_s", default_sustain_s))
+     target_max_mass = float(target_terrain_config.get("max_structure_mass", default_max_structure_mass))
+     base_max_mass = float(base_terrain_config.get("max_structure_mass", default_max_structure_mass))
+-    target_ground_friction = float(target_terrain_config.get("ground_friction", 0.8))
+-    base_ground_friction = float(base_terrain_config.get("ground_friction", 0.8))
+ 
+     if target_y != base_y:
+         # Update "at least y=9.0m"
+@@ -58,7 +54,7 @@
+ 
+     if target_mass != base_mass:
+         # Update "A 20 kg block"
+-        mass_pattern = r"(- \*\*Target Object\*\*: A )(\d+\.?\d*)( kg)( \(originally [\d.]+ kg in the source environment\))?( block(?: \([\d.]+ m × [\d.]+ m, width × height\))?(?:, friction coefficient [\d.]+(?: \(originally [\d.]+ in the source environment\))?)?, resting at x=)"
++        mass_pattern = r"(- \*\*Target Object\*\*: A )(\d+\.?\d*)( kg)( \(originally [\d.]+ kg in the source environment\))?( block(?: \([\d.]+ m × [\d.]+ m, width × height\))?, resting at x=)"
+         if re.search(mass_pattern, description):
+             description = re.sub(
+                 mass_pattern,
+@@ -66,26 +62,6 @@
+                 description,
+             )
+ 
+-    if target_ground_friction != base_ground_friction:
+-        # Update "friction coefficient 0.8" for Ground
+-        ground_friction_pattern = r'(- \*\*Ground\*\*: A flat horizontal surface at y=1\.0m \()(friction coefficient )(\d+\.?\d*)( \(originally [\d.]+ in the source environment\))?(\)\.)'
+-        if re.search(ground_friction_pattern, description):
+-            description = re.sub(
+-                ground_friction_pattern,
+-                f'\\g<1>\\g<2>{target_ground_friction:.1f} (originally {base_ground_friction:.1f} in the source environment)\\g<5>',
+-                description,
+-            )
+-
+-    if target_obj_friction != base_obj_friction:
+-        # Update "friction coefficient 0.6" for Target Object
+-        friction_pattern = r'(friction coefficient )(\d+\.?\d*)( \(originally [\d.]+ in the source environment\))?(, resting at x=)'
+-        if re.search(friction_pattern, description):
+-            description = re.sub(
+-                friction_pattern,
+-                f'\\g<1>{target_obj_friction:.1f} (originally {base_obj_friction:.1f} in the source environment)\\g<4>',
+-                description,
+-            )
+-
+     if target_sustain_s != base_sustain_s:
+         # Update "for at least 3.0 seconds" in constraints
+         sustain_pattern = r"(for at least )(\d+\.?\d*)( seconds)( \(originally [\d.]+ seconds in the source environment\))?( \()"
+@@ -174,14 +150,38 @@
+ 
+     target_lifting_threshold = float(target_terrain_config.get("LIFTING_THRESHOLD_M", 0.5))
+     base_lifting_threshold = float(base_terrain_config.get("LIFTING_THRESHOLD_M", 0.5))
+-    if target_lifting_threshold != base_lifting_threshold:
+-        threshold_pattern = r"(rises at least )(\d+\.?\d*)( m above its initial height)"
++    target_start_x = float(target_terrain_config.get("OBJECT_START_X", 4.0))
++    base_start_x = float(base_terrain_config.get("OBJECT_START_X", 4.0))
++    target_start_y = float(target_terrain_config.get("OBJECT_START_Y", 1.8))
++    base_start_y = float(base_terrain_config.get("OBJECT_START_Y", 1.8))
++
++    if target_start_x != base_start_x or target_start_y != base_start_y:
++        # Update "resting at x=4.0m, y=1.8m"
++        start_pos_pattern = r"(resting at x=)(\d+\.?\d*)(m, y=)(\d+\.?\d*)(m)"
++        if re.search(start_pos_pattern, description):
++            description = re.sub(
++                start_pos_pattern,
++                f"\\g<1>{target_start_x:.1f}\\g<3>{target_start_y:.1f}\\g<5> (originally x={base_start_x:.1f}m, y={base_start_y:.1f}m in the source environment)",
++                description,
++            )
++
++    if target_lifting_threshold != base_lifting_threshold or target_start_y != base_start_y:
++        # Update "rises at least 0.5 m above its initial height (y=1.8 m)"
++        threshold_pattern = r"(rises at least )(\d+\.?\d*)( m)( above its initial height \(y=)(\d+\.?\d*)( m\))( \(originally rises at least [\d.]+ m above its initial height \(y=[\d.]+ m\) in the source environment\))?"
+         if re.search(threshold_pattern, description):
+             description = re.sub(
+                 threshold_pattern,
+-                f"\\g<1>{target_lifting_threshold:.1f} m (originally {base_lifting_threshold:.1f} m in the source environment)\\g<3>",
++                f"\\g<1>{target_lifting_threshold:.1f}\\g<3>\\g<4>{target_start_y:.1f}\\g<6> (originally rises at least {base_lifting_threshold:.1f} m above its initial height (y={base_start_y:.1f} m) in the source environment)",
+                 description,
+             )
++        else:
++            # Fallback for base environment string without "originally"
++            base_threshold_pattern = r"(rises at least )(\d+\.?\d*)( m)( above its initial height \(y=)(\d+\.?\d*)( m\))"
++            description = re.sub(
++                base_threshold_pattern,
++                f"\\g<1>{target_lifting_threshold:.1f}\\g<3>\\g<4>{target_start_y:.1f}\\g<6> (originally rises at least {base_lifting_threshold:.1f} m above its initial height (y={base_start_y:.1f} m) in the source environment)",
++                description,
++            )
+ 
+     return description
+ 
+@@ -252,7 +252,6 @@
+ - **Joint Fragility**: Mechanical joints may have a maximum tolerance and break under excessive stress or reaction forces.
+ - **Surface Friction**: The object and platform surfaces may have significantly different friction from the initial specification, affecting how securely the payload is held.
+ - **Target Height & Object Mass**: The required lifting height and the mass of the target object may differ from the initial specification.
+-- **Lifting threshold**: The vertical distance required to trigger the "lifted" state detection may differ from the initial specification.
+ 
+ **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+ """

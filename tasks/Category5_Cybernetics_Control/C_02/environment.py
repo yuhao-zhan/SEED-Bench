@@ -140,8 +140,11 @@ class Sandbox:
         self._spawn_y = float(terrain_config.get("spawn_y", SPAWN_Y))
         self._thrust_delay_steps = int(physics_config.get("thrust_delay_steps", THRUST_DELAY_STEPS))
         # Queue of (main_thrust, steering_torque); applied command is the oldest (issued delay_steps ago)
-        qlen = max(1, self._thrust_delay_steps) + 1
-        self._thrust_queue = deque([(0.0, 0.0)] * qlen, maxlen=qlen)
+        # For delay N, we need a queue of length N. 
+        # Step 0: use queue[0], pop, append cmd0. 
+        # If N=3: Step 0 use Q0, Step 1 use Q1, Step 2 use Q2, Step 3 use cmd0.
+        qlen = self._thrust_delay_steps
+        self._thrust_queue = deque([(0.0, 0.0)] * qlen, maxlen=qlen) if qlen > 0 else None
         self._step_count = 0
         self._wind_amplitude = float(physics_config.get("wind_amplitude", WIND_AMPLITUDE))
         self._wind_period1 = float(physics_config.get("wind_period1", WIND_PERIOD1))
@@ -283,11 +286,16 @@ class Sandbox:
                 wind_fx += (random.random() * 2 - 1) * self._gust_amplitude
             lander.ApplyForceToCenter((wind_fx, 0.0), True)
 
-            # Apply the delayed command (the one issued delay_steps ago)
-            thrust_to_use = self._thrust_queue[0][0]
-            torque_to_use = self._thrust_queue[0][1]
-            self._thrust_queue.popleft()
-            self._thrust_queue.append((self._main_thrust, self._steering_torque))
+            # Apply the delayed command (issued delay_steps ago) or immediate command (delay=0)
+            if self._thrust_queue is not None:
+                thrust_to_use = self._thrust_queue[0][0]
+                torque_to_use = self._thrust_queue[0][1]
+                self._thrust_queue.popleft()
+                self._thrust_queue.append((self._main_thrust, self._steering_torque))
+            else:
+                thrust_to_use = self._main_thrust
+                torque_to_use = self._steering_torque
+            
             self._main_thrust = 0.0
             self._steering_torque = 0.0
 

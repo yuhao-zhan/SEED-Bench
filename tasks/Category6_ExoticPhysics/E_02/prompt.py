@@ -22,8 +22,8 @@ TASK_PROMPT = {
 Design a controller for a craft navigating through a complex "thick air" environment.
 
 ## Task Environment
-- **Craft**: A vehicle subject to intense drag, momentum drain, and thermal constraints. The craft starts at position (x=8.0 m, y=2.0 m).
-- **Terrain**: The path contains narrow gates that the craft must pass through. The craft center must stay within the following gate clearances to avoid collision:
+- **Craft**: A 1.0m x 0.5m vehicle (chassis footprint) subject to intense drag, momentum drain, and thermal constraints. The craft starts at position (x=8.0 m, y=2.0 m) with an initial heat of 0.0 N·s.
+- **Terrain**: The path contains a solid ground surface at y=1.0m and narrow gates that the craft must pass through. To avoid collision, the entire craft body must stay within the following physical gaps:
   - **Gate 1**: x in [12.0, 14.0] m, y in [1.0, 2.8] m.
   - **Gate 2**: x in [22.0, 24.0] m, y in [1.8, 3.0] m.
 - **Anomalies**:
@@ -43,7 +43,7 @@ Design a control loop that:
 """,
     "success_criteria": """
 ## Success Criteria
-1. **Target Reach**: Craft center enters the target zone.
+1. **Target Reach**: Craft center enters the target zone (x in [28.0, 32.0], y in [2.0, 5.0]).
 2. **Thermal Safety**: Craft heat stays below the overheat limit (72000 N·s).
 
 ## Design Constraints

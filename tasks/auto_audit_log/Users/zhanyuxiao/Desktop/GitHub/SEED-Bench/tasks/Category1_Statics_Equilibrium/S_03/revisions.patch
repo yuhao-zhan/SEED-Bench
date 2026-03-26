@@ -1,0 +1,249 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/environment.py	2026-03-25 01:10:03
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/environment.py	2026-03-25 01:56:32
+@@ -38,6 +38,8 @@
+             self._obstacle_rects = [terrain_config.get("obstacle_rect")]
+         
+         self._simulation_time = 0.0
++        self._peak_force = 0.0
++        self._peak_torque = 0.0
+         
+         self.BUILD_ZONE_X_MIN = 0.0
+         self.BUILD_ZONE_X_MAX = 50.0 
+@@ -52,8 +54,8 @@
+ 
+     def _setup_terrain(self):
+         wall = self._world.CreateStaticBody(
+-            position=(-0.5, 10),
+-            fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(0.5, 20.0)), friction=0.8),
++            position=(-0.5, 5.0),
++            fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(0.5, 25.0)), friction=0.8),
+         )
+         self._terrain_bodies["wall"] = wall
+         
+@@ -176,6 +178,9 @@
+                 force = joint.GetReactionForce(1.0/time_step)
+                 torque = abs(joint.GetReactionTorque(1.0/time_step))
+                 fm = math.sqrt(force.x**2 + force.y**2)
++                
++                self._peak_force = max(self._peak_force, fm)
++                self._peak_torque = max(self._peak_torque, torque)
+                 
+                 if fm > max_f or torque > max_t:
+                     joints_to_remove.append(joint)
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/evaluator.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/evaluator.py	2026-03-25 01:10:03
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/evaluator.py	2026-03-25 01:56:32
+@@ -81,10 +81,18 @@
+             if self.max_tip_x >= self.target_reach:
+                 self.reach_satisfied_initially = True
+         
+-        # Track min tip height across all structure bodies
++        # Track min tip height across all structure bodies (check all vertices for "no part" rule)
+         total_ext_force_y = 0.0
+         for body in self.environment._bodies:
+-            self.min_tip_y = min(self.min_tip_y, body.position.y)
++            for fixture in body.fixtures:
++                shape = fixture.shape
++                if hasattr(shape, 'vertices'):
++                    for v in shape.vertices:
++                        wv = body.GetWorldPoint(v)
++                        self.min_tip_y = min(self.min_tip_y, wv.y)
++                else:
++                    # Fallback for non-polygon shapes if any
++                    self.min_tip_y = min(self.min_tip_y, body.position.y)
+             
+             # Sum up external forces for discovery feedback
+             # Spatial force
+@@ -115,16 +123,9 @@
+ 
+         self.external_force_y = total_ext_force_y / len(self.environment._bodies) if self.environment._bodies else 0.0
+ 
+-        # Record max torque and force usage (same frequency as environment joint checks: 1/TIME_STEP)
+-        inv_dt = 1.0 / TIME_STEP
+-        for joint in self.environment._joints:
+-            try:
+-                force = joint.GetReactionForce(inv_dt)
+-                torque = abs(joint.GetReactionTorque(inv_dt))
+-                fm = math.sqrt(force.x**2 + force.y**2)
+-                self.max_recorded_torque = max(self.max_recorded_torque, torque)
+-                self.max_recorded_force = max(self.max_recorded_force, fm)
+-            except: pass
++        # Record max torque and force usage from environment telemetry (captured during step)
++        self.max_recorded_torque = max(self.max_recorded_torque, getattr(self.environment, "_peak_torque", 0.0))
++        self.max_recorded_force = max(self.max_recorded_force, getattr(self.environment, "_peak_force", 0.0))
+             
+         # Record both anchor and internal torque/force limits for accurate feedback (wall vs beam-to-beam joints).
+         # When anchor_strength_map applies, use the minimum effective limit (base * mult) so the reported
+@@ -253,9 +254,19 @@
+                     self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
+                 violations.append(f"Beam at ({x:.2f}, {y:.2f}) outside build zone")
+         
+-        anchor_count = len([j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]])
++        anchor_joints = [j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]]
++        anchor_count = len(anchor_joints)
+         if anchor_count > 2:
+             violations.append(f"Too many wall anchors: {anchor_count} (max 2)")
++            
++        forbidden = getattr(self.environment, "_forbidden_anchor_y", None)
++        if forbidden:
++            y_min, y_max = forbidden
++            for j in anchor_joints:
++                # anchorA/B access consistency
++                pos = j.anchorA if hasattr(j, "anchorA") else j.GetAnchorA()
++                if y_min <= pos.y <= y_max:
++                    violations.append(f"Anchor at y={pos.y:.2f} in forbidden zone [{y_min}, {y_max}]")
+             
+         return violations
+ 
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/prompt.py	2026-03-25 01:10:03
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/prompt.py	2026-03-25 01:56:32
+@@ -41,7 +41,7 @@
+ - **Goal**: Reach x >= 12.0m.
+ 2. Support all applied payloads for 10 seconds each without collapsing or excessive sagging.
+ 3. Manage internal stresses so that the wall anchors and structural joints remain intact.
+-- **Mass Limit**: < 15,000 kg.
++- **Mass Limit**: <= 15,000 kg.
+ """,
+     
+     'success_criteria': """
+@@ -52,8 +52,9 @@
+ 4. **Stability**: No part of the structure may go below the allowed vertical threshold (y >= -15.0 m).
+ 
+ ## Design Constraints
+-- **Mass Budget**: < 15,000 kg.
++- **Mass Budget**: <= 15,000 kg.
+ - **Payload Mass**: 500 kg per applied load.
++- **Load Duration**: Support each payload for 10.0 seconds.
+ - **Payload application**: Static (placed on structure at the given times) in the source environment.
+ - **Anchor Limit**: Maximum 2 anchor points on the wall.
+ - **Forbidden Anchor Zones**: None in the source environment.
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.YNI76sWveF/stages.py	2026-03-25 01:10:03
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category1_Statics_Equilibrium/S_03/stages.py	2026-03-25 02:05:38
+@@ -22,7 +22,7 @@
+     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
+     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
+     if target_mass != base_mass:
+-        pattern = r"(- \*\*Mass Limit\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
++        pattern = r"(- \*\*Mass Limit\*\*: <= )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
+         description = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment).", description)
+     
+     # Update Payload mass (task_description: "Each payload has mass **500 kg** (applied at t=5s and t=15s).")
+@@ -31,14 +31,20 @@
+     base_load_mass = base_terrain_config.get("load_mass", 500.0)
+     if target_load_mass != base_load_mass:
+         # Match "Each payload has mass **NNN kg**" plus rest of sentence up to " The first payload".
++        # This regex avoids strict dependency on the punctuation at the end of the load times part.
+         pattern = r"(Each payload has mass \*\*)(\d+,?\d*)( kg\*\*)(.*?)(\s+The first payload)"
+         def _replace_mass(m):
+-            tail = m.group(4)
+-            if tail.endswith(")."):
+-                tail = tail[:-2] + ") (originally {0:,.0f} kg in the source environment).".format(base_load_mass)
+-            else:
+-                tail = tail + " (originally {0:,.0f} kg in the source environment).".format(base_load_mass)
+-            return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{tail}{m.group(5)}"
++            mid = m.group(4)
++            # If load times were already updated, mid will end with "))." or similar.
++            # We want to insert the mass "originally" part before the final "." if it exists.
++            if mid.endswith("."):
++                mid_content = mid[:-1]
++                return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{mid_content} (originally {base_load_mass:,.0f} kg in the source environment).{m.group(5)}"
++            elif mid.endswith(". "):
++                mid_content = mid[:-2]
++                # group(5) usually starts with a space, so we don't add one here after the period.
++                return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{mid_content} (originally {base_load_mass:,.0f} kg in the source environment).{m.group(5)}"
++            return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{mid} (originally {base_load_mass:,.0f} kg in the source environment){m.group(5)}"
+         if re.search(pattern, description):
+             description = re.sub(pattern, _replace_mass, description, count=1)
+ 
+@@ -50,22 +56,15 @@
+     base_t1 = float(base_terrain_config.get("load_attach_time", default_load_attach))
+     base_t2 = float(base_terrain_config.get("load_2_attach_time", default_load_2_attach))
+     if target_t1 != base_t1 or target_t2 != base_t2:
+-        # Match and consume the closing ")." and any following whitespace so we don't duplicate it.
+-        # Two contexts: "(e.g., at ...)." (then newline) and "(applied at ...). The"
+-        pattern1 = r"\(e\.g\., at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)\)\.\s*"
+-        pattern2 = r"\(applied at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)\)\.\s*"
++        # Match "at t=5s and t=15s" followed by optional " (originally ...)" and optional punctuation.
++        pattern1 = r"\(e\.g\., at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)(?: \(originally [^)]+\))?\)\.?\s*"
++        pattern2 = r"\(applied at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)(?: \(originally [^)]+\))?\)\.?\s*"
++        replacement1 = f"(e.g., at t={target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). "
++        replacement2 = f"(applied at t={target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). "
+         if re.search(pattern1, description):
+-            description = re.sub(
+-                pattern1,
+-                f"(e.g., at \\g<1>{target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). ",
+-                description,
+-            )
++            description = re.sub(pattern1, replacement1, description)
+         if re.search(pattern2, description):
+-            description = re.sub(
+-                pattern2,
+-                f"(applied at \\g<1>{target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). ",
+-                description,
+-            )
++            description = re.sub(pattern2, replacement2, description)
+ 
+     # Update load hold duration (VISIBLE: "10 seconds each")
+     target_duration = float(target_terrain_config.get("load_duration", 10.0))
+@@ -75,7 +74,7 @@
+         if re.search(pattern, description):
+             description = re.sub(
+                 pattern,
+-                f"\\g<1>{target_duration:.1f} seconds each (originally {base_duration:.1f} seconds in the source environment) ",
++                f"\\g<1>{target_duration:.1f} seconds each (originally {base_duration:.1f} seconds in the source environment)",
+                 description,
+             )
+ 
+@@ -231,7 +230,7 @@
+     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
+     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
+     if target_mass != base_mass:
+-        pattern = r"(- \*\*Mass Budget\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
++        pattern = r"(- \*\*Mass Budget\*\*: <= )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
+         criteria = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment).", criteria)
+     
+     # Update Payload Mass in Success Criteria (cascading-safe)
+@@ -245,6 +244,7 @@
+     target_duration = float(target_terrain_config.get("load_duration", 10.0))
+     base_duration = float(base_terrain_config.get("load_duration", 10.0))
+     if target_duration != base_duration:
++        # Update numbered item
+         pattern = r"(Successfully supports all payloads for the )(\d+\.?\d*)(s test duration)(?: \(originally [^)]+\))?\.?"
+         if re.search(pattern, criteria):
+             criteria = re.sub(
+@@ -252,6 +252,14 @@
+                 f"\\g<1>{target_duration:.1f}s test duration (originally {base_duration:.1f}s in the source environment).",
+                 criteria,
+             )
++        # Update bullet point
++        pattern_bullet = r"(- \*\*Load Duration\*\*: Support each payload for )(\d+\.?\d*)( seconds)(?: \(originally [^)]+\))?\.?"
++        if re.search(pattern_bullet, criteria):
++            criteria = re.sub(
++                pattern_bullet,
++                f"\\g<1>{target_duration:.1f} seconds (originally {base_duration:.1f} seconds in the source environment).",
++                criteria,
++            )
+ 
+     # Update Internal Joint Limits in Success Criteria (cascading-safe)
+     default_internal = 100000000.0
+@@ -295,7 +303,7 @@
+     target_tol = float(target_terrain_config.get("reach_tolerance", default_tol))
+     base_tol = float(base_terrain_config.get("reach_tolerance", default_tol))
+     if target_tol != base_tol:
+-        pattern_tol = r"(- \*\*Reach Tolerance\*\*: Under load, tip x may be up to )(\d+\.?\d*)( m )(?:\(originally [^)]+\) )?short of target and still satisfy reach\.)"
++        pattern_tol = r"(- \*\*Reach Tolerance\*\*: Under load, tip x may be up to )(\d+\.?\d*)( m )(?:\(originally [^)]+\) )?short of target and still satisfy reach\.?"
+         if re.search(pattern_tol, criteria):
+             criteria = re.sub(pattern_tol, f"\\g<1>{target_tol:.1f} m (originally {base_tol:.1f} m in the source environment) short of target and still satisfy reach.", criteria)
+ 
+@@ -455,7 +463,7 @@
+         "anchor_strength_map": "**Regional Anchor Weakness**: Certain vertical segments of the wall may exhibit structural integrity that differs from standard conditions, affecting anchor stability.",
+         "forbidden_anchor_y": "**Forbidden Anchor Zones**: Specific vertical segments of the wall may be restricted from attaching anchors.",
+         "obstacle_active": "**Static Obstructions**: Massive, impenetrable structures might be present in the build zone, necessitating complex geometries to navigate around them.",
+-        "obstacle_rects": "**Obstacle Dimensions**: Specific rectangular zones are blocked off by obstructions.",
++        "obstacle_rects": "**Obstacle Layout**: The specific coordinates and dimensions of static obstructions in the environment may vary.",
+         "load_type": "**Dynamic Load Impacts**: The payload might be dropped from a height rather than being placed statically, introducing severe impulse forces.",
+         "drop_height": "**Payload Drop Height**: The height from which payloads are dropped may vary.",
+         "spatial_force": "**Localized Force Fields**: Invisible spatial anomalies might exert powerful repulsive or attractive forces on any structure within their radius of influence.",

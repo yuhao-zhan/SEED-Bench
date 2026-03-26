@@ -1,0 +1,347 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/agent.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/agent.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/agent.py	2026-03-26 11:53:17
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/agent.py	2026-03-26 11:57:42
+@@ -15,6 +15,8 @@
+ BAR_FRICTION = 0.6
+ 
+ def build_agent(sandbox):
++    if hasattr(sandbox, 'remove_initial_template'):
++        sandbox.remove_initial_template()
+     base = sandbox.add_beam(x=CENTER_X, y=GROUND_Y, width=0.5, height=0.12, angle=0, density=1.0)
+     if hasattr(sandbox, 'weld_to_glass'):
+         sandbox.weld_to_glass(base, (CENTER_X, GLASS_Y))
+@@ -48,6 +50,8 @@
+     sandbox.set_motor(sandbox._wiper_motor_joint, motor_speed, max_torque=4500.0)
+ 
+ def build_agent_stage_1(sandbox):
++    if hasattr(sandbox, 'remove_initial_template'):
++        sandbox.remove_initial_template()
+     GLASS_Y = 2.0
+     CENTER_X = 6.0
+     GROUND_Y = 2.06
+@@ -83,6 +87,8 @@
+     sandbox.set_motor(agent_body.motor1, motor_speed, max_torque=1e8)
+ 
+ def build_agent_stage_2(sandbox):
++    if hasattr(sandbox, 'remove_initial_template'):
++        sandbox.remove_initial_template()
+     GLASS_Y = 2.0
+     CENTER_X = 6.0
+     GROUND_Y = 2.06
+@@ -118,6 +124,8 @@
+     sandbox.set_motor(agent_body.motor1, motor_speed, max_torque=1e8)
+ 
+ def build_agent_stage_3(sandbox):
++    if hasattr(sandbox, 'remove_initial_template'):
++        sandbox.remove_initial_template()
+     PIVOT_Y = 8.0
+     DENSITY = 0.015
+     base = sandbox.add_beam(x=6.0, y=PIVOT_Y, width=0.15, height=0.15, angle=0, density=0.04)
+@@ -157,6 +165,8 @@
+     sandbox.set_motor(agent_body.motor2, motor_speed=speed_R, max_torque=800.0)
+ 
+ def build_agent_stage_4(sandbox):
++    if hasattr(sandbox, 'remove_initial_template'):
++        sandbox.remove_initial_template()
+     GLASS_Y = 2.0
+     CENTER_X = 6.0
+     GROUND_Y = 2.06
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/environment.py	2026-03-26 11:53:17
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/environment.py	2026-03-26 12:29:59
+@@ -58,15 +58,13 @@
+         # 3. Set build zone and constraints
+         self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
+         self.BUILD_ZONE_X_MAX = 12.0  # Build zone x end
+-        self.BUILD_ZONE_Y_MIN = 2.0  # Build zone y start (above glass)
++        self.BUILD_ZONE_Y_MIN = 2.0  # Build zone y start (at or above glass)
+         self.BUILD_ZONE_Y_MAX = 10.0  # Build zone y end
+         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 15.0))  # Hard: 15kg limit (was 25)
+         # Optional cap on motor torque (mutations can impose lower limit to invalidate heavy-duty designs)
+         self._max_motor_torque_cap = terrain_config.get("max_motor_torque")
+         if self._max_motor_torque_cap is not None:
+             self._max_motor_torque_cap = float(self._max_motor_torque_cap)
+-        # Reference test: use 3-segment bar when smooth glass so bar can oscillate
+-        self._reference_wiper_short_bar = bool(terrain_config.get("reference_short_bar", False))
+         
+         # 4. Create particles to clean
+         self._create_particles(terrain_config)
+@@ -202,7 +200,6 @@
+     BUILD_ZONE_X_MAX = 12.0  # Default, will be updated in __init__
+     BUILD_ZONE_Y_MIN = 2.0  # Build zone y start
+     BUILD_ZONE_Y_MAX = 10.0  # Build zone y end
+-    MAX_STRUCTURE_MASS = 15.0  # Hard default; overridden in __init__ from terrain_config
+ 
+     # --- Below are Primitives API open to LLM (with physical constraints) ---
+ 
+@@ -220,7 +217,7 @@
+             density=density,
+             friction=0.5,
+         )
+-        if self._terrain_config.get("wiper_ignore_glass_collision"):
++        if self._terrain_config.get("wiper_ignore_glass_collision", True):
+             beam_fd.filter.categoryBits = self._CATEGORY_WIPER
+             beam_fd.filter.maskBits = self._CATEGORY_WIPER | self._CATEGORY_PARTICLE
+         body = self._world.CreateDynamicBody(
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/feedback.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/feedback.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/feedback.py	2026-03-26 11:53:17
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/feedback.py	2026-03-26 12:14:52
+@@ -246,7 +246,7 @@
+             )
+         elif not mass_over and removal_fail:
+             suggestions.append(
+-                "DIAGNOSTIC: Mass budget is satisfied but particle removal is below the required threshold. The failure is due to insufficient clearing; consider whether sweep coverage, contact force, or environmental conditions (e.g. particle adhesion or mass) limit momentum transfer."
++                "DIAGNOSTIC: Mass budget is satisfied but particle removal is below the required threshold. The failure is due to insufficient clearing; consider whether sweep coverage, contact force, or environmental conditions or particle properties limit momentum transfer."
+             )
+     except (TypeError, ValueError):
+         pass
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/prompt.py	2026-03-26 11:53:17
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/prompt.py	2026-03-26 12:13:58
+@@ -9,12 +9,7 @@
+ # Add the tasks directory to sys.path to find primitives_api.py
+ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+ from primitives_api import API_INTRO
+-import sys
+ 
+-# Add tasks directory to path to import primitives_api
+-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+-from primitives_api import API_INTRO
+-
+ with open(os.path.join(os.path.dirname(__file__), '..', '..', 'primitives_api.json'), 'r') as f:
+     _api_data = json.load(f)
+ 
+@@ -31,7 +26,7 @@
+ 
+ ## Task Environment
+ - **Glass Surface**: Flat surface at y=2.0m, length 12m (x from 0 to 12).
+-- **Particles**: 45 small particles are randomly distributed on the glass.
++- **Particles**: 45 small particles are randomly distributed on the glass (x between 1.0 and 11.0).
+ - **Particle Removal**: A particle is considered "removed" when pushed off the glass surface boundaries. A particle counts as **remaining** on the glass when 0.5 ≤ x ≤ 11.5 m and |y − 2.0| < 0.5 m; outside this region it is **removed**.
+ - **Build Zone**: x=[0, 12], y=[2, 10]. All structure components must be placed within this zone.
+ - **Wiper–Glass**: The wiper does NOT collide with the glass surface itself; it only collides with the particles.
+@@ -39,7 +34,7 @@
+ ## Constraints (must satisfy)
+ - **Cleaning**: At least 80% of particles must be removed (residual <= 20%).
+ - **Motion**: The wiper must maintain active movement for at least 8.0 seconds.
+-- **Mass Budget**: Total structure mass must be less than 15 kg.
++- **Mass Budget**: Total structure mass must be less than or equal to 15 kg.
+ - **Build Zone**: All components must be within x=[0, 12], y=[2, 10].
+ - **Beam Dimensions**: 0.05 <= width, height <= 2.0 meters.
+ - **Pivot joint angle limits**: ±π radians (full rotation) for revolute/pivot joints.
+@@ -58,7 +53,7 @@
+ 3. **Stability**: Structure remains within build zone and mass limits.
+ 
+ ## Design Constraints
+-- **Mass Budget**: < 15 kg.
++- **Mass Budget**: <= 15 kg.
+ - **APIs**: Use only the primitives documented below.
+ """,
+     
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/renderer.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/renderer.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/renderer.py	2026-03-26 11:53:17
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/renderer.py	2026-03-26 12:41:26
+@@ -10,7 +10,7 @@
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+ 
+ from common.renderer import Renderer
+-from Box2D.b2 import dynamicBody, staticBody, revoluteJoint
++from Box2D.b2 import dynamicBody, staticBody, revoluteJoint, polygonShape
+ 
+ # Standard Academic Palette
+ COLOR_BG = (0, 0, 0)
+@@ -32,7 +32,8 @@
+     BAR_HALF_LEN = 5.0
+     SCALE_X = 60.0
+     SCALE_Y = 80.0
+-    PARTICLE_RADIUS_PX = 12
++    # Physically accurate radius: 0.08m * 60px/m = 4.8px -> use 5px for better visibility
++    PARTICLE_RADIUS_PX = 6 
+     BIN_LEFT_X = 0.3
+     BIN_RIGHT_X = 11.7
+     BIN_Y_OFFSET = 0.3
+@@ -50,10 +51,14 @@
+ 
+     def _on_glass(self, sandbox, particle):
+         """Check if particle is on glass."""
++        # Use values from sandbox if available for better sync
++        gx_min = getattr(sandbox, 'GLASS_X_MIN', 0.5)
++        gx_max = getattr(sandbox, 'GLASS_X_MAX', 11.5)
++        # Wait, environment.py uses hardcoded 0.5 and 11.5 in get_particle_count
++        gx_min, gx_max = 0.5, 11.5
+         glass_y = getattr(sandbox, '_glass_y', 2.0)
+         x, y = particle.position.x, particle.position.y
+-        return (self.GLASS_X_MIN <= x <= self.GLASS_X_MAX and
+-                abs(y - glass_y) < 0.5)
++        return (gx_min <= x <= gx_max and abs(y - glass_y) < 0.5)
+ 
+     def _to_screen(self, px, py):
+         """Front view coordinate transformation."""
+@@ -72,19 +77,33 @@
+         self.clear(COLOR_BG)
+ 
+         # 1) Glass Panel (Environmental Baseline)
+-        gx0, gx1 = self.GLASS_X_MIN, self.GLASS_X_MAX
+-        gy = self.GLASS_Y
+-        glass_half_height = 0.7
++        gx0, gx1 = 0.0, 12.0 # Total length from environment.py
++        gy = getattr(sandbox, "_glass_y", self.GLASS_Y)
++        # Physical glass height is 0.1, top at y=2.0.
++        # We render it slightly thicker for visibility but aligned with top.
++        glass_render_height = 0.2 
+         pts_glass = [
+-            self._to_screen(gx0, gy - glass_half_height),
+-            self._to_screen(gx1, gy - glass_half_height),
+-            self._to_screen(gx1, gy + glass_half_height),
+-            self._to_screen(gx0, gy + glass_half_height),
++            self._to_screen(gx0, gy - glass_render_height),
++            self._to_screen(gx1, gy - glass_render_height),
++            self._to_screen(gx1, gy),
++            self._to_screen(gx0, gy),
+         ]
+         pygame.draw.polygon(self.simulator.screen, COLOR_GLASS, pts_glass)
+         pygame.draw.polygon(self.simulator.screen, COLOR_ENV, pts_glass, 2)
+ 
+-        # 2) Particles (Goldenrod Yellow as environmental markers)
++        # 2) Agent Bodies (The actual wiper structure)
++        # Draw all beams created by the agent
++        for body in (sandbox.bodies or []):
++            if body.type == dynamicBody:
++                for fixture in body.fixtures:
++                    shape = fixture.shape
++                    if isinstance(shape, polygonShape):
++                        vertices_world = [body.transform * v for v in shape.vertices]
++                        vertices_screen = [self._to_screen(v.x, v.y) for v in vertices_world]
++                        pygame.draw.polygon(self.simulator.screen, COLOR_AGENT, vertices_screen)
++                        pygame.draw.polygon(self.simulator.screen, (255, 255, 255), vertices_screen, 1)
++
++        # 3) Particles (Goldenrod Yellow as environmental markers)
+         if hasattr(sandbox, '_particles'):
+             left_bin_count = 0
+             right_bin_count = 0
+@@ -97,8 +116,8 @@
+                     pygame.draw.circle(self.simulator.screen, (255, 255, 255), pos, self.PARTICLE_RADIUS_PX, 1)
+                 else:
+                     # Collected particles
+-                    r_small = 6
+-                    if px < self.GLASS_X_MIN:
++                    r_small = 4
++                    if px < 0.5: # Boundary from environment.py
+                         left_bin_count += 1
+                         by = self.GLASS_Y + self.BIN_Y_OFFSET * (left_bin_count % 3 - 1)
+                         pos = self._to_screen(self.BIN_LEFT_X, by)
+@@ -109,7 +128,7 @@
+                     pygame.draw.circle(self.simulator.screen, (50, 50, 50), pos, r_small)
+                     pygame.draw.circle(self.simulator.screen, COLOR_ENV, pos, r_small, 1)
+ 
+-        # 3) Wiper Arm (Material Green)
++        # 4) Wiper Arm Indicator (Conceptual line for the motor joint)
+         joint = getattr(sandbox, '_wiper_motor_joint', None)
+         if joint is None and hasattr(sandbox, '_joints'):
+             from Box2D.b2 import revoluteJoint
+@@ -122,20 +141,28 @@
+         if joint is not None:
+             try:
+                 angle = joint.angle
++                pivot_x, pivot_y = joint.anchorA
+             except Exception:
+                 angle = joint.bodyB.angle
++                pivot_x, pivot_y = self.PIVOT_X, self.PIVOT_Y
+             
+-            n_bodies = len(sandbox._bodies)
+-            half_len = 3.0 if n_bodies <= 4 else self.BAR_HALF_LEN
++            # Draw a faint indicator of the sweep arm if requested
++            half_len = self.BAR_HALF_LEN
+             dx = half_len * math.cos(angle)
+             dy = half_len * math.sin(angle)
+-            p1 = self._to_screen(self.PIVOT_X - dx, self.PIVOT_Y - dy)
+-            p2 = self._to_screen(self.PIVOT_X + dx, self.PIVOT_Y + dy)
++            p1 = self._to_screen(pivot_x - dx, pivot_y - dy)
++            p2 = self._to_screen(pivot_x + dx, pivot_y + dy)
+             
+-            pygame.draw.line(self.simulator.screen, COLOR_AGENT, p1, p2, 8)
+-            pygame.draw.line(self.simulator.screen, (100, 220, 100), p1, p2, 2)
++            # Thinner, more transparent-looking line for the indicator
++            pygame.draw.line(self.simulator.screen, (100, 200, 100), p1, p2, 2)
+ 
+-        # Pivot point
+-        pivot_pos = self._to_screen(self.PIVOT_X, self.PIVOT_Y)
+-        pygame.draw.circle(self.simulator.screen, COLOR_JOINT, pivot_pos, 8)
+-        pygame.draw.circle(self.simulator.screen, (255, 255, 255), pivot_pos, 8, 1)
++            # Pivot point at actual joint location
++            pivot_pos = self._to_screen(pivot_x, pivot_y)
++            pygame.draw.circle(self.simulator.screen, COLOR_JOINT, pivot_pos, 6)
++            pygame.draw.circle(self.simulator.screen, (255, 255, 255), pivot_pos, 6, 1)
++        else:
++            # Default pivot point if no joint found
++            pivot_pos = self._to_screen(self.PIVOT_X, self.PIVOT_Y)
++            pygame.draw.circle(self.simulator.screen, COLOR_JOINT, pivot_pos, 6)
++            pygame.draw.circle(self.simulator.screen, (255, 255, 255), pivot_pos, 6, 1)
++
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.nivdjT5dqH/stages.py	2026-03-26 11:53:17
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category2_Kinematics_Linkages/K_06/stages.py	2026-03-26 12:36:44
+@@ -26,7 +26,7 @@
+ - **Particle Friction**: The adhesion and resistance of particles to being moved may be altered.
+ - **Particle Mass**: The mass and inertia of the individual particles may differ from standard.
+ - **Mass Budget**: The maximum total mass allowed for the wiper structure may be adjusted.
+-- **Motor Torque Limit**: The maximum torque available at motor-driven joints may be capped in this region, limiting the force the mechanism can apply.
++- **Motor Torque Limit**: The maximum torque available at motor-driven joints may be adjusted in this region, affecting the force the mechanism can apply.
+ 
+ **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
+ """
+@@ -41,24 +41,25 @@
+     base_count = base_terrain_config.get("particles", {}).get("count", 45)
+ 
+     if target_count != base_count:
+-        pattern = r"(- \*\*Particles\*\*: )(\d+)( small particles)"
+-        description = re.sub(pattern, f"\\g<1>{target_count} small particles (originally {base_count} small particles in the source environment)", description)
++        # Matches the updated prompt format with distribution range
++        pattern = r"(- \*\*Particles\*\*: )(\d+)( small particles)( are randomly distributed on the glass \(x between 1\.0 and 11\.0\))"
++        description = re.sub(pattern, f"\\g<1>{target_count}\\g<3> (originally {base_count}\\g<3> in the source environment)\\g<4>", description)
+ 
+     # Mass limit
+     target_mass = target_terrain_config.get("max_structure_mass", 15.0)
+     base_mass = base_terrain_config.get("max_structure_mass", 15.0)
+ 
+     if target_mass != base_mass:
+-        pattern = r"(Total structure mass must be less than )(\d+\.?\d*)( kg)"
+-        description = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally {base_mass:.2f} kg in the source environment)", description)
++        pattern = r"(Total structure mass must be less than or equal to )(\d+\.?\d*)( kg)"
++        description = re.sub(pattern, f"\\g<1>{target_mass:g}\\g<3> (originally {base_mass:g}\\g<3> in the source environment)", description)
+ 
+     # Motor torque cap (when set by mutation; base has no cap)
+     target_motor_cap = target_terrain_config.get("max_motor_torque")
+-    base_motor_cap = base_terrain_config.get("max_motor_torque")
+     if target_motor_cap is not None:
+-        old_val = f"{base_motor_cap:.1f} N·m" if base_motor_cap is not None else "no cap"
++        # Exact string from prompt.py
++        old_val = "No environment cap"
+         pattern = r"(- \*\*Motor torque\*\*: )No environment cap \(solver may request up to API limits\)\."
+-        replacement = f"\\g<1>Capped at {target_motor_cap:.1f} N·m (originally {old_val} in the source environment)."
++        replacement = f"\\g<1>{target_motor_cap:g} N·m (originally {old_val} in the source environment)."
+         if re.search(pattern, description):
+             description = re.sub(pattern, replacement, description)
+ 
+@@ -74,8 +75,19 @@
+     base_mass = base_terrain_config.get("max_structure_mass", 15.0)
+ 
+     if target_mass != base_mass:
+-        pattern = r"(\*\*Mass Budget\*\*: < )(\d+\.?\d*)( kg)"
+-        criteria = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally < {base_mass:.2f} kg in the source environment)", criteria)
++        pattern = r"(\*\*Mass Budget\*\*: <= )(\d+\.?\d*)( kg)"
++        # Use :g to avoid .00 if it's an integer, matching prompt style
++        criteria = re.sub(pattern, f"\\g<1>{target_mass:g}\\g<3> (originally {base_mass:g}\\g<3> in the source environment)", criteria)
++
++    # Motor torque cap (synchronize if present in design constraints)
++    target_motor_cap = target_terrain_config.get("max_motor_torque")
++    if target_motor_cap is not None:
++        # Add to Design Constraints if not already present
++        if "- **Motor torque**:" not in criteria:
++            criteria = criteria.strip() + f"\n- **Motor torque**: {target_motor_cap:g} N·m (originally No environment cap in the source environment)."
++        else:
++            pattern = r"(- \*\*Motor torque\*\*: ).*"
++            criteria = re.sub(pattern, f"\\g<1>{target_motor_cap:g} N·m (originally No environment cap in the source environment).", criteria)
+ 
+     return criteria
+ 

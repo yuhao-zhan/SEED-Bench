@@ -20,21 +20,55 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_friction = float(base_obj.get("friction", 0.6))
     
     if target_shape != base_shape:
-        # Update Target Object description (shape); prompt line includes "of mass X kg" and optional platform friction
-        pattern = r"(- \*\*Target Object\*\*: An object)( of mass \d+\.?\d* kg with surface friction coefficient \d+\.?\d* at x=5\.0m, y=2\.0m \(on a platform at y=1\.8m)(; platform surface friction coefficient 0\.25)?\)\."
+        # Update Target Object description (shape) and platform height
+        # Matches "- **Target Object**: [Shape Description] of mass..." and replaces shape part.
+        # Use more robust regex that doesn't hardcode mass/friction values
+        pattern = r"(- \*\*Target Object\*\*: )(.*?)(?! \(originally)( of mass .*? kg with surface friction coefficient .*? at x=.*?m, y=.*?m \(on a platform at y=)(\d+\.?\d*)(.*?)"
         if re.search(pattern, description):
-            shape_name = "a circular disk" if target_shape == "circle" else "a triangular block" if target_shape == "triangle" else "a rectangular block"
-            orig_name = "a rectangular block" if base_shape == "box" else "a triangular block" if base_shape == "triangle" else "a circular disk"
+            shape_name = "A circular disk (radius 0.25m)" if target_shape == "circle" else "A triangular block (approx 0.4m)" if target_shape == "triangle" else "A rectangular block (0.4m x 0.4m)"
+            orig_name = "A rectangular block (0.4m x 0.4m)" if base_shape == "box" else "A triangular block (approx 0.4m)" if base_shape == "triangle" else "A circular disk (radius 0.25m)"
+            
+            # Platform height depends on shape height: platform_top = obj_y - obj_h / 2
+            # box: h=0.4 -> 1.8; triangle: h=0.4 -> 1.8; circle: h=0.5 -> 1.75
+            target_platform_y = 1.75 if target_shape == "circle" else 1.8
+            base_platform_y = 1.75 if base_shape == "circle" else 1.8
+            
+            if target_platform_y != base_platform_y:
+                platform_y_str = f"{target_platform_y} (originally {base_platform_y} in the source environment)"
+            else:
+                platform_y_str = str(target_platform_y)
+
             description = re.sub(
                 pattern,
-                lambda m: f"- **Target Object**: {shape_name} (originally {orig_name} in the source environment){m.group(2)}{m.group(3) or ''}).",
+                lambda m: f"{m.group(1)}{shape_name} (originally {orig_name} in the source environment){m.group(3)}{platform_y_str}{m.group(5)}",
                 description
             )
     
+    # Exhaustive sync for object position if it changes
+    target_obj_x = float(target_obj.get("x", 5.0))
+    base_obj_x = float(base_obj.get("x", 5.0))
+    if target_obj_x != base_obj_x:
+        obj_x_pattern = r"( at x=)(\d+\.?\d*)(m, y=)(?! \(originally)"
+        description = re.sub(
+            obj_x_pattern,
+            lambda m: f"{m.group(1)}{target_obj_x}m (originally {m.group(2)}m in the source environment), y=",
+            description
+        )
+    
+    target_obj_y = float(target_obj.get("y", 2.0))
+    base_obj_y = float(base_obj.get("y", 2.0))
+    if target_obj_y != base_obj_y:
+        obj_y_pattern = r"(, y=)(\d+\.?\d*)(m \(on a platform)(?! \(originally)"
+        description = re.sub(
+            obj_y_pattern,
+            lambda m: f"{m.group(1)}{target_obj_y}m (originally {m.group(2)}m in the source environment) (on a platform",
+            description
+        )
+    
     if target_mass != base_mass:
         # Update object mass with format [new_value] (originally [old_value] in the source environment)
-        # Only match the first "of mass X kg" not the one inside "(originally X kg ...)"
-        mass_pattern = r"(of mass )(\d+\.?\d*)( kg)(?! \()"
+        # Avoid double-replacement by checking for existing "(originally"
+        mass_pattern = r"(of mass )(\d+\.?\d*)( kg)(?! \(originally)"
         if re.search(mass_pattern, description):
             description = re.sub(
                 mass_pattern,
@@ -45,21 +79,101 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     
     if target_friction != base_friction:
         # Update object friction with format [new_value] (originally [old_value] in the source environment)
-        # Capture full position suffix including optional platform friction so output is not truncated
-        friction_pattern = r"(with surface friction coefficient )(\d+\.?\d*)( at x=5\.0m, y=2\.0m \(on a platform at y=1\.8m)(; platform surface friction coefficient 0\.25)?\)\."
+        friction_pattern = r"(with surface friction coefficient )(\d+\.?\d*)( at x=)(?! \(originally)"
         if re.search(friction_pattern, description):
             description = re.sub(
                 friction_pattern,
-                lambda m: f"{m.group(1)}{target_friction} (originally {m.group(2)} in the source environment){m.group(3)}{m.group(4) or ''}).",
+                lambda m: f"{m.group(1)}{target_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
                 description,
                 count=1,
             )
+
+    # Exhaustive sync for other visible parameters if they change
+    target_gantry_friction = float(target_terrain_config.get("gantry_friction", 0.6))
+    base_gantry_friction = float(base_terrain_config.get("gantry_friction", 0.6))
+    if target_gantry_friction != base_gantry_friction:
+        gantry_pattern = r"(surface friction coefficient )(\d+\.?\d*)(\)\. Use `get_anchor_for_gripper\(\)`)(?! \(originally)"
+        description = re.sub(
+            gantry_pattern,
+            lambda m: f"{m.group(1)}{target_gantry_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
+            description
+        )
+
+    target_platform_friction = float(target_terrain_config.get("platform_friction", 0.25))
+    base_platform_friction = float(base_terrain_config.get("platform_friction", 0.25))
+    if target_platform_friction != base_platform_friction:
+        platform_friction_pattern = r"(platform surface friction coefficient )(\d+\.?\d*)(\))(?! \(originally)"
+        description = re.sub(
+            platform_friction_pattern,
+            lambda m: f"{m.group(1)}{target_platform_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
+            description
+        )
+
+    target_budget = float(target_terrain_config.get("max_structure_mass", 30.0))
+    base_budget = float(base_terrain_config.get("max_structure_mass", 30.0))
+    if target_budget != base_budget:
+        budget_pattern = r"(Mass Budget\*\*: .*?<= )(\d+\.?\d*)( kg)(?! \(originally)"
+        description = re.sub(
+            budget_pattern,
+            lambda m: f"{m.group(1)}{target_budget}{m.group(3)} (originally {m.group(2)} kg in the source environment)",
+            description
+        )
+
+    target_y = float(target_terrain_config.get("target_object_y", 3.5))
+    base_y = float(base_terrain_config.get("target_object_y", 3.5))
+    if target_y != base_y:
+        # Update target height in multiple places
+        y_pattern = r"(at least y=|above y=|reaches y >= )(\d+\.?\d*)(m)(?! \(originally)"
+        description = re.sub(
+            y_pattern,
+            lambda m: f"{m.group(1)}{target_y}{m.group(3)} (originally {m.group(2)}m in the source environment)",
+            description
+        )
+
+    target_time = float(target_terrain_config.get("min_simulation_time", 1.34))
+    base_time = float(base_terrain_config.get("min_simulation_time", 1.34))
+    if target_time != base_time:
+        time_pattern = r"(for at least |Sustain\*\*: Object held at target height for >= )(\d+\.?\d*)( seconds)(?! \(originally)"
+        description = re.sub(
+            time_pattern,
+            lambda m: f"{m.group(1)}{target_time}{m.group(3)} (originally {m.group(2)} seconds in the source environment)",
+            description
+        )
+        
+        # Also update the (approx. N steps) part
+        steps_pattern = r"(\(approx\. )(\d+)( steps\))(?! \(originally)"
+        target_steps = int(target_time / 0.016666666666666666)  # 1/60s
+        description = re.sub(
+            steps_pattern,
+            lambda m: f"{m.group(1)}{target_steps} (originally {m.group(2)} in the source environment){m.group(3)}",
+            description
+        )
+
+    target_ground_friction = float(target_terrain_config.get("ground_friction", 0.8))
+    base_ground_friction = float(base_terrain_config.get("ground_friction", 0.8))
+    if target_ground_friction != base_ground_friction:
+        ground_pattern = r"(Ground surface friction )(\d+\.?\d*)(\.)(?! \(originally)"
+        description = re.sub(
+            ground_pattern,
+            lambda m: f"{m.group(1)}{target_ground_friction} (originally {m.group(2)} in the source environment){m.group(3)}",
+            description
+        )
+    
+    target_min_h = float(target_terrain_config.get("min_object_height", 2.0))
+    base_min_h = float(base_terrain_config.get("min_object_height", 2.0))
+    if target_min_h != base_min_h:
+        min_h_pattern = r"(falls below y=|below )(\d+\.?\d*)(m after being lifted)(?! \(originally)"
+        description = re.sub(
+            min_h_pattern,
+            lambda m: f"{m.group(1)}{target_min_h}{m.group(3)} (originally {m.group(2)}m in the source environment)",
+            description
+        )
             
     return description
 
 def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    # No visible changes in success criteria for K_03 currently
-    return base_success_criteria
+    # Use the same logic as task description since success criteria is part of the same prompt set
+    return update_task_description_for_visible_changes(base_success_criteria, target_terrain_config, base_terrain_config)
 
 def get_k03_curriculum_stages():
     task_description_suffix = """

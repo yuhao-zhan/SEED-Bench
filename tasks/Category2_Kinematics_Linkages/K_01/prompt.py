@@ -35,7 +35,7 @@ Design a 2D side-view walker that moves forward using motor-driven joints.
 ## Constraints (must satisfy)
 - **Stability**: The torso (main body) must always stay above y=1.2m. If the torso touches the ground or falls below y=1.2m, the task fails. The evaluator treats the first body you create as the torso; create the torso first so that stability is measured correctly.
 - **Motion**: The walker must maintain forward motion for at least 15.0 seconds.
-- **Mass Budget**: Total structure mass must be less than 100 kg.
+- **Mass Budget**: Total structure mass must be at most 100 kg.
 - **Build Zone**: All components must be placed within x=[0, 50], y=[2, 10]; during motion the torso must stay within x=[0, 50] and 1.2 < y ≤ 10.
 - **Beam Dimensions**: 0.05 <= width, height <= 5.0 meters.
 - **Wheel Radius** (if used): 0.05 <= radius <= 0.8 meters.
@@ -53,7 +53,7 @@ Design a 2D side-view walker that moves forward using motor-driven joints.
 3. **Locomotion**: Maintains active motion for >= 15.0 seconds.
 
 ## Design Constraints
-- **Mass Budget**: < 100 kg.
+- **Mass Budget**: <= 100 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     

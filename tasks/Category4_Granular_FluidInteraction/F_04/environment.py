@@ -50,15 +50,15 @@ class Sandbox:
         self.FEED_X_MAX = float(terrain_config.get("feed_x_max", 6.9))
         self.FEED_Y_MIN = float(terrain_config.get("feed_y_min", 3.0))
         self.FEED_Y_MAX = float(terrain_config.get("feed_y_max", 5.0))
-        self.SMALL_ZONE_Y_MAX = 1.92
-        self.MEDIUM_ZONE_Y_MIN = 1.92
-        self.MEDIUM_ZONE_Y_MAX = 2.52
-        self.LARGE_ZONE_Y_MIN = 2.52
+        self.SMALL_ZONE_Y_MAX = float(terrain_config.get("small_zone_y_max", 1.92))
+        self.MEDIUM_ZONE_Y_MIN = float(terrain_config.get("medium_zone_y_min", 1.92))
+        self.MEDIUM_ZONE_Y_MAX = float(terrain_config.get("medium_zone_y_max", 2.52))
+        self.LARGE_ZONE_Y_MIN = float(terrain_config.get("large_zone_y_min", 2.52))
         # Tighter build zone (must fit two horizontal layers; spans feed width)
         self.BUILD_ZONE_X_MIN = float(terrain_config.get("build_x_min", 5.20))
         self.BUILD_ZONE_X_MAX = float(terrain_config.get("build_x_max", 6.90))
-        self.BUILD_ZONE_Y_MIN = 1.72
-        self.BUILD_ZONE_Y_MAX = 2.45
+        self.BUILD_ZONE_Y_MIN = float(terrain_config.get("build_y_min", 1.72))
+        self.BUILD_ZONE_Y_MAX = float(terrain_config.get("build_y_max", 2.45))
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 75.0))
         self.MAX_BEAMS = int(terrain_config.get("max_beams", 6))
         self.MIN_PURITY = float(terrain_config.get("min_purity", 0.35))

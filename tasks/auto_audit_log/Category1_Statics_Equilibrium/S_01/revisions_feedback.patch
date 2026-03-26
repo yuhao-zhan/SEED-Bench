@@ -1,0 +1,252 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.J9COgvscE4/environment.py tasks/Category1_Statics_Equilibrium/S_01/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.J9COgvscE4/environment.py	2026-03-24 20:03:53
++++ tasks/Category1_Statics_Equilibrium/S_01/environment.py	2026-03-24 20:30:57
+@@ -31,10 +31,10 @@
+         self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
+ 
+         # Joint strength thresholds
+-        self._anchor_max_force = float(physics_config.get("anchor_max_force", 100.0))
+-        self._anchor_max_torque = float(physics_config.get("anchor_max_torque", 500.0))
+-        self._joint_max_force = float(physics_config.get("joint_max_force", 80.0))
+-        self._joint_max_torque = float(physics_config.get("joint_max_torque", 300.0))
++        self._anchor_max_force = float(physics_config.get("anchor_max_force", 50000.0))
++        self._anchor_max_torque = float(physics_config.get("anchor_max_torque", 100000.0))
++        self._joint_max_force = float(physics_config.get("joint_max_force", 40000.0))
++        self._joint_max_torque = float(physics_config.get("joint_max_torque", 80000.0))
+         
+         # Wind force
+         self._wind_force = tuple(physics_config.get("wind_force", (0.0, 0.0)))
+@@ -60,6 +60,8 @@
+         # Joint breaking tracking: track peak forces/torques per joint
+         self._joint_peak_forces = {}  # joint -> max force seen
+         self._joint_peak_torques = {}  # joint -> max torque seen
++        self._broken_joint_peak_forces = [] # List of (peak_force, is_anchor)
++        self._broken_joint_peak_torques = []
+         
+         # For backward compatibility, keep public attributes (but recommend using controlled API)
+         self.world = self._world  # Reserved for renderer use
+@@ -79,7 +81,13 @@
+         self.BUILD_ZONE_Y_MAX = 15.0  # Build zone y end
+         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 2000.0))  # Maximum total structure mass (kg)
+         
+-        # 4. Create vehicle (testing vehicle that will cross the bridge)
++        # 4. Evaluation limits (expose to evaluator)
++        self._max_vertical_acceleration = float(physics_config.get("max_vertical_acceleration", 40.0))
++        self._max_angular_velocity = float(physics_config.get("max_angular_velocity", 2.0))
++        self._unstable_threshold = int(physics_config.get("unstable_threshold", 5))
++        self._vehicle_spawn_x = float(terrain_config.get("vehicle_spawn_x", 5.0))
++
++        # 5. Create vehicle (testing vehicle that will cross the bridge)
+         self._create_vehicle(terrain_config)
+ 
+     def _create_terrain(self, terrain_config: dict):
+@@ -135,7 +143,7 @@
+         """
+         vehicle_mass = 2000.0  # kg
+         wheelbase = 3.0  # m
+-        spawn_x = 5.0
++        spawn_x = self._vehicle_spawn_x
+         spawn_y = self._cliff_top_y + 1.05  # On top of left cliff: axle at 10.4, wheel bottom at 10.0
+         speed = 5.0  # m/s
+         
+@@ -329,6 +337,8 @@
+                         max_force, max_torque = self._joint_max_force, self._joint_max_torque
+                     
+                     if self._joint_peak_forces[joint] > max_force or self._joint_peak_torques[joint] > max_torque:
++                        self._broken_joint_peak_forces.append((self._joint_peak_forces[joint], is_anchor))
++                        self._broken_joint_peak_torques.append((self._joint_peak_torques[joint], is_anchor))
+                         joints_to_remove.append(joint)
+             except Exception: continue
+         
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.J9COgvscE4/evaluator.py tasks/Category1_Statics_Equilibrium/S_01/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.J9COgvscE4/evaluator.py	2026-03-24 20:03:53
++++ tasks/Category1_Statics_Equilibrium/S_01/evaluator.py	2026-03-24 20:31:48
+@@ -5,7 +5,7 @@
+ import math
+ import sys
+ import os
+-from Box2D.b2 import polygonShape, circleShape
++from Box2D.b2 import polygonShape, circleShape, staticBody
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+ from common.simulator import TIME_STEP
+ 
+@@ -30,13 +30,15 @@
+         gap_width = float(gap_info.get("width", 15.0))
+         self.stall_threshold_x = gap_x_start + gap_width / 3.0
+         
+-        self.max_vertical_acceleration = 40.0  # Absolute limit (m/s²). Must exceed mutated gravity.
++        # Physical constraints and limits from environment
++        self.max_vertical_acceleration = getattr(environment, '_max_vertical_acceleration', 40.0)
++        self.MAX_ANGULAR_VELOCITY = getattr(environment, '_max_angular_velocity', 2.0)
++        self.UNSTABLE_THRESHOLD = getattr(environment, '_unstable_threshold', 5)
++        self.vehicle_start_x = getattr(environment, '_vehicle_spawn_x', 5.0)
+         
+         # Stability tracking
+         self.high_angular_velocity_count = 0
+-        self.MAX_ANGULAR_VELOCITY = 2.0
+         self.STABILITY_CHECK_START_STEP = 200
+-        self.UNSTABLE_THRESHOLD = 5
+         
+         # Air rotation tracking
+         self.MAX_AIRBORNE_ROTATION = getattr(environment, '_MAX_AIRBORNE_ROTATION', math.pi)
+@@ -179,13 +181,46 @@
+             progress = min(max(0, current_x - start_x) / max_dist, 1.0) if max_dist > 0 else 0.0
+             score = progress * 80.0
+         
++        # Structural force/torque metrics
++        peak_joint_force = 0.0
++        peak_anchor_force = 0.0
++        peak_joint_torque = 0.0
++        peak_anchor_torque = 0.0
++        # Check active joints
++        for joint, f in self.environment._joint_peak_forces.items():
++            t = self.environment._joint_peak_torques.get(joint, 0.0)
++            body_a, body_b = joint.bodyA, joint.bodyB
++            is_anchor = (body_a.type == staticBody or body_b.type == staticBody or
++                         body_a in self.environment._terrain_bodies.values() or body_b in self.environment._terrain_bodies.values())
++            if is_anchor:
++                peak_anchor_force = max(peak_anchor_force, f)
++                peak_anchor_torque = max(peak_anchor_torque, t)
++            else:
++                peak_joint_force = max(peak_joint_force, f)
++                peak_joint_torque = max(peak_joint_torque, t)
++        
++        # Check broken joints
++        for f, is_anchor in self.environment._broken_joint_peak_forces:
++            if is_anchor:
++                peak_anchor_force = max(peak_anchor_force, f)
++            else:
++                peak_joint_force = max(peak_joint_force, f)
++        for t, is_anchor in self.environment._broken_joint_peak_torques:
++            if is_anchor:
++                peak_anchor_torque = max(peak_anchor_torque, t)
++            else:
++                peak_joint_torque = max(peak_joint_torque, t)
++
+         metrics = {
+             'vehicle_x': current_x, 'vehicle_y': current_y, 'target_x': self.target_x,
+             'velocity_x': velocity_x, 'velocity_y': velocity_y,
+             'angular_velocity': angular_velocity, 'angle': angle, 'normalized_angle': normalized_angle,
+             'max_vertical_accel': self.max_vertical_accel_seen,
+             'max_vertical_acceleration_limit': self.max_vertical_acceleration,
+-            'vehicle_start_x': 5.0,
++            'max_angular_velocity_limit': self.MAX_ANGULAR_VELOCITY,
++            'unstable_threshold_limit': self.UNSTABLE_THRESHOLD,
++            'max_attitude_limit': math.pi / 2,
++            'vehicle_start_x': self.vehicle_start_x,
+             'gap_x_start': self.gap_x_start,
+             'max_airborne_rotation_limit': self.MAX_AIRBORNE_ROTATION,
+             'stall_threshold_x': self.stall_threshold_x,
+@@ -196,7 +231,15 @@
+             'joint_count': len(self.environment._joints), 'initial_joint_count': self.initial_joint_count,
+             'is_airborne': current_y > (self._cliff_top_y + self.AIRBORNE_THRESHOLD),
+             'airborne_rotation_accumulated': airborne_rotation_accumulated,
+-            'high_angular_velocity_count': self.high_angular_velocity_count
++            'high_angular_velocity_count': self.high_angular_velocity_count,
++            'peak_joint_force': peak_joint_force,
++            'peak_anchor_force': peak_anchor_force,
++            'peak_joint_torque': peak_joint_torque,
++            'peak_anchor_torque': peak_anchor_torque,
++            'joint_max_force_limit': self.environment._joint_max_force,
++            'anchor_max_force_limit': self.environment._anchor_max_force,
++            'joint_max_torque_limit': self.environment._joint_max_torque,
++            'anchor_max_torque_limit': self.environment._anchor_max_torque
+         }
+         return success or failed, score, metrics
+     
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.J9COgvscE4/feedback.py tasks/Category1_Statics_Equilibrium/S_01/feedback.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.J9COgvscE4/feedback.py	2026-03-24 20:03:53
++++ tasks/Category1_Statics_Equilibrium/S_01/feedback.py	2026-03-24 20:31:52
+@@ -43,7 +43,7 @@
+     start_x = metrics.get("vehicle_start_x")
+     target_x = metrics.get("target_x")
+     gap_x_start = metrics.get("gap_x_start")
+-    if vx is not None and start_x is not None and target_x is not None and _is_finite(vx) and _is_finite(target_x):
++    if vx is not None and start_x is not None and target_x is not None and _is_finite(vx) and _is_finite(target_x) and _is_finite(start_x):
+         total_dist = float(target_x) - float(start_x)
+         if total_dist != 0:
+             progress_pct = min(max(0.0, (float(vx) - float(start_x)) / total_dist), 1.0) * 100.0
+@@ -88,6 +88,43 @@
+     if jc is not None and ijc is not None and int(ijc) > 0:
+         metric_parts.append(f"**Active joints**: {jc} / {ijc}")
+ 
++    # --- Structural Stress (dynamic limits from metrics) ---
++    pjf = metrics.get("peak_joint_force")
++    mjf = metrics.get("joint_max_force_limit")
++    if pjf is not None and _is_finite(pjf):
++        s = f"**Peak joint force**: {float(pjf):.2f}N"
++        if mjf is not None and _is_finite(mjf):
++            margin = float(mjf) - float(pjf)
++            s += f" (limit: {float(mjf):.2f}N, margin: {margin:.2f}N)"
++        metric_parts.append(s)
++
++    paf = metrics.get("peak_anchor_force")
++    maf = metrics.get("anchor_max_force_limit")
++    if paf is not None and _is_finite(paf):
++        s = f"**Peak anchor force**: {float(paf):.2f}N"
++        if maf is not None and _is_finite(maf):
++            margin = float(maf) - float(paf)
++            s += f" (limit: {float(maf):.2f}N, margin: {margin:.2f}N)"
++        metric_parts.append(s)
++
++    pjt = metrics.get("peak_joint_torque")
++    mjt = metrics.get("joint_max_torque_limit")
++    if pjt is not None and _is_finite(pjt):
++        s = f"**Peak joint torque**: {float(pjt):.2f}Nm"
++        if mjt is not None and _is_finite(mjt):
++            margin = float(mjt) - float(pjt)
++            s += f" (limit: {float(mjt):.2f}Nm, margin: {margin:.2f}Nm)"
++        metric_parts.append(s)
++
++    pat = metrics.get("peak_anchor_torque")
++    mat = metrics.get("anchor_max_torque_limit")
++    if pat is not None and _is_finite(pat):
++        s = f"**Peak anchor torque**: {float(pat):.2f}Nm"
++        if mat is not None and _is_finite(mat):
++            margin = float(mat) - float(pat)
++            s += f" (limit: {float(mat):.2f}Nm, margin: {margin:.2f}Nm)"
++        metric_parts.append(s)
++
+     # --- Dynamic stress & stability (limits from metrics only) ---
+     mva = metrics.get("max_vertical_accel")
+     limit_accel = metrics.get("max_vertical_acceleration_limit")
+@@ -100,12 +137,16 @@
+ 
+     if metrics.get("normalized_angle") is not None and _is_finite(metrics.get("normalized_angle")):
+         angle_deg = math.degrees(float(metrics["normalized_angle"]))
+-        metric_parts.append(f"**Vehicle attitude**: {angle_deg:.1f}°")
++        s = f"**Vehicle attitude**: {angle_deg:.1f}°"
++        limit_att = metrics.get("max_attitude_limit")
++        if limit_att is not None and _is_finite(limit_att):
++            s += f" (limit: {math.degrees(float(limit_att)):.1f}°)"
++        metric_parts.append(s)
+ 
+-    if metrics.get("is_airborne") and metrics.get("airborne_rotation_accumulated") is not None:
+-        rot = metrics["airborne_rotation_accumulated"]
+-        if _is_finite(rot):
+-            rot_deg = math.degrees(float(rot))
++    airborne_rot = metrics.get("airborne_rotation_accumulated")
++    if airborne_rot is not None and _is_finite(airborne_rot):
++        rot_deg = math.degrees(float(airborne_rot))
++        if rot_deg > 0.1 or metrics.get("is_airborne"):
+             s = f"**Airborne rotation accumulated**: {rot_deg:.1f}°"
+             limit_rot = metrics.get("max_airborne_rotation_limit")
+             if limit_rot is not None and _is_finite(limit_rot):
+@@ -114,8 +155,15 @@
+             metric_parts.append(s)
+ 
+     havc = metrics.get("high_angular_velocity_count")
++    limit_av = metrics.get("max_angular_velocity_limit")
+     if havc is not None:
+-        metric_parts.append(f"**Stability**: high-angular-velocity exceedance count: {havc}")
++        s = f"**Stability**: high-angular-velocity exceedance count: {havc}"
++        limit_havc = metrics.get("unstable_threshold_limit")
++        if limit_havc is not None:
++            s += f" / {limit_havc}"
++        if limit_av is not None and _is_finite(limit_av):
++            s += f" (threshold: >{float(limit_av):.2f} rad/s)"
++        metric_parts.append(s)
+ 
+     if metrics.get("velocity_x") is not None and metrics.get("velocity_y") is not None:
+         vvx, vvy = metrics["velocity_x"], metrics["velocity_y"]
+Binary files /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.J9COgvscE4/initial_reference_success.gif and tasks/Category1_Statics_Equilibrium/S_01/initial_reference_success.gif differ

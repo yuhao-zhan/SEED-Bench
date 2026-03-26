@@ -75,7 +75,7 @@ def update_task_description_for_visible_changes(
     target_arena_y_max = target_terrain_config.get("arena_y_max", 20.0)
     base_arena_y_max = base_terrain_config.get("arena_y_max", 20.0)
     if target_arena_y_max != base_arena_y_max:
-        arena_pattern = r"(- \*\*Arena\*\*: A bounded region with x in \[0, 40\] m and y in \[0, )(\d+\.?\d*)(\] m\.)"
+        arena_pattern = r"(- \*\*Arena\*\*: A bounded region with x in \[0, 40\] m and y in \[0, )(\d+\.?\d*)(\] m\.)(?: \(originally .*? in the source environment\)\.)?"
         if re.search(arena_pattern, description):
             description = re.sub(
                 arena_pattern,
@@ -83,11 +83,11 @@ def update_task_description_for_visible_changes(
                 description,
             )
 
-    # Update Build Zone y_max (pattern matches both "]. " and "] (" so substitution is re-applicable for cumulative updates)
+    # Update Build Zone y_max
     target_bz_y_max = target_terrain_config.get("build_zone_y_max", 18.0)
     base_bz_y_max = base_terrain_config.get("build_zone_y_max", 18.0)
     if target_bz_y_max != base_bz_y_max:
-        bz_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[12\.0, 28\.0\], y=\[6\.0, )(\d+\.?\d*)(\]\.|\] \()"
+        bz_pattern = r"(- \*\*Build Zone\*\*: Structure must be built within x=\[12\.0, 28\.0\], y=\[6\.0, )(\d+\.?\d*)(\]\.)(?: \(originally .*? in the source environment\)\.)?"
         if re.search(bz_pattern, description):
             description = re.sub(
                 bz_pattern,
@@ -147,7 +147,7 @@ def update_success_criteria_for_visible_changes(
     target_mass = target_physics_config.get("max_structure_mass", default_mass)
     base_mass = base_physics_config.get("max_structure_mass", default_mass)
     if target_mass != base_mass:
-        mass_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d*)( kg\.)"
+        mass_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d*)( kg\.)(?: \(originally .*? in the source environment\)\.)?"
         if re.search(mass_pattern, criteria):
             criteria = re.sub(
                 mass_pattern,
@@ -159,7 +159,7 @@ def update_success_criteria_for_visible_changes(
     target_beams = target_physics_config.get("max_beam_count", default_beams)
     base_beams = base_physics_config.get("max_beam_count", default_beams)
     if target_beams != base_beams:
-        beam_pattern = r"(- \*\*Beam Limit\*\*: Maximum )(\d+)( beams\.)"
+        beam_pattern = r"(- \*\*Beam Limit\*\*: Maximum )(\d+)( beams\.)(?: \(originally .*? in the source environment\)\.)?"
         if re.search(beam_pattern, criteria):
             criteria = re.sub(
                 beam_pattern,

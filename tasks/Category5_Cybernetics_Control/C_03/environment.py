@@ -42,6 +42,25 @@ RENDEZVOUS_DISTANCE_DEFAULT = 6.0
 RENDEZVOUS_REL_SPEED_DEFAULT = 1.8
 TRACK_DISTANCE_DEFAULT = 8.5
 RENDEZVOUS_HEADING_TOLERANCE_DEG_DEFAULT = 55.0
+
+# Seeker defaults
+DEFAULT_SEEKER_MASS = 20.0
+DEFAULT_SEEKER_RADIUS = 0.35
+DEFAULT_SPAWN_X = 11.0
+DEFAULT_SPAWN_Y = 1.35
+
+# Target motion defaults
+DEFAULT_TARGET_START_X = 12.0
+DEFAULT_TARGET_START_Y = 2.0
+DEFAULT_TARGET_SPEED = 1.5
+DEFAULT_TARGET_CHANGE_INTERVAL = 1.2
+TARGET_MAX_SPEED = 2.8
+TARGET_X_CLAMP_MIN = 6.0
+TARGET_X_CLAMP_MARGIN_RIGHT = 4.0
+
+# Ground defaults
+DEFAULT_GROUND_FRICTION = 0.4
+
 # Heading alignment: use target velocity direction when |v_target| exceeds this (m/s); else seeker→target
 HEADING_REFERENCE_MIN_TARGET_SPEED = 0.15
 
@@ -159,13 +178,13 @@ class Sandbox:
         self.bodies = self._bodies
         self.joints = self._joints
 
-        self._target_speed = float(terrain_config.get("target_speed", 1.5))
-        self._target_change_interval = float(terrain_config.get("target_change_interval", 1.2))
+        self._target_speed = float(terrain_config.get("target_speed", DEFAULT_TARGET_SPEED))
+        self._target_change_interval = float(terrain_config.get("target_change_interval", DEFAULT_TARGET_CHANGE_INTERVAL))
         self._ground_y_top = float(terrain_config.get("ground_y_top", DEFAULT_GROUND_Y_TOP))
-        self._seeker_mass = float(terrain_config.get("seeker_mass", 20.0))
-        self._seeker_radius = float(terrain_config.get("seeker_radius", 0.35))
-        self._spawn_x = float(terrain_config.get("spawn_x", 11.0))
-        self._spawn_y = float(terrain_config.get("spawn_y", 1.35))
+        self._seeker_mass = float(terrain_config.get("seeker_mass", DEFAULT_SEEKER_MASS))
+        self._seeker_radius = float(terrain_config.get("seeker_radius", DEFAULT_SEEKER_RADIUS))
+        self._spawn_x = float(terrain_config.get("spawn_x", DEFAULT_SPAWN_X))
+        self._spawn_y = float(terrain_config.get("spawn_y", DEFAULT_SPAWN_Y))
 
         rng_seed = terrain_config.get("target_rng_seed", None)
         self._delay_rng = random.Random(rng_seed if rng_seed is not None else 42)
@@ -238,7 +257,7 @@ class Sandbox:
             position=(ground_len / 2, center_y),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(ground_len / 2, ground_h / 2)),
-                friction=float(terrain_config.get("ground_friction", 0.4)),
+                friction=float(terrain_config.get("ground_friction", DEFAULT_GROUND_FRICTION)),
                 restitution=0.0,
             ),
         )
@@ -314,7 +333,7 @@ class Sandbox:
         radius = self._seeker_radius
         density = self._seeker_mass / (math.pi * radius * radius)
         # Match ground friction so seeker–ground contact matches stated surface friction (prompt).
-        _gfr = float(terrain_config.get("ground_friction", 0.4))
+        _gfr = float(terrain_config.get("ground_friction", DEFAULT_GROUND_FRICTION))
         seeker = self._world.CreateDynamicBody(
             position=(self._spawn_x, self._spawn_y),
             fixtures=Box2D.b2FixtureDef(
@@ -329,8 +348,8 @@ class Sandbox:
         self._terrain_bodies["seeker"] = seeker
 
     def _init_target(self, terrain_config: dict):
-        self._target_x = float(terrain_config.get("target_start_x", 12.0))
-        self._target_y = float(terrain_config.get("target_start_y", 2.0))
+        self._target_x = float(terrain_config.get("target_start_x", DEFAULT_TARGET_START_X))
+        self._target_y = float(terrain_config.get("target_start_y", DEFAULT_TARGET_START_Y))
         self._target_vx = 0.0
         self._target_vy = 0.0
         self._target_change_time = 0.0
@@ -454,8 +473,8 @@ class Sandbox:
             self._target_vx += ux * EVASIVE_GAIN * time_step
             self._target_vy += uy * EVASIVE_GAIN * time_step
             tv_mag = math.sqrt(self._target_vx**2 + self._target_vy**2)
-            if tv_mag > 2.8:
-                s = 2.8 / tv_mag
+            if tv_mag > TARGET_MAX_SPEED:
+                s = TARGET_MAX_SPEED / tv_mag
                 self._target_vx *= s
                 self._target_vy *= s
         self._target_change_time += time_step
@@ -474,8 +493,8 @@ class Sandbox:
             dy = self._target_rng.uniform(-JUMP_MAG, JUMP_MAG)
             self._target_x += dx
             self._target_y += dy
-        target_x_min = 6.0
-        target_x_max = self._ground_length - 4.0
+        target_x_min = TARGET_X_CLAMP_MIN
+        target_x_max = self._ground_length - TARGET_X_CLAMP_MARGIN_RIGHT
         self._target_x = max(target_x_min, min(target_x_max, self._target_x))
         target_y_min = self._ground_y_top + 0.5
         target_y_max = self._ground_y_top + 2.0

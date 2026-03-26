@@ -1,350 +1,209 @@
-"""
-F-02: The Amphibian task environment module
-Defines physics world, terrain (left bank, water zone, right bank), buoyancy, API.
-Mechanics: buoyancy, paddling propulsion. Failure: sink, unable to reach shore.
-"""
-import Box2D
-from Box2D.b2 import (world, polygonShape, circleShape, staticBody, dynamicBody, weldJoint)
+
 import math
+import numpy as np
+import pymunk
+from pymunk.vec2d import Vec2d
+from tasks.primitives_api import get_environment_class
 
+# Constants
+GROUND_FRICTION = 1.0
+GROUND_ELASTICITY = 0.6
+OBJECT_FRICTION = 1.0
+OBJECT_ELASTICITY = 0.6
 
-class Sandbox:
-    """Sandbox environment wrapper for F-02: The Amphibian"""
+# --- Start of Forensic Tracking Properties ---
+PEAK_STRESS_TORQUE = "peak_stress_torque"
+JOINT_BREAK_STEP = "joint_break_step"
+JOINT_BREAK_LOCATION = "joint_break_location"
+BROKEN_JOINT_COUNT = "broken_joint_count"
+MAX_HORIZONTAL_DISPLACEMENT = "max_horizontal_displacement"
+# --- End of Forensic Tracking Properties ---
 
-    def __init__(self, *, terrain_config=None, physics_config=None):
-        terrain_config = terrain_config or {}
-        physics_config = physics_config or {}
-        self._terrain_config = dict(terrain_config)
-        self._physics_config = dict(physics_config)
+def get_primitives_library():
+    return {
+        "create_box": create_box, "create_poly": create_poly, "create_segment": create_segment,
+        "create_circle": create_circle, "create_pivot_joint": create_pivot_joint, "create_motor": create_motor,
+    }
 
-        gravity = tuple(physics_config.get("gravity", (0, -10)))
-        self._default_linear_damping = float(physics_config.get("linear_damping", 0.0))
-        self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
+def create_box(space, body_type, position, size, mass, friction, elasticity, angle=0, color="blue"):
+    if body_type == "dynamic": body = pymunk.Body(mass, pymunk.moment_for_box(mass, size))
+    elif body_type == "static": body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    else: raise ValueError(f"Invalid body type: {body_type}")
+    body.position, body.angle = position, angle
+    shape = pymunk.Poly.create_box(body, size)
+    shape.friction, shape.elasticity, shape.color = friction, elasticity, color
+    space.add(body, shape)
+    return body
 
-        self._world = world(gravity=gravity, doSleep=True)
-        self._bodies = []
-        self._joints = []
-        self._terrain_bodies = {}
+def create_poly(space, body_type, position, vertices, mass, friction, elasticity, angle=0, color="blue"):
+    if body_type == "dynamic": body = pymunk.Body(mass, pymunk.moment_for_poly(mass, vertices))
+    elif body_type == "static": body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    else: raise ValueError(f"Invalid body type: {body_type}")
+    body.position, body.angle = position, angle
+    shape = pymunk.Poly(body, vertices)
+    shape.friction, shape.elasticity, shape.color = friction, elasticity, color
+    space.add(body, shape)
+    return body
 
-        self.world = self._world
-        self.bodies = self._bodies
-        self.joints = self._joints
+def create_segment(space, body_type, a, b, radius, mass, friction, elasticity, color="blue"):
+    if body_type == "dynamic": body = pymunk.Body(mass, pymunk.moment_for_segment(mass, a, b, radius))
+    elif body_type == "static": body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    else: raise ValueError(f"Invalid body type: {body_type}")
+    shape = pymunk.Segment(body, a, b, radius)
+    shape.friction, shape.elasticity, shape.color = friction, elasticity, color
+    space.add(body, shape)
+    return body
 
-        self._create_terrain(terrain_config)
+def create_circle(space, body_type, position, radius, mass, friction, elasticity, angle=0, color="blue"):
+    if body_type == "dynamic": body = pymunk.Body(mass, pymunk.moment_for_circle(mass, 0, radius))
+    elif body_type == "static": body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    else: raise ValueError(f"Invalid body type: {body_type}")
+    body.position, body.angle = position, angle
+    shape = pymunk.Circle(body, radius)
+    shape.friction, shape.elasticity, shape.color = friction, elasticity, color
+    space.add(body, shape)
+    return body
 
-        # Water zone and targets (set before any agent build)
-        self.WATER_X_LEFT = 10.0
-        self.WATER_X_RIGHT = 24.0
-        self.WATER_SURFACE_Y = 2.0
-        self.WATER_BOTTOM_Y = 0.0
-        self.TARGET_X = 26.0
-        self.BUILD_ZONE_X_MIN = 2.0
-        self.BUILD_ZONE_X_MAX = 8.0
-        self.BUILD_ZONE_Y_MIN = 0.0
-        self.BUILD_ZONE_Y_MAX = 4.0
-        self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 600.0))
-        self.LEFT_BANK_X_MAX = 10.0
-        self.RIGHT_BANK_X_MIN = 24.0
-        liquid_density = float(terrain_config.get("liquid_density", 1000.0))
-        self._buoyancy_factor = min(1.5, (liquid_density / 1000.0) * 0.8)
-        self._step_count = 0
-        # Hard obstacles: strong opposing current, quadratic drag, lateral wind, deep channel
-        self._current_per_kg = float(terrain_config.get("current_per_kg", 5.5))
-        self._water_drag_coef = float(terrain_config.get("water_drag_coef", 115.0))
-        self._wind_amplitude = float(terrain_config.get("wind_amplitude", 200.0))
-        self._wind_period_steps = int(terrain_config.get("wind_period_steps", 90))
-        self._wind_x_left = 12.0
-        self._wind_x_right = 22.0
-        self._deep_channel_x_left = float(terrain_config.get("deep_channel_x_left", 16.5))
-        self._deep_channel_x_right = float(terrain_config.get("deep_channel_x_right", 19.5))
-        self._deep_channel_buoyancy_scale = float(terrain_config.get("deep_channel_buoyancy_scale", 0.35))
+def create_pivot_joint(space, a, b, anchor_a=(0, 0), anchor_b=(0, 0), max_force=float("inf"), collide_bodies=True):
+    joint = pymunk.PivotJoint(a, b, anchor_a, anchor_b)
+    joint.max_force, joint.collide_bodies = max_force, collide_bodies
+    space.add(joint)
+    return joint
 
-    def _create_terrain(self, terrain_config: dict):
-        """
-        Create terrain: split floor into left bank, right bank, and a deep pit for the water.
-        """
-        floor_height = 0.3
-        # Left bank floor
-        lb_width = 10.0
-        lb_floor = self._world.CreateStaticBody(
-            position=(lb_width / 2, -floor_height / 2),
-            fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(lb_width / 2, floor_height / 2)),
-                friction=0.6,
-            ),
-        )
-        self._terrain_bodies["floor"] = lb_floor
-        # Right bank floor
-        rb_width = 30.0 # Extended from 11.0 to ensure vehicle has plenty of room to stop
-        self._world.CreateStaticBody(
-            position=(24.0 + rb_width / 2, -floor_height / 2),
-            fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(rb_width / 2, floor_height / 2)),
-                friction=0.6,
-            ),
-        )
-        # Optional: A very deep floor in the water zone to prevent infinite fall but still allow sinking check
-        self._world.CreateStaticBody(
-            position=(17.0, -10.0),
-            fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(7.0, 0.5)),
-                friction=0.0,
-            ),
-        )
+def create_motor(space, a, b, rate, max_force=float("inf")):
+    motor = pymunk.SimpleMotor(a, b, rate)
+    motor.max_force = max_force
+    space.add(motor)
+    return motor
 
-        water_width = 14.0
-        water_center_x = 17.0
-        water_height = 2.0
-        water_body = self._world.CreateStaticBody(
-            position=(water_center_x, water_height / 2),
-            fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(water_width / 2, water_height / 2)),
-                friction=0.0,
-                isSensor=True,
-            ),
-        )
-        self._terrain_bodies["water"] = water_body
-
-        # Obstacles: three pillars in water (vehicle must steer around or rise over)
-        pillar_radius = float(terrain_config.get("pillar_radius", 0.46))
-        pillar_positions = [(14.0, 0.88), (17.0, 0.90), (20.0, 0.92)]
-        for i, (px, py) in enumerate(pillar_positions):
-            pillar = self._world.CreateStaticBody(
-                position=(px, py),
-                fixtures=Box2D.b2FixtureDef(
-                    shape=circleShape(radius=pillar_radius),
-                    friction=0.4,
-                ),
-            )
-            self._terrain_bodies[f"pillar_{i}"] = pillar
-        self._pillar_positions = pillar_positions
-        self._pillar_radius = pillar_radius
-
-        # Headwind burst: extra opposing force in mid-water (x 15-19) so crossing is harder
-        self._headwind_burst_x_left = 15.0
-        self._headwind_burst_x_right = 19.0
-        self._headwind_burst_per_kg = float(terrain_config.get("headwind_burst_per_kg", 0.8))
-
-        # Propulsion cooldown: each body can only apply thrust every N steps (paddle stroke)
-        self._thrust_cooldown_steps = int(terrain_config.get("thrust_cooldown_steps", 3))
-        self._max_joint_force = float(terrain_config.get("max_joint_force", float('inf')))
-        self._last_thrust_step = {}  # body id -> last step that applied thrust
-        self._current_step = 0  # set by main loop before agent_action for cooldown
-        
-        # --- NEW HIGH DIFFICULTY MECHANICS ---
-        self._emp_zone = terrain_config.get("emp_zone", None) # e.g. [14.0, 20.0]
-        self._corrosive_y = float(terrain_config.get("corrosive_y", float('inf')))
-        self._whirlpool = terrain_config.get("whirlpool", None) # e.g. {"x": 17.0, "width": 4.0, "force": 200.0}
-
-    # --- Physical constraint constants ---
-    MIN_BEAM_SIZE = 0.15
-    MAX_BEAM_SIZE = 2.0
-    BUILD_ZONE_X_MIN = 2.0
-    BUILD_ZONE_X_MAX = 8.0
-    BUILD_ZONE_Y_MIN = 0.0
-    BUILD_ZONE_Y_MAX = 4.0
-    MAX_STRUCTURE_MASS = 600.0
-
-    def add_beam(self, x, y, width, height, angle=0, density=200.0):
-        """API: Add a beam (rigid rectangular element for the amphibian vehicle)."""
-        width = max(self.MIN_BEAM_SIZE, min(width, self.MAX_BEAM_SIZE))
-        height = max(self.MIN_BEAM_SIZE, min(height, self.MAX_BEAM_SIZE))
-        body = self._world.CreateDynamicBody(
-            position=(x, y),
-            angle=angle,
-            fixtures=Box2D.b2FixtureDef(
-                shape=polygonShape(box=(width / 2, height / 2)),
-                density=density,
-                friction=0.5,
-            ),
-        )
-        body.linearDamping = self._default_linear_damping
-        body.angularDamping = self._default_angular_damping
-        self._bodies.append(body)
-        return body
-
-    def add_joint(self, body_a, body_b, anchor_point, type='rigid'):
-        """API: Add a joint. body_b can be None to anchor to the floor."""
-        if body_a is None:
-            raise ValueError("add_joint: body_a cannot be None.")
-        anchor_x, anchor_y = anchor_point[0], anchor_point[1]
-        if body_b is None:
-            body_b = self._terrain_bodies.get("floor")
-            if body_b is None:
-                raise ValueError("add_joint: floor not found for anchor.")
-        if type != 'rigid':
-            type = 'rigid'
-        joint = self._world.CreateWeldJoint(
-            bodyA=body_a,
-            bodyB=body_b,
-            anchor=(anchor_x, anchor_y),
-            collideConnected=False
-        )
-        self._joints.append(joint)
-        return joint
-
-    def get_structure_mass(self):
-        """API: Total mass of the vehicle (all created beams)."""
-        total_mass = 0.0
-        for body in self._bodies:
-            total_mass += body.mass
-        return total_mass
-
-    def set_material_properties(self, body, restitution=0.1):
-        """API: Set restitution for a body."""
-        for fixture in body.fixtures:
-            fixture.restitution = float(restitution)
-
-    # Propulsion limit: max thrust per body per step (single paddle cannot overcome current)
-    _MAX_THRUST_PER_BODY = 520.0
-
-    def apply_force(self, body, force_x, force_y, step_count=None):
-        """API: Apply a force to a body (e.g. for paddling). Capped per-body. Cooldown: each body can thrust only every _thrust_cooldown_steps steps (uses step_count or env._current_step)."""
-        if body is not None and body.active:
-            # EMP Zone completely disables thrust for this body
-            if getattr(self, '_emp_zone', None) is not None:
-                if self._emp_zone[0] <= body.position.x <= self._emp_zone[1]:
-                    return
-            
-            step = step_count if step_count is not None else getattr(self, '_current_step', 0)
-            if self._thrust_cooldown_steps > 0:
-                bid = id(body)
-                last = self._last_thrust_step.get(bid, -999)
-                if step - last < self._thrust_cooldown_steps:
-                    return  # cooldown: skip this body this step
-                self._last_thrust_step[bid] = step
-            fx, fy = float(force_x), float(force_y)
-            mag = math.sqrt(fx * fx + fy * fy)
-            if mag > self._MAX_THRUST_PER_BODY:
-                scale = self._MAX_THRUST_PER_BODY / mag
-                fx, fy = fx * scale, fy * scale
-            body.ApplyForceToCenter((fx, fy), wake=True)
-
-    # Cap vehicle velocity to prevent tunneling / explosion (buoyancy can cause large impulses)
-    _MAX_LINEAR_SPEED = 4.0
-
-    def step(self, time_step):
-        """Physics step: buoyancy, opposing current, drag, wind, deep channel."""
-        self._step_count += 1
-        # Clamp vehicle speeds before Step to avoid tunneling
-        for body in self._bodies:
-            if not body.active:
-                continue
-            vx, vy = body.linearVelocity.x, body.linearVelocity.y
-            speed = math.sqrt(vx * vx + vy * vy)
-            if speed > self._MAX_LINEAR_SPEED:
-                scale = self._MAX_LINEAR_SPEED / speed
-                body.linearVelocity = (vx * scale, vy * scale)
-        for body in self._bodies:
-            if not body.active:
-                continue
-            x, y = body.position.x, body.position.y
-            vx, vy = body.linearVelocity.x, body.linearVelocity.y
-            in_water = (self.WATER_X_LEFT <= x <= self.WATER_X_RIGHT and
-                        self.WATER_BOTTOM_Y <= y <= self.WATER_SURFACE_Y)
-            if in_water:
-                submerged = self.WATER_SURFACE_Y - y
-                g = abs(self._world.gravity[1]) if len(self._world.gravity) > 1 else 10.0
-                bf = self._buoyancy_factor
-                if self._deep_channel_x_left <= x <= self._deep_channel_x_right:
-                    bf *= self._deep_channel_buoyancy_scale
-                buoyancy_up = bf * submerged * body.mass * g
-                body.ApplyForceToCenter((0, buoyancy_up), wake=True)
-                # Opposing current (strong headwind in water)
-                f_current = -self._current_per_kg * body.mass
-                body.ApplyForceToCenter((f_current, 0), wake=True)
-                # Quadratic drag in water (faster = much more resistance)
-                speed = math.sqrt(vx * vx + vy * vy)
-                if speed > 0.01:
-                    drag_mag = self._water_drag_coef * speed * speed
-                    drag_x = -drag_mag * (vx / speed)
-                    drag_y = -drag_mag * (vy / speed)
-                    body.ApplyForceToCenter((drag_x, drag_y), wake=True)
-                # Lateral wind in mid-water (tips unstable rafts)
-                if self._wind_x_left <= x <= self._wind_x_right:
-                    phase = 2.0 * math.pi * self._step_count / self._wind_period_steps
-                    f_wind_y = self._wind_amplitude * math.sin(phase)
-                    body.ApplyForceToCenter((0, f_wind_y), wake=True)
-        # Headwind burst: extra opposing force in mid-water (x 15-19)
-                if self._headwind_burst_x_left <= x <= self._headwind_burst_x_right:
-                    f_headwind = -self._headwind_burst_per_kg * body.mass
-                    body.ApplyForceToCenter((f_headwind, 0), wake=True)
-            
-            # Corrosive Atmosphere: massive downward crush if flying too high
-            if y > getattr(self, '_corrosive_y', float('inf')):
-                body.ApplyForceToCenter((0, -2000.0 * body.mass), wake=True)
-                
-            # Abyssal Whirlpool: strong localized downward suction
-            if getattr(self, '_whirlpool', None) is not None:
-                wx = float(self._whirlpool.get("x", 17.0))
-                ww = float(self._whirlpool.get("width", 2.0))
-                wf = float(self._whirlpool.get("force", 100.0))
-                if wx - ww/2.0 <= x <= wx + ww/2.0:
-                    body.ApplyForceToCenter((0, -wf * body.mass), wake=True)
-        
-        # Check joints for breakage if max_joint_force is set
-        if self._max_joint_force < float('inf'):
-            for j in list(self._joints):
-                if not j.active:
-                    continue
+class BaseEnvironment:
+    def __init__(self, width=600, height=600, gravity=(0, -981), liquid_level=0, liquid_density=0.001, liquid_damping=0.1, max_simulation_steps=3000, **kwargs):
+        self.width, self.height, self.gravity = width, height, gravity
+        self.liquid_level, self.liquid_density, self.liquid_damping = liquid_level, liquid_density, liquid_damping
+        self.max_simulation_steps = max_simulation_steps
+        self.space, self.simulation_step_count = None, 0
+        self._bodies, self._joints = [], []
+        self.initial_metrics = {}
+    def setup(self):
+        self.space = pymunk.Space()
+        self.space.gravity = self.gravity
+        self.simulation_step_count, self._bodies, self._joints = 0, [], []
+        self._add_ground()
+        if self.liquid_level > 0: self._add_liquid()
+        self._create_scene()
+    def _add_ground(self):
+        ground = pymunk.Segment(self.space.static_body, (-10000, 0), (10000, 0), 5)
+        ground.friction, ground.elasticity, ground.color = GROUND_FRICTION, GROUND_ELASTICITY, "gray"
+        self.space.add(ground)
+    def _add_liquid(self):
+        self.space.damping = self.liquid_damping
+        liquid_body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        liquid_shape = pymunk.Poly(liquid_body, [(-self.width, 0), (self.width, 0), (self.width, self.liquid_level), (-self.width, self.liquid_level)])
+        liquid_shape.sensor, liquid_shape.color = True, "lightblue"
+        self.space.add(liquid_body, liquid_shape)
+        def buoyant_force(body, gravity, damping, dt):
+            area, centroid = 0, Vec2d.zero()
+            for shape in body.shapes:
                 try:
-                    # Get reaction force magnitude. Box2D can return negative or high values if step is very small.
-                    # We use a 1/time_step inverse.
-                    force = j.GetReactionForce(1.0/time_step).length
-                    if force > self._max_joint_force:
-                        self._world.DestroyJoint(j)
-                        # The evaluator checks len(self._joints), so we must NOT remove it from the list
-                        # to keep its position, but the evaluator should check j.active? 
-                        # Wait, the evaluator check is:
-                        # current_joint_count = len(self.environment._joints)
-                        # if current_joint_count < self.initial_joint_count:
-                        # self.structure_broken = True
-                        # So I MUST remove it from the list.
-                        self._joints.remove(j)
-                except:
-                    pass
-        
-        self._world.Step(time_step, 10, 10)
-        for body in self._bodies:
-            if not body.active:
-                continue
-            vx, vy = body.linearVelocity.x, body.linearVelocity.y
-            speed = math.sqrt(vx * vx + vy * vy)
-            if speed > self._MAX_LINEAR_SPEED:
-                scale = self._MAX_LINEAR_SPEED / speed
-                body.linearVelocity = (vx * scale, vy * scale)
+                    area += shape.area
+                    centroid += shape.center_of_gravity * shape.area
+                except: pass
+            if area == 0: return
+            centroid /= area
+            cog = body.local_to_world(centroid)
+            submerged_area = area * min(1, (self.liquid_level - cog.y) / (2 * np.sqrt(area / np.pi))) if cog.y < self.liquid_level else 0
+            if submerged_area > 0: body.apply_force_at_world_point((0, submerged_area * self.liquid_density * -gravity[1]), cog)
+        for body in self.space.bodies:
+            if body.body_type == pymunk.Body.DYNAMIC: body.velocity_func = buoyant_force
+    def _create_scene(self): raise NotImplementedError
+    def step(self, dt=1.0 / 60.0):
+        if self.simulation_step_count < self.max_simulation_steps:
+            self.space.step(dt); self.simulation_step_count += 1; self._after_step(); return True
+        return False
+    def _after_step(self): pass
+    def get_metrics(self):
+        metrics = {"simulation_step_count": self.simulation_step_count}
+        metrics.update(self._get_task_specific_metrics()); return metrics
+    def _get_task_specific_metrics(self): raise NotImplementedError
 
-    def get_terrain_bounds(self):
-        """Get terrain bounds for evaluation and rendering."""
-        return {
-            "left_bank": {"x_max": self.LEFT_BANK_X_MAX},
-            "water": {"x_left": self.WATER_X_LEFT, "x_right": self.WATER_X_RIGHT,
-                      "surface_y": self.WATER_SURFACE_Y, "bottom_y": self.WATER_BOTTOM_Y},
-            "right_bank": {"x_min": self.RIGHT_BANK_X_MIN},
-            "target_x": self.TARGET_X,
-            "build_zone": {
-                "x": [self.BUILD_ZONE_X_MIN, self.BUILD_ZONE_X_MAX],
-                "y": [self.BUILD_ZONE_Y_MIN, self.BUILD_ZONE_Y_MAX],
-            },
+class TaskEnvironment(BaseEnvironment):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.metrics_tracker = {
+            PEAK_STRESS_TORQUE: 0.0, JOINT_BREAK_STEP: -1, JOINT_BREAK_LOCATION: None,
+            BROKEN_JOINT_COUNT: 0, MAX_HORIZONTAL_DISPLACEMENT: 0.0,
         }
-
-    def get_vehicle_front_x(self):
-        """Rightmost x among all vehicle bodies (front of amphibian)."""
-        if not self._bodies:
-            return None
-        return max(b.position.x for b in self._bodies if b.active)
-
+        self.initial_com, self.initial_joint_count = None, 0
+    def _create_scene(self):
+        try:
+            bodies, joints = self.create_structure(self.space, width=self.width, height=self.height)
+            self._bodies, self._joints = bodies, joints
+        except Exception as e:
+            print(f"Error creating structure: {e}"); self._bodies, self._joints = [], []
+        self.initial_joint_count = len(self._joints)
+        total_mass = self.get_structure_mass()
+        if total_mass > 0:
+            com_x = sum(b.position.x * b.mass for b in self._bodies if b.mass != float('inf')) / total_mass
+            com_y = sum(b.position.y * b.mass for b in self._bodies if b.mass != float('inf')) / total_mass
+            self.initial_com = Vec2d(com_x, com_y)
+        self.initial_metrics = self._get_task_specific_metrics()
+    def create_structure(self, space, **kwargs):
+        raise NotImplementedError("The 'create_structure' function is not defined by the agent.")
+    def _after_step(self):
+        super()._after_step()
+        live_joints = [j for j in self._joints if j in self.space.constraints]
+        if live_joints:
+            max_impulse = max((j.impulse for j in live_joints), default=0)
+            self.metrics_tracker[PEAK_STRESS_TORQUE] = max(self.metrics_tracker[PEAK_STRESS_TORQUE], max_impulse)
+        num_broken = self.initial_joint_count - len(live_joints)
+        if num_broken > self.metrics_tracker[BROKEN_JOINT_COUNT]:
+            if self.metrics_tracker[JOINT_BREAK_STEP] == -1:
+                self.metrics_tracker[JOINT_BREAK_STEP] = self.simulation_step_count
+                broken_joint = next((j for j in self._joints if j not in self.space.constraints), None)
+                if broken_joint:
+                    loc = (broken_joint.a.position + broken_joint.b.position) / 2
+                    self.metrics_tracker[JOINT_BREAK_LOCATION] = (loc.x, loc.y)
+            self.metrics_tracker[BROKEN_JOINT_COUNT] = num_broken
+        if self._bodies and self.initial_com is not None:
+            total_mass = self.get_structure_mass()
+            if total_mass > 0:
+                com_x = sum(b.position.x * b.mass for b in self._bodies if b.mass != float('inf')) / total_mass
+                self.metrics_tracker[MAX_HORIZONTAL_DISPLACEMENT] = max(self.metrics_tracker[MAX_HORIZONTAL_DISPLACEMENT], abs(com_x - self.initial_com.x))
+    def get_structure_mass(self):
+        return sum(b.mass for b in self._bodies if b.mass != float('inf')) if self._bodies else 0
     def get_vehicle_lowest_y(self):
-        """Lowest y among all vehicle bodies (for sink check)."""
-        if not self._bodies:
-            return None
-        return min(b.position.y for b in self._bodies if b.active)
-
+        if not self._bodies: return None
+        min_y = float("inf")
+        for body in self._bodies:
+            for shape in body.shapes:
+                if isinstance(shape, pymunk.Poly):
+                    min_y = min(min_y, min(v.y for v in [body.local_to_world(v) for v in shape.get_vertices()]))
+                elif isinstance(shape, pymunk.Circle):
+                    min_y = min(min_y, body.position.y - shape.radius)
+        return min_y if min_y != float("inf") else None
+    def get_vehicle_front_x(self):
+        if not self._bodies: return None
+        max_x = float("-inf")
+        for body in self._bodies:
+            for shape in body.shapes:
+                if isinstance(shape, pymunk.Poly):
+                    max_x = max(max_x, max(v.x for v in [body.local_to_world(v) for v in shape.get_vertices()]))
+                elif isinstance(shape, pymunk.Circle):
+                    max_x = max(max_x, body.position.x + shape.radius)
+        return max_x if max_x != float("-inf") else None
     def get_vehicle_velocity(self):
-        """Velocity (vx, vy) of the front (rightmost) body for feedback."""
-        if not self._bodies:
-            return None
-        front = max(self._bodies, key=lambda b: b.position.x if b.active else -1e9)
-        if not front.active:
-            return None
-        return (front.linearVelocity.x, front.linearVelocity.y)
+        if not self._bodies or (total_mass := self.get_structure_mass()) == 0: return (0, 0)
+        vx = sum(b.velocity.x * b.mass for b in self._bodies) / total_mass
+        vy = sum(b.velocity.y * b.mass for b in self._bodies) / total_mass
+        return (vx, vy)
+    def _get_task_specific_metrics(self):
+        metrics = {
+            "structure_mass": self.get_structure_mass(),
+            "max_height_achieved": self.get_vehicle_lowest_y(),
+            "structure_integrity": self.initial_joint_count == len([j for j in self._joints if j in self.space.constraints]),
+        }
+        metrics.update(self.metrics_tracker)
+        return metrics
+
+def get_environment():
+    return get_environment_class(TaskEnvironment)

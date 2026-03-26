@@ -21,7 +21,7 @@ def _build_agent_internal(sandbox, torque=3000.0, arm_config=None, initial_angle
         prev_body = body
         current_x += length * math.cos(initial_angle)
         current_y += length * math.sin(initial_angle)
-    scoop_w, scoop_h = 2.0, 1.0
+    scoop_w, scoop_h = 1.0, 1.0
     scoop = sandbox.add_scoop(current_x, current_y, scoop_w, scoop_h, angle=initial_angle, density=20.0)
     _bj = sandbox.add_revolute_joint(prev_body, scoop, (current_x, current_y), enable_motor=True, max_motor_torque=torque)
     sandbox._bj = _bj

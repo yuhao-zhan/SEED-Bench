@@ -1,0 +1,429 @@
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/environment.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/environment.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/environment.py	2026-03-25 10:44:08
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/environment.py	2026-03-25 11:53:00
+@@ -65,7 +65,10 @@
+         self.MAX_BEAM_COUNT = int(terrain_config.get("max_beam_count", 18))
+         self.MIN_BEAM_COUNT = int(terrain_config.get("min_beam_count", 10))
+         self.MAX_BEAMS_MIDDLE_STRIP = int(terrain_config.get("max_beams_middle_strip", 1))  # at most 1 beam in narrow middle — forces bridge topology
++        self.MIN_BEAMS_MIDDLE_STRIP = int(terrain_config.get("min_beams_middle_strip", 1))
+         self.MAX_BEAMS_RIGHT_STRIP = int(terrain_config.get("max_beams_right_strip", 2))
++        self.MIN_BEAMS_LEFT_STRIP = int(terrain_config.get("min_beams_left_strip", 1))
++        self.MIN_BEAMS_RIGHT_STRIP = int(terrain_config.get("min_beams_right_strip", 1))
+         self.RESERVOIR_FILL_HEIGHT = float(terrain_config.get("fluid_height", 7.0))
+         self.MAX_TERRAIN_ANCHORS = 0  # ZERO floor anchors — dam must be free-standing
+         self.MIN_BEAM_BOTTOM_Y = float(terrain_config.get("min_beam_bottom_y", 0.5))
+@@ -242,14 +245,17 @@
+         floor_body = self._terrain_bodies.get("floor")
+         if body_b is None:
+             body_b = floor_body
+-        if body_b is None:
+-            raise ValueError("add_joint: terrain body not found for anchor.")
+-        if body_b == floor_body:
++
++        # Enforce anchor limits for ANY terrain/non-beam body
++        bodies_set = set(self._bodies)
++        is_terrain_anchor = (body_b not in bodies_set)
++
++        if is_terrain_anchor:
+             if len(self._terrain_joints) >= self.MAX_TERRAIN_ANCHORS:
+-                raise ValueError(f"Terrain anchor count would exceed maximum {self.MAX_TERRAIN_ANCHORS}")
++                raise ValueError(f"Terrain anchor count would exceed maximum {self.MAX_TERRAIN_ANCHORS} (dam must be free-standing)")
+ 
+-        # Enforce max beam-to-beam joint count (no limit on terrain joints when 0)
+-        if body_b != floor_body:
++        # Enforce max beam-to-beam joint count
++        if not is_terrain_anchor:
+             beam_joints = len(self._joints) - len(self._terrain_joints)
+             max_joints = getattr(self, 'MAX_JOINT_COUNT', 15)
+             if beam_joints >= max_joints:
+@@ -264,7 +270,7 @@
+             collideConnected=False
+         )
+         self._joints.append(joint)
+-        if body_b == floor_body:
++        if is_terrain_anchor:
+             self._terrain_joints.append(joint)
+         return joint
+ 
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/evaluator.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/evaluator.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/evaluator.py	2026-03-25 10:44:08
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/evaluator.py	2026-03-25 11:53:25
+@@ -39,6 +39,9 @@
+         self.MIN_BEAM_COUNT = getattr(environment, 'MIN_BEAM_COUNT', getattr(env_class, 'MIN_BEAM_COUNT', 10))
+         self.MAX_BEAMS_RIGHT_STRIP = getattr(environment, 'MAX_BEAMS_RIGHT_STRIP', getattr(env_class, 'MAX_BEAMS_RIGHT_STRIP', 2))
+         self.MAX_BEAMS_MIDDLE_STRIP = getattr(environment, 'MAX_BEAMS_MIDDLE_STRIP', getattr(env_class, 'MAX_BEAMS_MIDDLE_STRIP', 1))
++        self.MIN_BEAMS_MIDDLE_STRIP = getattr(environment, 'MIN_BEAMS_MIDDLE_STRIP', getattr(env_class, 'MIN_BEAMS_MIDDLE_STRIP', 1))
++        self.MIN_BEAMS_LEFT_STRIP = getattr(environment, 'MIN_BEAMS_LEFT_STRIP', getattr(env_class, 'MIN_BEAMS_LEFT_STRIP', 1))
++        self.MIN_BEAMS_RIGHT_STRIP = getattr(environment, 'MIN_BEAMS_RIGHT_STRIP', getattr(env_class, 'MIN_BEAMS_RIGHT_STRIP', 1))
+         # Three disjoint strips: left, middle (bridge), right
+         self.BUILD_ZONE_LEFT_X_MIN = getattr(environment, 'BUILD_ZONE_LEFT_X_MIN', 12.4)
+         self.BUILD_ZONE_LEFT_X_MAX = getattr(environment, 'BUILD_ZONE_LEFT_X_MAX', 12.6)
+@@ -62,8 +65,8 @@
+         if not self.environment:
+             return True, 0.0, {"error": "Environment not available"}
+ 
+-        # Design constraints check only at step 0
+-        if not self.design_constraints_checked and step_count == 0:
++        # Design constraints check only at step 0 (or first call)
++        if not self.design_constraints_checked:
+             violations = self._check_design_constraints()
+             if violations:
+                 self.design_constraints_checked = True
+@@ -102,7 +105,7 @@
+         if leakage_rate > self.MAX_LEAKAGE_RATE:
+             failed = True
+             limit_pct = self.MAX_LEAKAGE_RATE * 100
+-            failure_reason = f"Leakage rate {leakage_rate * 100:.1f}% exceeds {limit_pct:.2f}% limit"
++            failure_reason = f"Leakage rate {leakage_rate * 100:.2f}% exceeds {limit_pct:.2f}% limit"
+ 
+         if self.structure_broken:
+             failed = True
+@@ -206,9 +209,9 @@
+             violations.append(
+                 f"Middle strip has {middle_strip_count} beams; at most {self.MAX_BEAMS_MIDDLE_STRIP} beam(s) allowed in the middle strip (bridge constraint)"
+             )
+-        if middle_strip_count < 1:
++        if middle_strip_count < self.MIN_BEAMS_MIDDLE_STRIP:
+             violations.append(
+-                f"Dam must use the middle strip: at least one beam center in middle strip x=[{self.BUILD_ZONE_MIDDLE_X_MIN}, {self.BUILD_ZONE_MIDDLE_X_MAX}] (bridge required for valid topology)"
++                f"Dam must use the middle strip: at least {self.MIN_BEAMS_MIDDLE_STRIP} beam center(s) in middle strip x=[{self.BUILD_ZONE_MIDDLE_X_MIN}, {self.BUILD_ZONE_MIDDLE_X_MAX}] (bridge required for valid topology)"
+             )
+         beam_to_beam_joints = len(self.environment._joints) - terrain_joints
+         if beam_to_beam_joints > self.MAX_JOINT_COUNT:
+@@ -246,9 +249,9 @@
+                         if self.BUILD_ZONE_LEFT_X_MIN <= b.position.x <= self.BUILD_ZONE_LEFT_X_MAX)
+         right_count = sum(1 for b in self.environment._bodies
+                          if self.BUILD_ZONE_RIGHT_X_MIN <= b.position.x <= self.BUILD_ZONE_RIGHT_X_MAX)
+-        if left_count < 1 or right_count < 1:
++        if left_count < self.MIN_BEAMS_LEFT_STRIP or right_count < self.MIN_BEAMS_RIGHT_STRIP:
+             violations.append(
+-                f"Dam must span the gate: at least one beam center in left strip x=[{self.BUILD_ZONE_LEFT_X_MIN}, {self.BUILD_ZONE_LEFT_X_MAX}] and at least one in right strip x=[{self.BUILD_ZONE_RIGHT_X_MIN}, {self.BUILD_ZONE_RIGHT_X_MAX}]"
++                f"Dam must span the gate: at least {self.MIN_BEAMS_LEFT_STRIP} beam center(s) in left strip x=[{self.BUILD_ZONE_LEFT_X_MIN}, {self.BUILD_ZONE_LEFT_X_MAX}] and at least {self.MIN_BEAMS_RIGHT_STRIP} in right strip x=[{self.BUILD_ZONE_RIGHT_X_MIN}, {self.BUILD_ZONE_RIGHT_X_MAX}]"
+             )
+         # Build zones and mandatory underflow gap (left OR middle OR right)
+         # For underflow, use world-space polygon vertices so rotated beams are checked correctly.
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/prompt.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/prompt.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/prompt.py	2026-03-25 10:44:08
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/prompt.py	2026-03-25 10:58:15
+@@ -26,7 +26,7 @@
+ - **Reservoir fill height**: 7.0 m.
+ - **Reservoir-side forcing**: Time-varying fluid impulses apply only to water particles whose center is on the reservoir side (x < 12.0 m).
+ - **Dynamic disturbances**: The run includes forward/backward slosh, vertical fluid kicks, periodic debris impacts, and horizontal shaking of dam beams. Exact timing and magnitudes are intentionally not disclosed and must be inferred from interaction feedback.
+-- **Debris launch**: Periodic debris impacts use default initial velocity **(2.2, 0.0)** m/s unless the configuration overrides the debris velocity.
++- **Debris launch**: Periodic debris impacts use default initial velocity values unless the configuration overrides the debris velocity.
+ - **Build zone**: Three disjoint narrow vertical strips: x=[12.4, 12.6], [12.9, 13.1], and [13.4, 13.6], with y in [0, 7.5] m. **Each beam’s center (x, y) must lie in one of these strips** (x within that strip’s interval, y within [0, 7.5]); design validation checks centers, consistent with the span and vertical-band rules below.
+ - **Constraint**: Mandatory underflow gap; no beams allowed below y=0.5m.
+ - **Constraint**: ZERO floor anchors; the dam must be free-standing.
+@@ -37,7 +37,7 @@
+ - **Constraint**: The dam must span the gate: at least one beam center in the left strip x=[12.4, 12.6] and at least one beam center in the right strip x=[13.4, 13.6].
+ - **Constraint**: All beams must form one connected structure: every beam must be reachable from every other via beam-to-beam joints (no isolated beams or separate sub-structures).
+ - **Constraint**: At least 3 beam centers must lie in each vertical band: y=[0.5, 2.5], [2.5, 5], and [5, 7.5].
+-- **Moving downstream wall**: The downstream wall (0.5 m wide) oscillates laterally over time with **A = 0.4** m and **P = 100**, where the wall center follows a sinusoidal trajectory each step. The instantaneous leak line is the wall's left edge.
++- **Moving downstream wall**: The downstream wall (0.5 m wide) oscillates laterally over time, where the wall center follows a sinusoidal trajectory each step. The instantaneous leak line is the wall's left edge.
+ - **Leakage definition**: Particles with x greater than the current leak line count as full leak. Particles in a 0.5 m band immediately upstream of that leak line count as half-leak toward the leakage rate. If moving-wall state is unavailable, scoring may fall back to a fixed reference leak line at x=14.0 m (same half-leak band rule).
+ 
+ ## Task Objective
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/stages.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/stages.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/stages.py	2026-03-25 10:44:08
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/stages.py	2026-03-25 12:16:44
+@@ -3,9 +3,9 @@
+ 
+ Mutations combine hidden levers (e.g. particle restitution, gravity, debris speed) with visible
+ terrain keys that appear in the task text. `update_task_description_for_visible_changes` syncs
+-weld force/steps, leak %, reservoir fill height, and wall A/P in the **task description** string.
++weld force/steps, leak %, reservoir fill height in the **task description** string.
+ `update_success_criteria_for_visible_changes` only syncs **leakage rate** lines in **success criteria**
+-(fill height and wall parameters are not repeated there).
++(fill height and weld parameters are not repeated there).
+ 
+ Stage-1/2: exactly one terrain_config lever each (threshold vs granular–interface physics).
+ Stage-3/4: multiple interacting levers (Stage-4 extends Stage-3 with gravity + debris); difficulty strictly increases through Stage-4.
+@@ -49,6 +49,14 @@
+     end = description.find("\n", start)
+     if end == -1:
+         end = len(description)
++    
++    # Capture the parenthetical explanation if it exists
++    line_content = description[start:end]
++    suffix = ""
++    paren_start = line_content.find(" (")
++    if paren_start != -1:
++        suffix = line_content[paren_start:]
++
+     force_part = f"{target_force:.0f} N"
+     if target_force != base_force:
+         force_part += f" (originally {base_force:.0f} N in the source environment)"
+@@ -57,118 +65,70 @@
+         steps_part += (
+             f" (originally {base_steps} consecutive simulation steps in the source environment)"
+         )
+-    new_line = f"{marker}{force_part} for {steps_part}."
++    
++    # Reconstruct line with prefix, force, steps, and original suffix
++    new_line = f"{marker}{force_part} for {steps_part}{suffix}"
+     return description[:start] + new_line + description[end:]
+ 
+ 
+-def _fmt_float_short(x: float) -> str:
+-    s = f"{float(x):.6f}".rstrip("0").rstrip(".")
+-    return s if s else "0"
+-
+-
+-def _replace_moving_wall_amp_phase(
+-    description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
+-) -> str:
+-    """Sync **A** and **P** in the moving-wall sentence; format (originally ...) when mutated."""
+-    default_amp = 0.4
+-    default_phase = 100.0
+-    ta = float(target_terrain_config.get("downstream_wall_amplitude", default_amp))
+-    ba = float(base_terrain_config.get("downstream_wall_amplitude", default_amp))
+-    tp = float(target_terrain_config.get("downstream_wall_phase_divisor", default_phase))
+-    bp = float(base_terrain_config.get("downstream_wall_phase_divisor", default_phase))
+-    if ta == ba and tp == bp:
+-        return description
+-    pat = re.compile(
+-        r"with \*\*A = \d+\.?\d*\*\* m(?: \(originally \d+\.?\d* m in the source environment\))? "
+-        r"and \*\*P = \d+\.?\d*\*\*(?: \(originally \d+(?:\.\d+)? in the source environment\))?, where"
+-    )
+-    if not pat.search(description):
+-        return description
+-    amp_seg = f"**A = {_fmt_float_short(ta)}** m"
+-    if ta != ba:
+-        amp_seg += f" (originally {_fmt_float_short(ba)} m in the source environment)"
+-    p_seg = f"**P = {_fmt_float_short(tp)}**"
+-    if tp != bp:
+-        p_seg += f" (originally {_fmt_float_short(bp)} in the source environment)"
+-    new_seg = f"with {amp_seg} and {p_seg}, where"
+-    return pat.sub(new_seg, description, count=1)
+-
+-
+-def _replace_debris_velocity_line(
+-    description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
+-) -> str:
+-    """Sync debris launch velocity in task description, including (originally ...) for mutated parts."""
+-    default_vx = 2.2
+-    default_vy = 0.0
+-    tvx = float(target_terrain_config.get("debris_linear_velocity_x", default_vx))
+-    bvx = float(base_terrain_config.get("debris_linear_velocity_x", default_vx))
+-    tvy = float(target_terrain_config.get("debris_linear_velocity_y", default_vy))
+-    bvy = float(base_terrain_config.get("debris_linear_velocity_y", default_vy))
+-    if tvx == bvx and tvy == bvy:
+-        return description
+-
+-    pat = re.compile(
+-        r"default initial velocity \*\*\(([+-]?\d+\.?\d*),\s*([+-]?\d+\.?\d*)\)\*\* m/s unless the configuration overrides the debris velocity\."
+-    )
+-    m = pat.search(description)
+-    if not m:
+-        return description
+-
+-    vx_seg = _fmt_float_short(tvx)
+-    vy_seg = _fmt_float_short(tvy)
+-    if tvx != bvx:
+-        vx_seg += f" (originally {_fmt_float_short(bvx)} in the source environment)"
+-    if tvy != bvy:
+-        vy_seg += f" (originally {_fmt_float_short(bvy)} in the source environment)"
+-    new_text = (
+-        f"default initial velocity **({vx_seg}, {vy_seg})** m/s unless the configuration overrides the debris velocity."
+-    )
+-    return pat.sub(new_text, description, count=1)
+-
+-
+ def update_task_description_for_visible_changes(
+     base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
+ ) -> str:
+     """
+     Update task description for visible changes using format:
+     [new_value] (originally [old_value] in the source environment).
+-
+-    IMPORTANT: base_terrain_config must be the pristine/source environment (empty or default).
+-    If base_terrain_config is another stage's config (e.g. in cross-mutated evaluation),
+-    the phrase "originally ... in the source environment" will be misleading.
+     """
+     description = base_description
+-    default_leakage = 0.001
+-    default_joint_break_force = 50000.0
+-    default_joint_break_consecutive_steps = 3
+-    default_fluid_height = 7.0
++    
++    # Map of parameter keys to their labels and regex patterns in task_description
++    visible_params = [
++        ("max_leakage_rate", r"(the leakage rate does not exceed )(\d+\.?\d*%)(\.)", lambda v: f"{v*100:.2f}%"),
++        ("fluid_height", r"(\*\*Reservoir fill height\*\*: )(\d+\.?\d* m)(\.)", lambda v: f"{v:.1f} m"),
++        ("max_structure_mass", r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d* kg)()", lambda v: f"{v:.0f} kg"),
++        ("max_beam_count", r"(\(minimum \d+, maximum )(\d+)(\))", lambda v: f"{v}"),
++        ("min_beam_count", r"(\(minimum )(\d+)(, maximum \d+\))", lambda v: f"{v}"),
++        ("max_joint_count", r"(- \*\*Joint Limit\*\*: Maximum )(\d+)( beam-to-beam joints)", lambda v: f"{v}"),
++        ("max_beams_middle_strip", r"(at most )(\d+)( beam \(forces bridge topology\))", lambda v: f"{v}"),
++        ("max_beams_right_strip", r"(Right strip \[13.4, 13.6\] may contain at most )(\d+)( beams)", lambda v: f"{v}"),
++        ("min_beams_per_band", r"(At least )(\d+)( beam centers must lie in each vertical band)", lambda v: f"{v}"),
++        ("min_beam_bottom_y", r"(no beams allowed below y=)(\d+\.?\d*m)()", lambda v: f"{v:.1f}m"),
++        ("max_beam_width", r"(Maximum beam width is )(\d+\.?\d* m)(;)", lambda v: f"{v:.1f} m"),
++        ("max_beam_height", r"(maximum beam height is )(\d+\.?\d* m)(\.)", lambda v: f"{v:.1f} m"),
++    ]
+ 
+-    # Leakage rate
+-    target_leakage = target_terrain_config.get("max_leakage_rate", default_leakage)
+-    base_leakage = base_terrain_config.get("max_leakage_rate", default_leakage)
+-    if target_leakage != base_leakage:
+-        # Task objective line
+-        pattern_obj = r"(the leakage rate does not exceed )(\d+\.?\d*%)"
+-        if re.search(pattern_obj, description):
+-            description = re.sub(
+-                pattern_obj,
+-                f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+-                description,
+-            )
+-        # Legacy wording (if present)
+-        pattern_legacy = r"(leakage rate remains below )(\d+\.?\d*%)"
+-        if re.search(pattern_legacy, description):
+-            description = re.sub(
+-                pattern_legacy,
+-                f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+-                description,
+-            )
++    defaults = {
++        "max_leakage_rate": 0.001,
++        "fluid_height": 7.0,
++        "max_structure_mass": 380.0,
++        "max_beam_count": 18,
++        "min_beam_count": 10,
++        "max_joint_count": 15,
++        "max_beams_middle_strip": 1,
++        "max_beams_right_strip": 2,
++        "min_beams_per_band": 3,
++        "min_beam_bottom_y": 0.5,
++        "max_beam_width": 0.6,
++        "max_beam_height": 1.5,
++    }
+ 
+-    # Joint break force + consecutive steps (visible structural limits)
+-    target_break = float(target_terrain_config.get("joint_break_force", default_joint_break_force))
+-    base_break = float(base_terrain_config.get("joint_break_force", default_joint_break_force))
+-    target_steps = int(target_terrain_config.get("joint_break_consecutive_steps", default_joint_break_consecutive_steps))
+-    base_steps = int(base_terrain_config.get("joint_break_consecutive_steps", default_joint_break_consecutive_steps))
++    for key, pattern, formatter in visible_params:
++        target_val = target_terrain_config.get(key, defaults.get(key))
++        base_val = base_terrain_config.get(key, defaults.get(key))
++        if target_val is not None and base_val is not None and target_val != base_val:
++            if re.search(pattern, description):
++                description = re.sub(
++                    pattern,
++                    f"\\g<1>{formatter(target_val)} (originally {formatter(base_val)} in the source environment)\\g<3>",
++                    description,
++                )
++
++    # Joint break force + consecutive steps (special handling for combined line)
++    default_break = 50000.0
++    default_steps = 3
++    target_break = float(target_terrain_config.get("joint_break_force", default_break))
++    base_break = float(base_terrain_config.get("joint_break_force", default_break))
++    target_steps = int(target_terrain_config.get("joint_break_consecutive_steps", default_steps))
++    base_steps = int(base_terrain_config.get("joint_break_consecutive_steps", default_steps))
+     if target_break != base_break or target_steps != base_steps:
+         description = _replace_weld_constraint_line(
+             description,
+@@ -178,23 +138,6 @@
+             base_steps=base_steps,
+         )
+ 
+-    # Reservoir fill height (visible structural limit)
+-    target_height = target_terrain_config.get("fluid_height", default_fluid_height)
+-    base_height = base_terrain_config.get("fluid_height", default_fluid_height)
+-    if target_height != base_height:
+-        pattern = r"(\*\*Reservoir fill height\*\*: )(\d+\.?\d*)( m\.)"
+-        if re.search(pattern, description):
+-            description = re.sub(
+-                pattern,
+-                f"\\g<1>{target_height:.1f} m (originally {base_height:.1f} m in the source environment).",
+-                description,
+-            )
+-
+-    # Moving wall oscillation (visible: A and P appear in task_description)
+-    description = _replace_moving_wall_amp_phase(description, target_terrain_config, base_terrain_config)
+-    # Debris launch velocity (visible in task_description if present)
+-    description = _replace_debris_velocity_line(description, target_terrain_config, base_terrain_config)
+-
+     return description
+ 
+ 
+@@ -204,30 +147,33 @@
+     """
+     Update success criteria for visible changes using format:
+     [new_value] (originally [old_value] in the source environment).
+-
+-    base_terrain_config must be the pristine/source environment; otherwise
+-    "originally ... in the source environment" is misleading.
+     """
+     criteria = base_success_criteria
+-    default_leakage = 0.001
++    
++    visible_params = [
++        ("max_leakage_rate", r"(1\. \*\*Leakage Rate\*\*: Total leakage <= )(\d+\.?\d*%)(\.)", lambda v: f"{v*100:.2f}%"),
++        ("max_structure_mass", r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d* kg)()", lambda v: f"{v:.0f} kg"),
++        ("max_beam_count", r"(- \*\*Beam Limit\*\*: Between \d+ and )(\d+)( beams)", lambda v: f"{v}"),
++        ("min_beam_count", r"(- \*\*Beam Limit\*\*: Between )(\d+)( and \d+ beams)", lambda v: f"{v}"),
++        ("max_joint_count", r"(- \*\*Joint Limit\*\*: Maximum )(\d+)( beam-to-beam joints)", lambda v: f"{v}"),
++    ]
+ 
+-    # Leakage rate
+-    target_leakage = target_terrain_config.get("max_leakage_rate", default_leakage)
+-    base_leakage = base_terrain_config.get("max_leakage_rate", default_leakage)
+-    if target_leakage != base_leakage:
+-        pattern_le = r"(1\. \*\*Leakage Rate\*\*: Total leakage <= )(\d+\.?\d*%)"
+-        if re.search(pattern_le, criteria):
+-            criteria = re.sub(
+-                pattern_le,
+-                f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+-                criteria,
+-            )
+-        else:
+-            pattern_lt = r"(1\. \*\*Leakage Rate\*\*: Total leakage < )(\d+\.?\d*%)"
+-            if re.search(pattern_lt, criteria):
++    defaults = {
++        "max_leakage_rate": 0.001,
++        "max_structure_mass": 380.0,
++        "max_beam_count": 18,
++        "min_beam_count": 10,
++        "max_joint_count": 15,
++    }
++
++    for key, pattern, formatter in visible_params:
++        target_val = target_terrain_config.get(key, defaults.get(key))
++        base_val = base_terrain_config.get(key, defaults.get(key))
++        if target_val is not None and base_val is not None and target_val != base_val:
++            if re.search(pattern, criteria):
+                 criteria = re.sub(
+-                    pattern_lt,
+-                    f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
++                    pattern,
++                    f"\\g<1>{formatter(target_val)} (originally {formatter(base_val)} in the source environment)\\g<3>",
+                     criteria,
+                 )
+ 
+diff -ruN -x __pycache__ /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/test_regex_F01.py /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/test_regex_F01.py
+--- /var/folders/9w/lv1bdbj161j0j1l3dbtz3tmm0000gn/T/tmp.BQgjQ5qdkj/test_regex_F01.py	1970-01-01 08:00:00
++++ /Users/zhanyuxiao/Desktop/GitHub/SEED-Bench/tasks/Category4_Granular_FluidInteraction/F_01/test_regex_F01.py	2026-03-25 12:21:32
+@@ -0,0 +1,22 @@
++import re
++from stages import _replace_weld_constraint_line
++
++# Current prompt line
++line = "- **Constraint**: Beam-to-beam welds break when reaction force **reaches or exceeds** 50000 N for 3 consecutive simulation steps."
++# Example: 40000 N and 2 steps
++# Should result in: - **Constraint**: Beam-to-beam welds break when reaction force **reaches or exceeds** 40000 N (originally 50000 N in the source environment) for 2 consecutive simulation steps (originally 3 consecutive simulation steps in the source environment)."
++
++result = _replace_weld_constraint_line(
++    line,
++    target_force=40000.0,
++    base_force=50000.0,
++    target_steps=2,
++    base_steps=3
++)
++
++print(f"Original: {line}")
++print(f"New:      {result}")
++
++# Validate if it matches the expected structure:
++# Replaces 50000 N -> 40000 N (originally 50000 N in the source environment)
++# Replaces 3 consecutive simulation steps -> 2 consecutive simulation steps (originally 3 consecutive simulation steps in the source environment)

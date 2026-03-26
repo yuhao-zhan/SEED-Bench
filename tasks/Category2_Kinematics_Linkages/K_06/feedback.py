@@ -246,7 +246,7 @@ def get_improvement_suggestions(
             )
         elif not mass_over and removal_fail:
             suggestions.append(
-                "DIAGNOSTIC: Mass budget is satisfied but particle removal is below the required threshold. The failure is due to insufficient clearing; consider whether sweep coverage, contact force, or environmental conditions (e.g. particle adhesion or mass) limit momentum transfer."
+                "DIAGNOSTIC: Mass budget is satisfied but particle removal is below the required threshold. The failure is due to insufficient clearing; consider whether sweep coverage, contact force, or environmental conditions or particle properties limit momentum transfer."
             )
     except (TypeError, ValueError):
         pass

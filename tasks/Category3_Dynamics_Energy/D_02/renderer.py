@@ -22,11 +22,18 @@ class D02Renderer(Renderer):
                 import pygame
                 self.simulator.screen = pygame.Surface((800, 450))
 
-        # Panoramic Camera Viewport
-        # D-02 left platform 0-8, pit 8-26, right platform 26-41.
+        # Dynamic Camera Viewport based on terrain bounds
+        bounds = sandbox.get_terrain_bounds()
+        left_end = bounds.get("left_platform_end_x", 8.0)
+        pit_w = bounds.get("pit_width", 18.0)
+        right_start = bounds.get("right_platform_start_x", 26.0)
+        # Assume right platform is 15m wide as in environment.py
+        total_width = right_start + 15.0
+        
         self.simulator.ppm = 17.0
-        center_x_world = 20.5
-        center_y_world = 9.0
+        center_x_world = total_width / 2.0
+        # Vertically center around the middle of the slot/platform range (0 to 15m)
+        center_y_world = 8.5
         
         cam_x = center_x_world * self.simulator.ppm - self.simulator.screen_width / 2
         cam_y = self.simulator.screen_height / 2 - center_y_world * self.simulator.ppm
@@ -37,6 +44,8 @@ class D02Renderer(Renderer):
         # Academic Color Palette
         ENV_COLOR = (230, 194, 41)       # #E6C229 (Goldenrod Yellow)
         ENV_OUTLINE = (180, 144, 0)      # Darker Goldenrod
+        BARRIER_COLOR = (220, 53, 69)    # #DC3545 (Material Red)
+        BARRIER_OUTLINE = (150, 30, 40)  # Darker Red
         AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
         AGENT_OUTLINE = (26, 125, 30)    # Darker Green
 
@@ -44,12 +53,24 @@ class D02Renderer(Renderer):
         jumper_body = sandbox.get_jumper()
         for body in sandbox.world.bodies:
             is_environment = False
+            is_barrier = False
             if hasattr(sandbox, "_terrain_bodies") and body in sandbox._terrain_bodies.values():
                 is_environment = True
+                # Identify if this specific body is a barrier or ceiling
+                for key, val in sandbox._terrain_bodies.items():
+                    if body == val and ("barrier" in key or "ceiling" in key):
+                        is_barrier = True
+                        break
             elif body == jumper_body:
                 is_environment = True
             
-            if is_environment:
+            if is_barrier:
+                self.draw_body(body,
+                             dynamic_color=BARRIER_COLOR,
+                             static_color=BARRIER_COLOR,
+                             outline_color=BARRIER_OUTLINE,
+                             outline_width=2)
+            elif is_environment:
                 self.draw_body(body,
                              dynamic_color=ENV_COLOR,
                              static_color=ENV_COLOR,

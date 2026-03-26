@@ -14,8 +14,9 @@ class DaVinciSandbox:
     # Small blocks force multi-block stacking strategies (harmonic series).
     MAX_BLOCK_LENGTH = 1.0 
     MAX_BLOCK_HEIGHT = 0.2
-    MAX_BLOCK_COUNT = 100 # INCREASED again to allow for ultra-stable stacks
-    START_ZONE_X_MAX = 0.0
+    MAX_BLOCK_COUNT = 100
+    MAX_TOTAL_MASS = 20000.0
+    DEFAULT_BLOCK_DENSITY = 1.0
 
     def __init__(self, terrain_config=None, physics_config=None):
         terrain_config = terrain_config or {}
@@ -98,7 +99,7 @@ class DaVinciSandbox:
     def add_block(self, x, y, width, height, angle=0, density=None):
         """API: Add a block for the overhang structure."""
         if density is None:
-            density = self._terrain_config.get("block_density", 1.0)
+            density = self._terrain_config.get("block_density", self.DEFAULT_BLOCK_DENSITY)
         
         block_friction = self._terrain_config.get("block_friction", 0.6)
         
@@ -142,7 +143,11 @@ class DaVinciSandbox:
             "max_block_length": self.MAX_BLOCK_LENGTH,
             "max_block_height": self.MAX_BLOCK_HEIGHT,
             "max_block_count": self.MAX_BLOCK_COUNT,
+            "max_total_mass": self._terrain_config.get("max_total_mass", self.MAX_TOTAL_MASS),
+            "block_density": self._terrain_config.get("block_density", self.DEFAULT_BLOCK_DENSITY),
             "spawn_zone": self._terrain_config.get("spawn_zone", [-10.0, 0.0]),
             "ceiling_y": self._terrain_config.get("ceiling_y", 100.0),
+            "target_overhang": self._terrain_config.get("target_overhang", 0.1),
+            "stability_time": self._terrain_config.get("stability_time", 10.0),
         }
         return bounds

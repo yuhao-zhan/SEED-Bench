@@ -26,7 +26,7 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Particle Friction**: The adhesion and resistance of particles to being moved may be altered.
 - **Particle Mass**: The mass and inertia of the individual particles may differ from standard.
 - **Mass Budget**: The maximum total mass allowed for the wiper structure may be adjusted.
-- **Motor Torque Limit**: The maximum torque available at motor-driven joints may be capped in this region, limiting the force the mechanism can apply.
+- **Motor Torque Limit**: The maximum torque available at motor-driven joints may be adjusted in this region, affecting the force the mechanism can apply.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """
@@ -41,24 +41,25 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_count = base_terrain_config.get("particles", {}).get("count", 45)
 
     if target_count != base_count:
-        pattern = r"(- \*\*Particles\*\*: )(\d+)( small particles)"
-        description = re.sub(pattern, f"\\g<1>{target_count} small particles (originally {base_count} small particles in the source environment)", description)
+        # Matches the updated prompt format with distribution range
+        pattern = r"(- \*\*Particles\*\*: )(\d+)( small particles)( are randomly distributed on the glass \(x between 1\.0 and 11\.0\))"
+        description = re.sub(pattern, f"\\g<1>{target_count}\\g<3> (originally {base_count}\\g<3> in the source environment)\\g<4>", description)
 
     # Mass limit
     target_mass = target_terrain_config.get("max_structure_mass", 15.0)
     base_mass = base_terrain_config.get("max_structure_mass", 15.0)
 
     if target_mass != base_mass:
-        pattern = r"(Total structure mass must be less than )(\d+\.?\d*)( kg)"
-        description = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally {base_mass:.2f} kg in the source environment)", description)
+        pattern = r"(Total structure mass must be less than or equal to )(\d+\.?\d*)( kg)"
+        description = re.sub(pattern, f"\\g<1>{target_mass:g}\\g<3> (originally {base_mass:g}\\g<3> in the source environment)", description)
 
     # Motor torque cap (when set by mutation; base has no cap)
     target_motor_cap = target_terrain_config.get("max_motor_torque")
-    base_motor_cap = base_terrain_config.get("max_motor_torque")
     if target_motor_cap is not None:
-        old_val = f"{base_motor_cap:.1f} N·m" if base_motor_cap is not None else "no cap"
+        # Exact string from prompt.py
+        old_val = "No environment cap"
         pattern = r"(- \*\*Motor torque\*\*: )No environment cap \(solver may request up to API limits\)\."
-        replacement = f"\\g<1>Capped at {target_motor_cap:.1f} N·m (originally {old_val} in the source environment)."
+        replacement = f"\\g<1>{target_motor_cap:g} N·m (originally {old_val} in the source environment)."
         if re.search(pattern, description):
             description = re.sub(pattern, replacement, description)
 
@@ -74,8 +75,19 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_mass = base_terrain_config.get("max_structure_mass", 15.0)
 
     if target_mass != base_mass:
-        pattern = r"(\*\*Mass Budget\*\*: < )(\d+\.?\d*)( kg)"
-        criteria = re.sub(pattern, f"\\g<1>{target_mass:.2f} kg (originally < {base_mass:.2f} kg in the source environment)", criteria)
+        pattern = r"(\*\*Mass Budget\*\*: <= )(\d+\.?\d*)( kg)"
+        # Use :g to avoid .00 if it's an integer, matching prompt style
+        criteria = re.sub(pattern, f"\\g<1>{target_mass:g}\\g<3> (originally {base_mass:g}\\g<3> in the source environment)", criteria)
+
+    # Motor torque cap (synchronize if present in design constraints)
+    target_motor_cap = target_terrain_config.get("max_motor_torque")
+    if target_motor_cap is not None:
+        # Add to Design Constraints if not already present
+        if "- **Motor torque**:" not in criteria:
+            criteria = criteria.strip() + f"\n- **Motor torque**: {target_motor_cap:g} N·m (originally No environment cap in the source environment)."
+        else:
+            pattern = r"(- \*\*Motor torque\*\*: ).*"
+            criteria = re.sub(pattern, f"\\g<1>{target_motor_cap:g} N·m (originally No environment cap in the source environment).", criteria)
 
     return criteria
 

@@ -81,10 +81,18 @@ class Evaluator:
             if self.max_tip_x >= self.target_reach:
                 self.reach_satisfied_initially = True
         
-        # Track min tip height across all structure bodies
+        # Track min tip height across all structure bodies (check all vertices for "no part" rule)
         total_ext_force_y = 0.0
         for body in self.environment._bodies:
-            self.min_tip_y = min(self.min_tip_y, body.position.y)
+            for fixture in body.fixtures:
+                shape = fixture.shape
+                if hasattr(shape, 'vertices'):
+                    for v in shape.vertices:
+                        wv = body.GetWorldPoint(v)
+                        self.min_tip_y = min(self.min_tip_y, wv.y)
+                else:
+                    # Fallback for non-polygon shapes if any
+                    self.min_tip_y = min(self.min_tip_y, body.position.y)
             
             # Sum up external forces for discovery feedback
             # Spatial force
@@ -115,16 +123,9 @@ class Evaluator:
 
         self.external_force_y = total_ext_force_y / len(self.environment._bodies) if self.environment._bodies else 0.0
 
-        # Record max torque and force usage (same frequency as environment joint checks: 1/TIME_STEP)
-        inv_dt = 1.0 / TIME_STEP
-        for joint in self.environment._joints:
-            try:
-                force = joint.GetReactionForce(inv_dt)
-                torque = abs(joint.GetReactionTorque(inv_dt))
-                fm = math.sqrt(force.x**2 + force.y**2)
-                self.max_recorded_torque = max(self.max_recorded_torque, torque)
-                self.max_recorded_force = max(self.max_recorded_force, fm)
-            except: pass
+        # Record max torque and force usage from environment telemetry (captured during step)
+        self.max_recorded_torque = max(self.max_recorded_torque, getattr(self.environment, "_peak_torque", 0.0))
+        self.max_recorded_force = max(self.max_recorded_force, getattr(self.environment, "_peak_force", 0.0))
             
         # Record both anchor and internal torque/force limits for accurate feedback (wall vs beam-to-beam joints).
         # When anchor_strength_map applies, use the minimum effective limit (base * mult) so the reported
@@ -253,9 +254,19 @@ class Evaluator:
                     self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
                 violations.append(f"Beam at ({x:.2f}, {y:.2f}) outside build zone")
         
-        anchor_count = len([j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]])
+        anchor_joints = [j for j in self.environment._joints if j.bodyA == self.environment._terrain_bodies["wall"] or j.bodyB == self.environment._terrain_bodies["wall"]]
+        anchor_count = len(anchor_joints)
         if anchor_count > 2:
             violations.append(f"Too many wall anchors: {anchor_count} (max 2)")
+            
+        forbidden = getattr(self.environment, "_forbidden_anchor_y", None)
+        if forbidden:
+            y_min, y_max = forbidden
+            for j in anchor_joints:
+                # anchorA/B access consistency
+                pos = j.anchorA if hasattr(j, "anchorA") else j.GetAnchorA()
+                if y_min <= pos.y <= y_max:
+                    violations.append(f"Anchor at y={pos.y:.2f} in forbidden zone [{y_min}, {y_max}]")
             
         return violations
 

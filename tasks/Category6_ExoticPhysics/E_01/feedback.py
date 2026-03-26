@@ -126,8 +126,20 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
         mb = metrics.get("max_beam_count", "—")
         parts.append(f"**Beam Count**: {bc} / max {mb}")
 
-    if "joint_count" in metrics:
-        parts.append(f"**Joint Count (current)**: {metrics['joint_count']}")
+    if "joint_forensics" in metrics and metrics["joint_forensics"] is not None:
+        jf = metrics["joint_forensics"]
+        times = jf.get("broken_joint_times", [])
+        peak = jf.get("peak_joint_stress", 0.0)
+        limit = jf.get("limit", float("inf"))
+        
+        if times:
+            parts.append(f"**Joint Breakage Timeline**: First break at t={_fmt_float(times[0], 2)}s, total {len(times)} events.")
+        
+        if math.isfinite(limit) and limit > 0:
+            stress_pct = (peak / limit) * 100
+            parts.append(f"**Joint Stress**: Peak {_fmt_float(peak, 2)}N / Limit {_fmt_float(limit, 2)}N ({_fmt_float(stress_pct, 1)}%)")
+        else:
+            parts.append(f"**Joint Stress**: Peak {_fmt_float(peak, 2)}N")
 
     if "body_count" in metrics:
         parts.append(f"**Dynamic Body Count (tracked)**: {metrics['body_count']}")
