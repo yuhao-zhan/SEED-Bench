@@ -222,14 +222,10 @@ def _configs_differ_from_base(
 _UNIFORM_SUFFIX_GRAVITY_BULLET = (
     " - **Gravitational acceleration**: Vertical loads may differ from the nominal environment.\n"
 )
-_UNIFORM_SUFFIX_BULLETS_REST = """ - **Control Lag**: May have changed from the nominal environment.
- - **Whisker Blindness**: May have changed from the nominal environment (proximity sensing in certain spatial zones).
- - **Viscous Fluid Drag**: May have changed from the nominal environment.
+_UNIFORM_SUFFIX_BULLETS_REST = """ - **Viscous Fluid Drag**: May have changed from the nominal environment.
  - **Stochastic forcing / turbulence**: Random lateral disturbances may differ from the nominal environment.
  - **Control Reversal Zone**: May have changed from the nominal environment.
  - **Magnetic Floor Anomaly**: May have changed from the nominal environment (low-altitude zone).
- - **Structural Fragility**: The collision impulse threshold above which structural failure occurs may have changed; use feedback to infer the current limit and avoid high-speed impacts.
- - **Dynamic Terrain Obstruction**: Wall configurations may have changed from the standard layout.
 
 **Discovery via feedback**: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode to infer hidden constraints and adapt your design.
 """
@@ -388,8 +384,8 @@ def update_task_description_for_visible_changes(
             )
 
     # --- Lock corridor repelling force (physics lock_gate_fx); unicode minus before x in baseline prompt ---
-    lkb = float(bp["lock_gate_fx"])
-    lkt = float(tp["lock_gate_fx"])
+    lkb = abs(float(bp["lock_gate_fx"]))
+    lkt = abs(float(tp["lock_gate_fx"]))
     if lkt != lkb:
         # Baseline: `**…** N in −x applies`; after mutation: `**…** N (originally **…** N in …) in −x applies`.
         pat = (
