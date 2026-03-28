@@ -360,3 +360,66 @@ def clean_special_tags(raw_text: str) -> str:
             cleaned = re.sub(r'<\|return\|>', '', cleaned)
         
         return cleaned.strip()
+
+
+# =============================================================================
+# Task discovery and filtering utilities (moved from tasks/test_reference_solutions.py)
+# =============================================================================
+
+def discover_tasks(tasks_root: str) -> List[str]:
+    """
+    Discover all tasks that have agent.py and stages.py under tasks_root.
+    Returns list of task names as "CategoryDir/TaskDir" (e.g. "Category1_Statics_Equilibrium/S_01").
+    """
+    tasks_root = os.path.abspath(tasks_root)
+    task_list = []
+    for cat in sorted(os.listdir(tasks_root)):
+        cat_path = os.path.join(tasks_root, cat)
+        if not os.path.isdir(cat_path) or cat.startswith('.') or cat == 'demo':
+            continue
+        for task_id in sorted(os.listdir(cat_path)):
+            task_path = os.path.join(cat_path, task_id)
+            if not os.path.isdir(task_path):
+                continue
+            if not (os.path.isfile(os.path.join(task_path, 'agent.py'))
+                    and os.path.isfile(os.path.join(task_path, 'stages.py'))):
+                continue
+            task_name = f"{cat}/{task_id}"
+            task_list.append(task_name)
+    return task_list
+
+
+def task_matches_filter(task_name: str, task_filter: str) -> bool:
+    """
+    Match task_name against --task filter.
+    Filters: 'all', category prefix, or exact task id.
+    Examples:
+        'all' -> matches everything
+        'Category1_Statics_Equilibrium' -> matches any task in that category
+        'S_01' -> matches any task with dir name S_01
+    """
+    if task_filter.lower() == 'all':
+        return True
+    parts = task_name.split('/')
+    for part in parts:
+        if part.lower().startswith(task_filter.lower()):
+            return True
+        if part == task_filter:
+            return True
+    return False
+
+
+# =============================================================================
+# Re-export utilities from sibling modules to avoid circular imports in scripts.
+# =============================================================================
+def get_task_resolver():
+    """
+    Returns (resolve_task_list, parse_task_name) from evaluation package.
+    Usage in scripts:
+        from evaluation.utils import get_task_resolver
+        resolve_task_list, parse_task_name = get_task_resolver()
+        names = resolve_task_list(spec)
+    """
+    from evaluation.evaluate import resolve_task_list
+    from evaluation.prompt import parse_task_name
+    return resolve_task_list, parse_task_name

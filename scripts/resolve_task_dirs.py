@@ -31,8 +31,8 @@ def main() -> None:
     sys.path.insert(0, REPO_ROOT)
     os.chdir(REPO_ROOT)
 
-    from evaluation.evaluate import resolve_task_list
-    from evaluation.prompt import parse_task_name
+    from evaluation.utils import get_task_resolver
+    resolve_task_list, parse_task_name = get_task_resolver()
 
     try:
         names = resolve_task_list(spec)

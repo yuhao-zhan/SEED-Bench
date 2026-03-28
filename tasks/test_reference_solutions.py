@@ -33,41 +33,7 @@ if SCRIPTS_DIR not in sys.path:
 
 from evaluation.verifier import CodeVerifier
 from evaluation.evaluate_cross_mutated import get_all_stages, get_reference_solution
-from evaluation.utils import get_max_steps_for_task
-
-
-def discover_tasks(tasks_root: str):
-    """Discover all tasks that have agent.py and stages with curriculum (Initial + mutated)."""
-    tasks_root = os.path.abspath(tasks_root)
-    task_list = []
-    for cat in sorted(os.listdir(tasks_root)):
-        cat_path = os.path.join(tasks_root, cat)
-        if not os.path.isdir(cat_path) or cat.startswith('.') or cat == 'demo':
-            continue
-        for task_id in sorted(os.listdir(cat_path)):
-            task_path = os.path.join(cat_path, task_id)
-            if not os.path.isdir(task_path):
-                continue
-            agent_py = os.path.join(task_path, 'agent.py')
-            stages_py = os.path.join(task_path, 'stages.py')
-            if not os.path.isfile(agent_py) or not os.path.isfile(stages_py):
-                continue
-            task_name = f"{cat}/{task_id}"
-            task_list.append(task_name)
-    return task_list
-
-
-def task_matches_filter(task_name: str, task_filter: str) -> bool:
-    """Match --task filter: 'all', or category, or task_id (e.g. S_01)."""
-    if task_filter == 'all':
-        return True
-    parts = task_name.split('/')
-    for part in parts:
-        if task_filter.lower().startswith('category_') and part.lower().startswith(task_filter.lower()):
-            return True
-        if part == task_filter:
-            return True
-    return False
+from evaluation.utils import get_max_steps_for_task, discover_tasks, task_matches_filter
 
 
 def run_single_test(
