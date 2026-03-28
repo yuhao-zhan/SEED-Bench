@@ -39,6 +39,12 @@ type: feedback
 - **No fallback on exceptions** — report detailed error and stop; do not silently catch and continue
 - **Minimal comments** — only explain non-obvious logic; use succinct language, not prose
 
+## Before Git Operations
+**Before every `git add` and `git commit`:**
+1. `python3 common/remove_pycache.py` — removes all `__pycache__` directories
+2. `python3 common/remove_comments.py` — strips comments and docstrings from `tasks/*/agent.py`
+3. Then `git status` to verify what will be staged
+
 ## What NOT to do
 - Don't add harness improvements to `evaluation/` directory
 - Don't create scripts that aren't integrated into actual workflow
