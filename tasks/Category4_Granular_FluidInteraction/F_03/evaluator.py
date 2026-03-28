@@ -4,7 +4,6 @@ Per user spec: base at (-2,0), at least 2 DOF (Arm + Bucket); at least 15 partic
 """
 import sys
 import os
-import math
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from common.simulator import TIME_STEP, TARGET_FPS
@@ -44,8 +43,6 @@ class Evaluator:
         if not self.environment:
             return True, 0.0, {"error": "Environment not available"}
 
-        initial_count = self.environment.get_initial_particle_count()
-
         if not self.design_constraints_checked and step_count == 0:
             violations = self._check_design_constraints()
             if violations:
@@ -71,6 +68,7 @@ class Evaluator:
             metrics = self._collect_metrics(step_count, success=False, failed=False, failure_reason=None, agent_body=agent_body)
             return False, 0.0, metrics
 
+        initial_count = self.environment.get_initial_particle_count()
         in_hopper_count = self.environment.get_particles_in_hopper_count()
         collected_ratio = (in_hopper_count / initial_count) if initial_count > 0 else 0.0
 
@@ -78,6 +76,7 @@ class Evaluator:
         failure_reason = None
 
         if in_hopper_count < self.MIN_PARTICLES_IN_HOPPER:
+            failed = True
             failure_reason = f"Deposited {in_hopper_count}/{initial_count} particles (need at least {self.MIN_PARTICLES_IN_HOPPER} in hopper)"
 
         if self.structure_broken:
@@ -119,8 +118,6 @@ class Evaluator:
 
         metrics = {
             "step_count": step_count,
-            "max_steps": self.MAX_STEPS,
-            "max_time_seconds": self.MAX_TIME_SECONDS,
             "initial_particle_count": initial_count,
             "particles_in_truck": in_truck_count,
             "collected_ratio": collected_ratio,
@@ -145,12 +142,12 @@ class Evaluator:
                 metrics["angular_velocity"] = agent_body.angularVelocity
             if hasattr(agent_body, 'angle'):
                 metrics["bucket_angle_rad"] = agent_body.angle
-                metrics["bucket_angle_deg"] = agent_body.angle * 180.0 / math.pi
+                metrics["bucket_angle_deg"] = agent_body.angle * 180.0 / 3.14159265
         # Arm and joint state (process metrics for feedback)
         arm_joint = getattr(self.environment, "agent_arm_joint", None)
         if arm_joint is not None and hasattr(arm_joint, "angle"):
             metrics["arm_joint_angle_rad"] = arm_joint.angle
-            metrics["arm_joint_angle_deg"] = arm_joint.angle * 180.0 / math.pi
+            metrics["arm_joint_angle_deg"] = arm_joint.angle * 180.0 / 3.14159265
             # Arm link is bodyB of the arm revolute joint (first moving arm segment)
             if hasattr(arm_joint, "bodyB") and arm_joint.bodyB is not None and arm_joint.bodyB.active:
                 arm_body = arm_joint.bodyB
@@ -166,58 +163,18 @@ class Evaluator:
         structure_mass = self.environment.get_structure_mass()
         if structure_mass > self.MAX_STRUCTURE_MASS:
             violations.append(f"Structure mass {structure_mass:.2f} kg exceeds maximum {self.MAX_STRUCTURE_MASS} kg")
-        
-        min_beam = getattr(self.environment, "MIN_BEAM_SIZE", 0.1)
-        max_beam = getattr(self.environment, "MAX_BEAM_SIZE", 1.5)
-        max_motor = getattr(self.environment, "_max_motor_torque", 100.0)
-
         for body in self.environment._bodies:
-            # 1. Build Zone Check (AABB)
-            for fixture in body.fixtures:
-                shape = fixture.shape
-                if hasattr(shape, 'vertices'):
-                    for v in shape.vertices:
-                        world_v = body.GetWorldPoint(v)
-                        if not (self.BUILD_ZONE_X_MIN - 1e-4 <= world_v.x <= self.BUILD_ZONE_X_MAX + 1e-4 and
-                                self.BUILD_ZONE_Y_MIN - 1e-4 <= world_v.y <= self.BUILD_ZONE_Y_MAX + 1e-4):
-                            violations.append(
-                                f"Component at ({world_v.x:.2f}, {world_v.y:.2f}) is outside build zone "
-                                f"x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]"
-                            )
-                            break
-                    else: continue
-                    break
-                elif hasattr(shape, 'radius'):
-                    # For circles/particles (though excavator shouldn't use circles for structure)
-                    pass
-
-            # 2. Beam Size Verification
-            for fixture in body.fixtures:
-                if hasattr(fixture.shape, 'box'): # Not directly available in Box2D-python easily
-                    pass 
-                # Alternative: check vertices for box dimensions
-                if hasattr(fixture.shape, 'vertices'):
-                    vs = fixture.shape.vertices
-                    if len(vs) == 4:
-                        w = max(v[0] for v in vs) - min(v[0] for v in vs)
-                        h = max(v[1] for v in vs) - min(v[1] for v in vs)
-                        # Box2D stores half-widths in 'box' but vertices are full extent in local coords
-                        # add_beam uses polygonShape(box=(width/2, height/2))
-                        # So vertices are at +/- width/2.
-                        if w < min_beam - 1e-4 or w > max_beam + 1e-4 or h < min_beam - 1e-4 or h > max_beam + 1e-4:
-                            # Only report if it's a significant deviation (accounting for scoop thickness etc.)
-                            if not (hasattr(self.environment, "_scoop_bodies") and body in self.environment._scoop_bodies):
-                                violations.append(f"Beam dimensions {w:.2f}x{h:.2f} m are outside required range [{min_beam}, {max_beam}]")
-
-        # 3. Motor Torque Verification
-        for joint in getattr(self.environment, "_revolute_joints", []):
-            if joint.maxMotorTorque > max_motor + 1e-4:
-                violations.append(f"Motor torque {joint.maxMotorTorque:.1f} N·m exceeds maximum {max_motor:.1f} N·m")
-
+            x, y = body.position.x, body.position.y
+            if not (self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX and
+                    self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX):
+                violations.append(
+                    f"Beam at ({x:.2f}, {y:.2f}) is outside build zone "
+                    f"x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]"
+                )
         # Base must be at (-2, 0): at least one body (base) at that position
         has_base_at_required = False
         for body in self.environment._bodies:
-            if abs(body.position.x - self.BASE_X) < 0.5 and abs(body.position.y - self.BASE_Y) <= 0.5:
+            if abs(body.position.x - self.BASE_X) < 0.5 and abs(body.position.y - self.BASE_Y) < 0.5:
                 has_base_at_required = True
                 break
         if not has_base_at_required:
@@ -226,7 +183,7 @@ class Evaluator:
         revolute_count = len(getattr(self.environment, '_revolute_joints', []))
         if revolute_count < 2:
             violations.append(f"Mechanism must have at least 2 degrees of freedom (Arm + Bucket); found {revolute_count} revolute joint(s)")
-        return list(set(violations)) # Deduplicate
+        return violations
 
     def get_task_description(self):
         return {

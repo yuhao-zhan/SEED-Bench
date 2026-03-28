@@ -22,10 +22,10 @@ TASK_PROMPT = {
 You need to design a launcher that propels a projectile to hit a distant target.
 
 ## Task Environment
-- **Ground**: Flat surface from x=0 to x=60 m, at y=0 to y=1 m. Friction coefficient: 0.6.
-- **Build Zone**: x=[5, 15] m, y=[1.5, 8] m. All beam centers must lie inside this zone.
-- **Projectile**: A ball (radius 0.25 m, density 1.0 kg/m²) starts at rest at position (10, 3) m. Friction coefficient: 0.3. Restitution: 0.2. Your launcher must accelerate it toward the target.
-- **Target Zone**: x from 40 m to 45 m, and y from 2 m to 5 m.
+- **Ground**: Flat surface at y=0 to y=1 m. Ground friction coefficient 0.6.
+- **Build Zone**: x=[5, 15] m, y=[1.5, 8] m. All beam centers and anchors must lie inside this zone.
+- **Projectile**: A ball (radius 0.25 m, density 1.0, mass approximately 0.20 kg) starts at rest at position (10, 3) m. Your launcher must accelerate it toward the target.
+- **Target Zone**: x from 40 m to 45 m, and y from 2 m to 5 m. Success requires the projectile center to be inside this rectangle.
 
 ## Task Objective
 Design a launcher that:
@@ -39,13 +39,9 @@ Design a launcher that:
 2. **No early failure**: Projectile must not be destroyed or leave the simulation bounds (x in [-10, 60] m, y ≥ -5 m).
 
 ## Design Constraints
-- **Time Limit**: The projectile must hit the target within 100 seconds (6000 simulation steps).
-- **Mass Budget**: Total structure mass must not exceed 500 kg.
-- **Beam Material**: Default material density is 1.0 kg/m², friction is 0.5, and restitution is 0.2 (mass = width * height * density).
+- **Mass Budget**: Total structure mass < 500 kg.
 - **Beam dimensions**: Each beam width and height must be in [0.1, 5.0] m (enforced by the environment).
 - **Spring stiffness**: Spring stiffness must be in [10, 3000] N/m (enforced by the environment).
-- **Spring rest length**: Minimum 0.1 m (enforced by the environment).
-- **Spring damping ratio**: Must be in [0.0, 1.0] (enforced by the environment).
 - **APIs**: Use only the primitives documented below.
 """,
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['D_01'].values()),

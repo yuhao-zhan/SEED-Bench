@@ -61,10 +61,15 @@ Design a controller to maintain a pole balanced on a moving cart.
 ## Task Environment
 - **Cart**: A body of mass {_CART_M:g} kg and dimensions 1.0m (width) x 0.5m (height) that moves along a horizontal track at y={_RAIL_Y}m (center x={_TRACK_CX:g}m, safe range ±{_SAFE_HALF:g}m inclusive).
 - **Pole**: Mass {_POLE_M:g} kg, width {_POLE_W}m. Initially upright (angle = 0° or 0rad). **Length**: {_POLE_LEN:.1f}m.
+- **Gravity**: Gravitational acceleration is applied per the simulator’s +y-up world frame; the effective vector (magnitude and sign along y) may differ between runs—do not assume a specific value without checking behavior (see any **Environmental Anomalies** appendix on mutated runs).
+- **Contact model**: Cart, pole, and track interact through the simulator’s default rigid-body contact model unless a run overrides it.
+- **Default contact**: Engine-default friction and restitution apply to cart, pole, and track fixtures (no additional task-specific surface coefficients in the baseline configuration).
 - **Physics integrator**: Each `environment.step` runs one Box2D solve with **{_VEL_IT}** velocity iterations and **{_POS_IT}** position iterations per step (fixed for this task).
 - **Actuator Limit**: The cart force is limited to ±{_fn}N.
+- **Sensor reporting (angle)**: 0 simulation steps of delay from true state.
+- **Sensor reporting (angular velocity)**: 0 simulation steps of delay from true state.
 - **Goal**: Maintain the pole in the upright position (|angle| <= {_BAL_DEG}°) for at least **{_HOLD_STEPS} consecutive simulation steps** (one count per completed `environment.step` / physics integration; the harness may call the evaluator once at step index 0 before the first integration—**that call does not advance** the lock-in counter). **Scoring**: After that lock-in, the episode does not end early solely because |angle| exceeds {_BAL_DEG}°, until the pole passes horizontal (|angle| > {_FAIL_DEG}°), you leave the track, or you hit the step limit. **Final success** still requires |angle| <= {_BAL_DEG}° at the last step. Before balance lock-in, the episode does **not** end only because |angle| briefly exceeds {_BAL_DEG}°; only track exit, the step limit, or (after lock-in) |angle| > {_FAIL_DEG}° ends the run early as described above.
-- **Grading vs sensors**: All angle conditions above ({_BAL_DEG}°, {_FAIL_DEG}°, lock-in count, and terminal check) use the simulator’s **true** pole state.
+- **Grading vs sensors**: All angle conditions above ({_BAL_DEG}°, {_FAIL_DEG}°, lock-in count, and terminal check) use the simulator’s **true** pole state. Values from `get_pole_angle` / `get_pole_angular_velocity` follow the **Sensor reporting** delays above and may therefore differ from the state used for scoring—design accordingly.
 - **Episode length**: At most {_MAX_STEPS} simulation steps (must hold balance until the end).
 - **Time Step**: Exactly **1/{_FPS}** seconds per simulation step (same as the environment integration step).
 
@@ -75,7 +80,7 @@ Design a control strategy:
 """,
     "success_criteria": f"""
 ## Success Criteria
-1. **Stability**: Pole is held within the upright region (|angle| <= {_BAL_DEG}°) for at least {_HOLD_STEPS} consecutive simulation steps (same lock-in counting rule as in **Goal**), where **|angle| is the simulator’s true pole angle**. After lock-in, early termination is only for track exit, time limit, or |angle| > {_FAIL_DEG}°; **final** success requires |angle| <= {_BAL_DEG}° when the episode ends.
+1. **Stability**: Pole is held within the upright region (|angle| <= {_BAL_DEG}°) for at least {_HOLD_STEPS} consecutive simulation steps (same lock-in counting rule as in **Goal**), where **|angle| is the simulator’s true pole angle** (which may differ from `get_pole_angle` and `get_pole_angular_velocity` when **Sensor reporting (angle)** or **Sensor reporting (angular velocity)** delays are non-zero). After lock-in, early termination is only for track exit, time limit, or |angle| > {_FAIL_DEG}°; **final** success requires |angle| <= {_BAL_DEG}° when the episode ends.
 2. **Track Limits**: Cart remains within the safe zone (|x - {_TRACK_CX:g}| ≤ {_SAFE_HALF:g}m).
 3. **Episode length**: At most {_MAX_STEPS} simulation steps.
 

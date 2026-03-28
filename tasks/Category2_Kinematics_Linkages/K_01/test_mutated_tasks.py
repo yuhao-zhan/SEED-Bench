@@ -73,8 +73,7 @@ def test_stage_with_reference_solution(stage_config, reference_code):
         print(f"\nKey metrics:")
         for key in ['failed', 'failure_reason', 'distance_traveled', 'target_x',
                     'min_torso_y', 'torso_touched_ground', 'steps_with_motion',
-                    'min_simulation_steps_required', 'structure_mass',
-                    'peak_joint_force', 'broken_joints_count']:
+                    'min_simulation_steps_required', 'structure_mass']:
             if key in metrics:
                 print(f"  {key}: {metrics[key]}")
 

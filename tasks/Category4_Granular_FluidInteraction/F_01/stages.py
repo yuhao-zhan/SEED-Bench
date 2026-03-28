@@ -3,9 +3,9 @@ F-01: The Dam task curriculum stages (mutations).
 
 Mutations combine hidden levers (e.g. particle restitution, gravity, debris speed) with visible
 terrain keys that appear in the task text. `update_task_description_for_visible_changes` syncs
-weld force/steps, leak %, reservoir fill height in the **task description** string.
+weld force/steps, leak %, reservoir fill height, and wall A/P in the **task description** string.
 `update_success_criteria_for_visible_changes` only syncs **leakage rate** lines in **success criteria**
-(fill height and weld parameters are not repeated there).
+(fill height and wall parameters are not repeated there).
 
 Stage-1/2: exactly one terrain_config lever each (threshold vs granular–interface physics).
 Stage-3/4: multiple interacting levers (Stage-4 extends Stage-3 with gravity + debris); difficulty strictly increases through Stage-4.
@@ -49,14 +49,6 @@ def _replace_weld_constraint_line(
     end = description.find("\n", start)
     if end == -1:
         end = len(description)
-    
-    # Capture the parenthetical explanation if it exists
-    line_content = description[start:end]
-    suffix = ""
-    paren_start = line_content.find(" (")
-    if paren_start != -1:
-        suffix = line_content[paren_start:]
-
     force_part = f"{target_force:.0f} N"
     if target_force != base_force:
         force_part += f" (originally {base_force:.0f} N in the source environment)"
@@ -65,10 +57,73 @@ def _replace_weld_constraint_line(
         steps_part += (
             f" (originally {base_steps} consecutive simulation steps in the source environment)"
         )
-    
-    # Reconstruct line with prefix, force, steps, and original suffix
-    new_line = f"{marker}{force_part} for {steps_part}{suffix}"
+    new_line = f"{marker}{force_part} for {steps_part}."
     return description[:start] + new_line + description[end:]
+
+
+def _fmt_float_short(x: float) -> str:
+    s = f"{float(x):.6f}".rstrip("0").rstrip(".")
+    return s if s else "0"
+
+
+def _replace_moving_wall_amp_phase(
+    description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
+) -> str:
+    """Sync **A** and **P** in the moving-wall sentence; format (originally ...) when mutated."""
+    default_amp = 0.4
+    default_phase = 100.0
+    ta = float(target_terrain_config.get("downstream_wall_amplitude", default_amp))
+    ba = float(base_terrain_config.get("downstream_wall_amplitude", default_amp))
+    tp = float(target_terrain_config.get("downstream_wall_phase_divisor", default_phase))
+    bp = float(base_terrain_config.get("downstream_wall_phase_divisor", default_phase))
+    if ta == ba and tp == bp:
+        return description
+    pat = re.compile(
+        r"with \*\*A = \d+\.?\d*\*\* m(?: \(originally \d+\.?\d* m in the source environment\))? "
+        r"and \*\*P = \d+\.?\d*\*\*(?: \(originally \d+(?:\.\d+)? in the source environment\))?, where"
+    )
+    if not pat.search(description):
+        return description
+    amp_seg = f"**A = {_fmt_float_short(ta)}** m"
+    if ta != ba:
+        amp_seg += f" (originally {_fmt_float_short(ba)} m in the source environment)"
+    p_seg = f"**P = {_fmt_float_short(tp)}**"
+    if tp != bp:
+        p_seg += f" (originally {_fmt_float_short(bp)} in the source environment)"
+    new_seg = f"with {amp_seg} and {p_seg}, where"
+    return pat.sub(new_seg, description, count=1)
+
+
+def _replace_debris_velocity_line(
+    description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]
+) -> str:
+    """Sync debris launch velocity in task description, including (originally ...) for mutated parts."""
+    default_vx = 2.2
+    default_vy = 0.0
+    tvx = float(target_terrain_config.get("debris_linear_velocity_x", default_vx))
+    bvx = float(base_terrain_config.get("debris_linear_velocity_x", default_vx))
+    tvy = float(target_terrain_config.get("debris_linear_velocity_y", default_vy))
+    bvy = float(base_terrain_config.get("debris_linear_velocity_y", default_vy))
+    if tvx == bvx and tvy == bvy:
+        return description
+
+    pat = re.compile(
+        r"default initial velocity \*\*\(([+-]?\d+\.?\d*),\s*([+-]?\d+\.?\d*)\)\*\* m/s unless the configuration overrides the debris velocity\."
+    )
+    m = pat.search(description)
+    if not m:
+        return description
+
+    vx_seg = _fmt_float_short(tvx)
+    vy_seg = _fmt_float_short(tvy)
+    if tvx != bvx:
+        vx_seg += f" (originally {_fmt_float_short(bvx)} in the source environment)"
+    if tvy != bvy:
+        vy_seg += f" (originally {_fmt_float_short(bvy)} in the source environment)"
+    new_text = (
+        f"default initial velocity **({vx_seg}, {vy_seg})** m/s unless the configuration overrides the debris velocity."
+    )
+    return pat.sub(new_text, description, count=1)
 
 
 def update_task_description_for_visible_changes(
@@ -77,58 +132,43 @@ def update_task_description_for_visible_changes(
     """
     Update task description for visible changes using format:
     [new_value] (originally [old_value] in the source environment).
+
+    IMPORTANT: base_terrain_config must be the pristine/source environment (empty or default).
+    If base_terrain_config is another stage's config (e.g. in cross-mutated evaluation),
+    the phrase "originally ... in the source environment" will be misleading.
     """
     description = base_description
-    
-    # Map of parameter keys to their labels and regex patterns in task_description
-    visible_params = [
-        ("max_leakage_rate", r"(the leakage rate does not exceed )(\d+\.?\d*%)(\.)", lambda v: f"{v*100:.2f}%"),
-        ("fluid_height", r"(\*\*Reservoir fill height\*\*: )(\d+\.?\d* m)(\.)", lambda v: f"{v:.1f} m"),
-        ("max_structure_mass", r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d* kg)()", lambda v: f"{v:.0f} kg"),
-        ("max_beam_count", r"(\(minimum \d+, maximum )(\d+)(\))", lambda v: f"{v}"),
-        ("min_beam_count", r"(\(minimum )(\d+)(, maximum \d+\))", lambda v: f"{v}"),
-        ("max_joint_count", r"(- \*\*Joint Limit\*\*: Maximum )(\d+)( beam-to-beam joints)", lambda v: f"{v}"),
-        ("max_beams_middle_strip", r"(at most )(\d+)( beam \(forces bridge topology\))", lambda v: f"{v}"),
-        ("max_beams_right_strip", r"(Right strip \[13.4, 13.6\] may contain at most )(\d+)( beams)", lambda v: f"{v}"),
-        ("min_beams_per_band", r"(At least )(\d+)( beam centers must lie in each vertical band)", lambda v: f"{v}"),
-        ("min_beam_bottom_y", r"(no beams allowed below y=)(\d+\.?\d*m)()", lambda v: f"{v:.1f}m"),
-        ("max_beam_width", r"(Maximum beam width is )(\d+\.?\d* m)(;)", lambda v: f"{v:.1f} m"),
-        ("max_beam_height", r"(maximum beam height is )(\d+\.?\d* m)(\.)", lambda v: f"{v:.1f} m"),
-    ]
+    default_leakage = 0.001
+    default_joint_break_force = 50000.0
+    default_joint_break_consecutive_steps = 3
+    default_fluid_height = 7.0
 
-    defaults = {
-        "max_leakage_rate": 0.001,
-        "fluid_height": 7.0,
-        "max_structure_mass": 380.0,
-        "max_beam_count": 18,
-        "min_beam_count": 10,
-        "max_joint_count": 15,
-        "max_beams_middle_strip": 1,
-        "max_beams_right_strip": 2,
-        "min_beams_per_band": 3,
-        "min_beam_bottom_y": 0.5,
-        "max_beam_width": 0.6,
-        "max_beam_height": 1.5,
-    }
+    # Leakage rate
+    target_leakage = target_terrain_config.get("max_leakage_rate", default_leakage)
+    base_leakage = base_terrain_config.get("max_leakage_rate", default_leakage)
+    if target_leakage != base_leakage:
+        # Task objective line
+        pattern_obj = r"(the leakage rate does not exceed )(\d+\.?\d*%)"
+        if re.search(pattern_obj, description):
+            description = re.sub(
+                pattern_obj,
+                f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+                description,
+            )
+        # Legacy wording (if present)
+        pattern_legacy = r"(leakage rate remains below )(\d+\.?\d*%)"
+        if re.search(pattern_legacy, description):
+            description = re.sub(
+                pattern_legacy,
+                f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+                description,
+            )
 
-    for key, pattern, formatter in visible_params:
-        target_val = target_terrain_config.get(key, defaults.get(key))
-        base_val = base_terrain_config.get(key, defaults.get(key))
-        if target_val is not None and base_val is not None and target_val != base_val:
-            if re.search(pattern, description):
-                description = re.sub(
-                    pattern,
-                    f"\\g<1>{formatter(target_val)} (originally {formatter(base_val)} in the source environment)\\g<3>",
-                    description,
-                )
-
-    # Joint break force + consecutive steps (special handling for combined line)
-    default_break = 50000.0
-    default_steps = 3
-    target_break = float(target_terrain_config.get("joint_break_force", default_break))
-    base_break = float(base_terrain_config.get("joint_break_force", default_break))
-    target_steps = int(target_terrain_config.get("joint_break_consecutive_steps", default_steps))
-    base_steps = int(base_terrain_config.get("joint_break_consecutive_steps", default_steps))
+    # Joint break force + consecutive steps (visible structural limits)
+    target_break = float(target_terrain_config.get("joint_break_force", default_joint_break_force))
+    base_break = float(base_terrain_config.get("joint_break_force", default_joint_break_force))
+    target_steps = int(target_terrain_config.get("joint_break_consecutive_steps", default_joint_break_consecutive_steps))
+    base_steps = int(base_terrain_config.get("joint_break_consecutive_steps", default_joint_break_consecutive_steps))
     if target_break != base_break or target_steps != base_steps:
         description = _replace_weld_constraint_line(
             description,
@@ -137,6 +177,23 @@ def update_task_description_for_visible_changes(
             target_steps=target_steps,
             base_steps=base_steps,
         )
+
+    # Reservoir fill height (visible structural limit)
+    target_height = target_terrain_config.get("fluid_height", default_fluid_height)
+    base_height = base_terrain_config.get("fluid_height", default_fluid_height)
+    if target_height != base_height:
+        pattern = r"(\*\*Reservoir fill height\*\*: )(\d+\.?\d*)( m\.)"
+        if re.search(pattern, description):
+            description = re.sub(
+                pattern,
+                f"\\g<1>{target_height:.1f} m (originally {base_height:.1f} m in the source environment).",
+                description,
+            )
+
+    # Moving wall oscillation (visible: A and P appear in task_description)
+    description = _replace_moving_wall_amp_phase(description, target_terrain_config, base_terrain_config)
+    # Debris launch velocity (visible in task_description if present)
+    description = _replace_debris_velocity_line(description, target_terrain_config, base_terrain_config)
 
     return description
 
@@ -147,33 +204,30 @@ def update_success_criteria_for_visible_changes(
     """
     Update success criteria for visible changes using format:
     [new_value] (originally [old_value] in the source environment).
+
+    base_terrain_config must be the pristine/source environment; otherwise
+    "originally ... in the source environment" is misleading.
     """
     criteria = base_success_criteria
-    
-    visible_params = [
-        ("max_leakage_rate", r"(1\. \*\*Leakage Rate\*\*: Total leakage <= )(\d+\.?\d*%)(\.)", lambda v: f"{v*100:.2f}%"),
-        ("max_structure_mass", r"(- \*\*Mass Budget\*\*: Total structure mass <= )(\d+\.?\d* kg)()", lambda v: f"{v:.0f} kg"),
-        ("max_beam_count", r"(- \*\*Beam Limit\*\*: Between \d+ and )(\d+)( beams)", lambda v: f"{v}"),
-        ("min_beam_count", r"(- \*\*Beam Limit\*\*: Between )(\d+)( and \d+ beams)", lambda v: f"{v}"),
-        ("max_joint_count", r"(- \*\*Joint Limit\*\*: Maximum )(\d+)( beam-to-beam joints)", lambda v: f"{v}"),
-    ]
+    default_leakage = 0.001
 
-    defaults = {
-        "max_leakage_rate": 0.001,
-        "max_structure_mass": 380.0,
-        "max_beam_count": 18,
-        "min_beam_count": 10,
-        "max_joint_count": 15,
-    }
-
-    for key, pattern, formatter in visible_params:
-        target_val = target_terrain_config.get(key, defaults.get(key))
-        base_val = base_terrain_config.get(key, defaults.get(key))
-        if target_val is not None and base_val is not None and target_val != base_val:
-            if re.search(pattern, criteria):
+    # Leakage rate
+    target_leakage = target_terrain_config.get("max_leakage_rate", default_leakage)
+    base_leakage = base_terrain_config.get("max_leakage_rate", default_leakage)
+    if target_leakage != base_leakage:
+        pattern_le = r"(1\. \*\*Leakage Rate\*\*: Total leakage <= )(\d+\.?\d*%)"
+        if re.search(pattern_le, criteria):
+            criteria = re.sub(
+                pattern_le,
+                f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
+                criteria,
+            )
+        else:
+            pattern_lt = r"(1\. \*\*Leakage Rate\*\*: Total leakage < )(\d+\.?\d*%)"
+            if re.search(pattern_lt, criteria):
                 criteria = re.sub(
-                    pattern,
-                    f"\\g<1>{formatter(target_val)} (originally {formatter(base_val)} in the source environment)\\g<3>",
+                    pattern_lt,
+                    f"\\g<1>{target_leakage*100:.2f}% (originally {base_leakage*100:.2f}% in the source environment)",
                     criteria,
                 )
 

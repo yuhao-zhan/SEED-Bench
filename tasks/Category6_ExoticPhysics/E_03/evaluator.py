@@ -81,17 +81,6 @@ class Evaluator:
         vel = self.environment.get_sled_velocity() or (0.0, 0.0)
         vx, vy = vel[0], vel[1]
         velocity_magnitude = (vx * vx + vy * vy) ** 0.5
-
-        # Zone occupancy
-        tz_all = self.terrain_bounds
-        in_momentum_drain = tz_all.get("momentum_drain_zone", {}).get("x_min", 11.0) <= x <= tz_all.get("momentum_drain_zone", {}).get("x_max", 17.0)
-        in_wind_zone = tz_all.get("wind_zone", {}).get("x_min", 14.0) <= x <= tz_all.get("wind_zone", {}).get("x_max", 28.0)
-        in_thrust_scale = tz_all.get("thrust_scale_zone", {}).get("x_min", 19.5) <= x <= tz_all.get("thrust_scale_zone", {}).get("x_max", 21.0)
-        in_h_reverse = tz_all.get("reverse_thrust_zone", {}).get("x_min", 20.0) <= x <= tz_all.get("reverse_thrust_zone", {}).get("x_max", 25.0)
-        in_oscillating = tz_all.get("oscillating_fx_zone", {}).get("x_min", 21.0) <= x <= tz_all.get("oscillating_fx_zone", {}).get("x_max", 27.0)
-        in_speed_penalty = tz_all.get("speed_penalty_zone", {}).get("x_min", 22.0) <= x <= tz_all.get("speed_penalty_zone", {}).get("x_max", 26.0)
-        in_v_reverse = tz_all.get("vert_reverse_zone", {}).get("x_min", 26.5) <= x <= tz_all.get("vert_reverse_zone", {}).get("x_max", 28.5)
-
         # Distance from sled center to target zone (to nearest point of rectangle)
         dx_lo = max(0, self.target_x_min - x)
         dx_hi = max(0, x - self.target_x_max)
@@ -113,13 +102,6 @@ class Evaluator:
             "checkpoint_b_reached": checkpoint_b,
             "sled_x": x,
             "sled_y": y,
-            "in_momentum_drain_zone": in_momentum_drain,
-            "in_wind_zone": in_wind_zone,
-            "in_thrust_scale_zone": in_thrust_scale,
-            "in_horizontal_reverse_zone": in_h_reverse,
-            "in_oscillating_force_zone": in_oscillating,
-            "in_speed_penalty_zone": in_speed_penalty,
-            "in_vertical_reverse_zone": in_v_reverse,
             "target_x_min": self.target_x_min,
             "target_x_max": self.target_x_max,
             "target_y_min": self.target_y_min,
@@ -132,7 +114,6 @@ class Evaluator:
             "progress_pct": progress_pct,
             "sled_start_x": self.sled_start_x,
         }
-
         return failed or (step_count >= max_steps - 1), score, metrics
 
     def get_task_description(self):

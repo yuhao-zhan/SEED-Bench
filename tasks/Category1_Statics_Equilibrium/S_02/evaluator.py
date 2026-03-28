@@ -2,7 +2,6 @@
 S-02: The Skyscraper task evaluation module
 """
 import math
-import Box2D
 
 class Evaluator:
     """Evaluation system for S-02: The Skyscraper"""
@@ -57,9 +56,7 @@ class Evaluator:
         
         # Design constraints: check every step so violations introduced after step 1 are detected
         if not failed:
-            if current_height > 150.0:
-                failed, reason = True, f"Safety Limit Violated: Topmost point {current_height:.1f}m exceeds 150.0m (unstable explosion)"
-            elif bounds.get("width", 0) > 24.0:
+            if bounds.get("width", 0) > 24.0:
                 failed, reason = True, f"Width {bounds.get('width', 0):.2f}m > 24.0m"
             if not failed:
                 for body in self.environment._bodies:
@@ -94,6 +91,8 @@ class Evaluator:
                 failed, reason = True, "Collapsed"
             elif abs(rel_com_x) > self.STABILITY_ZONE:
                 failed, reason = True, f"Tipped Over (rel_com_x={rel_com_x:.2f}, limit={self.STABILITY_ZONE})"
+            elif current_height > 150.0:
+                failed, reason = True, "Physical instability (Explosion)"
 
         # Determine success at end of simulation
         is_end = (step_count >= max_steps - 1)

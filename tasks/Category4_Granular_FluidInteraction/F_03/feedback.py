@@ -80,13 +80,7 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     # 3. Temporal / operational
     if "step_count" in metrics:
         parts.append("\n### 3. Operational Timeline")
-        step_count = metrics["step_count"]
-        max_steps = metrics.get("max_steps")
-        if max_steps is not None:
-            margin = max_steps - step_count
-            parts.append(f"- Simulation Steps: {step_count} / {max_steps} (margin: {margin} steps)")
-        else:
-            parts.append(f"- Simulation Steps: {step_count}")
+        parts.append(f"- Simulation Steps: {metrics['step_count']}")
 
     # 4. Physical process & kinematics (only if present — agent_body / arm state)
     kin_keys = ["velocity_x", "velocity_y", "speed", "bucket_angle_deg", "arm_joint_angle_deg", "agent_x", "agent_y", "arm_x", "arm_y", "angular_velocity"]

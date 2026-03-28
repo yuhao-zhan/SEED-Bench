@@ -3,9 +3,9 @@ Process-aware diagnostic feedback for E-05: The Magnet.
 
 `format_task_metrics` and `get_improvement_suggestions` use only keys produced by
 `Evaluator.evaluate()` in evaluator.py, plus derivations from those values (axis
-clearance to the target AABB, displacement from reported start). VISIBLE physical limits
-(pit bounds, thrust cap) are included in `metrics` for transparency, while INVISIBLE 
-environmental constants (gravity, damping, magnet layout) are not.
+clearance to the target AABB, displacement from reported start). Physical limits
+(pit bounds, thrust cap, gravity, damping, magnet layout) are not in `metrics`
+and are not stated numerically here.
 """
 from __future__ import annotations
 

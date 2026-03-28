@@ -89,7 +89,7 @@ class Sandbox:
 
         # Three slots in pit: each slot = gap between lower red bar and upper red bar (ceiling).
         # Slot dimensions (floor_y, ceiling_y) so trajectory must pass through the gap only.
-        # Gaps range from 1.5 m to 2.0 m; clearance margins are verified in evaluator.
+        # Gap 1.2 m so one parabola from (5,5) can pass (with margin 0.15 + jumper half_h 0.3).
         CEILING_HALF_H = 0.3
 
         # Slot 1: x~17
@@ -97,7 +97,7 @@ class Sandbox:
         b1_floor = float(terrain_config.get("slot1_floor", 13.2))
         b1_ceil = float(terrain_config.get("slot1_ceil", 14.7))
         b1_half_h = b1_floor / 2.0
-        barrier1 = self._world.CreateStaticBody(
+        barrier = self._world.CreateStaticBody(
             position=(b1_cx, b1_half_h),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(0.5, b1_half_h)),
@@ -105,7 +105,7 @@ class Sandbox:
                 restitution=0.0,
             ),
         )
-        self._terrain_bodies["barrier1"] = barrier1
+        self._terrain_bodies["barrier"] = barrier
         ceiling1 = self._world.CreateStaticBody(
             position=(b1_cx, b1_ceil + CEILING_HALF_H),
             fixtures=Box2D.b2FixtureDef(
@@ -115,8 +115,8 @@ class Sandbox:
             ),
         )
         self._terrain_bodies["ceiling1"] = ceiling1
-        self._barrier1_x_min, self._barrier1_x_max = b1_cx - 0.5, b1_cx + 0.5
-        self._barrier1_y_max = b1_floor
+        self._barrier_x_min, self._barrier_x_max = b1_cx - 0.5, b1_cx + 0.5
+        self._barrier_y_max = b1_floor
         self._slot1_floor, self._slot1_ceil = b1_floor, b1_ceil
 
         # Slot 2: x~21
@@ -272,9 +272,9 @@ class Sandbox:
             "pit_width": self._pit_width,
             "right_platform_start_x": self._right_platform_start_x,
             "pit_bottom_y": self._pit_bottom_y,
-            "barrier1_x_min": getattr(self, "_barrier1_x_min", None),
-            "barrier1_x_max": getattr(self, "_barrier1_x_max", None),
-            "barrier1_y_max": getattr(self, "_barrier1_y_max", None),
+            "barrier_x_min": getattr(self, "_barrier_x_min", None),
+            "barrier_x_max": getattr(self, "_barrier_x_max", None),
+            "barrier_y_max": getattr(self, "_barrier_y_max", None),
             "barrier2_x_min": getattr(self, "_barrier2_x_min", None),
             "barrier2_x_max": getattr(self, "_barrier2_x_max", None),
             "barrier2_y_max": getattr(self, "_barrier2_y_max", None),
@@ -282,7 +282,7 @@ class Sandbox:
             "barrier3_x_max": getattr(self, "_barrier3_x_max", None),
             "barrier3_y_max": getattr(self, "_barrier3_y_max", None),
             "slots": [
-                (getattr(self, "_barrier1_x_min"), getattr(self, "_barrier1_x_max"), getattr(self, "_slot1_floor", None), getattr(self, "_slot1_ceil", None)),
+                (getattr(self, "_barrier_x_min"), getattr(self, "_barrier_x_max"), getattr(self, "_slot1_floor", None), getattr(self, "_slot1_ceil", None)),
                 (getattr(self, "_barrier2_x_min"), getattr(self, "_barrier2_x_max"), getattr(self, "_slot2_floor", None), getattr(self, "_slot2_ceil", None)),
                 (getattr(self, "_barrier3_x_min"), getattr(self, "_barrier3_x_max"), getattr(self, "_slot3_floor", None), getattr(self, "_slot3_ceil", None)),
             ],
@@ -305,10 +305,6 @@ class Sandbox:
         if j is None:
             return None
         return (j.position.x, j.position.y)
-
-    def get_body_position(self):
-        """Alias for get_jumper_position for API consistency."""
-        return self.get_jumper_position()
 
     def get_jumper_velocity(self):
         """Return (vx, vy) of jumper, or None."""

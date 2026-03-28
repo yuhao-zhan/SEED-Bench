@@ -58,13 +58,15 @@ class Sandbox:
         # 3. Set build zone and constraints
         self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
         self.BUILD_ZONE_X_MAX = 12.0  # Build zone x end
-        self.BUILD_ZONE_Y_MIN = 2.0  # Build zone y start (at or above glass)
+        self.BUILD_ZONE_Y_MIN = 2.0  # Build zone y start (above glass)
         self.BUILD_ZONE_Y_MAX = 10.0  # Build zone y end
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 15.0))  # Hard: 15kg limit (was 25)
         # Optional cap on motor torque (mutations can impose lower limit to invalidate heavy-duty designs)
         self._max_motor_torque_cap = terrain_config.get("max_motor_torque")
         if self._max_motor_torque_cap is not None:
             self._max_motor_torque_cap = float(self._max_motor_torque_cap)
+        # Reference test: use 3-segment bar when smooth glass so bar can oscillate
+        self._reference_wiper_short_bar = bool(terrain_config.get("reference_short_bar", False))
         
         # 4. Create particles to clean
         self._create_particles(terrain_config)
@@ -200,6 +202,7 @@ class Sandbox:
     BUILD_ZONE_X_MAX = 12.0  # Default, will be updated in __init__
     BUILD_ZONE_Y_MIN = 2.0  # Build zone y start
     BUILD_ZONE_Y_MAX = 10.0  # Build zone y end
+    MAX_STRUCTURE_MASS = 15.0  # Hard default; overridden in __init__ from terrain_config
 
     # --- Below are Primitives API open to LLM (with physical constraints) ---
 
@@ -217,7 +220,7 @@ class Sandbox:
             density=density,
             friction=0.5,
         )
-        if self._terrain_config.get("wiper_ignore_glass_collision", True):
+        if self._terrain_config.get("wiper_ignore_glass_collision"):
             beam_fd.filter.categoryBits = self._CATEGORY_WIPER
             beam_fd.filter.maskBits = self._CATEGORY_WIPER | self._CATEGORY_PARTICLE
         body = self._world.CreateDynamicBody(

@@ -64,6 +64,5 @@ class S06Renderer(Renderer):
                              outline_width=2)
         
         # Draw target overhang line (Red)
-        bounds = sandbox.get_terrain_bounds()
-        target_overhang = bounds.get("target_overhang", 0.1)
+        target_overhang = sandbox._terrain_config.get("target_overhang", 0.1)
         self.draw_line(target_overhang, -5, target_overhang, 15, RED, 2)

@@ -98,17 +98,3 @@ class E05Renderer(Renderer):
         self.draw_line(tx_max, ty_min, tx_max, ty_max, COLOR_TARGET, 2)
         self.draw_line(tx_max, ty_max, tx_min, ty_max, COLOR_TARGET, 2)
         self.draw_line(tx_min, ty_max, tx_min, ty_min, COLOR_TARGET, 2)
-
-        # Forbidden Region (pit zone)
-        pz = bounds.get("pit_zone", {})
-        if pz:
-            px_min = pz.get("x_min", 16.0)
-            px_max = pz.get("x_max", 24.0)
-            py_max = pz.get("y_max", 5.5)
-            gy = bounds.get("ground_y", 1.0)
-            COLOR_PIT = (200, 50, 50)  # Muted red for danger
-            # Draw pit as a dashed or thinner line boundary
-            self.draw_line(px_min, gy, px_max, gy, COLOR_PIT, 2)
-            self.draw_line(px_max, gy, px_max, py_max, COLOR_PIT, 2)
-            self.draw_line(px_max, py_max, px_min, py_max, COLOR_PIT, 2)
-            self.draw_line(px_min, py_max, px_min, gy, COLOR_PIT, 2)

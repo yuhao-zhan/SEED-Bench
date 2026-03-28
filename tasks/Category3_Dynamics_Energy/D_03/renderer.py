@@ -41,8 +41,8 @@ class D03Renderer(Renderer):
         AGENT_OUTLINE = (26, 125, 30)    # Darker Green
 
         # Draw environmental zones using ENV_COLOR
-        # Target zone (x >= 12.75)
-        tx = getattr(sandbox, "_target_x_min", 12.75)
+        # Target zone (x >= 11.75)
+        tx = getattr(sandbox, "_target_x_min", 11.75)
         self.draw_line(tx, 0.4, tx, 4.0, ENV_COLOR, 3)
         self.draw_line(tx + 2, 0.4, tx + 2, 4.0, ENV_COLOR, 1)
 

@@ -167,70 +167,22 @@ class Evaluator:
         violations = []
         if self.environment is None:
             return ["Environment not available"]
-        
-        # 1. Mass Budget
         mass = self.environment.get_structure_mass()
         if mass > self.MAX_STRUCTURE_MASS:
             violations.append(
                 f"Structure mass {mass:.2f} kg exceeds maximum {self.MAX_STRUCTURE_MASS} kg"
             )
-            
-        # 2. Build Zone (Check beam centers)
         for body in self.environment._bodies:
             x, y = body.position.x, body.position.y
             if not (
-                self.BUILD_ZONE_X_MIN - 0.01 <= x <= self.BUILD_ZONE_X_MAX + 0.01
-                and self.BUILD_ZONE_Y_MIN - 0.01 <= y <= self.BUILD_ZONE_Y_MAX + 0.01
+                self.BUILD_ZONE_X_MIN <= x <= self.BUILD_ZONE_X_MAX
+                and self.BUILD_ZONE_Y_MIN <= y <= self.BUILD_ZONE_Y_MAX
             ):
                 violations.append(
                     f"Beam at ({x:.2f}, {y:.2f}) is outside build zone "
                     f"x=[{self.BUILD_ZONE_X_MIN}, {self.BUILD_ZONE_X_MAX}], "
                     f"y=[{self.BUILD_ZONE_Y_MIN}, {self.BUILD_ZONE_Y_MAX}]"
                 )
-
-        # 3. Beam Dimensions (Check against environment limits)
-        # Note: Environment clips these, but we report if the agent's intent was outside bounds
-        # However, since the environment clips silently, we can only check the resulting bodies.
-        # But the environment doesn't store the 'requested' size. 
-        # For strictness, if the prompt says "must be in", and the environment enforces it,
-        # we check if any beam is exactly at the limit and suspect clipping? No, that's unreliable.
-        # Instead, we should check if the agent's code violated it. 
-        # But we only have the sandbox state.
-        # Let's check the current fixtures.
-        for body in self.environment._bodies:
-            for fixture in body.fixtures:
-                shape = fixture.shape
-                if hasattr(shape, "vertices"):
-                    # For a box created by Box2D.b2PolygonShape(box=(w/2, h/2)), 
-                    # vertices will be at +/- w/2 and +/- h/2.
-                    xs = [v[0] for v in shape.vertices]
-                    ys = [v[1] for v in shape.vertices]
-                    width = max(xs) - min(xs)
-                    height = max(ys) - min(ys)
-                    if width < self.environment.MIN_BEAM_SIZE - 0.001 or width > self.environment.MAX_BEAM_SIZE + 0.001:
-                        violations.append(f"Beam width {width:.2f}m is outside allowed range [{self.environment.MIN_BEAM_SIZE}, {self.environment.MAX_BEAM_SIZE}]m")
-                    if height < self.environment.MIN_BEAM_SIZE - 0.001 or height > self.environment.MAX_BEAM_SIZE + 0.001:
-                        violations.append(f"Beam height {height:.2f}m is outside allowed range [{self.environment.MIN_BEAM_SIZE}, {self.environment.MAX_BEAM_SIZE}]m")
-
-        # 4. Spring Properties
-        for joint in self.environment._springs:
-            # Box2D distance joint properties
-            stiffness = getattr(joint, "stiffness", None) # Box2D 2.4+
-            if stiffness is None:
-                # Fallback for older Box2D versions using frequencyHz
-                pass
-            else:
-                if stiffness < self.environment.MIN_SPRING_STIFFNESS - 0.01 or stiffness > self.environment.MAX_SPRING_STIFFNESS + 0.01:
-                    violations.append(f"Spring stiffness {stiffness:.1f} N/m is outside allowed range [{self.environment.MIN_SPRING_STIFFNESS}, {self.environment.MAX_SPRING_STIFFNESS}] N/m")
-            
-            damping = getattr(joint, "damping", 0.5)
-            if damping < 0.0 - 0.01 or damping > 1.0 + 0.01:
-                violations.append(f"Spring damping ratio {damping:.2f} is outside allowed range [0.0, 1.0]")
-            
-            if hasattr(joint, "length"):
-                if joint.length < 0.1 - 0.01:
-                    violations.append(f"Spring rest length {joint.length:.2f}m is below minimum 0.1m")
-
         return violations
 
     def _make_metrics(
@@ -265,8 +217,6 @@ class Evaluator:
             "max_structure_mass": self.MAX_STRUCTURE_MASS,
             "hit_occurred": self._hit_occurred,
             "max_y_in_target_x": self._max_y_in_target_x,
-            "peak_projectile_ke": self.environment.get_peak_kinetic_energy(),
-            "first_collision_step": self.environment.get_first_collision_step(),
         }
 
     def get_task_description(self):

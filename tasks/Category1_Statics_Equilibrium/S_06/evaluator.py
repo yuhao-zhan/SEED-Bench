@@ -11,11 +11,15 @@ class Evaluator:
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
-        self.target_overhang = terrain_bounds.get("target_overhang", 0.1)
-        self.stability_time = terrain_bounds.get("stability_time", 10.0)
-
+        self.stability_time = 10.0
+        self.target_overhang = 0.1
+        
+        # Override target parameters
+        if environment and hasattr(environment, '_terrain_config'):
+            self.target_overhang = environment._terrain_config.get("target_overhang", 0.1)
+            self.stability_time = environment._terrain_config.get("stability_time", 10.0)
+        
         self.max_x_position = 0.0
-
         self.stability_start_time = None
         self.stable_duration = 0.0
         self.last_max_x = 0.0
@@ -34,9 +38,11 @@ class Evaluator:
         self.MAX_BLOCK_LENGTH = env_class.MAX_BLOCK_LENGTH
         self.MAX_BLOCK_HEIGHT = env_class.MAX_BLOCK_HEIGHT
         self.MAX_BLOCK_COUNT = env_class.MAX_BLOCK_COUNT
+        self.START_ZONE_X_MAX = env_class.START_ZONE_X_MAX
         self.SPAWN_ZONE = terrain_bounds.get("spawn_zone", [-10.0, 0.0])
-        self.MAX_TOTAL_MASS = terrain_bounds.get("max_total_mass", env_class.MAX_TOTAL_MASS)
-        self.BLOCK_DENSITY = terrain_bounds.get("block_density", env_class.DEFAULT_BLOCK_DENSITY)
+        self.MAX_TOTAL_MASS = 20000.0  # default; overridden from terrain_config when present
+        if environment and hasattr(environment, '_terrain_config'):
+            self.MAX_TOTAL_MASS = environment._terrain_config.get("max_total_mass", 20000.0)
         
         self.design_constraints_checked = False
         self.persistently_failed = False
@@ -56,18 +62,9 @@ class Evaluator:
         self.max_x_position = max(self.max_x_position, current_max_x)
         
         if self.environment._bodies:
-            self.min_y_position = float('inf')
-            self.max_y_position = float('-inf')
-            for body in self.environment._bodies:
-                self.min_y_position = min(self.min_y_position, body.position.y)
-                self.max_y_position = max(self.max_y_position, body.position.y)
-                for fixture in body.fixtures:
-                    shape = fixture.shape
-                    if isinstance(shape, polygonShape):
-                        for v in shape.vertices:
-                            wv = body.GetWorldPoint(v)
-                            self.min_y_position = min(self.min_y_position, wv.y)
-                            self.max_y_position = max(self.max_y_position, wv.y)
+            y_positions = [b.position.y for b in self.environment._bodies]
+            self.min_y_position = min(y_positions)
+            self.max_y_position = max(y_positions)
             self.structure_mass = self.environment.get_structure_mass()
             
             self.total_kinetic_energy = 0.0

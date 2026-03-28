@@ -93,15 +93,8 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
                 ratio = min(steps / req, 1.0) * 100
                 parts.append(f"- Survival duration: {ratio:.1f}% of required steps")
 
-    if 'peak_joint_force' in metrics and _is_finite_number(metrics['peak_joint_force']):
-        parts.append(f"**Structural Stress**: Peak joint force observed: {metrics['peak_joint_force']:.2f}N")
-        if 'broken_joints_count' in metrics and metrics['broken_joints_count'] > 0:
-            parts.append(f"- Joint failures detected: {int(metrics['broken_joints_count'])}")
-
     if metrics.get('failed') and metrics.get('failure_reason'):
         parts.append(f"**Run Outcome**: Failed — {metrics['failure_reason']}")
-        if 'peak_joint_force' in metrics:
-            parts.append(f"- Final peak joint stress: {metrics['peak_joint_force']:.2f}N")
 
     return parts
 

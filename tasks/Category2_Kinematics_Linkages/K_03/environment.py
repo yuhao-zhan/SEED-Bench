@@ -92,12 +92,11 @@ class Sandbox:
         # Gantry: static horizontal support for gripper base (embodied primitive: fixed anchor)
         gantry_y = 10.0
         gantry_length = 4.0
-        gantry_friction = float(terrain_config.get("gantry_friction", 0.6))
         gantry = self._world.CreateStaticBody(
             position=(5.0, gantry_y),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(gantry_length / 2, 0.15)),
-                friction=gantry_friction,
+                friction=0.6,
             ),
         )
         self._terrain_bodies["gantry"] = gantry
@@ -107,24 +106,14 @@ class Sandbox:
         object_config = terrain_config.get("objects", {})
         obj_x = float(object_config.get("x", 5.0))
         obj_y = float(object_config.get("y", 2.0))
-        object_shape = object_config.get("shape", "box")
-        
-        # Calculate object height based on shape to set platform top correctly
-        if object_shape == "circle":
-            obj_h = 0.5  # radius 0.25 * 2
-        elif object_shape == "triangle":
-            obj_h = 0.4  # vertices from -0.2 to 0.2
-        else: # box
-            obj_h = 0.4  # height 0.4
-
-        platform_top = obj_y - obj_h / 2
+        obj_h = 0.4  # object height (box half-extent * 2)
+        platform_top = obj_y - obj_h / 2  # 1.8 for obj_y=2
         platform_h = 0.4
-        platform_friction = float(terrain_config.get("platform_friction", 0.25))
         platform = self._world.CreateStaticBody(
             position=(obj_x, platform_top - platform_h / 2),
             fixtures=Box2D.b2FixtureDef(
                 shape=polygonShape(box=(0.6, platform_h / 2)),
-                friction=platform_friction,
+                friction=0.25,
             ),
         )
         self._terrain_bodies["platform"] = platform
@@ -260,8 +249,8 @@ class Sandbox:
         self._bodies.append(body)
         return body
 
-    def add_joint(self, body_a, body_b, anchor_point, type='pivot', lower_limit=None, upper_limit=None, enable_motor=False, motor_speed=0.0, max_motor_torque=5000.0,
-                  axis=None, lower_translation=None, upper_translation=None, max_motor_force=10000.0):
+    def add_joint(self, body_a, body_b, anchor_point, type='pivot', lower_limit=None, upper_limit=None, enable_motor=False, motor_speed=0.0, max_motor_torque=0.0,
+                  axis=None, lower_translation=None, upper_translation=None, max_motor_force=0.0):
         """
         API: Add a joint between two bodies
         - type='rigid': Locks relative rotation (Weld)
@@ -292,7 +281,7 @@ class Sandbox:
                 enableLimit=True,
                 enableMotor=bool(enable_motor),
                 motorSpeed=float(motor_speed),
-                maxMotorForce=float(max_motor_force) if max_motor_force is not None else 10000.0,
+                maxMotorForce=float(max_motor_force) if max_motor_force else 5000.0,
             )
         elif type == 'pivot':
             joint_kwargs = {
@@ -312,7 +301,7 @@ class Sandbox:
         self._joints.append(joint)
         return joint
 
-    def set_motor(self, joint, motor_speed, max_torque=5000.0):
+    def set_motor(self, joint, motor_speed, max_torque=100.0):
         """Set motor for revolute (pivot) joint: motor_speed in rad/s, max_torque in N·m."""
         if isinstance(joint, Box2D.b2RevoluteJoint):
             joint.enableMotor = True
@@ -321,7 +310,7 @@ class Sandbox:
             return
         raise ValueError("set_motor: joint must be a pivot/revolute joint")
 
-    def set_slider_motor(self, joint, speed, max_force=10000.0):
+    def set_slider_motor(self, joint, speed, max_force=5000.0):
         """
         API: Set motor for prismatic (slider) joint — vertical伸缩
         - speed: linear velocity (m/s). Positive = extend down, negative = retract up

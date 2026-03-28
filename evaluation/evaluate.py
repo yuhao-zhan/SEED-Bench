@@ -1135,12 +1135,17 @@ class TaskEvaluator:
         if self.base_method == 'genome' and getattr(self, 'genome_best_lora_path', None):
             report['genome_best_lora_path'] = self.genome_best_lora_path
         if self.base_method == 'ragen':
+            from methods.Parameter_Policy.common.training_logger import json_sanitize_for_dump
             ragen_stats = getattr(self, '_ragen_pretrain_stats', {})
             report['ragen_skipped'] = ragen_stats.get('skipped', False)
             report['ragen_n_episodes'] = ragen_stats.get('n_episodes', 0)
             report['ragen_n_filtered'] = ragen_stats.get('n_filtered', 0)
             report['ragen_mean_reward'] = ragen_stats.get('mean_reward', 0.0)
             report['ragen_ppo_epochs'] = ragen_stats.get('ppo_epochs', 0)
+            report['ragen_skip_reason'] = ragen_stats.get('skip_reason')
+            report['ragen_pretrain'] = json_sanitize_for_dump(dict(ragen_stats))
+            if ragen_stats.get('error'):
+                report['ragen_pretrain_error'] = ragen_stats['error']
         if self.base_method == 'discover':
             discover_stats = getattr(self, '_discover_pretrain_stats', {})
             report['discover_pretrain_epochs'] = discover_stats.get('n_epochs', 0)

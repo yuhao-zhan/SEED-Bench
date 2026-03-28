@@ -238,7 +238,7 @@ class Evaluator:
                 'ground': self.terrain_bounds.get('ground', {}),
             },
             'success_criteria': {
-                'primary': f'Object is lifted to goldenrod line (y >= {self.target_object_y}m) and held there',
+                'primary': f'Object is lifted to red line (y >= {self.target_object_y}m) and held there',
                 'secondary': f'Object never falls below {self.min_object_height}m after being lifted',
                 'tertiary': f'Object maintains grip at/above target for required time (~{self.min_simulation_time}s)',
             },

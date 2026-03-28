@@ -89,9 +89,7 @@ class Evaluator:
             if step_count > 0:
                 score += (min(step_count, self.min_simulation_steps) / self.min_simulation_steps) * 30.0
                 
-        # Get joint stress metrics
-        joint_metrics = self.environment.get_joint_stress()
-        
+        target_x = self.initial_x + self.target_distance
         metrics = {
             'walker_x': current_x,
             'walker_y': current_y,
@@ -106,9 +104,7 @@ class Evaluator:
             'min_simulation_steps_required': self.min_simulation_steps,
             'structure_mass': structure_mass,
             'max_structure_mass': max_structure_mass,
-            'target_x': self.initial_x + self.target_distance,
-            'peak_joint_force': joint_metrics['peak_joint_force'],
-            'broken_joints_count': joint_metrics['broken_joints']
+            'target_x': target_x,
         }
         
         return done, score, metrics

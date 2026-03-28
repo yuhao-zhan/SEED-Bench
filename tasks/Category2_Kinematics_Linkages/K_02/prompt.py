@@ -28,15 +28,15 @@ Design a 2D climber mechanism that can scale a vertical wall using motor-driven 
 - **Vertical Wall**: A surface on the right side of the build zone. Wall height is 30 m; wall friction coefficient is 1.0 (for grip).
 - **Build Zone**: x=[0, 5], y=[0, 25]. All structure components must be placed within this zone.
 - **Wall Contact**: During motion, the climber must remain within x=[3.5, 7.5]m to maintain wall contact (evaluation fails otherwise).
-- **Ground / Fall**: Evaluation fails if the climber's altitude falls below 0.5 m (indicating total structural collapse).
+- **Ground / Fall**: Evaluation fails if the climber's altitude falls below 0.5 m (ground contact).
 - **Starting Position**: Agent components should be centered around x=4.5m, y=1.5m.
 - **Target**: Move the climber to at least y=20.0m. Evaluation uses the position of the first body you create (designate it as your main climbing body).
 
 ## Constraints (must satisfy)
-- **Adhesion**: Use `add_pad` and `set_pad_active` to stick to the wall. Active pads provide strong adhesive force to maintain wall contact.
+- **Adhesion**: Use `add_pad` and `set_pad_active` to stick to the wall. Each pad's maximum adhesion force is 300 N.
 - **Motion**: The climber must maintain active upward motion for at least 10.0 seconds.
-- **Mass Budget**: Total structure mass must be at least 0 kg and at most 50 kg.
-- **Build Zone**: All components must stay within x=[0, 5], y=[0, 25] at initialization.
+- **Mass Budget**: Total structure mass must be at least 0 kg and less than 50 kg.
+- **Build Zone**: All components must stay within x=[0, 5], y=[0, 25].
 - **Beam Dimensions**: 0.05 <= width, height <= 3.0 meters.
 - **Pad Radius**: 0.05 <= radius <= 0.25 meters (for `add_pad`).
 - **Pivot Joint Limits**: Angle limits for pivot joints are clamped to [-π, π] radians.
@@ -52,10 +52,10 @@ Design a 2D climber mechanism that can scale a vertical wall using motor-driven 
 1. **Vertical Movement**: Reaches y >= 20.0m.
 2. **Locomotion**: Maintains active motion for >= 10.0 seconds.
 3. **Stability**: Structure remains within build zone and mass limits.
-- **Build zone**: All components must stay within x=[0, 5], y=[0, 25] at initialization.
+- **Build zone**: x=[0, 5], y=[0, 25].
 
 ## Design Constraints
-- **Mass Budget**: Minimum 0 kg, maximum at most 50 kg.
+- **Mass Budget**: Minimum 0 kg, maximum < 50 kg.
 - **APIs**: Use only the primitives documented below.
 """,
     

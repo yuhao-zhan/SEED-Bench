@@ -158,7 +158,7 @@ class Evaluator:
             failure_reason = "Left the allowed moving corridor"
         elif getattr(self.environment, "get_obstacle_collision", lambda: False)():
             failed = True
-            failure_reason = "Obstacle collision (penetration at or beyond the stated threshold)"
+            failure_reason = "Collision with corridor obstacle"
         elif step_count > self.window1_hi and self._rendezvous_count < 1:
             failed = True
             if not activation_achieved:

@@ -101,16 +101,6 @@ def format_task_metrics(metrics: Dict[str, Any]) -> List[str]:
     if "step_count" in metrics and metrics.get("step_count") is not None:
         parts.append(f"**Steps Elapsed**: {metrics['step_count']}")
 
-    # --- Forensic Telemetry ---
-    if "peak_projectile_ke" in metrics and metrics["peak_projectile_ke"] is not None:
-        parts.append(f"**Peak Projectile KE**: {metrics['peak_projectile_ke']:.2f} J")
-    
-    collision = metrics.get("first_collision_step")
-    if collision is not None:
-        parts.append(f"**First Projectile Interaction (Step)**: {collision}")
-    else:
-        parts.append(f"**First Projectile Interaction (Step)**: None (no impact observed)")
-
     return parts
 
 
@@ -138,7 +128,7 @@ def get_improvement_suggestions(
         suggestions.append("- **Design Constraint (Root Cause)**: Structure mass exceeds the allowed budget. Optimize the strength-to-mass ratio of the launcher rather than adding more material.")
 
     if "build zone" in msg or "outside" in msg or "beam at" in msg:
-        suggestions.append("- **Design Constraint (Root Cause)**: At least one component lies outside the valid construction region. Ensure all beam centers lie within the specified build zone.")
+        suggestions.append("- **Design Constraint (Root Cause)**: At least one component lies outside the valid construction region. Ensure all beam centers and joint anchors lie within the specified build zone.")
 
     if "simulation bounds" in msg:
         suggestions.append("- **Trajectory Boundary (Root Cause)**: The projectile left the valid simulation domain. The launch may be too violent or directed outward; consider how energy is transferred to the projectile.")

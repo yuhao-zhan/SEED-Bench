@@ -131,8 +131,7 @@ class K03Renderer(Renderer):
 
         # Target line (Goldenrod Yellow)
         if target_x and target_x > 0:
-            x_max = getattr(sandbox, 'BUILD_ZONE_X_MAX', 10.0)
-            self.draw_line(0, target_x, x_max, target_x, COLOR_ENV, 3)
+            self.draw_line(0, target_x, 10.0, target_x, COLOR_ENV, 3)
         
         # Build zone (Goldenrod Yellow)
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):

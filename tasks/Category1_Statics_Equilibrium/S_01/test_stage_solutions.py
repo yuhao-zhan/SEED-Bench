@@ -37,8 +37,6 @@ def test_stage(stage_idx):
     success, score, metrics, error = verifier.verify_code(code=code, headless=True)
     
     print(f"Stage {stage_idx+1} Result: Success={success}, Score={score}")
-    if not success and metrics:
-        print(f"Failure Reason: {metrics.get('failure_reason')}")
     if error:
         print(f"Error: {error}")
     return success

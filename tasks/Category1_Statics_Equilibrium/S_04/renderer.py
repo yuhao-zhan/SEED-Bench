@@ -10,9 +10,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 from common.renderer import Renderer
 from Box2D.b2 import dynamicBody, staticBody
 
+# Zoom: smaller = camera further away (used for consistent viewport)
+RENDER_SCALE = 1.2
 # World position to place at screen center (pivot + beam + load in frame)
 CENTER_WORLD_X = 1.5
-CENTER_WORLD_Y = 4.5
+CENTER_WORLD_Y = 2.0
 
 class S04Renderer(Renderer):
     """S-04: The Balancer task specific renderer — zoomed and centered."""

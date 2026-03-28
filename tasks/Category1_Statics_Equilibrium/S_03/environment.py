@@ -38,8 +38,6 @@ class DaVinciSandbox:
             self._obstacle_rects = [terrain_config.get("obstacle_rect")]
         
         self._simulation_time = 0.0
-        self._peak_force = 0.0
-        self._peak_torque = 0.0
         
         self.BUILD_ZONE_X_MIN = 0.0
         self.BUILD_ZONE_X_MAX = 50.0 
@@ -54,8 +52,8 @@ class DaVinciSandbox:
 
     def _setup_terrain(self):
         wall = self._world.CreateStaticBody(
-            position=(-0.5, 5.0),
-            fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(0.5, 25.0)), friction=0.8),
+            position=(-0.5, 10),
+            fixtures=Box2D.b2FixtureDef(shape=polygonShape(box=(0.5, 20.0)), friction=0.8),
         )
         self._terrain_bodies["wall"] = wall
         
@@ -178,9 +176,6 @@ class DaVinciSandbox:
                 force = joint.GetReactionForce(1.0/time_step)
                 torque = abs(joint.GetReactionTorque(1.0/time_step))
                 fm = math.sqrt(force.x**2 + force.y**2)
-                
-                self._peak_force = max(self._peak_force, fm)
-                self._peak_torque = max(self._peak_torque, torque)
                 
                 if fm > max_f or torque > max_t:
                     joints_to_remove.append(joint)

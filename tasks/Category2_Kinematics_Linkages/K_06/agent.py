@@ -15,8 +15,6 @@ DENSITY = 0.12
 BAR_FRICTION = 0.6
 
 def build_agent(sandbox):
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
     base = sandbox.add_beam(x=CENTER_X, y=GROUND_Y, width=0.5, height=0.12, angle=0, density=1.0)
     if hasattr(sandbox, 'weld_to_glass'):
         sandbox.weld_to_glass(base, (CENTER_X, GLASS_Y))
@@ -50,8 +48,6 @@ def agent_action(sandbox, agent_body, step_count):
     sandbox.set_motor(sandbox._wiper_motor_joint, motor_speed, max_torque=4500.0)
 
 def build_agent_stage_1(sandbox):
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
     GLASS_Y = 2.0
     CENTER_X = 6.0
     GROUND_Y = 2.06
@@ -87,8 +83,6 @@ def agent_action_stage_1(sandbox, agent_body, step_count):
     sandbox.set_motor(agent_body.motor1, motor_speed, max_torque=1e8)
 
 def build_agent_stage_2(sandbox):
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
     GLASS_Y = 2.0
     CENTER_X = 6.0
     GROUND_Y = 2.06
@@ -124,8 +118,6 @@ def agent_action_stage_2(sandbox, agent_body, step_count):
     sandbox.set_motor(agent_body.motor1, motor_speed, max_torque=1e8)
 
 def build_agent_stage_3(sandbox):
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
     PIVOT_Y = 8.0
     DENSITY = 0.015
     base = sandbox.add_beam(x=6.0, y=PIVOT_Y, width=0.15, height=0.15, angle=0, density=0.04)
@@ -165,8 +157,6 @@ def agent_action_stage_3(sandbox, agent_body, step_count):
     sandbox.set_motor(agent_body.motor2, motor_speed=speed_R, max_torque=800.0)
 
 def build_agent_stage_4(sandbox):
-    if hasattr(sandbox, 'remove_initial_template'):
-        sandbox.remove_initial_template()
     GLASS_Y = 2.0
     CENTER_X = 6.0
     GROUND_Y = 2.06

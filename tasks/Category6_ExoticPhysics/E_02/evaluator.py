@@ -116,7 +116,7 @@ class Evaluator:
             "distance_to_target": distance_to_target,
             "dist_traveled_x": dist_traveled_x,
         }
-        return success or failed or (step_count >= max_steps - 1), score, metrics
+        return failed or (step_count >= max_steps - 1), score, metrics
 
     def get_task_description(self):
         return {

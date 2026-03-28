@@ -46,11 +46,11 @@ def build_truss(sandbox, start_x, end_x, top_y, bottom_y, num_panels, deck_densi
 
 def build_agent(sandbox):
     L_X, R_X = 10.0, 25.0
-    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 9.8, 8.0, 6, deck_density=30.0, truss_density=5.0, joint_type='rigid')
-    sandbox.add_joint(v_beams[0], None, (L_X, 9.8), type='rigid')
-    sandbox.add_joint(v_beams[-1], None, (R_X, 9.8), type='rigid')
-    ext = sandbox.add_beam(x=R_X+2.5, y=9.8, width=5.0, height=0.4, density=30.0)
-    sandbox.add_joint(v_beams[-1], ext, (R_X, 9.8), type='rigid')
+    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 10.0, 8.0, 6, deck_density=35.0, truss_density=15.0, joint_type='rigid')
+    sandbox.add_joint(v_beams[0], None, (L_X, 10.0), type='rigid')
+    sandbox.add_joint(v_beams[-1], None, (R_X, 10.0), type='rigid')
+    ext = sandbox.add_beam(x=R_X+2.5, y=10.0, width=5.0, height=0.4, density=30.0)
+    sandbox.add_joint(v_beams[-1], ext, (R_X, 10.0), type='rigid')
     return deck[0]
 
 def agent_action(sandbox, agent_body, step_count):
@@ -111,34 +111,34 @@ def build_agent_stage_1(sandbox):
 
 def build_agent_stage_2(sandbox):
     L_X, R_X = 10.0, 25.0
-    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 9.8, 5.1, 14, deck_density=18.0, truss_density=6.0, joint_type='rigid')
-    for y in [9.8, 7.45, 5.1]:
+    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 10.0, 5.1, 14, deck_density=18.0, truss_density=6.0, joint_type='rigid')
+    for y in [10.0, 7.55, 5.1]:
         sandbox.add_joint(v_beams[0], None, (L_X, y), type='rigid')
         sandbox.add_joint(v_beams[-1], None, (R_X, y), type='rigid')
-    ext = sandbox.add_beam(x=R_X+2.5, y=9.8, width=5.0, height=0.4, density=15.0)
-    sandbox.add_joint(v_beams[-1], ext, (R_X, 9.8), type='rigid')
+    ext = sandbox.add_beam(x=R_X+2.5, y=10.0, width=5.0, height=0.4, density=15.0)
+    sandbox.add_joint(v_beams[-1], ext, (R_X, 10.0), type='rigid')
     return deck[0]
 
 def build_agent_stage_3(sandbox):
     L_X, R_X = 10.0, 30.0
-    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 9.8, 5.5, 12, deck_density=35.0, truss_density=12.0, joint_type='rigid')
-    for y in [9.8, 8.35, 6.9, 5.5]:
+    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 10.0, 5.5, 12, deck_density=35.0, truss_density=12.0, joint_type='rigid')
+    for y in [10.0, 8.5, 7.0, 5.5]:
         sandbox.add_joint(v_beams[0], None, (L_X, y), type='rigid')
         sandbox.add_joint(v_beams[-1], None, (R_X, y), type='rigid')
     ext_width = 6.0
-    ext = sandbox.add_beam(x=R_X + ext_width/2, y=9.8, width=ext_width, height=0.4, density=30.0)
-    sandbox.add_joint(v_beams[-1], ext, (R_X, 9.8), type='rigid')
+    ext = sandbox.add_beam(x=R_X + ext_width/2, y=10.0, width=ext_width, height=0.4, density=30.0)
+    sandbox.add_joint(v_beams[-1], ext, (R_X, 10.0), type='rigid')
     return deck[0]
 
 def build_agent_stage_4(sandbox):
     L_X, R_X = 10.0, 35.0
-    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 9.8, 5.2, 16, deck_density=42.0, truss_density=17.0, joint_type='rigid')
-    for y in [9.8, 8.65, 7.5, 6.35, 5.2]:
+    deck, bottom, v_beams = build_truss(sandbox, L_X, R_X, 10.0, 5.2, 16, deck_density=42.0, truss_density=17.0, joint_type='rigid')
+    for y in [10.0, 8.8, 7.6, 6.4, 5.2]:
         sandbox.add_joint(v_beams[0], None, (L_X, y), type='rigid')
         sandbox.add_joint(v_beams[-1], None, (R_X, y), type='rigid')
     ext_width = 6.0
-    ext = sandbox.add_beam(x=R_X + ext_width/2, y=9.8, width=ext_width, height=0.4, density=35.0)
-    sandbox.add_joint(v_beams[-1], ext, (R_X, 9.8), type='rigid')
+    ext = sandbox.add_beam(x=R_X + ext_width/2, y=10.0, width=ext_width, height=0.4, density=35.0)
+    sandbox.add_joint(v_beams[-1], ext, (R_X, 10.0), type='rigid')
     return deck[0]
 
 def agent_action_stage_1(sandbox, agent_body, step_count): pass

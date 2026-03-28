@@ -126,7 +126,7 @@ class DaVinciSandbox:
                     restitution=0.1
                 )
             )
-            self._load_attached = False
+            self._load_attached = True
             self._load_caught_by_structure = False  # True once structure catches dropped load
             self._terrain_bodies["load"] = self._load_body
 
@@ -160,7 +160,7 @@ class DaVinciSandbox:
                     self._world.CreateWeldJoint(
                         bodyA=body,
                         bodyB=self._load_body,
-                        anchor=(3.0, target_y),
+                        anchor=(3.0, self.PIVOT_Y),
                         collideConnected=False
                     )
                     self._load_attached = True
@@ -174,7 +174,7 @@ class DaVinciSandbox:
                 self._load_body.ApplyForceToCenter((self._load_body.mass * self._wind_force_multiplier, 0), wake=True)
         
         # Fragile Joints Static Equilibrium Check
-        if self._fragile_joints:
+        if self._fragile_joints and self._load_attached:
             net_torque = 0.0
             gx, gy = self._world.gravity
             wind_f = self._wind_force_multiplier if self._wind_active else 0.0
@@ -220,7 +220,6 @@ class DaVinciSandbox:
                         collideConnected=False,
                     )
                     self._load_caught_by_structure = True
-                    self._load_attached = True
                     self._joints.append(self._world.joints[-1])
                     break
 

@@ -46,7 +46,6 @@ class E03Renderer(Renderer):
         COLOR_OUTLINE = (50, 50, 50)
         COLOR_TARGET = (200, 100, 50) # Muted red/orange for target
         COLOR_CHECKPOINT = (100, 100, 200) # Muted blue for checkpoints
-        COLOR_ZONE = (150, 150, 150) # Grey for general zones
 
         # Draw static terrain (ground)
         for body in sandbox.world.bodies:
@@ -57,27 +56,6 @@ class E03Renderer(Renderer):
                     outline_color=COLOR_OUTLINE,
                     outline_width=1,
                 )
-
-        # Draw Zones
-        bounds = sandbox.get_terrain_bounds()
-        zones_to_render = {
-            "speed_penalty_zone": (255, 100, 100, 50),
-            "reverse_thrust_zone": (255, 150, 50, 50),
-            "vert_reverse_zone": (255, 50, 150, 50),
-            "momentum_drain_zone": (100, 100, 100, 50),
-            "wind_zone": (100, 200, 255, 50),
-            "thrust_scale_zone": (200, 100, 255, 50),
-            "oscillating_fx_zone": (100, 255, 100, 50),
-        }
-        for zone_key, color in zones_to_render.items():
-            zone = bounds.get(zone_key)
-            if zone:
-                zx_min, zx_max = zone["x_min"], zone["x_max"]
-                # Draw zone as a vertical band from y=0 to y=10
-                self.draw_line(zx_min, 0, zx_max, 0, color[:3], 1)
-                self.draw_line(zx_max, 0, zx_max, 10, color[:3], 1)
-                self.draw_line(zx_max, 10, zx_min, 10, color[:3], 1)
-                self.draw_line(zx_min, 10, zx_min, 0, color[:3], 1)
 
         # Draw sled and any other dynamic bodies
         for body in sandbox.world.bodies:

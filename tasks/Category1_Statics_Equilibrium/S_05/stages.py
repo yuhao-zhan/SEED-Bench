@@ -45,55 +45,18 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                 description,
                 count=1,
             )
-        
-        # Update evaluation threshold mention: (i.e. at least meteor_count × spawn_interval steps, whichever is larger)
-        eval_pattern = r"\(i\.e\. at least meteor_count × spawn_interval steps, whichever is larger\)"
-        description = re.sub(eval_pattern,
-                           f"(i.e. at least {target_meteor_count * target_spawn_interval} steps (originally {base_meteor_count * base_spawn_interval} steps in the source environment), whichever is larger)",
-                           description)
 
     # Update Mass Budget
     target_max_mass = target_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
     base_max_mass = base_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
     if target_max_mass != base_max_mass:
-        mass_desc_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be <= )(\d+\.?\d*) kg\."
+        mass_desc_pattern = r"(- \*\*Mass Budget\*\*: Total structure mass must be less than )(\d+\.?\d*) kg\."
         if re.search(mass_desc_pattern, description):
             description = re.sub(
                 mass_desc_pattern,
                 f"\\g<1>{target_max_mass:.1f} kg (originally {base_max_mass:.1f} kg in the source environment).",
                 description
             )
-
-    # Update Height Limit
-    target_max_height = target_terrain_config.get("max_structure_height", 7.5) # Default from environment.py
-    base_max_height = base_terrain_config.get("max_structure_height", 7.5)
-    if target_max_height != base_max_height:
-        height_pattern = r"(- \*\*Height Limit\*\*: No beam center or joint anchor may be above y=)(\d+\.?\d*)m\."
-        description = re.sub(height_pattern,
-                            f"\\g<1>{target_max_height:.1f}m (originally y={base_max_height:.1f}m in the source environment).",
-                            description)
-
-    # Update Build Zone
-    target_bx_min = target_terrain_config.get("build_zone_x_min", 5.0)
-    target_bx_max = target_terrain_config.get("build_zone_x_max", 15.0)
-    target_by_min = target_terrain_config.get("build_zone_y_min", 0.0)
-    target_by_max = target_terrain_config.get("build_zone_y_max", 8.0)
-    base_bx_min = base_terrain_config.get("build_zone_x_min", 5.0)
-    base_bx_max = base_terrain_config.get("build_zone_x_max", 15.0)
-    base_by_min = base_terrain_config.get("build_zone_y_min", 0.0)
-    base_by_max = base_terrain_config.get("build_zone_y_max", 8.0)
-
-    if (target_bx_min != base_bx_min or target_bx_max != base_bx_max or 
-        target_by_min != base_by_min or target_by_max != base_by_max):
-        bz_pattern1 = r"(Structure must be built within x=\[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m and y=\[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m)"
-        description = re.sub(bz_pattern1,
-                            f"\\g<1>{target_bx_min:.1f}\\g<3>{target_bx_max:.1f}\\g<5>{target_by_min:.1f}\\g<7>{target_by_max:.1f}\\g<9> (originally x=[{base_bx_min:.1f}, {base_bx_max:.1f}] m and y=[{base_by_min:.1f}, {base_by_max:.1f}] m in the source environment)",
-                            description)
-        
-        bz_pattern2 = r"(- \*\*Build Zone\*\*: All beam centers and joint anchors must lie within x=\[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m, y=\[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m\.)"
-        description = re.sub(bz_pattern2,
-                            f"\\g<1>{target_bx_min:.1f}\\g<3>{target_bx_max:.1f}\\g<5>{target_by_min:.1f}\\g<7>{target_by_max:.1f}\\g<9> (originally x=[{base_bx_min:.1f}, {base_bx_max:.1f}] m, y=[{base_by_min:.1f}, {base_by_max:.1f}] m in the source environment).",
-                            description)
 
     # Update Core Position and Keep-Out Zone
     target_core_x = target_terrain_config.get("core_x", DEFAULT_CORE_X)
@@ -105,11 +68,11 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         # Update main description intro: [new_value] (originally [old_value] in the source environment). Consume " from" so the sentence continues as "... environment). From heavy falling ...".
         core_pos_pattern = r"(Protect a fragile Core \(a sensitive circular object at x=)(\d+\.?\d*)(, y=)(\d+\.?\d*)(\) from)"
         description = re.sub(core_pos_pattern,
-                            f"\\g<1>{target_core_x:.1f}\\g<3>{target_core_y:.1f}) (originally x={base_core_x:.1f}, y={base_core_y:.1f} in the source environment) from",
+                            f"\\g<1>{target_core_x:.1f}\\g<3>{target_core_y:.1f}) (originally x={base_core_x:.1f}, y={base_core_y:.1f} in the source environment). From",
                             description)
 
         # Update Task Environment Core section: no period between new value and (originally ...)
-        env_core_pattern = r"(- \*\*Core\*\*: A circular object with a radius of 0\.5m centered at \()(\d+\.?\d*)(, )(\d+\.?\d*)(\)\.)"
+        env_core_pattern = r"(- \*\*Core\*\*: A circular object centered at \()(\d+\.?\d*)(, )(\d+\.?\d*)(\)\.)"
         description = re.sub(env_core_pattern,
                             f"\\g<1>{target_core_x:.1f}\\g<3>{target_core_y:.1f}) (originally centered at ({base_core_x:.1f}, {base_core_y:.1f}) in the source environment). ",
                             description)
@@ -179,38 +142,13 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_max_mass = target_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
     base_max_mass = base_terrain_config.get("max_structure_mass", DEFAULT_MAX_MASS)
     if target_max_mass != base_max_mass:
-        mass_pattern = r"(- \*\*Mass Budget\*\*: <= )(\d+\.?\d*) kg\."
+        mass_pattern = r"(- \*\*Mass Budget\*\*: < )(\d+\.?\d*) kg\."
         if re.search(mass_pattern, criteria):
             criteria = re.sub(
                 mass_pattern,
                 f"\\g<1>{target_max_mass:.1f} kg (originally {base_max_mass:.1f} kg in the source environment).",
                 criteria
             )
-
-    # Update Build Zone Design Constraint
-    target_bx_min = target_terrain_config.get("build_zone_x_min", 5.0)
-    target_bx_max = target_terrain_config.get("build_zone_x_max", 15.0)
-    target_by_min = target_terrain_config.get("build_zone_y_min", 0.0)
-    target_by_max = target_terrain_config.get("build_zone_y_max", 8.0)
-    base_bx_min = base_terrain_config.get("build_zone_x_min", 5.0)
-    base_bx_max = base_terrain_config.get("build_zone_x_max", 15.0)
-    base_by_min = base_terrain_config.get("build_zone_y_min", 0.0)
-    base_by_max = base_terrain_config.get("build_zone_y_max", 8.0)
-    if (target_bx_min != base_bx_min or target_bx_max != base_bx_max or 
-        target_by_min != base_by_min or target_by_max != base_by_max):
-        bz_crit_pattern = r"(- \*\*Build Zone\*\*: Beam centers and joint anchors within x=\[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m, y=\[)(\d+\.?\d*)(, )(\d+\.?\d*)(\] m\.)"
-        criteria = re.sub(bz_crit_pattern,
-                         f"\\g<1>{target_bx_min:.1f}\\g<3>{target_bx_max:.1f}\\g<5>{target_by_min:.1f}\\g<7>{target_by_max:.1f}\\g<9> (originally x=[{base_bx_min:.1f}, {base_bx_max:.1f}] m, y=[{base_by_min:.1f}, {base_by_max:.1f}] m in the source environment).",
-                         criteria)
-
-    # Update Height Limit Design Constraint
-    target_max_height = target_terrain_config.get("max_structure_height", 7.5)
-    base_max_height = base_terrain_config.get("max_structure_height", 7.5)
-    if target_max_height != base_max_height:
-        height_crit_pattern = r"(- \*\*Height Limit\*\*: No beam center or joint anchor may be above y=)(\d+\.?\d*)m\."
-        criteria = re.sub(height_crit_pattern,
-                         f"\\g<1>{target_max_height:.1f}m (originally y={base_max_height:.1f}m in the source environment).",
-                         criteria)
 
     # Update Keep-Out Zone Design Constraint
     target_core_x = target_terrain_config.get("core_x", DEFAULT_CORE_X)
@@ -229,12 +167,12 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_core_force = base_terrain_config.get("max_core_force", DEFAULT_CORE_MAX_FORCE)
     if target_core_force != base_core_force:
         criteria = re.sub(
-            r"(peak impact force on the core must remain <= )(\d+\.?\d*)( N\.)",
+            r"(peak impact force on the core must remain below )(\d+\.?\d*)( N\.)",
             f"\\g<1>{target_core_force:.1f} N (originally {base_core_force:.1f} N in the source environment).",
             criteria
         )
         criteria = re.sub(
-            r"(Peak force on core <= )(\d+\.?\d*)( N\.)",
+            r"(Peak force on core < )(\d+\.?\d*)( N\.)",
             f"\\g<1>{target_core_force:.1f} N (originally {base_core_force:.1f} N in the source environment).",
             criteria
         )
@@ -256,27 +194,6 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
                 criteria
             )
 
-    # Update Joint Limits in success criteria
-    target_joint_force = float(target_terrain_config.get("max_joint_force", DEFAULT_MAX_JOINT_FORCE))
-    base_joint_force = float(base_terrain_config.get("max_joint_force", DEFAULT_MAX_JOINT_FORCE))
-    target_joint_torque = float(target_terrain_config.get("max_joint_torque", DEFAULT_MAX_JOINT_TORQUE))
-    base_joint_torque = float(base_terrain_config.get("max_joint_torque", DEFAULT_MAX_JOINT_TORQUE))
-    _num = r"\d+(?:\.\d+)?(?:e\+?\d+)?"
-    if target_joint_force != base_joint_force:
-        criteria = re.sub(
-            rf"(Max force <= ){_num}( N)",
-            f"\\g<1>{target_joint_force:.1f}\\g<2> (originally {base_joint_force:.1f} N in the source environment)",
-            criteria,
-            count=1
-        )
-    if target_joint_torque != base_joint_torque:
-        criteria = re.sub(
-            rf"(max torque <= ){_num}( Nm)",
-            f"\\g<1>{target_joint_torque:.1f}\\g<2> (originally {base_joint_torque:.1f} Nm in the source environment)",
-            criteria,
-            count=1
-        )
-
     return criteria
 
 # DYNAMICALLY GENERATED UNIFORM_SUFFIX based on the union of all mutated variables in Stages 1-4
@@ -294,7 +211,6 @@ While the following variables MIGHT have changed from the initial environment, N
  - **Gravitational Constant**: Downward acceleration may differ from nominal; structural loads and impact energy may be affected.
  - **Core Fragility**: The protected object's impact tolerance may differ from nominal.
  - **Core Position**: The location of the protected object may differ from the nominal environment, requiring different structural placement and coverage.
- - **Initial Conditions (Random Seed)**: The exact spawn positions and initial velocities of incoming meteors may differ from the nominal environment.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """

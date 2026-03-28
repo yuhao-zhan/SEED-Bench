@@ -32,6 +32,15 @@ class Evaluator:
         self._design_constraints_checked = False
         # Slots in pit: each slot (x_min, x_max, floor_y, ceil_y); jumper center must stay inside (floor+margin, ceil-margin) when in x-range
         self._slots = list(terrain_bounds.get("slots", []))
+        self._barrier_x_min = terrain_bounds.get("barrier_x_min")
+        self._barrier_x_max = terrain_bounds.get("barrier_x_max")
+        self._barrier_y_max = terrain_bounds.get("barrier_y_max")
+        self._barrier2_x_min = terrain_bounds.get("barrier2_x_min")
+        self._barrier2_x_max = terrain_bounds.get("barrier2_x_max")
+        self._barrier2_y_max = terrain_bounds.get("barrier2_y_max")
+        self._barrier3_x_min = terrain_bounds.get("barrier3_x_min")
+        self._barrier3_x_max = terrain_bounds.get("barrier3_x_max")
+        self._barrier3_y_max = terrain_bounds.get("barrier3_y_max")
 
         if environment is None:
             raise ValueError("Evaluator requires environment instance")
@@ -89,11 +98,11 @@ class Evaluator:
                 continue
             # In this slot: center must be in (floor+margin, ceil-margin); also avoid touching (bottom/top vs floor/ceiling)
             slot_num = i + 1
-            if py - self._jumper_half_h < floor_y + SLOT_MARGIN:
+            if py - self._jumper_half_h <= floor_y + SLOT_MARGIN:
                 failed = True
                 failure_reason = f"Hit lower red bar in slot {slot_num}: trajectory must pass through the gap between lower and upper red bars"
                 break
-            if py + self._jumper_half_h > ceil_y - SLOT_MARGIN:
+            if py + self._jumper_half_h >= ceil_y - SLOT_MARGIN:
                 failed = True
                 failure_reason = f"Hit upper red bar in slot {slot_num}: trajectory must pass through the gap between lower and upper red bars"
                 break
@@ -133,9 +142,9 @@ class Evaluator:
         if self.environment is None:
             return ["Environment not available"]
         mass = self.environment.get_structure_mass()
-        if mass >= self.MAX_STRUCTURE_MASS:
+        if mass > self.MAX_STRUCTURE_MASS:
             violations.append(
-                f"Structure mass {mass:.2f} kg exceeds or meets maximum budget of {self.MAX_STRUCTURE_MASS} kg"
+                f"Structure mass {mass:.2f} kg exceeds maximum {self.MAX_STRUCTURE_MASS} kg"
             )
         for body in self.environment._bodies:
             x, y = body.position.x, body.position.y
@@ -159,16 +168,10 @@ class Evaluator:
         progress = max(0.0, (px - self._jumper_spawn_x) / (self._right_platform_start_x - self._jumper_spawn_x)) * 100.0
         progress = min(100.0, progress)
 
-        # Jumper body for physical properties
+        # Jumper body for angular state (if available)
         jumper_body = self.environment._terrain_bodies.get("jumper")
         angular_velocity = float(jumper_body.angularVelocity) if jumper_body else 0.0
         angle = float(jumper_body.angle) if jumper_body else 0.0
-        jumper_mass = float(jumper_body.mass) if jumper_body else 24.0
-        
-        # Get dimensions from environment terrain_config if possible
-        j_w = float(self.environment._terrain_config.get("jumper_width", 0.8))
-        j_h = float(self.environment._terrain_config.get("jumper_height", 0.6))
-
         distance_from_platform = max(0.0, self._right_platform_start_x - px)
 
         return {
@@ -177,9 +180,6 @@ class Evaluator:
             "jumper_vx": vx,
             "jumper_vy": vy,
             "jumper_speed": speed,
-            "jumper_mass": jumper_mass,
-            "jumper_width": j_w,
-            "jumper_height": j_h,
             "right_platform_start_x": self._right_platform_start_x,
             "progress": progress,
             "success": success,
@@ -199,7 +199,7 @@ class Evaluator:
     def get_task_description(self):
         return {
             "task": "D-02: The Jumper",
-            "description": "Launch a jumper across a pit with obstacles; trajectory must pass THROUGH the barrier slots to the right platform",
+            "description": "Launch a jumper across a pit with an obstacle; trajectory must go OVER the barrier to the right platform",
             "success_criteria": {
                 "primary": f"Jumper reaches right platform (x >= {self._right_platform_start_x} m, y >= {self._landing_min_y} m)",
                 "failure": "Fall into pit or insufficient jump",

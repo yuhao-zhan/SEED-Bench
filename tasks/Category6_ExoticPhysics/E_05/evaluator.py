@@ -51,20 +51,13 @@ class Evaluator:
             self.reached_target = True
         success = self.reached_target
 
-        # Pit zone bounds from environment
-        tzb = self.terrain_bounds
-        pz = tzb.get("pit_zone", {})
-        px_min = float(pz.get("x_min", 16.0))
-        px_max = float(pz.get("x_max", 24.0))
-        py_max = float(pz.get("y_max", 5.5))
-
         # Pit zone: instant fail if not yet reached target (includes corridor floor)
-        in_pit = (px_min <= x <= px_max) and y < py_max
+        in_pit = (16 <= x <= 24) and y < 5.5
         if in_pit and not success:
             failed = True
             failure_reason = "Fell into pit zone; body entered forbidden region"
         else:
-            failed = step_count >= max_steps and not success
+            failed = step_count >= max_steps - 1 and not success
             failure_reason = ("Stuck in local minimum: did not reach target zone before time ran out" if failed else None)
         if success:
             score = 100.0
@@ -116,12 +109,8 @@ class Evaluator:
             "in_target_y": in_target_y,
             "start_x": start_x,
             "start_y": start_y,
-            "max_thrust": float(tzb.get("max_thrust", 165.0)),
-            "pit_x_min": px_min,
-            "pit_x_max": px_max,
-            "pit_y_max": py_max,
         }
-        done = success or failed or (step_count >= max_steps)
+        done = failed or (step_count >= max_steps - 1)
         return done, score, metrics
 
     def get_task_description(self):

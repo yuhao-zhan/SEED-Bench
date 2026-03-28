@@ -53,11 +53,11 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                 description
             )
         # Distance constraint (must match Target)
-        distance_pattern = r"(- \*\*Distance\*\*: The object center reaches x >= )(\d+\.?\d*)(m)(\.)"
+        distance_pattern = r"(- \*\*Distance\*\*: The object center reaches x >= )(\d+\.?\d*)(m\.)"
         if re.search(distance_pattern, description):
             description = re.sub(
                 distance_pattern,
-                f"\\g<1>{8.0 + target_dist:.1f}\\g<3> (originally x >= {8.0 + base_dist:.1f}m in the source environment)\\g<4>",
+                f"\\g<1>{8.0 + target_dist:.1f}\\g<3> (originally {8.0 + base_dist:.1f}\\g<3> in the source environment).",
                 description
             )
 
@@ -83,11 +83,11 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                 ),
                 description
             )
-        bz_constraint_pattern = r"(All components must stay within x=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\], y=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\])(\.)"
+        bz_constraint_pattern = r"(All components must stay within x=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\], y=\[)(\d+\.?\d*),\s*(\d+\.?\d*)(\].)"
         if re.search(bz_constraint_pattern, description):
             description = re.sub(
                 bz_constraint_pattern,
-                f"\\g<1>{x_min_t:.1f}, {x_max_t:.1f}\\g<4>{y_min_t:.1f}, {y_max_t:.1f}\\g<7> (originally x=[{x_min_b:.1f}, {x_max_b:.1f}], y=[{y_min_b:.1f}, {y_max_b:.1f}] in the source environment)\\g<8>",
+                f"\\g<1>{x_min_t:.1f}, {x_max_t:.1f}\\g<4>{y_min_t:.1f}, {y_max_t:.1f}\\g<7> (originally x=[{x_min_b:.1f}, {x_max_b:.1f}], y=[{y_min_b:.1f}, {y_max_b:.1f}] in the source environment).",
                 description
             )
 
@@ -130,11 +130,11 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_dist = target_terrain_config.get("target_distance", 10.0)
     base_dist = base_terrain_config.get("target_distance", 10.0)
     if target_dist != base_dist:
-        dist_pattern = r"(\*\*Movement\*\*: Object reaches x >= )(\d+\.?\d*)(m)(\.)"
+        dist_pattern = r"(\*\*Movement\*\*: Object reaches x >= )(\d+\.?\d*)(m\.)"
         if re.search(dist_pattern, criteria):
             criteria = re.sub(
                 dist_pattern,
-                f"\\g<1>{8.0 + target_dist:.1f}\\g<3> (originally x >= {8.0 + base_dist:.1f}m in the source environment)\\g<4>",
+                f"\\g<1>{8.0 + target_dist:.1f}\\g<3> (originally x >= {8.0 + base_dist:.1f}\\g<3> in the source environment).",
                 criteria
             )
 

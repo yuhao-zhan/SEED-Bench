@@ -37,7 +37,6 @@ class D01Renderer(Renderer):
         # Academic Color Palette
         ENV_COLOR = (230, 194, 41)       # #E6C229 (Goldenrod Yellow)
         ENV_OUTLINE = (180, 144, 0)      # Darker Goldenrod
-        RED_COLOR = (255, 0, 0)          # RED for target zone
         AGENT_COLOR = (76, 175, 80)      # #4CAF50 (Material Green)
         AGENT_OUTLINE = (26, 125, 30)    # Darker Green
 
@@ -67,10 +66,10 @@ class D01Renderer(Renderer):
         if hasattr(sandbox, "_target_x_min"):
             x_min, x_max = sandbox._target_x_min, sandbox._target_x_max
             y_min, y_max = sandbox._target_y_min, sandbox._target_y_max
-            self.draw_line(x_min, y_min, x_max, y_min, RED_COLOR, 2)
-            self.draw_line(x_max, y_min, x_max, y_max, RED_COLOR, 2)
-            self.draw_line(x_max, y_max, x_min, y_max, RED_COLOR, 2)
-            self.draw_line(x_min, y_max, x_min, y_min, RED_COLOR, 2)
+            self.draw_line(x_min, y_min, x_max, y_min, ENV_COLOR, 2)
+            self.draw_line(x_max, y_min, x_max, y_max, ENV_COLOR, 2)
+            self.draw_line(x_max, y_max, x_min, y_max, ENV_COLOR, 2)
+            self.draw_line(x_min, y_max, x_min, y_min, ENV_COLOR, 2)
 
         # Build zone outline
         if hasattr(sandbox, "BUILD_ZONE_X_MIN"):

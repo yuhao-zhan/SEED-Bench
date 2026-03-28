@@ -31,10 +31,10 @@ class Sandbox:
         self._default_angular_damping = float(physics_config.get("angular_damping", 0.0))
 
         # Joint strength thresholds
-        self._anchor_max_force = float(physics_config.get("anchor_max_force", 200000.0))
-        self._anchor_max_torque = float(physics_config.get("anchor_max_torque", 800000.0))
-        self._joint_max_force = float(physics_config.get("joint_max_force", 150000.0))
-        self._joint_max_torque = float(physics_config.get("joint_max_torque", 500000.0))
+        self._anchor_max_force = float(physics_config.get("anchor_max_force", 100.0))
+        self._anchor_max_torque = float(physics_config.get("anchor_max_torque", 500.0))
+        self._joint_max_force = float(physics_config.get("joint_max_force", 80.0))
+        self._joint_max_torque = float(physics_config.get("joint_max_torque", 300.0))
         
         # Wind force
         self._wind_force = tuple(physics_config.get("wind_force", (0.0, 0.0)))
@@ -54,14 +54,12 @@ class Sandbox:
         self._airborne_rotation_clockwise = 0.0  # Accumulated clockwise rotation while airborne
         self._airborne_rotation_counterclockwise = 0.0  # Accumulated counterclockwise rotation while airborne
         self._airborne_rotation_exceeded = False  # Flag: True if rotation exceeded 180° in one direction
-        self._AIRBORNE_THRESHOLD = 1.5  # Consider airborne if y > cliff_top + this
+        self._AIRBORNE_THRESHOLD = 0.5  # Consider airborne if y > cliff_top + this
         self._MAX_AIRBORNE_ROTATION = math.pi  # 180 degrees in radians
         
         # Joint breaking tracking: track peak forces/torques per joint
         self._joint_peak_forces = {}  # joint -> max force seen
         self._joint_peak_torques = {}  # joint -> max torque seen
-        self.step_count = 0
-        self.joint_break_events = []
         
         # For backward compatibility, keep public attributes (but recommend using controlled API)
         self.world = self._world  # Reserved for renderer use
@@ -136,7 +134,7 @@ class Sandbox:
         vehicle_mass = 2000.0  # kg
         wheelbase = 3.0  # m
         spawn_x = 5.0
-        spawn_y = 11.05  # Sit on top of left cliff (wheel bottom = 10.0)
+        spawn_y = 10.0 + 0.5  # On top of left cliff
         speed = 5.0  # m/s
         
         # Vehicle chassis (rectangular)
@@ -261,12 +259,6 @@ class Sandbox:
         """API: Returns total mass of created objects"""
         return sum(body.mass for body in self._bodies)
 
-    def get_max_joint_stress(self):
-        """API: Returns the maximum force and torque observed across all joints"""
-        if not self._joint_peak_forces:
-            return 0.0, 0.0
-        return max(self._joint_peak_forces.values()), max(self._joint_peak_torques.values())
-
     def set_material_properties(self, body, restitution=0.2):
         """API: Set restitution for a body"""
         for fixture in body.fixtures:
@@ -274,7 +266,6 @@ class Sandbox:
 
     def step(self, time_step):
         """Physics step with constant joint strength thresholds and wind force"""
-        self.step_count += 1
         # Apply wind force to all dynamic bodies
         if any(self._wind_force):
             for body in self._bodies:
@@ -308,18 +299,17 @@ class Sandbox:
         self._world.Step(time_step, 10, 10)
         
         joints_to_remove = []
-        inv_dt = 1.0 / time_step if time_step > 0 else 60.0
         for joint in self._joints:
             try:
                 if hasattr(joint, 'GetReactionForce'):
-                    force = joint.GetReactionForce(inv_dt)
+                    force = joint.GetReactionForce(1.0 / 60.0)
                     force_magnitude = math.sqrt(force.x**2 + force.y**2)
                     if joint not in self._joint_peak_forces: self._joint_peak_forces[joint] = 0.0
                     self._joint_peak_forces[joint] = max(self._joint_peak_forces[joint], force_magnitude)
                     
                     torque_magnitude = 0.0
                     if hasattr(joint, 'GetReactionTorque'):
-                        torque_magnitude = abs(joint.GetReactionTorque(inv_dt))
+                        torque_magnitude = abs(joint.GetReactionTorque(1.0 / 60.0))
                         if joint not in self._joint_peak_torques: self._joint_peak_torques[joint] = 0.0
                         self._joint_peak_torques[joint] = max(self._joint_peak_torques[joint], torque_magnitude)
                     
@@ -334,16 +324,6 @@ class Sandbox:
                         max_force, max_torque = self._joint_max_force, self._joint_max_torque
                     
                     if self._joint_peak_forces[joint] > max_force or self._joint_peak_torques[joint] > max_torque:
-                        event = {
-                            "step": self.step_count,
-                            "anchor_point": (joint.anchorA.x, joint.anchorA.y),
-                            "force": self._joint_peak_forces.get(joint, 0.0),
-                            "torque": self._joint_peak_torques.get(joint, 0.0),
-                            "limit_force": max_force,
-                            "limit_torque": max_torque,
-                        }
-                        if not any(e['anchor_point'] == event['anchor_point'] and e['step'] == event['step'] for e in self.joint_break_events):
-                            self.joint_break_events.append(event)
                         joints_to_remove.append(joint)
             except Exception: continue
         

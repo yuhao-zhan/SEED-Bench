@@ -26,7 +26,7 @@ Design a free-standing dam to block water particles in an extreme environment.
 - **Reservoir fill height**: 7.0 m.
 - **Reservoir-side forcing**: Time-varying fluid impulses apply only to water particles whose center is on the reservoir side (x < 12.0 m).
 - **Dynamic disturbances**: The run includes forward/backward slosh, vertical fluid kicks, periodic debris impacts, and horizontal shaking of dam beams. Exact timing and magnitudes are intentionally not disclosed and must be inferred from interaction feedback.
-- **Debris launch**: Periodic debris impacts use default initial velocity values unless the configuration overrides the debris velocity.
+- **Debris launch**: Periodic debris impacts use default initial velocity **(2.2, 0.0)** m/s unless the configuration overrides the debris velocity.
 - **Build zone**: Three disjoint narrow vertical strips: x=[12.4, 12.6], [12.9, 13.1], and [13.4, 13.6], with y in [0, 7.5] m. **Each beam’s center (x, y) must lie in one of these strips** (x within that strip’s interval, y within [0, 7.5]); design validation checks centers, consistent with the span and vertical-band rules below.
 - **Constraint**: Mandatory underflow gap; no beams allowed below y=0.5m.
 - **Constraint**: ZERO floor anchors; the dam must be free-standing.
@@ -37,7 +37,7 @@ Design a free-standing dam to block water particles in an extreme environment.
 - **Constraint**: The dam must span the gate: at least one beam center in the left strip x=[12.4, 12.6] and at least one beam center in the right strip x=[13.4, 13.6].
 - **Constraint**: All beams must form one connected structure: every beam must be reachable from every other via beam-to-beam joints (no isolated beams or separate sub-structures).
 - **Constraint**: At least 3 beam centers must lie in each vertical band: y=[0.5, 2.5], [2.5, 5], and [5, 7.5].
-- **Moving downstream wall**: The downstream wall (0.5 m wide) oscillates laterally over time, where the wall center follows a sinusoidal trajectory each step. The instantaneous leak line is the wall's left edge.
+- **Moving downstream wall**: The downstream wall (0.5 m wide) oscillates laterally over time with **A = 0.4** m and **P = 100**, where the wall center follows a sinusoidal trajectory each step. The instantaneous leak line is the wall's left edge.
 - **Leakage definition**: Particles with x greater than the current leak line count as full leak. Particles in a 0.5 m band immediately upstream of that leak line count as half-leak toward the leakage rate. If moving-wall state is unavailable, scoring may fall back to a fixed reference leak line at x=14.0 m (same half-leak band rule).
 
 ## Task Objective

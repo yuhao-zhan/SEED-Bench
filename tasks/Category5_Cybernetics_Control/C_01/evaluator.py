@@ -33,8 +33,8 @@ except ImportError:
 BALANCE_HOLD_EVALS_REQUIRED = BALANCE_HOLD_STEPS_REQUIRED
 
 class Evaluator:
-    def __init__(self, terrain_bounds: Any = None, environment: Any = None, **kwargs):
-        self.sandbox = environment if environment is not None else terrain_bounds
+    def __init__(self, sandbox: Any):
+        self.sandbox = sandbox
         self.balance_angle_rad = math.radians(
             float(getattr(self.sandbox, "balance_angle_deg", BALANCE_ANGLE_DEG))
         )
@@ -76,7 +76,6 @@ class Evaluator:
             "pole_angular_velocity": pole_omega_reported,
             "pole_angle_true_deg": math.degrees(pole_angle_true),
             "pole_angular_velocity_true": pole_omega_true,
-            "peak_pole_angle_deg": math.degrees(self.sandbox.get_peak_pole_angle()),
             "cart_x": cart_pos,
             "cart_velocity_x": cart_vel,
             "dist_from_center": dist_from_center,
@@ -89,7 +88,6 @@ class Evaluator:
             "grading_failure_angle_deg": float(
                 getattr(self.sandbox, "failure_angle_deg", FAILURE_ANGLE_DEG)
             ),
-            "balance_hold_steps_required": self._balance_hold_required,
             "success": False,
             "failed": False
         }
@@ -147,31 +145,18 @@ def score_to_metrics(score: float, metrics: Dict[str, Any]) -> Dict[str, Any]:
         "balance_achieved": metrics.get("balance_achieved", False),
     }
 
-def get_evaluation_config(sandbox: Any = None) -> Dict[str, Any]:
-    bal_deg = getattr(sandbox, "balance_angle_deg", BALANCE_ANGLE_DEG) if sandbox else BALANCE_ANGLE_DEG
-    fail_deg = getattr(sandbox, "failure_angle_deg", FAILURE_ANGLE_DEG) if sandbox else FAILURE_ANGLE_DEG
-    hold_steps = int(getattr(sandbox, "balance_hold_steps_required", BALANCE_HOLD_STEPS_REQUIRED)) if sandbox else int(BALANCE_HOLD_STEPS_REQUIRED)
-    
-    # Format angles: show as int if whole, else 1 decimal
-    def fmt_a(a):
-        af = float(a)
-        return str(int(af)) if af.is_integer() else f"{af:.1f}"
-
-    bal_str = fmt_a(bal_deg)
-    fail_str = fmt_a(fail_deg)
-
+def get_evaluation_config() -> Dict[str, Any]:
     return {
         "task_name": "Cart-Pole Balance",
         "description": (
-            f"Balance using true pole angle: ≥{hold_steps} consecutive simulation steps with "
-            f"|angle| ≤ {bal_str}° (after step 0), stay on track, after lock-in survive until "
-            f"horizon unless |angle| > {fail_str}° or track/time failure; "
-            f"final success requires |angle| ≤ {bal_str}° at last step."
+            f"Balance using true pole angle: ≥{int(BALANCE_HOLD_EVALS_REQUIRED)} consecutive simulation steps with "
+            f"|angle| ≤ {int(BALANCE_ANGLE_DEG)}° (after step 0), stay on track, after lock-in survive until "
+            f"horizon unless |angle| > {int(FAILURE_ANGLE_DEG)}° or track/time failure; "
+            f"final success requires |angle| ≤ {int(BALANCE_ANGLE_DEG)}° at last step."
         ),
         "metrics": {
-            "balance_achieved": f"≥{hold_steps} consecutive in-band (≤{bal_str}°) true-angle steps",
-            "success": f"Lock-in achieved, on track, terminal |true angle| ≤ {bal_str}° at horizon",
+            "balance_achieved": f"≥{int(BALANCE_HOLD_EVALS_REQUIRED)} consecutive in-band (≤{int(BALANCE_ANGLE_DEG)}°) true-angle steps",
+            "success": f"Lock-in achieved, on track, terminal |true angle| ≤ {int(BALANCE_ANGLE_DEG)}° at horizon",
         },
         "evaluation": {"score_range": "0-100", "success_score": 100, "failure_score": 0},
     }
-

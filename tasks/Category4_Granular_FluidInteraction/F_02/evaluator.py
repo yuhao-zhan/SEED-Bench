@@ -55,7 +55,7 @@ class Evaluator:
             self.design_constraints_checked = True
             self.initial_joint_count = len(self.environment._joints)
 
-        current_joints = [j for j in self.environment._joints if j in self.environment.space.constraints]
+        current_joints = [j for j in self.environment._joints if j.active]
         current_joint_count = len(current_joints)
         if current_joint_count < self.initial_joint_count:
             self.structure_broken = True

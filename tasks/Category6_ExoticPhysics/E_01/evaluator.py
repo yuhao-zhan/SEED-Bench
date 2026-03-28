@@ -183,10 +183,6 @@ class Evaluator:
         gravity_current = None
         if hasattr(self.environment, "get_gravity_at_time"):
             gravity_current = self.environment.get_gravity_at_time()
-        
-        joint_forensics = None
-        if hasattr(self.environment, "get_joint_forensics"):
-            joint_forensics = self.environment.get_joint_forensics()
 
         metrics = {
             "step_count": step_count,
@@ -199,13 +195,12 @@ class Evaluator:
             "forbidden_zone_violation": forbidden_zone_violation,
             "forbidden_offending": forbidden_offending[:5],
             "structure_broken": self.structure_broken,
-            "joint_count": current_joint_count,
-            "joint_forensics": joint_forensics,
-            "beam_count": len(self.environment._bodies),
-            "max_beam_count": self.MAX_BEAM_COUNT,
-            "structure_mass": self.environment.get_structure_mass(),
-            "max_structure_mass": self.MAX_STRUCTURE_MASS,
-            "arena_x_min": self.arena_x_min,
+                    "joint_count": current_joint_count,
+                    "beam_count": len(self.environment._bodies),
+                    "max_beam_count": self.MAX_BEAM_COUNT,
+                    "structure_mass": self.environment.get_structure_mass(),
+                    "max_structure_mass": self.MAX_STRUCTURE_MASS,
+                    "arena_x_min": self.arena_x_min,
             "arena_x_max": self.arena_x_max,
             "arena_y_min": self.arena_y_min,
             "arena_y_max": self.arena_y_max,

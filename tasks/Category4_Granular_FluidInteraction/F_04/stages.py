@@ -48,95 +48,6 @@ def _f04_particle_counts_core(terrain_config: Dict[str, Any]) -> str:
     )
 
 
-def _f04_sync_target_zones(description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Synchronize target zone boundaries (1.92m, 2.52m) and sieve band description."""
-    s_y_max_t = float(target_terrain_config.get("small_zone_y_max", 1.92))
-    m_y_min_t = float(target_terrain_config.get("medium_zone_y_min", 1.92))
-    m_y_max_t = float(target_terrain_config.get("medium_zone_y_max", 2.52))
-    l_y_min_t = float(target_terrain_config.get("large_zone_y_min", 2.52))
-
-    s_y_max_b = float(base_terrain_config.get("small_zone_y_max", 1.92))
-    m_y_min_b = float(base_terrain_config.get("medium_zone_y_min", 1.92))
-    m_y_max_b = float(base_terrain_config.get("medium_zone_y_max", 2.52))
-    l_y_min_b = float(base_terrain_config.get("large_zone_y_min", 2.52))
-
-    if s_y_max_t != s_y_max_b:
-        pat = r"\(y < \d+\.?\d*m\)"
-        repl = f"(y < {_f04_fmt_m(s_y_max_t)}m (originally {_f04_fmt_m(s_y_max_b)}m in the source environment))"
-        description = re.sub(pat, repl, description, count=1)
-
-    if m_y_min_t != m_y_min_b or m_y_max_t != m_y_max_b:
-        pat = r"\d+\.?\d*m <= y < \d+\.?\d*m"
-        repl = f"{_f04_fmt_m(m_y_min_t)}m <= y < {_f04_fmt_m(m_y_max_t)}m (originally {_f04_fmt_m(m_y_min_b)}m <= y < {_f04_fmt_m(m_y_max_b)}m in the source environment)"
-        description = re.sub(pat, repl, description, count=1)
-
-    if l_y_min_t != l_y_min_b:
-        pat = r"\(y >= \d+\.?\d*m\)"
-        repl = f"(y >= {_f04_fmt_m(l_y_min_t)}m (originally {_f04_fmt_m(l_y_min_b)}m in the source environment))"
-        description = re.sub(pat, repl, description, count=1)
-
-    # Update sieve band diagnostic paragraph
-    if s_y_max_t != s_y_max_b or l_y_min_t != l_y_min_b:
-        pat = r"\*\*1\.92 m ≤ y < 2\.52 m\*\*"
-        repl = f"**{_f04_fmt_m(s_y_max_t)} m ≤ y < {_f04_fmt_m(l_y_min_t)} m** (originally **1.92 m ≤ y < 2.52 m** in the source environment)"
-        description = re.sub(pat, repl, description, count=1)
-
-    return description
-
-
-def _f04_sync_build_zone(description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Synchronize build zone boundaries."""
-    bx0_t = float(target_terrain_config.get("build_x_min", 5.20))
-    bx1_t = float(target_terrain_config.get("build_x_max", 6.90))
-    by0_t = float(target_terrain_config.get("build_y_min", 1.72))
-    by1_t = float(target_terrain_config.get("build_y_max", 2.45))
-
-    bx0_b = float(base_terrain_config.get("build_x_min", 5.20))
-    bx1_b = float(base_terrain_config.get("build_x_max", 6.90))
-    by0_b = float(base_terrain_config.get("build_y_min", 1.72))
-    by1_b = float(base_terrain_config.get("build_y_max", 2.45))
-
-    if (bx0_t, bx1_t, by0_t, by1_t) != (bx0_b, bx1_b, by0_b, by1_b):
-        pat = r"inside x=\[\d+\.?\d*, \d+\.?\d*\] m, y=\[\d+\.?\d*, \d+\.?\d*\] m"
-        repl = (
-            f"inside x=[{bx0_t:.2f}, {bx1_t:.2f}] m, y=[{by0_t:.2f}, {by1_t:.2f}] m "
-            f"(originally x=[{bx0_b:.2f}, {bx1_b:.2f}] m, y=[{by0_b:.2f}, {by1_b:.2f}] m in the source environment)"
-        )
-        description = re.sub(pat, repl, description, count=1)
-    return description
-
-
-def _f04_sync_particle_properties(description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
-    """Synchronize particle nominal radii and jitter."""
-    mix_t = target_terrain_config.get("mix") or {}
-    rs_t = float(mix_t.get("radius_small", 0.06))
-    rm_t = float(mix_t.get("radius_medium", 0.10))
-    rl_t = float(mix_t.get("radius_large", 0.14))
-    jitter_t = float(mix_t.get("radius_jitter", 0.006))
-
-    mix_b = base_terrain_config.get("mix") or {}
-    rs_b = float(mix_b.get("radius_small", 0.06))
-    rm_b = float(mix_b.get("radius_medium", 0.10))
-    rl_b = float(mix_b.get("radius_large", 0.14))
-    jitter_b = float(mix_b.get("radius_jitter", 0.006))
-
-    if (rs_t, rm_t, rl_t) != (rs_b, rm_b, rl_b):
-        pat = r"Nominal radii ~\d+\.?\d* m \(small\), ~\d+\.?\d* m \(medium\), ~\d+\.?\d* m \(large\)"
-        repl = (
-            f"Nominal radii ~{rs_t:.2f} m (small), ~{rm_t:.2f} m (medium), ~{rl_t:.2f} m (large) "
-            f"(originally ~{rs_b:.2f} m, ~{rm_b:.2f} m, ~{rl_b:.2f} m in the source environment)"
-        )
-        description = re.sub(pat, repl, description, count=1)
-
-    if jitter_t != jitter_b:
-        pat = r"jitter in \*\*±\d+\.?\d* m\*\*"
-        repl = f"jitter in **±{jitter_t:.3f} m** (originally **±{jitter_b:.3f} m** in the source environment)"
-        description = re.sub(pat, repl, description, count=1)
-
-    return description
-
-
-
 def _f04_particle_counts_visible(terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
     t = _f04_particle_counts_core(terrain_config)
     b = _f04_particle_counts_core(base_terrain_config)
@@ -425,9 +336,6 @@ def update_task_description_for_visible_changes(
     bf = _f04_feed_bounds(base_terrain_config)
     tf = _f04_feed_bounds(target_terrain_config)
     description = _f04_sync_feed_y_cross_zone_line(description, bf, tf)
-    description = _f04_sync_build_zone(description, target_terrain_config, base_terrain_config)
-    description = _f04_sync_target_zones(description, target_terrain_config, base_terrain_config)
-    description = _f04_sync_particle_properties(description, target_terrain_config, base_terrain_config)
     return description
 
 
@@ -546,16 +454,11 @@ def get_f04_curriculum_stages() -> List[Dict[str, Any]]:
     # - baffles.y_bottom (vertical extent of feed obstructions into the classifier band)
     # - sweeper.speed_scale (kinematic aggressiveness of horizontal sweepers)
     # - max_beams, max_structure_mass
-    # - min_purity (performance requirements)
     # - wind_amplitude, gust_amplitude, wind_period_steps
     # - gravity (physics_config)
     # - linear_damping, angular_damping
     # - mix.density, mix.restitution, mix.friction
     # - beam_friction (agent structure vs particles)
-    # - target zone boundaries (small_zone_y_max, etc.)
-    # - particle properties (mix.radius_small, etc.)
-    # - build zone bounds (build_x_min, etc.)
-    # - wave timings (second_wave_step, etc.)
     UNIFORM_SUFFIX = """
 
 ## Environmental Anomalies Detected
@@ -564,16 +467,11 @@ While the following variables **MIGHT** have changed from the initial environmen
 - **Feed obstruction (`baffles` geometry)**: Vertical baffle placement or vertical extent may differ from the source layout, altering unobstructed paths through the classifier band.
 - **Sweeper kinematics (`sweeper.speed_scale`, sweep velocities)**: Horizontal sweeper motion parameters may differ from the source environment.
 - **Structural budgets (`max_beams`, `max_structure_mass`)**: Limits on beam count and total structural mass may differ from the source environment.
-- **Performance targets (`min_purity`)**: The required classification purity threshold may differ from the source environment.
 - **Lateral wind & gusts (`wind_amplitude`, `gust_amplitude`, `wind_period_steps`)**: Lateral forcing on particles may differ from the source environment.
 - **Gravitational field (`gravity`)**: Net gravitational acceleration may differ from the source environment.
 - **Ambient damping (`linear_damping`, `angular_damping`)**: Linear and angular damping applied to bodies may differ from the source environment.
 - **Particle bulk properties (`mix.density`, `mix.restitution`, `mix.friction`)**: Particle inertia and contact behavior may differ from the source mixture.
 - **Structure–particle contact (`beam_friction`)**: Tangential interaction between your beams and particles may differ from the source environment.
-- **Target zone boundaries**: Vertical boundaries defining the target zones for each particle size class may differ from the source environment.
-- **Particle size & jitter**: Nominal radii or radius jitter for each particle class may differ from the source mixture.
-- **Build zone constraints**: The permitted construction boundaries for your structure may differ from the source environment.
-- **Feed wave timing**: The specific steps at which subsequent particle waves are released may differ from the source schedule.
 
 **Discovery via feedback**: Identify the effective physical rules of this environment through trial and reasoning. When a design fails, use observed motion, contacts, and metrics to revise the structure and control strategy.
 """

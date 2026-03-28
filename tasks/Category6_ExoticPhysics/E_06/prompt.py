@@ -27,7 +27,7 @@ Design a robust cantilever structure that remains intact under distance-scaled s
 - **Loads**: The structure is subject to continuous noise and periodic "storms". Excitation intensity increases with distance from the support.
 - **Momentum**: Periodic coherent pulses create significant overturning moments, especially at the structure's tip.
 - **Build Zone**: x in [5.0, 15.0] m, y in [1.5, 8.0] m. Beam centers in the **forbidden zone** x in [9.7, 10.3] m are rejected. Maximum 48 beams and 75 joints. Beam width and height must be in [0.1, 4.0] m.
-- **Structural limits**: Joints fail above 78 N reaction force or 115 N·m reaction torque; cumulative damage fails at 100 pts. Damage accumulates when force > 12.0 N or torque > 18.0 N·m. Beams fail at angular velocity > 2.2 rad/s. Periodic storms occur between steps 100-450. Ground anchors must be at least 0.7 m apart (only one anchor is allowed, so this applies if you replace it).
+- **Structural limits**: Joints fail above 78 N reaction force or 115 N·m reaction torque; cumulative damage fails at 100 pts. Ground anchors must be at least 0.7 m apart (only one anchor is allowed, so this applies if you replace it).
 - **Goal**: Maintain structural integrity (avoid joint failure or beam destruction) for the duration of the test while spanning the required horizontal distance.
 
 ## Task Objective

@@ -130,8 +130,8 @@ class Sandbox:
         Create a simple placeholder climber template to show the environment.
         This is just for visualization - the solver must build their own climber.
         """
-        spawn_x = 4.5  # Centered around x=4.5m
-        spawn_y = 1.5  # Centered around y=1.5m
+        spawn_x = 3.0  # Near wall
+        spawn_y = 2.0  # Above ground
         
         # Simple body (small box) - just for visualization
         body_width = 0.3

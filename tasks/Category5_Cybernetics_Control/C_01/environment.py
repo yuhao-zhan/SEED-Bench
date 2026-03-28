@@ -79,7 +79,6 @@ class Sandbox:
         self._prime_sensor_delay_buffers()
         # Consecutive completed physics steps with |true pole angle| in upright band (evaluator lock-in)
         self._consecutive_upright_sim_steps = 0
-        self._peak_abs_pole_angle = 0.0
 
     def _snapshot_cart_pole(self):
         snap = []
@@ -108,19 +107,30 @@ class Sandbox:
             b.angularVelocity = av
 
     def _prime_sensor_delay_buffers(self):
-        """Fill delay queues with the initial state to ensure correct delay from step 0."""
+        """Fill delay queues from a zero-force rollout, then restore bodies (episode step count unchanged)."""
         da = self._sensor_delay_angle_steps
         dw = self._sensor_delay_omega_steps
-        n_a = da + 1
-        n_w = dw + 1
-        
-        initial_a = self.get_true_pole_angle()
-        initial_w = self.get_true_pole_angular_velocity()
-        
-        for _ in range(n_a):
-            self._angle_buffer.append(initial_a)
-        for _ in range(n_w):
-            self._omega_buffer.append(initial_w)
+        n = max(da, dw, 0)
+        if n == 0:
+            self._angle_buffer.append(self.get_true_pole_angle())
+            self._omega_buffer.append(self.get_true_pole_angular_velocity())
+            return
+        snap = self._snapshot_cart_pole()
+        angles = []
+        omegas = []
+        for _ in range(n + 1):
+            angles.append(self.get_true_pole_angle())
+            omegas.append(self.get_true_pole_angular_velocity())
+            cart = self._terrain_bodies["cart"]
+            cart.ApplyForce((self._last_applied_force, 0), cart.position, True)
+            self.world.Step(TIME_STEP, WORLD_VELOCITY_ITERATIONS, WORLD_POSITION_ITERATIONS)
+        self._restore_cart_pole(snap)
+        tail_a = angles[-(da + 1) :] if da > 0 else [self.get_true_pole_angle()]
+        tail_w = omegas[-(dw + 1) :] if dw > 0 else [self.get_true_pole_angular_velocity()]
+        for v in tail_a:
+            self._angle_buffer.append(v)
+        for v in tail_w:
+            self._omega_buffer.append(v)
 
     def _apply_configs(self):
         pc = self.physics_config
@@ -132,12 +142,12 @@ class Sandbox:
         self._cart_mass = pc.get("cart_mass", CART_MASS)
         self._pole_length = pc.get("pole_length", POLE_LENGTH)
         self._pole_mass = pc.get("pole_mass", POLE_MASS)
-        self._sensor_delay_angle_steps = int(pc.get(
+        self._sensor_delay_angle_steps = pc.get(
             "sensor_delay_angle_steps", DEFAULT_SENSOR_DELAY_ANGLE_STEPS
-        ))
-        self._sensor_delay_omega_steps = int(pc.get(
+        )
+        self._sensor_delay_omega_steps = pc.get(
             "sensor_delay_omega_steps", DEFAULT_SENSOR_DELAY_OMEGA_STEPS
-        ))
+        )
         self.TRACK_CENTER_X = pc.get("track_center_x", TRACK_CENTER_X)
         self.SAFE_HALF_RANGE = pc.get("safe_half_range", SAFE_HALF_RANGE)
         self.MAX_STEPS = pc.get("max_steps", MAX_STEPS)
@@ -183,25 +193,20 @@ class Sandbox:
             raise ValueError(
                 f"C-01 Sandbox.step(dt) requires dt == TIME_STEP ({TIME_STEP}); got {dt!r}."
             )
+        # Update delay buffers BEFORE stepping to store current state
+        true_angle = self.get_true_pole_angle()
+        true_omega = self.get_true_pole_angular_velocity()
+        self._angle_buffer.append(true_angle)
+        self._omega_buffer.append(true_omega)
 
         self._step_count += 1
         cart = self._terrain_bodies["cart"]
         cart.ApplyForce((self._last_applied_force, 0), cart.position, True)
         self.world.Step(TIME_STEP, WORLD_VELOCITY_ITERATIONS, WORLD_POSITION_ITERATIONS)
-        
-        # Update delay buffers AFTER stepping so buffer[0] is state from da steps ago.
-        # da=0 means maxlen=1, buffer[0] will be current state after this append.
-        self._angle_buffer.append(self.get_true_pole_angle())
-        self._omega_buffer.append(self.get_true_pole_angular_velocity())
-
         if abs(self.get_true_pole_angle()) <= self._balance_lock_angle_rad:
             self._consecutive_upright_sim_steps += 1
         else:
             self._consecutive_upright_sim_steps = 0
-            
-        current_abs_pole_angle = abs(self.get_true_pole_angle())
-        if current_abs_pole_angle > self._peak_abs_pole_angle:
-            self._peak_abs_pole_angle = current_abs_pole_angle
 
     def get_true_pole_angle(self):
         p = self._terrain_bodies.get("pole")
@@ -238,7 +243,3 @@ class Sandbox:
     def get_consecutive_upright_sim_steps(self) -> int:
         """Completed physics steps in a row within the upright band (see module BALANCE_ANGLE_DEG)."""
         return int(self._consecutive_upright_sim_steps)
-
-    def get_peak_pole_angle(self) -> float:
-        """Get the peak absolute pole angle observed so far."""
-        return float(self._peak_abs_pole_angle)

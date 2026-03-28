@@ -71,12 +71,6 @@ class S01Renderer(Renderer):
         # Draw target line (red)
         self.draw_line(target_x, 0, target_x, 20, RED, 3)
         
-        # Draw joints
-        JOINT_COLOR = (255, 50, 50)
-        for joint in sandbox.world.joints:
-            anchor = joint.anchorA
-            self.draw_circle(anchor.x, anchor.y, 0.1, JOINT_COLOR)
-        
         # Draw build zone outline
         if hasattr(sandbox, 'BUILD_ZONE_X_MIN'):
             x_min = sandbox.BUILD_ZONE_X_MIN

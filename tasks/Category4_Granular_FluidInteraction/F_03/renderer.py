@@ -58,13 +58,10 @@ class F03Renderer(Renderer):
                         if hasattr(f.shape, "radius"):
                             r = f.shape.radius
                             break
-                    x_min = getattr(sandbox, "HOPPER_VALID_X_MIN", sandbox.HOPPER_X_MIN)
-                    x_max = getattr(sandbox, "HOPPER_VALID_X_MAX", sandbox.HOPPER_X_MAX)
-                    y_min = getattr(sandbox, "HOPPER_VALID_Y_MIN", sandbox.HOPPER_Y_MIN)
-                    y_max = getattr(sandbox, "HOPPER_VALID_Y_MAX", sandbox.HOPPER_Y_MAX)
                     in_hopper = (
-                        x_min <= px <= x_max
-                        and y_min <= py <= y_max
+                        hasattr(sandbox, "HOPPER_X_MIN")
+                        and sandbox.HOPPER_X_MIN <= px <= sandbox.HOPPER_X_MAX
+                        and sandbox.HOPPER_Y_MIN <= py <= sandbox.HOPPER_Y_MAX
                     )
                     if in_hopper:
                         self.draw_circle(px, py, r, COLOR_SAND_SUCCESS, outline_color=(140, 255, 140), outline_width=2)

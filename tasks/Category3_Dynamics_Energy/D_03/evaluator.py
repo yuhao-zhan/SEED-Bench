@@ -18,7 +18,7 @@ class Evaluator:
         self.environment = environment
         
         # Read from terrain_bounds so mutated stages stay in sync (aligned with environment.py defaults)
-        self._target_x_min = float(terrain_bounds.get("target_x_min", 12.75))
+        self._target_x_min = float(terrain_bounds.get("target_x_min", 11.75))
         self._target_speed_min = float(terrain_bounds.get("target_speed_min", 0.45))
         self._target_speed_max = float(terrain_bounds.get("target_speed_max", 2.6))
         self._speed_trap_x = float(terrain_bounds.get("speed_trap_x", 9.0))

@@ -22,7 +22,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
     if target_mass != base_mass:
-        pattern = r"(- \*\*Mass Limit\*\*: <= )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
+        pattern = r"(- \*\*Mass Limit\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
         description = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment).", description)
     
     # Update Payload mass (task_description: "Each payload has mass **500 kg** (applied at t=5s and t=15s).")
@@ -31,20 +31,14 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_load_mass = base_terrain_config.get("load_mass", 500.0)
     if target_load_mass != base_load_mass:
         # Match "Each payload has mass **NNN kg**" plus rest of sentence up to " The first payload".
-        # This regex avoids strict dependency on the punctuation at the end of the load times part.
         pattern = r"(Each payload has mass \*\*)(\d+,?\d*)( kg\*\*)(.*?)(\s+The first payload)"
         def _replace_mass(m):
-            mid = m.group(4)
-            # If load times were already updated, mid will end with "))." or similar.
-            # We want to insert the mass "originally" part before the final "." if it exists.
-            if mid.endswith("."):
-                mid_content = mid[:-1]
-                return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{mid_content} (originally {base_load_mass:,.0f} kg in the source environment).{m.group(5)}"
-            elif mid.endswith(". "):
-                mid_content = mid[:-2]
-                # group(5) usually starts with a space, so we don't add one here after the period.
-                return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{mid_content} (originally {base_load_mass:,.0f} kg in the source environment).{m.group(5)}"
-            return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{mid} (originally {base_load_mass:,.0f} kg in the source environment){m.group(5)}"
+            tail = m.group(4)
+            if tail.endswith(")."):
+                tail = tail[:-2] + ") (originally {0:,.0f} kg in the source environment).".format(base_load_mass)
+            else:
+                tail = tail + " (originally {0:,.0f} kg in the source environment).".format(base_load_mass)
+            return f"{m.group(1)}{target_load_mass:,.0f}{m.group(3)}{tail}{m.group(5)}"
         if re.search(pattern, description):
             description = re.sub(pattern, _replace_mass, description, count=1)
 
@@ -56,15 +50,22 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_t1 = float(base_terrain_config.get("load_attach_time", default_load_attach))
     base_t2 = float(base_terrain_config.get("load_2_attach_time", default_load_2_attach))
     if target_t1 != base_t1 or target_t2 != base_t2:
-        # Match "at t=5s and t=15s" followed by optional " (originally ...)" and optional punctuation.
-        pattern1 = r"\(e\.g\., at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)(?: \(originally [^)]+\))?\)\.?\s*"
-        pattern2 = r"\(applied at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)(?: \(originally [^)]+\))?\)\.?\s*"
-        replacement1 = f"(e.g., at t={target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). "
-        replacement2 = f"(applied at t={target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). "
+        # Match and consume the closing ")." and any following whitespace so we don't duplicate it.
+        # Two contexts: "(e.g., at ...)." (then newline) and "(applied at ...). The"
+        pattern1 = r"\(e\.g\., at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)\)\.\s*"
+        pattern2 = r"\(applied at (t=)(\d+\.?\d*)(s and t=)(\d+\.?\d*)(s)\)\.\s*"
         if re.search(pattern1, description):
-            description = re.sub(pattern1, replacement1, description)
+            description = re.sub(
+                pattern1,
+                f"(e.g., at \\g<1>{target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). ",
+                description,
+            )
         if re.search(pattern2, description):
-            description = re.sub(pattern2, replacement2, description)
+            description = re.sub(
+                pattern2,
+                f"(applied at \\g<1>{target_t1:.1f}s and t={target_t2:.1f}s (originally {base_t1:.1f}s and {base_t2:.1f}s in the source environment)). ",
+                description,
+            )
 
     # Update load hold duration (VISIBLE: "10 seconds each")
     target_duration = float(target_terrain_config.get("load_duration", 10.0))
@@ -74,7 +75,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(pattern, description):
             description = re.sub(
                 pattern,
-                f"\\g<1>{target_duration:.1f} seconds each (originally {base_duration:.1f} seconds in the source environment)",
+                f"\\g<1>{target_duration:.1f} seconds each (originally {base_duration:.1f} seconds in the source environment) ",
                 description,
             )
 
@@ -230,7 +231,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_mass = target_terrain_config.get("max_structure_mass", 15000.0)
     base_mass = base_terrain_config.get("max_structure_mass", 15000.0)
     if target_mass != base_mass:
-        pattern = r"(- \*\*Mass Budget\*\*: <= )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
+        pattern = r"(- \*\*Mass Budget\*\*: < )([\d,]+)( kg)(?: \(originally [^)]+\))?\.?"
         criteria = re.sub(pattern, f"\\g<1>{target_mass:,.0f} kg (originally {base_mass:,.0f} kg in the source environment).", criteria)
     
     # Update Payload Mass in Success Criteria (cascading-safe)
@@ -244,20 +245,11 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_duration = float(target_terrain_config.get("load_duration", 10.0))
     base_duration = float(base_terrain_config.get("load_duration", 10.0))
     if target_duration != base_duration:
-        # Update numbered item
         pattern = r"(Successfully supports all payloads for the )(\d+\.?\d*)(s test duration)(?: \(originally [^)]+\))?\.?"
         if re.search(pattern, criteria):
             criteria = re.sub(
                 pattern,
                 f"\\g<1>{target_duration:.1f}s test duration (originally {base_duration:.1f}s in the source environment).",
-                criteria,
-            )
-        # Update bullet point
-        pattern_bullet = r"(- \*\*Load Duration\*\*: Support each payload for )(\d+\.?\d*)( seconds)(?: \(originally [^)]+\))?\.?"
-        if re.search(pattern_bullet, criteria):
-            criteria = re.sub(
-                pattern_bullet,
-                f"\\g<1>{target_duration:.1f} seconds (originally {base_duration:.1f} seconds in the source environment).",
                 criteria,
             )
 
@@ -303,7 +295,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     target_tol = float(target_terrain_config.get("reach_tolerance", default_tol))
     base_tol = float(base_terrain_config.get("reach_tolerance", default_tol))
     if target_tol != base_tol:
-        pattern_tol = r"(- \*\*Reach Tolerance\*\*: Under load, tip x may be up to )(\d+\.?\d*)( m )(?:\(originally [^)]+\) )?short of target and still satisfy reach\.?"
+        pattern_tol = r"(- \*\*Reach Tolerance\*\*: Under load, tip x may be up to )(\d+\.?\d*)( m )(?:\(originally [^)]+\) )?short of target and still satisfy reach\.)"
         if re.search(pattern_tol, criteria):
             criteria = re.sub(pattern_tol, f"\\g<1>{target_tol:.1f} m (originally {base_tol:.1f} m in the source environment) short of target and still satisfy reach.", criteria)
 
@@ -463,7 +455,7 @@ def get_s03_curriculum_stages() -> List[Dict[str, Any]]:
         "anchor_strength_map": "**Regional Anchor Weakness**: Certain vertical segments of the wall may exhibit structural integrity that differs from standard conditions, affecting anchor stability.",
         "forbidden_anchor_y": "**Forbidden Anchor Zones**: Specific vertical segments of the wall may be restricted from attaching anchors.",
         "obstacle_active": "**Static Obstructions**: Massive, impenetrable structures might be present in the build zone, necessitating complex geometries to navigate around them.",
-        "obstacle_rects": "**Obstacle Layout**: The specific coordinates and dimensions of static obstructions in the environment may vary.",
+        "obstacle_rects": "**Obstacle Dimensions**: Specific rectangular zones are blocked off by obstructions.",
         "load_type": "**Dynamic Load Impacts**: The payload might be dropped from a height rather than being placed statically, introducing severe impulse forces.",
         "drop_height": "**Payload Drop Height**: The height from which payloads are dropped may vary.",
         "spatial_force": "**Localized Force Fields**: Invisible spatial anomalies might exert powerful repulsive or attractive forces on any structure within their radius of influence.",

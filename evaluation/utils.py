@@ -258,7 +258,6 @@ def get_max_steps_for_task(task_name: str) -> int:
         'category_2_04': 60000,
         'category_2_05': 60000,
         'category_2_06': 150000,
-        'category_3_01': 6000,
         'category_3_03': 20000,
         'category_3_04': 15000,
         'category_3_06': 15000,

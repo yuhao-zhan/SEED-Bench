@@ -64,17 +64,12 @@ class Sandbox:
         self._create_terrain(terrain_config)
         
         # 3. Set build zone and constraints
-        self.BUILD_ZONE_X_MIN = float(terrain_config.get("BUILD_ZONE_X_MIN", 0.0))
-        self.BUILD_ZONE_X_MAX = float(terrain_config.get("BUILD_ZONE_X_MAX", 8.0))
-        self.BUILD_ZONE_Y_MIN = float(terrain_config.get("BUILD_ZONE_Y_MIN", 1.0))
-        self.BUILD_ZONE_Y_MAX = float(terrain_config.get("BUILD_ZONE_Y_MAX", 12.0))
+        self.BUILD_ZONE_X_MIN = 0.0  # Build zone x start
+        self.BUILD_ZONE_X_MAX = 8.0  # Build zone x end
+        self.BUILD_ZONE_Y_MIN = 1.0  # Build zone y start (at ground level)
+        self.BUILD_ZONE_Y_MAX = 12.0  # Build zone y end (high enough for lifting)
         self.MAX_STRUCTURE_MASS = float(terrain_config.get("max_structure_mass", 60.0))  # Maximum total structure mass (kg)
         
-        # Start position and lifting threshold (sync with evaluator, prompt)
-        self.OBJECT_START_X = float(terrain_config.get("OBJECT_START_X", 4.0))
-        self.OBJECT_START_Y = float(terrain_config.get("OBJECT_START_Y", 1.8))
-        self.LIFTING_THRESHOLD_M = float(terrain_config.get("LIFTING_THRESHOLD_M", 0.5))
-
         # Mutated tasks: optional target height and sustain time (evaluator reads these)
         self.target_object_y = float(terrain_config.get("target_object_y", 9.0))
         self.min_sustain_s = float(terrain_config.get("min_sustain_s", 3.0))
@@ -148,8 +143,8 @@ class Sandbox:
             com_offset = (float(com_offset[0]), float(com_offset[1]))
         
         # Object position
-        object_x = self.OBJECT_START_X
-        object_y = self.OBJECT_START_Y
+        object_x = 4.0
+        object_y = 1.8  # On ground (slightly above ground surface)
         
         # Rectangular object
         width, height = 0.6, 0.4
@@ -187,8 +182,8 @@ class Sandbox:
         Create a simple placeholder lifter template to show the environment.
         This is just for visualization - the solver must build their own lifter.
         """
-        spawn_x = self.OBJECT_START_X
-        spawn_y = self.OBJECT_START_Y + 0.2  # Above object
+        spawn_x = 4.0
+        spawn_y = 2.0  # Above object
         
         # Simple body (small box) - just for visualization
         body_width = 0.3
@@ -215,10 +210,18 @@ class Sandbox:
                 self._world.DestroyBody(body)
 
     # --- Physical constraint constants ---
+    LIFTING_THRESHOLD_M = 0.5  # Min height gain (m) above initial object y to count as "lifting started" (sync evaluator, prompt)
     MIN_BEAM_SIZE = 0.05  # Minimum beam width/height (meters)
     MAX_BEAM_SIZE = 4.0  # Maximum beam width/height (meters)
     MIN_JOINT_LIMIT = -math.pi  # Minimum joint angle limit (radians)
     MAX_JOINT_LIMIT = math.pi  # Maximum joint angle limit (radians)
+    # BUILD_ZONE_X_MIN, BUILD_ZONE_X_MAX, BUILD_ZONE_Y_MIN, BUILD_ZONE_Y_MAX, MAX_STRUCTURE_MASS
+    # are set in __init__ based on terrain_config
+    BUILD_ZONE_X_MIN = 0.0  # Default, will be updated in __init__
+    BUILD_ZONE_X_MAX = 8.0  # Default, will be updated in __init__
+    BUILD_ZONE_Y_MIN = 1.0  # Build zone y start
+    BUILD_ZONE_Y_MAX = 12.0  # Build zone y end
+    MAX_STRUCTURE_MASS = 60.0  # Default, will be updated in __init__
 
     # --- Below are Primitives API open to LLM (with physical constraints) ---
 
@@ -442,12 +445,12 @@ class Sandbox:
             self._object_to_lift.angularVelocity = 0
 
     def enforce_object_at_ground(self):
-        """Enforce object at ground at simulation start. Call after build so the object must be lifted by the mechanism.
+        """Enforce object at ground (4, 1.8) at simulation start. Call after build so the object must be lifted by the mechanism.
         Set terrain_config['skip_enforce_object_at_ground']=True to skip (e.g. reference agent test)."""
         if self._terrain_config.get('skip_enforce_object_at_ground'):
             return
         if self._object_to_lift:
-            self._object_to_lift.position = (self.OBJECT_START_X, self.OBJECT_START_Y)
+            self._object_to_lift.position = (OBJECT_START_X, OBJECT_START_Y)
             self._object_to_lift.linearVelocity = (0, 0)
             self._object_to_lift.angularVelocity = 0
 

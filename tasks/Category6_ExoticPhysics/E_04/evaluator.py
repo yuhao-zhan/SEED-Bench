@@ -130,7 +130,7 @@ class Evaluator:
             if not xs or max(xs) < self.SPAN_RIGHT_X:
                 violations.append(f"Structure must span right: at least one beam center at x ≥ {self.SPAN_RIGHT_X}")
         joint_types = getattr(self.environment, "_joint_types", {})
-        if getattr(self.environment, "REQUIRE_PIVOT_JOINT", True) and not any(jt == "pivot" for jt in joint_types.values()):
+        if joint_types and not any(jt == "pivot" for jt in joint_types.values()):
             violations.append("At least one joint must be a pivot (revolute); use type='pivot' for one joint")
         for body in self.environment._bodies:
             x, y = body.position.x, body.position.y

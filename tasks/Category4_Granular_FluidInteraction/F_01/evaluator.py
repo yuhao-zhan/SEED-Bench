@@ -39,9 +39,6 @@ class Evaluator:
         self.MIN_BEAM_COUNT = getattr(environment, 'MIN_BEAM_COUNT', getattr(env_class, 'MIN_BEAM_COUNT', 10))
         self.MAX_BEAMS_RIGHT_STRIP = getattr(environment, 'MAX_BEAMS_RIGHT_STRIP', getattr(env_class, 'MAX_BEAMS_RIGHT_STRIP', 2))
         self.MAX_BEAMS_MIDDLE_STRIP = getattr(environment, 'MAX_BEAMS_MIDDLE_STRIP', getattr(env_class, 'MAX_BEAMS_MIDDLE_STRIP', 1))
-        self.MIN_BEAMS_MIDDLE_STRIP = getattr(environment, 'MIN_BEAMS_MIDDLE_STRIP', getattr(env_class, 'MIN_BEAMS_MIDDLE_STRIP', 1))
-        self.MIN_BEAMS_LEFT_STRIP = getattr(environment, 'MIN_BEAMS_LEFT_STRIP', getattr(env_class, 'MIN_BEAMS_LEFT_STRIP', 1))
-        self.MIN_BEAMS_RIGHT_STRIP = getattr(environment, 'MIN_BEAMS_RIGHT_STRIP', getattr(env_class, 'MIN_BEAMS_RIGHT_STRIP', 1))
         # Three disjoint strips: left, middle (bridge), right
         self.BUILD_ZONE_LEFT_X_MIN = getattr(environment, 'BUILD_ZONE_LEFT_X_MIN', 12.4)
         self.BUILD_ZONE_LEFT_X_MAX = getattr(environment, 'BUILD_ZONE_LEFT_X_MAX', 12.6)
@@ -65,8 +62,8 @@ class Evaluator:
         if not self.environment:
             return True, 0.0, {"error": "Environment not available"}
 
-        # Design constraints check only at step 0 (or first call)
-        if not self.design_constraints_checked:
+        # Design constraints check only at step 0
+        if not self.design_constraints_checked and step_count == 0:
             violations = self._check_design_constraints()
             if violations:
                 self.design_constraints_checked = True
@@ -105,7 +102,7 @@ class Evaluator:
         if leakage_rate > self.MAX_LEAKAGE_RATE:
             failed = True
             limit_pct = self.MAX_LEAKAGE_RATE * 100
-            failure_reason = f"Leakage rate {leakage_rate * 100:.2f}% exceeds {limit_pct:.2f}% limit"
+            failure_reason = f"Leakage rate {leakage_rate * 100:.1f}% exceeds {limit_pct:.2f}% limit"
 
         if self.structure_broken:
             failed = True
@@ -159,7 +156,6 @@ class Evaluator:
             "structure_mass": self.environment.get_structure_mass(),
             "max_structure_mass": self.MAX_STRUCTURE_MASS,
             "structure_broken": self.structure_broken,
-            "first_joint_break_step": self.environment.get_first_joint_break_step() if hasattr(self.environment, 'get_first_joint_break_step') else None,
             "joint_count": len(self.environment._joints),
             "terrain_joint_count": self.environment.get_terrain_joint_count() if hasattr(self.environment, 'get_terrain_joint_count') else 0,
             "max_beam_count": self.MAX_BEAM_COUNT,
@@ -210,9 +206,9 @@ class Evaluator:
             violations.append(
                 f"Middle strip has {middle_strip_count} beams; at most {self.MAX_BEAMS_MIDDLE_STRIP} beam(s) allowed in the middle strip (bridge constraint)"
             )
-        if middle_strip_count < self.MIN_BEAMS_MIDDLE_STRIP:
+        if middle_strip_count < 1:
             violations.append(
-                f"Dam must use the middle strip: at least {self.MIN_BEAMS_MIDDLE_STRIP} beam center(s) in middle strip x=[{self.BUILD_ZONE_MIDDLE_X_MIN}, {self.BUILD_ZONE_MIDDLE_X_MAX}] (bridge required for valid topology)"
+                f"Dam must use the middle strip: at least one beam center in middle strip x=[{self.BUILD_ZONE_MIDDLE_X_MIN}, {self.BUILD_ZONE_MIDDLE_X_MAX}] (bridge required for valid topology)"
             )
         beam_to_beam_joints = len(self.environment._joints) - terrain_joints
         if beam_to_beam_joints > self.MAX_JOINT_COUNT:
@@ -250,9 +246,9 @@ class Evaluator:
                         if self.BUILD_ZONE_LEFT_X_MIN <= b.position.x <= self.BUILD_ZONE_LEFT_X_MAX)
         right_count = sum(1 for b in self.environment._bodies
                          if self.BUILD_ZONE_RIGHT_X_MIN <= b.position.x <= self.BUILD_ZONE_RIGHT_X_MAX)
-        if left_count < self.MIN_BEAMS_LEFT_STRIP or right_count < self.MIN_BEAMS_RIGHT_STRIP:
+        if left_count < 1 or right_count < 1:
             violations.append(
-                f"Dam must span the gate: at least {self.MIN_BEAMS_LEFT_STRIP} beam center(s) in left strip x=[{self.BUILD_ZONE_LEFT_X_MIN}, {self.BUILD_ZONE_LEFT_X_MAX}] and at least {self.MIN_BEAMS_RIGHT_STRIP} in right strip x=[{self.BUILD_ZONE_RIGHT_X_MIN}, {self.BUILD_ZONE_RIGHT_X_MAX}]"
+                f"Dam must span the gate: at least one beam center in left strip x=[{self.BUILD_ZONE_LEFT_X_MIN}, {self.BUILD_ZONE_LEFT_X_MAX}] and at least one in right strip x=[{self.BUILD_ZONE_RIGHT_X_MIN}, {self.BUILD_ZONE_RIGHT_X_MAX}]"
             )
         # Build zones and mandatory underflow gap (left OR middle OR right)
         # For underflow, use world-space polygon vertices so rotated beams are checked correctly.

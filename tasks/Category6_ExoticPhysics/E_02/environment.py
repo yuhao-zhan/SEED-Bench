@@ -30,19 +30,19 @@ class Sandbox:
     DEFAULT_LINEAR_DAMPING = 4.0
     DEFAULT_ANGULAR_DAMPING = 3.0
 
-    # Gate definitions (VISIBLE in prompt; configurable via terrain_config)
+    # Gate definitions (for internal use / reference agent; not exposed in prompt)
     GATE1_X_LO, GATE1_X_HI = 12.0, 14.0
-    GATE1_Y_LO, GATE1_Y_HI = 1.0, 2.8
+    GATE1_Y_LO, GATE1_Y_HI = 1.0, 2.8   # gap: craft center y in [1.0, 2.8] (bottom bar y<1.0)
     GATE2_X_LO, GATE2_X_HI = 22.0, 24.0
     GATE2_Y_LO, GATE2_Y_HI = 1.8, 3.0
 
     # Zone x-ranges (momentum drain, slippery, wind) — discoverable
-    DRAIN_X_LO, DRAIN_X_HI = 14.5, 17.0
-    SLIP_X_LO, SLIP_X_HI = 17.5, 20.0
+    DRAIN_X_LO, DRAIN_X_HI = 14.5, 17.0   # after gate 1 so craft can reach gate first
+    SLIP_X_LO, SLIP_X_HI = 17.5, 20.0     # after drain
     WIND_X_LO, WIND_X_HI = 20.5, 28.0
 
-    DRAIN_VELOCITY_FACTOR = 0.5
-    SLIP_BACKWARD_FORCE = -28.0
+    DRAIN_VELOCITY_FACTOR = 0.5    # velocity *= this each step in drain zone (default)
+    SLIP_BACKWARD_FORCE = -28.0    # extra Fx in slippery zone (default)
     WIND_AMPLITUDE = 20.0
     WIND_OMEGA = 0.055
 
@@ -51,7 +51,7 @@ class Sandbox:
         physics_config = physics_config or {}
         self._terrain_config = dict(terrain_config)
         self._physics_config = dict(physics_config)
-        gravity = tuple(physics_config.get("gravity", (0, -3)))
+        gravity = tuple(physics_config.get("gravity", (0, -3)))  # lighter so craft can lift off ground
         self._linear_damping = float(physics_config.get("linear_damping", self.DEFAULT_LINEAR_DAMPING))
         self._angular_damping = float(physics_config.get("angular_damping", self.DEFAULT_ANGULAR_DAMPING))
         self._drain_velocity_factor = float(physics_config.get("drain_velocity_factor", self.DRAIN_VELOCITY_FACTOR))
@@ -59,7 +59,6 @@ class Sandbox:
         self._wind_amplitude = float(physics_config.get("wind_amplitude", self.WIND_AMPLITUDE))
         self._wind_omega = float(physics_config.get("wind_omega", self.WIND_OMEGA))
         self._overheat_limit = float(physics_config.get("overheat_limit", self.OVERHEAT_LIMIT))
-        self._max_steps = int(physics_config.get("max_steps", self.MAX_STEPS))
         
         # New environmental forces
         self._constant_force_x = float(physics_config.get("constant_force_x", 0.0))
@@ -74,25 +73,8 @@ class Sandbox:
         self.world = self._world
         self.bodies = []
         self.joints = []
-
-        # Terrain / Visible configuration
         self._craft_start_x = float(terrain_config.get("craft_start_x", self.CRAFT_START_X))
         self._craft_start_y = float(terrain_config.get("craft_start_y", self.CRAFT_START_Y))
-        self._target_x_min = float(terrain_config.get("target_x_min", self.TARGET_X_MIN))
-        self._target_x_max = float(terrain_config.get("target_x_max", self.TARGET_X_MAX))
-        self._target_y_min = float(terrain_config.get("target_y_min", self.TARGET_Y_MIN))
-        self._target_y_max = float(terrain_config.get("target_y_max", self.TARGET_Y_MAX))
-        
-        self._gate1_x_lo = float(terrain_config.get("gate1_x_lo", self.GATE1_X_LO))
-        self._gate1_x_hi = float(terrain_config.get("gate1_x_hi", self.GATE1_X_HI))
-        self._gate1_y_lo = float(terrain_config.get("gate1_y_lo", self.GATE1_Y_LO))
-        self._gate1_y_hi = float(terrain_config.get("gate1_y_hi", self.GATE1_Y_HI))
-        
-        self._gate2_x_lo = float(terrain_config.get("gate2_x_lo", self.GATE2_X_LO))
-        self._gate2_x_hi = float(terrain_config.get("gate2_x_hi", self.GATE2_X_HI))
-        self._gate2_y_lo = float(terrain_config.get("gate2_y_lo", self.GATE2_Y_LO))
-        self._gate2_y_hi = float(terrain_config.get("gate2_y_hi", self.GATE2_Y_HI))
-
         self._create_terrain(terrain_config)
         self._create_craft(terrain_config)
 
@@ -110,15 +92,15 @@ class Sandbox:
         self._terrain_bodies["ground"] = ground
         self._ground_y = ground_height
 
-        # Gates: vertical walls with gaps
+        # Gates: vertical walls with gaps (optional — set E02_USE_GATES=True to enable)
         bar_w = 0.25
         if terrain_config.get("use_gates", True):
-            # Gate 1: gaps at x_lo/x_hi
+            # Gate 1: gap y in [1.0, 2.8]; bottom bar y 0 to 1.0
             for (px, py, hw, hh) in [
-                (self._gate1_x_lo - bar_w / 2, self._gate1_y_lo / 2, bar_w / 2, self._gate1_y_lo / 2),
-                (self._gate1_x_lo - bar_w / 2, 4.4, bar_w / 2, 1.6), # Fixed upper bar logic
-                (self._gate1_x_hi + bar_w / 2, self._gate1_y_lo / 2, bar_w / 2, self._gate1_y_lo / 2),
-                (self._gate1_x_hi + bar_w / 2, 4.4, bar_w / 2, 1.6),
+                (self.GATE1_X_LO - bar_w / 2, 0.5, bar_w / 2, 0.5),
+                (self.GATE1_X_LO - bar_w / 2, 4.4, bar_w / 2, 1.6),
+                (self.GATE1_X_HI + bar_w / 2, 0.5, bar_w / 2, 0.5),
+                (self.GATE1_X_HI + bar_w / 2, 4.4, bar_w / 2, 1.6),
             ]:
                 self._world.CreateStaticBody(
                     position=(px, py),
@@ -127,12 +109,12 @@ class Sandbox:
                         friction=0.4,
                     ),
                 )
-            # Gate 2
+            # Gate 2: gap y in [1.8, 3.0], x in [22, 24]
             for (px, py, hw, hh) in [
-                (self._gate2_x_lo - bar_w / 2, self._gate2_y_lo / 2, bar_w / 2, self._gate2_y_lo / 2),
-                (self._gate2_x_lo - bar_w / 2, 3.9, bar_w / 2, 0.9),
-                (self._gate2_x_hi + bar_w / 2, self._gate2_y_lo / 2, bar_w / 2, self._gate2_y_lo / 2),
-                (self._gate2_x_hi + bar_w / 2, 3.9, bar_w / 2, 0.9),
+                (self.GATE2_X_LO - bar_w / 2, 0.9, bar_w / 2, 0.9),
+                (self.GATE2_X_LO - bar_w / 2, 3.9, bar_w / 2, 0.9),
+                (self.GATE2_X_HI + bar_w / 2, 0.9, bar_w / 2, 0.9),
+                (self.GATE2_X_HI + bar_w / 2, 3.9, bar_w / 2, 0.9),
             ]:
                 self._world.CreateStaticBody(
                     position=(px, py),
@@ -232,22 +214,14 @@ class Sandbox:
         """Overheat limit (N·s) for this run; may differ in mutated environments."""
         return self._overheat_limit
 
-    def get_max_steps(self):
-        """Max steps for this run; may differ in mutated environments."""
-        return self._max_steps
-
     def get_terrain_bounds(self):
         return {
             "ground_y": self._ground_y,
             "craft_start": {"x": self._craft_start_x, "y": self._craft_start_y},
             "target_zone": {
-                "x_min": self._target_x_min,
-                "x_max": self._target_x_max,
-                "y_min": self._target_y_min,
-                "y_max": self._target_y_max,
+                "x_min": self.TARGET_X_MIN,
+                "x_max": self.TARGET_X_MAX,
+                "y_min": self.TARGET_Y_MIN,
+                "y_max": self.TARGET_Y_MAX,
             },
-            "gates": {
-                "gate1": {"x_min": self._gate1_x_lo, "x_max": self._gate1_x_hi, "y_min": self._gate1_y_lo, "y_max": self._gate1_y_hi},
-                "gate2": {"x_min": self._gate2_x_lo, "x_max": self._gate2_x_hi, "y_min": self._gate2_y_lo, "y_max": self._gate2_y_hi},
-            }
         }

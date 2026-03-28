@@ -9,6 +9,8 @@ class Evaluator:
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
+        self.max_angle_deviation = 10.0 * math.pi / 180.0
+        self.balance_time = 15.0  # Will be overridden below if environment provides it
         
         self.load_caught = False
         self.balance_start_time = None
@@ -21,12 +23,12 @@ class Evaluator:
         env_class = type(environment)
         try:
             # Read from instance attributes first (for mutated tasks), fallback to class constants
-            self.max_angle_deviation = getattr(environment, 'MAX_ANGLE_DEVIATION', env_class.MAX_ANGLE_DEVIATION)
-            self.balance_time = getattr(environment, 'BALANCE_TIME', env_class.BALANCE_TIME)
+            self.MAX_ANGLE_DEVIATION = getattr(environment, 'MAX_ANGLE_DEVIATION', env_class.MAX_ANGLE_DEVIATION)
+            self.BALANCE_TIME = getattr(environment, 'BALANCE_TIME', env_class.BALANCE_TIME)
             self.ground_y_limit = getattr(environment, 'GROUND_Y_FAILURE', -5.0)
-            
-            self.PIVOT_X = getattr(environment, 'PIVOT_X', 0.0)
-            self.PIVOT_Y = getattr(environment, 'PIVOT_Y', 5.0)
+            # Also update balance_time (used in evaluate method)
+            self.balance_time = self.BALANCE_TIME
+            self.max_angle_deviation = self.MAX_ANGLE_DEVIATION
         except AttributeError as e:
             raise AttributeError(f"Environment class {env_class.__name__} missing required constant: {e}")
         
@@ -75,34 +77,32 @@ class Evaluator:
             failed = True
             failure_reason = "Pivot joint snapped (static torque exceeded limit)"
         
-        # Check if any body touches ground (including load)
-        if not failed:
-            bodies_to_check = list(self.environment._bodies)
-            load_body = self.environment._terrain_bodies.get("load")
-            if load_body:
-                bodies_to_check.append(load_body)
-                
-            for i, body in enumerate(bodies_to_check):
-                if body.position.y < self.ground_y_limit:
-                    failed = True
-                    if body == load_body:
-                        failure_reason = f"Load fell to the ground (y={body.position.y:.2f} < {self.ground_y_limit})"
-                    else:
-                        failure_reason = f"Structure body {i} touched ground (y={body.position.y:.2f} < {self.ground_y_limit})"
-                    break
+        # Check if load touches ground
+        load_body = self.environment._terrain_bodies.get("load")
+        if load_body and load_body.position.y < self.ground_y_limit:
+            failed = True
+            failure_reason = f"Load fell to the ground (y={load_body.position.y:.2f} < {self.ground_y_limit})"
         
-        # Fail fast only for hard-constraint violations if no other failure already recorded
-        if not failed:
-            load_target = self.terrain_bounds.get('load_position', (3.0, 5.5))
-            if not catch_ok and current_time > 1.0:
+        # Check if any body touches ground
+        for i, body in enumerate(self.environment._bodies):
+            if body.position.y < self.ground_y_limit:
                 failed = True
-                if getattr(self.environment, "_drop_load", False):
-                    failure_reason = "Failed to catch the falling load"
-                else:
-                    failure_reason = f"Failed to catch load at {load_target}"
-            elif catch_ok and angle_deviation > self.max_angle_deviation and current_time > 2.0:
-                failed = True
-                failure_reason = f"Beam angle {angle_deviation * 180 / math.pi:.1f}° exceeds ±{self.max_angle_deviation * 180 / math.pi:.1f}° limit"
+                failure_reason = f"Structure body {i} touched ground (y={body.position.y:.2f} < {self.ground_y_limit})"
+                break
+        
+        # Fail fast only for hard-constraint violations:
+        # - load not caught early
+        # - structure touches ground
+        # - angle blows past limit (large tilt), not merely "not yet balanced for 15s"
+        if not catch_ok and current_time > 1.0:
+            failed = True
+            if getattr(self.environment, "_drop_load", False):
+                failure_reason = "Failed to catch the load"
+            else:
+                failure_reason = "Failed to catch load at (3, 5.5)"
+        elif catch_ok and angle_deviation > self.max_angle_deviation and current_time > 2.0:
+            failed = True
+            failure_reason = f"Beam angle {angle_deviation * 180 / math.pi:.1f}° exceeds ±{self.max_angle_deviation * 180 / math.pi:.1f}° limit"
         
         # Calculate score
         if success and not failed:
@@ -128,12 +128,10 @@ class Evaluator:
         for body in getattr(self.environment, "_bodies", []):
             m = float(getattr(body, "mass", 0.0))
             structure_mass += m
-            # Coordinates relative to pivot
-            rx = float(body.position.x) - self.PIVOT_X
-            ry = float(body.position.y) - self.PIVOT_Y
-            com_x += m * float(body.position.x)
-            com_y += m * float(body.position.y)
-            min_body_y = float(body.position.y) if min_body_y is None else min(min_body_y, float(body.position.y))
+            rx, ry = float(body.position.x), float(body.position.y)
+            com_x += m * rx
+            com_y += m * ry
+            min_body_y = ry if min_body_y is None else min(min_body_y, ry)
             
             Fx = m * wind_f + m * gx
             Fy = m * gy
@@ -150,13 +148,11 @@ class Evaluator:
         load_pos = None
         if load_body is not None:
             load_mass = float(getattr(load_body, "mass", 0.0))
-            rx_abs, ry_abs = float(load_body.position.x), float(load_body.position.y)
-            load_pos = (rx_abs, ry_abs)
+            rx, ry = float(load_body.position.x), float(load_body.position.y)
+            load_pos = (rx, ry)
             
             # Include load in the torque if it's attached or interacting
-            if self.load_caught:
-                rx = rx_abs - self.PIVOT_X
-                ry = ry_abs - self.PIVOT_Y
+            if getattr(self.environment, "_load_attached", False) or getattr(self.environment, "_drop_load", False):
                 Fx = load_mass * wind_f + load_mass * gx
                 Fy = load_mass * gy
                 net_torque_about_pivot += (rx * Fy - ry * Fx)

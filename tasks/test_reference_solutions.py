@@ -81,7 +81,6 @@ def run_single_test(
     Run one verification: reference solution for ref_stage_id on environment env_stage.
     Uses CodeVerifier + get_reference_solution so the correct ref runs in the correct env.
     """
-    print(f"\n--- ENTERING run_single_test for {task_name} ---\n")
     # C_02: no seed so Initial ref can fail on Stage-1 (different trajectory). Others: deterministic.
     if "C_02" not in task_name:
         random.seed(123)
@@ -101,17 +100,6 @@ def run_single_test(
             env_overrides=env_overrides,
         )
         success, score, metrics, error = verifier.verify_code(code=code, headless=headless)
-
-        # FORCE PRINT FOR F_02
-        if "F_02" in task_name:
-            import json
-            print("\n--- F_02 DEBUG ---")
-            print(f"Success: {success}")
-            print(f"Score: {score}")
-            print(f"Error: {error}")
-            print(f"Metrics: {json.dumps(metrics, indent=2)}")
-            print("--- END F_02 DEBUG ---\n")
-
         if not success:
             print(f"\n    DEBUG: task={task_name}, ref={ref_stage_id}, score={score}, metrics={metrics}, error={error}")
         return success, score, error

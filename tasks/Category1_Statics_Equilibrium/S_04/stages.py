@@ -12,14 +12,14 @@ UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
 While the following variables MIGHT have changed from the initial environment, NOT ALL of them will necessarily be mutated in any given task. You must use active interaction and environmental feedback to deduce which specific conditions apply:
- - Pivot Connection Type: The mechanical nature of the central support connection may differ from the baseline configuration.
+ - Pivot Connection Type: The type of connection at the central support may differ from the default (rigid weld), potentially allowing free rotation (revolute joint).
  - Fragile Anchor Points: The central pivot joint's static torque capacity may differ from the default. If the net torque exceeds this threshold, the fulcrum will snap.
  - Rotational Friction: The friction at the pivot point may differ from the default, affecting natural damping and sensitivity to mass imbalance.
  - Precision Thresholds: The allowable angle for "balance" may differ from the default, requiring you to discover the effective tolerance through feedback.
  - Lateral Wind Currents: Persistent horizontal air currents may exert forces on all components, creating overturning torques that must be countered by offset mass distributions.
  - Gravitational Fluctuations: Local gravity may differ from Earth-standard, affecting the magnitude of mass imbalance and structural stress.
  - Spatial Obstructions: Static structural barriers occupy parts of the workspace, forcing non-linear designs to navigate around "no-build" zones.
- - Loading Dynamics: The target mass may exhibit non-standard behavior or require non-obvious capture strategies compared to the initial environment.
+ - Dynamic Loading: The target mass may be dropped from a height rather than starting in a static position, requiring your structure to absorb kinetic energy while maintaining equilibrium.
  - Angular Damping: Rotational damping of bodies may be altered, affecting how quickly oscillations decay.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
@@ -45,7 +45,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
     base_angle = base_terrain_config.get("max_angle_deviation_deg", 10.0)
     target_angle = target_terrain_config.get("max_angle_deviation_deg", 10.0)
     if target_angle != base_angle:
-        angle_pattern = r"(horizontal angle within ±)(\d+\.?\d*)( degrees)(\))( for \d+\.?\d* seconds\.)"
+        angle_pattern = r"(horizontal angle within ±)(\d+\.?\d*)( degrees)(\))( for \d+ seconds\.)"
         if re.search(angle_pattern, description):
             description = re.sub(
                 angle_pattern,
@@ -82,7 +82,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                 description,
             )
     
-    # Update balance_time when mutated (task description: "for 15.0 seconds.")
+    # Update balance_time when mutated (task description: "for 15 seconds.")
     default_balance_time = 15.0
     base_balance_time = base_terrain_config.get("balance_time", default_balance_time)
     target_balance_time = target_terrain_config.get("balance_time", default_balance_time)
@@ -91,7 +91,7 @@ def update_task_description_for_visible_changes(base_description: str, target_te
         if re.search(balance_time_pattern, description):
             description = re.sub(
                 balance_time_pattern,
-                f"\\g<1>{target_balance_time:.1f} seconds (originally {base_balance_time:.1f} seconds in the source environment).",
+                f"\\g<1>{target_balance_time:.1f} seconds (originally {base_balance_time:.1f} s in the source environment).",
                 description,
                 1,
             )
@@ -136,15 +136,9 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
     base_angle = base_terrain_config.get("max_angle_deviation_deg", 10.0)
     max_angle = target_terrain_config.get("max_angle_deviation_deg", 10.0)
     if max_angle != base_angle:
-        angle_pattern = r"(within ±)(\d+\.?\d*)( degrees)"
-        if re.search(angle_pattern, criteria):
-            criteria = re.sub(
-                angle_pattern,
-                f"\\g<1>{max_angle:.1f} degrees (originally ±{base_angle:.1f} degrees in the source environment)",
-                criteria,
-            )
+        criteria = criteria.replace("within ±10 degrees", f"within ±{max_angle:.1f} degrees (originally ±{base_angle:.1f} degrees in the source environment)")
 
-    # Update balance_time when mutated (success criteria: "for at least 15.0 seconds")
+    # Update balance_time when mutated (success criteria: "for at least 15 seconds")
     default_balance_time = 15.0
     base_balance_time = base_terrain_config.get("balance_time", default_balance_time)
     target_balance_time = target_terrain_config.get("balance_time", default_balance_time)
@@ -153,7 +147,7 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
         if re.search(criteria_balance_pattern, criteria):
             criteria = re.sub(
                 criteria_balance_pattern,
-                f"\\g<1>{target_balance_time:.1f} seconds (originally {base_balance_time:.1f} seconds in the source environment) after the load is supported.",
+                f"\\g<1>{target_balance_time:.1f} seconds (originally {base_balance_time:.1f} s in the source environment) after the load is supported.",
                 criteria,
                 1,
             )
@@ -170,7 +164,6 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
                 f"\\g<1>{target_ground_y:.1f} m (originally {base_ground_y:.1f} m in the source environment)) or any surface other than the pivot.",
                 criteria,
             )
-
 
     return criteria
 
@@ -235,7 +228,7 @@ def get_s04_curriculum_stages() -> List[Dict[str, Any]]:
         {
             "stage_id": "Stage-4",
             "title": "The Kinetic Impact",
-            "mutation_description": "Catch a falling load in a high-gravity wind-swept environment with spatial constraints. The pivot joint has been reinforced with significantly higher torque capacity to handle the impact force.",
+            "mutation_description": "Catch a falling load in a high-gravity wind-swept environment with a brittle pivot and spatial constraints. The impact force must be carefully managed.",
             "task_description_suffix": UNIFORM_SUFFIX,
             "terrain_config": {
                 "force_pivot_joint": True, 

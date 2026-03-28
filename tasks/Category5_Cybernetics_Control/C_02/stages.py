@@ -194,7 +194,7 @@ def update_task_description_for_visible_changes(
             return f"{target:.1f} m"
 
         p_hull = re.compile(
-            r"(rectangular hull ).+?(\)\.)( Starting position \(spawn x=)",
+            r"(rectangular hull ).+?( Starting position \(spawn x=)",
         )
         if p_hull.search(description):
             core = (
@@ -203,7 +203,7 @@ def update_task_description_for_visible_changes(
                 f"half-height {_hull_m_seg(target_lhh, base_lhh)})"
             )
             description = p_hull.sub(
-                lambda m: f"{m.group(1)}{core}{m.group(2)}{m.group(3)}",
+                lambda m: f"{m.group(1)}{core}{m.group(2)}",
                 description,
                 count=1,
             )
@@ -230,10 +230,10 @@ def update_task_description_for_visible_changes(
             r"(\*\*Ground\*\*: The landing surface \(ground and platform\) is at y=)"
             rf"({_PROMPT_SCALAR})( m)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
             r"(; the static ground fixture extends downward from that plane by )"
-            rf"({_PROMPT_SCALAR})( m \(slab thickness\))(\.)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
+            rf"({_PROMPT_SCALAR})( m \(slab thickness\)\.)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
             r"( The terrain extends horizontally over roughly )"
-            rf"({_PROMPT_SCALAR})( m)(\.)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
-            r"(\s*Touchdown is detected when the craft's lowest point is within )"
+            rf"({_PROMPT_SCALAR})( m)(?: \(originally {_PROMPT_SCALAR} m in the source environment\))?"
+            r"(\. Touchdown is detected when the craft's lowest point is within )"
         )
         if re.search(p_ground, description):
 
@@ -256,8 +256,7 @@ def update_task_description_for_visible_changes(
                 return (
                     f"{m.group(1)}{target_gy:.1f}{m.group(3)}{y_o}{m.group(4)}"
                     f"{target_gslab:.1f}{m.group(6)}{slab_o}{m.group(7)}"
-                    f"{m.group(8)}{target_glen:.0f}{m.group(10)}{len_o}{m.group(11)}"
-                    f"{m.group(12)}"
+                    f"{target_glen:.0f}{m.group(9)}{len_o}{m.group(10)}"
                 )
 
             description = re.sub(p_ground, _ground_repl, description)
@@ -614,7 +613,7 @@ def update_task_description_for_visible_changes(
     base_ts = float(base_physics_config.get("time_step", DEFAULT_TIME_STEP))
     if abs(target_ts - base_ts) > 1e-12:
         p_ts = (
-            r"(Fixed time step )(.+?)( s per step)(\.)"
+            r"(Fixed time step )(.+?)( s per step\.)"
             r"(?: \(originally .+? in the source environment\))?"
         )
         if re.search(p_ts, description):
@@ -624,7 +623,7 @@ def update_task_description_for_visible_changes(
                 p_ts,
                 lambda m: (
                     f"{m.group(1)}{nl}{m.group(3)} "
-                    f"(originally {ol} in the source environment){m.group(4)}"
+                    f"(originally {ol} in the source environment)"
                 ),
                 description,
                 count=1,
@@ -645,7 +644,7 @@ def update_task_description_for_visible_changes(
             return f"{int(round(x))}" if abs(x - round(x)) < 1e-9 else f"{x:g}"
 
         p_lt = (
-            rf"(Touchdown is detected when the craft's lowest point is within )({_PROMPT_SCALAR})( m of the ground surface)(\.)"
+            rf"(Touchdown is detected when the craft's lowest point is within )({_PROMPT_SCALAR})( m of the ground surface\.)"
             + _ORIG_ANY
         )
         if re.search(p_lt, description):
@@ -654,7 +653,7 @@ def update_task_description_for_visible_changes(
                 p_lt,
                 lambda m: (
                     f"{m.group(1)}{t_s}{m.group(3)} "
-                    f"(originally {b_s} m in the source environment){m.group(4)}"
+                    f"(originally {b_s} m in the source environment)"
                 ),
                 description,
             )
