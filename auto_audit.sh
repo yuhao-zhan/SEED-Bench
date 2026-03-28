@@ -101,45 +101,6 @@ MODELS=("MiniMax-M2.7")
 # Global variable to track models that have failed (quota or crash) during this run
 BLACKLISTED_MODELS=""
 
-# Track background heartbeat workers so traps can always clean them.
-HEARTBEAT_PIDS=""
-
-register_heartbeat_pid() {
-    local pid="$1"
-    [ -n "$pid" ] || return 0
-    HEARTBEAT_PIDS="$HEARTBEAT_PIDS $pid"
-}
-
-unregister_heartbeat_pid() {
-    local pid="$1"
-    [ -n "$pid" ] || return 0
-    local kept=""
-    local p
-    for p in $HEARTBEAT_PIDS; do
-        if [ "$p" != "$pid" ]; then
-            kept="$kept $p"
-        fi
-    done
-    HEARTBEAT_PIDS="$kept"
-}
-
-cleanup_heartbeats() {
-    local p
-    for p in $HEARTBEAT_PIDS; do
-        kill "$p" 2>/dev/null || true
-    done
-    for p in $HEARTBEAT_PIDS; do
-        wait "$p" 2>/dev/null || true
-    done
-    HEARTBEAT_PIDS=""
-}
-
-on_exit_cleanup() {
-    cleanup_heartbeats
-}
-
-trap on_exit_cleanup INT TERM EXIT
-
 # When claude exits non-zero: print why-it-failed hints (never prints secret values).
 print_claude_failure_diagnostics() {
     local exit_code="$1"
@@ -257,32 +218,9 @@ run_claude_with_fallback() {
         # Capture stdout and stderr separately
         TMP_ERR=$(mktemp)
         TMP_OUT=$(mktemp)
-        HEARTBEAT_TIP_DIR=$(mktemp -d)
         API_START=$(date +%s)
-        (
-            while true; do
-                sleep 15
-                NOW=$(date +%s)
-                ELAPSED=$((NOW - API_START))
-                echo "  [...] Still waiting for Claude Code (${ELAPSED}s elapsed, model=$MODEL) — no live stream; output appears when the run finishes." >&2
-                if [ "$ELAPSED" -ge 120 ] && [ ! -f "$HEARTBEAT_TIP_DIR/tip120" ]; then
-                    touch "$HEARTBEAT_TIP_DIR/tip120"
-                    echo "  [...] Tip: Interactive chat in another terminal uses a different mode. This script only uses headless \`-p\` (no TUI, no partial transcript here)." >&2
-                fi
-                if [ "$ELAPSED" -ge 300 ] && [ ! -f "$HEARTBEAT_TIP_DIR/tip300" ]; then
-                    touch "$HEARTBEAT_TIP_DIR/tip300"
-                    echo "  [...] Tip: 5–30+ minutes can be normal for a big audit. Check the process: ps aux | grep -E '[c]laude'" >&2
-                fi
-            done
-        ) &
-        HEARTBEAT_PID=$!
-        register_heartbeat_pid "$HEARTBEAT_PID"
-        claude -p --model "$MODEL" --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. Use the available tools to complete the task." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
+        claude -p --model "$MODEL" --permission-mode dontAsk --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. Use the available tools to complete the task." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
         EXIT_CODE=$?
-        kill "$HEARTBEAT_PID" 2>/dev/null || true
-        wait "$HEARTBEAT_PID" 2>/dev/null || true
-        unregister_heartbeat_pid "$HEARTBEAT_PID"
-        rm -rf "$HEARTBEAT_TIP_DIR"
         API_END=$(date +%s)
         API_DURATION=$((API_END - API_START))
         OUTPUT=$(cat "$TMP_OUT")
@@ -362,7 +300,7 @@ run_auto_audit_for_task() {
 # ==========================================
 # PROMPTS - aligned with .claude/skills/task-audit/SKILL.md
 # ==========================================
-read -r -d '' PROMPT << EOM
+read -r -d '' PROMPT << 'EOM'
 # Objective
 Conduct a strict audit of the task in the following directory: '${TASK_DIR}'. Use your tools to systematically list and read all relevant code files there. Your goal is to analyze the existing code for logic, consistency, and expected failure states, reporting any violations.
 
@@ -425,7 +363,7 @@ while true; do
     echo "========================================================"
     echo "🧠 Evaluating LLM Response for Completion Status..."
 
-    read -r -d '' CLASSIFY_PROMPT << EOM
+    read -r -d '' CLASSIFY_PROMPT << 'EOM'
 Analyze the following report from a code auditor.
 Did the auditor find ANY violations?
 - If the auditor found ZERO violations and the code is perfectly clean (e.g., stated "No violations found" for all categories), reply with exactly the word "CLEAN".

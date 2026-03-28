@@ -99,44 +99,6 @@ fi
 MODELS=("MiniMax-M2.7")
 BLACKLISTED_MODELS=""
 
-HEARTBEAT_PIDS=""
-
-register_heartbeat_pid() {
-    local pid="$1"
-    [ -n "$pid" ] || return 0
-    HEARTBEAT_PIDS="$HEARTBEAT_PIDS $pid"
-}
-
-unregister_heartbeat_pid() {
-    local pid="$1"
-    [ -n "$pid" ] || return 0
-    local kept=""
-    local p
-    for p in $HEARTBEAT_PIDS; do
-        if [ "$p" != "$pid" ]; then
-            kept="$kept $p"
-        fi
-    done
-    HEARTBEAT_PIDS="$kept"
-}
-
-cleanup_heartbeats() {
-    local p
-    for p in $HEARTBEAT_PIDS; do
-        kill "$p" 2>/dev/null || true
-    done
-    for p in $HEARTBEAT_PIDS; do
-        wait "$p" 2>/dev/null || true
-    done
-    HEARTBEAT_PIDS=""
-}
-
-on_exit_cleanup() {
-    cleanup_heartbeats
-}
-
-trap on_exit_cleanup INT TERM EXIT
-
 print_claude_failure_diagnostics() {
     local exit_code="$1"
     local model="$2"
@@ -208,36 +170,16 @@ run_claude_with_fallback() {
 
         PROMPT_BYTES=${#PROMPT_CONTENT}
         echo "  [→] Calling Claude Code with model: $MODEL (prompt ~${PROMPT_BYTES} bytes)..." >&2
-        echo "  [→] Started at $(date '+%Y-%m-%d %H:%M:%S %z')" >&2
 
         TMP_ERR=$(mktemp)
         TMP_OUT=$(mktemp)
-        HEARTBEAT_TIP_DIR=$(mktemp -d)
         API_START=$(date +%s)
-        (
-            while true; do
-                sleep 15
-                NOW=$(date +%s)
-                ELAPSED=$((NOW - API_START))
-                echo "  [...] Still waiting for Claude Code (${ELAPSED}s elapsed, model=$MODEL)..." >&2
-                if [ "$ELAPSED" -ge 300 ] && [ ! -f "$HEARTBEAT_TIP_DIR/tip300" ]; then
-                    touch "$HEARTBEAT_TIP_DIR/tip300"
-                    echo "  [...] Tip: 5+ minutes can be normal. Check: ps aux | grep -E '[c]laude'" >&2
-                fi
-            done
-        ) &
-        HEARTBEAT_PID=$!
-        register_heartbeat_pid "$HEARTBEAT_PID"
-        claude -p --model "$MODEL" --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. Use the available tools to complete the task." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
+        claude -p --model "$MODEL" --permission-mode dontAsk --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. Use the available tools to complete the task." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
         EXIT_CODE=$?
-        kill "$HEARTBEAT_PID" 2>/dev/null || true
-        wait "$HEARTBEAT_PID" 2>/dev/null || true
-        unregister_heartbeat_pid "$HEARTBEAT_PID"
-        rm -rf "$HEARTBEAT_TIP_DIR"
         API_END=$(date +%s)
         API_DURATION=$((API_END - API_START))
         OUTPUT=$(cat "$TMP_OUT")
-        echo "  [→] API call finished after ${API_DURATION}s (exit code $EXIT_CODE) at $(date '+%H:%M:%S')" >&2
+        echo "  [→] API call finished after ${API_DURATION}s (exit code $EXIT_CODE)" >&2
 
         if [ $EXIT_CODE -eq 0 ]; then
             SUCCESS=true
@@ -304,7 +246,7 @@ if [ -z "$JSON_FILES" ]; then
     JSON_FILES="${JSON_BASE}/all_Initial_to_Stage-1.json ${JSON_BASE}/all_Initial_to_Stage-2.json ${JSON_BASE}/all_Initial_to_Stage-3.json ${JSON_BASE}/all_Initial_to_Stage-4.json"
 fi
 
-read -r -d '' PROMPT_PHASE_1 << EOM
+read -r -d '' PROMPT_PHASE_1 << 'EOM'
 # Role & Objective
 You are an expert Embodied AI evaluator, physical simulation analyst, and code reviewer. I am providing you with complete JSON execution logs representing multiple iteration attempts by an LLM agent to solve a physics-based task.
 
@@ -360,7 +302,7 @@ echo "========================================================"
 echo "🔧 PHASE 2: Forensic Feedback Optimization"
 echo "========================================================"
 
-read -r -d '' PROMPT_PHASE_2 << EOM
+read -r -d '' PROMPT_PHASE_2 << 'EOM'
 # Phase 2: Forensic Feedback Optimization
 Based on the Forensic Analysis provided below, immediately proceed to refactor the \`format_task_metrics(metrics)\` function within \`${TASK_DIR}/feedback.py\`.
 
@@ -433,7 +375,7 @@ while true; do
     echo "🔄 QA Iteration $ITERATION for $TASK_DIR..."
     echo "========================================================"
 
-    read -r -d '' PROMPT_QA << EOM
+    read -r -d '' PROMPT_QA << 'EOM'
 For ${TASK_NAME}
 # Strict Quality Assurance (QA) Code Auditor
 
@@ -490,7 +432,7 @@ EOM
     echo "========================================================"
     echo "🧠 Evaluating QA Response..."
 
-    read -r -d '' CLASSIFY_PROMPT << EOM
+    read -r -d '' CLASSIFY_PROMPT << 'EOM'
 Analyze the following QA audit report.
 Did the auditor find any issues that needed correcting?
 - If the auditor stated "Audit complete: No issues found" and made NO modifications, reply with exactly the word "CLEAN".
