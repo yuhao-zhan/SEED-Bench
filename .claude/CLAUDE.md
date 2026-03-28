@@ -107,9 +107,12 @@ When Claude Code's context window fills and automatic compaction occurs, preserv
 **This is mandatory at the end of every session.**
 
 ### End-of-Session Checklist
-1. Run `git status` to see what changed
-2. Stage meaningful changes: `git add <files>` (NOT `git add .`)
-3. Commit with a **descriptive message** following this format:
+1. **Pre-cleanup** (run before git operations):
+   - `python3 common/remove_pycache.py` — removes all `__pycache__` directories
+   - `python3 common/remove_comments.py` — strips comments and docstrings from `tasks/*/agent.py`
+2. Run `git status` to see what changed
+3. Stage meaningful changes: `git add <files>` (NOT `git add .`)
+4. Commit with a **descriptive message** following this format:
    ```
    <area>: <what changed> — <why>
    ```
@@ -117,7 +120,7 @@ When Claude Code's context window fills and automatic compaction occurs, preserv
    - `harness: add HANDOFF.md generation to auto_audit.sh`
    - `benchmark: fix joint breaking logic in S_01 evaluator`
    - `memory: add user_preferences.md with code style rules`
-4. Update `.claude/PROGRESS.md` — add the commit to the Recent Commits table
+5. Update `.claude/PROGRESS.md` — add the commit to the Recent Commits table
 
 ### If Changes Break Something
 1. **Do NOT keep iterating** — git stash or git reset --hard to last known good commit

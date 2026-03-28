@@ -1,52 +1,37 @@
 ---
 name: user_project_preferences
-description: User corrections about SEED-Bench project organization and harness engineering
+description: Project organization rules, code style, and harness engineering notes (git cleanup now in CLAUDE.md)
 type: feedback
 ---
 
 ## Project Organization Rules
 
-### Benchmark code vs harness code
-- Benchmark internal code lives in `evaluation/`, `tasks/`, `methods/`, `common/`
-- Harness/engineer improvements (things that help Claude Code work better) live in `.claude/`
-- **IMPORTANT**: Never modify `evaluation/prompt.py`, `evaluation/evaluate.py`, etc. with harness improvements — those are benchmark internals
+- Benchmark internal: `evaluation/`, `tasks/`, `methods/`, `common/`
+- Harness improvements: `.claude/`
+- **Never** modify `evaluation/prompt.py`, `evaluation/evaluate.py` etc. with harness improvements
 
-### .claude/ structure
-- `.claude/CLAUDE.md` — project overview and running commands
-- `.claude/skills/` — skill definitions for Claude Code to use
-- `.claude/settings.local.json` — CLI permissions and local config
-- `.claude/memory/` — user-level persistent memory (this directory)
+## .claude/ Structure
+- `CLAUDE.md` — project overview, running commands, **git session management (including pre-cleanup steps)**
+- `skills/` — skill definitions
+- `settings.local.json` — CLI permissions
+- `memory/` — persistent memory
 
 ## Harness Engineering Preferences
 
-### Implemented improvements
-1. **Context Compaction Priority** — added to CLAUDE.md to prevent architectural amnesia
-2. **HANDOFF.md generation** — auto_audit.sh and auto_feedback.sh now generate handoff files
-3. **Sprint Contract skill** — `.claude/skills/sprint-contract/SKILL.md`
-4. **Evaluator Tuning skill** — `.claude/skills/evaluator-tuning/SKILL.md`
+### Implemented
+- Context Compaction Priority in CLAUDE.md
+- HANDOFF.md generation in auto_audit/feedback
+- Sprint-contract and evaluator-tuning skills
 
-### Rejected ideas
-- FeatureList.json generator — too complex, not通用 enough for SEED-Bench's diverse task types
-- run_audit_loop.py and task_linter.py — not integrated into actual workflow, created but unused
-
-## CLI Commands for this project
-- Run audit: `./auto_audit.sh --task <spec>`
-- Run feedback: `./auto_feedback.sh --task <spec>`
-- Single task test: `python tasks/<Category>/<Task>/test_agent.py`
-- Parallel evaluation: `python evaluation/run_evaluate_parallel.py --task <spec> --model-type <type> --model-name <name> --method <method>`
+### Rejected
+- FeatureList.json generator — too complex
+- run_audit_loop.py and task_linter.py — not in actual workflow
 
 ## Code Style Rules
-- **No fallback on exceptions** — report detailed error and stop; do not silently catch and continue
-- **Minimal comments** — only explain non-obvious logic; use succinct language, not prose
+- **No silent exception handling** — expose actual error, stop
+- **Minimal comments** — only non-obvious logic
 
-## Before Git Operations
-**Before every `git add` and `git commit`:**
-1. `python3 common/remove_pycache.py` — removes all `__pycache__` directories
-2. `python3 common/remove_comments.py` — strips comments and docstrings from `tasks/*/agent.py`
-3. Then `git status` to verify what will be staged
-
-## What NOT to do
-- Don't add harness improvements to `evaluation/` directory
-- Don't create scripts that aren't integrated into actual workflow
-- Claude Code settings belong in `.claude/settings.local.json`, not in `evaluation/`
-- Don't use try/except pass or broad catches — always expose the actual error
+## What NOT to Do
+- Don't add harness improvements to `evaluation/`
+- Don't use try/except pass or broad catches
+- Claude Code settings belong in `.claude/settings.local.json`
