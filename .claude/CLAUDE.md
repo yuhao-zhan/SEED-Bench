@@ -112,8 +112,6 @@ When Claude Code's context window fills and automatic compaction occurs, preserv
 3. Commit with a **descriptive message** following this format:
    ```
    <area>: <what changed> — <why>
-
-   Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
    ```
    Examples:
    - `harness: add HANDOFF.md generation to auto_audit.sh`
