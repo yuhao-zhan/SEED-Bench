@@ -174,7 +174,7 @@ run_claude_with_fallback() {
         TMP_ERR=$(mktemp)
         TMP_OUT=$(mktemp)
         API_START=$(date +%s)
-        claude -p --model "$MODEL" --permission-mode dontAsk --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. Use the available tools to complete the task." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
+        claude -p --model "$MODEL" --permission-mode acceptEdits --dangerously-skip-permissions --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. ALL edits, writes, and bash commands are pre-approved — use them freely without asking. Complete the task by actively modifying files." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
         EXIT_CODE=$?
         API_END=$(date +%s)
         API_DURATION=$((API_END - API_START))

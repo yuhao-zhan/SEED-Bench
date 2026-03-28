@@ -213,13 +213,12 @@ run_claude_with_fallback() {
 
         PROMPT_BYTES=${#PROMPT_CONTENT}
         echo "  [→] Calling Claude Code with model: $MODEL (prompt ~${PROMPT_BYTES} bytes)..." >&2
-        echo "  [→] Started at $(date '+%Y-%m-%d %H:%M:%S %z') — headless \`claude -p\` runs the agent (tools/files); stdout is buffered until the CLI exits." >&2
 
         # Capture stdout and stderr separately
         TMP_ERR=$(mktemp)
         TMP_OUT=$(mktemp)
         API_START=$(date +%s)
-        claude -p --model "$MODEL" --permission-mode dontAsk --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. Use the available tools to complete the task." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
+        claude -p --model "$MODEL" --permission-mode acceptEdits --dangerously-skip-permissions --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. ALL edits, writes, and bash commands are pre-approved — use them freely without asking. Complete the task by actively modifying files." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
         EXIT_CODE=$?
         API_END=$(date +%s)
         API_DURATION=$((API_END - API_START))
@@ -287,154 +286,246 @@ run_claude_with_fallback() {
 }
 
 run_auto_audit_for_task() {
-    local TASK_DIR ORIGINAL_STATE_DIR
-    TASK_DIR="${1%/}"
+    local TASK_DIR="${1%/}"
+    local ORIGINAL_STATE_DIR
 
-    # ==========================================
-    # SETUP REVISION TRACKING
-    # ==========================================
-    echo "📦 Backing up initial state for revision tracking..."
+    echo "📦 Backing up initial state..."
     ORIGINAL_STATE_DIR=$(mktemp -d)
     cp -r "$TASK_DIR/"* "$ORIGINAL_STATE_DIR/"
 
-# ==========================================
-# PROMPTS - aligned with .claude/skills/task-audit/SKILL.md
-# ==========================================
-read -r -d '' PROMPT << 'EOM'
-# Objective
-Conduct a strict audit of the task in the following directory: '${TASK_DIR}'. Use your tools to systematically list and read all relevant code files there. Your goal is to analyze the existing code for logic, consistency, and expected failure states, reporting any violations.
+    # Write detailed prompt to temp file so TASK_DIR expansion is guaranteed correct
+    local PROMPT_FILE=$(mktemp)
+    cat > "$PROMPT_FILE" <<- 'ENDPROMPT'
+	# Objective
+	Conduct a strict audit of the task in the following directory: TASK_DIR_PLACEHOLDER
+	Use your tools to systematically list and read all relevant code files there.
+	Your goal is to analyze the existing code for logic, consistency, and expected failure states, reporting any violations.
 
-## STRICT RULE 1: FIX MODE ENABLED
-You are acting as an auditor AND an engineer. Your final output must consist of your analysis, a comprehensive list of violation cases, AND you MUST use your tools to modify and fix ANY and ALL violations you find.
+	## STRICT RULE 1: FIX MODE ENABLED
+	You are acting as an auditor AND an engineer. Your final output must consist of your analysis, a comprehensive list of violation cases, AND you MUST use your tools to modify and fix ANY and ALL violations you find.
 
-## STRICT RULE 2: ANTI-LAZINESS & EXHAUSTIVE COMPLETENESS (CRITICAL)
-You must NOT stop after finding 1 or 2 errors. Do not provide "examples" of violations; you must provide an EXHAUSTIVE, line-by-line enumeration of EVERY SINGLE violation within this specific task directory (strictly referring to the module-level files inside `S_01`, such as `environment.py`, `evaluator.py`, `prompt.py`, etc.). To ensure completeness, you must mentally extract a full list of every physical parameter in `environment.py` and trace EACH ONE through every other module. Please perform the following audit steps for the `S_01` task directory:
+	## STRICT RULE 2: ANTI-LAZINESS & EXHAUSTIVE COMPLETENESS (CRITICAL)
+	You must NOT stop after finding 1 or 2 errors. Do not provide "examples" of violations;
+	you must provide an EXHAUSTIVE, line-by-line enumeration of EVERY SINGLE violation
+	within this specific task directory. To ensure completeness, you must mentally extract
+	a full list of every physical parameter in environment.py and trace EACH ONE through
+	every other module. Please perform the following audit steps:
 
-### Step 1: Cross-Module Consistency Audit
-Systematically review all modules within the `S_01` task directory (including `environment.py`, `evaluator.py`, `feedback.py`, `prompt.py`, `stages.py`, and `renderer.py`).
-* **Expected Outcome:** All modules must be logically consistent and coherent. The physical mechanics and parameters defined in the underlying environment (especially in mutated tasks) MUST perfectly align with the evaluation logic and the prompt descriptions.
-* **Action:** Document EVERY SINGLE discrepancy, logical conflict, or misaligned physics across these files. Trace every constant. No modification!
+	### Step 1: Cross-Module Consistency Audit
+	Systematically review all modules within the task directory (environment.py, evaluator.py, feedback.py, prompt.py, stages.py, and renderer.py).
+	* **Expected Outcome:** All modules must be logically consistent and coherent. The physical mechanics and parameters defined in the underlying environment (especially in mutated tasks) MUST perfectly align with the evaluation logic and the prompt descriptions.
+	* **Action:** Document EVERY SINGLE discrepancy, logical conflict, or misaligned physics across these files. Trace every constant. Fix using Edit tool.
 
-## Step 2: Information Consistency & Variable Audit
-Carefully scrutinize how physical variables and constraints are handled across the modules. You must strictly adhere to the following definitions regarding "Constraint", "Visible", and "Invisible" variables:
+	## Step 2: Information Consistency & Variable Audit
 
-### 1. Constraint Completeness (The "Constraint Variable" Rule)
-* **Definition:** A "Constraint Variable" is ANY variable that defines an absolute maximum, minimum, or failure threshold required to logically or mathematically solve the task (e.g., maximum mass budgets, minimum target heights, force/torque limits for joints, time limits, or strict geometric boundaries). 
-* **Audit Rule:** You must cross-reference `environment.py` and `evaluator.py` to ensure that **ALL necessary structural limits and boundaries** are explicitly stated in the initial prompt with their exact numerical values. **Crucially, this applies even if the limit is physically invisible to the naked eye** (e.g., an internal motor's maximum torque limit). Since these are required constraints for the agent to succeed, they MUST be explicitly prompted.
-* **Exhaustive Check:** Scan `environment.py` for ANY hardcoded constraint numbers or limits. Verify they are correctly exposed in `prompt.py`. Document EVERY omission.
+	### 1. Constraint Completeness (The "Constraint Variable" Rule)
+	* **Definition:** A "Constraint Variable" is a hard design limit the agent must respect to avoid failure. It answers "how large/heavy/strong can my structure be?" NOT "what physical laws govern the environment?"
+	  Examples: max structure mass, max beam dimensions, max joint force/torque limits, max motor torque, max wheels, max chassis height, forbidden geometry, failure height thresholds.
+	* **Audit Rule:** You must cross-reference environment.py and evaluator.py to ensure that ALL necessary structural limits and boundaries are explicitly stated in the initial prompt with their exact numerical values. Crucially, this applies even if the limit is physically invisible to the naked eye (e.g., an internal motor maximum torque limit).
+	* **Exhaustive Check:** Scan environment.py for ANY hardcoded constraint numbers or limits. Verify they are correctly exposed in prompt.py. Document EVERY omission.
 
-### 2. Mutation Synchronization (Updating "Constraint" & "Visible" Variables)
-* **Definition:** A "Visible Variable" refers to observable physical properties or geometric setups explicitly mentioned in the prompt (e.g., gap width, target coordinates, initial mass).
-* **Audit Rule:** If `stages.py` modifies ANY "Constraint Variable" OR "Visible Variable" that is mentioned in the prompt, the prompt string **MUST** be dynamically updated to reflect the new value while explicitly keeping a record of the old value.
-* **Format Requirement:** The prompt update logic must strictly follow the format: `[new_value] (originally [old_value] in the source environment)`. You can refer to `@'tasks/Category1_Statics_Equilibrium/S_01/stages.py'`.
-* **CRITICAL - Execution Verification:** Because these dynamic updates heavily rely on complex Regular Expressions (`regex`) or string replacements, you MUST NOT blindly trust the code. You must actively dry-run or conceptually execute EVERY SINGLE regex logic block in `stages.py` to ensure it successfully captures the target string and accurately outputs the exact required format. 
-* *Example Check:* If a mass budget (Constraint) changes from 380kg to 200kg, the prompt must output: `200kg (originally 380kg in the source environment)`. Document ANY regex mismatches, failures to capture, or malformed string outputs.
+	### 2. Mutation Synchronization (Updating "Constraint" & "Visible" Variables)
+	* **Definition:** A "Visible Variable" refers to observable physical properties or geometric setups explicitly mentioned in the prompt (e.g., gap width, target coordinates, initial mass).
+	* **Priority rule:** If stages.py changes a variable that is BOTH constraint AND (maybe) invisible — expose it. The constraint role takes priority: the agent needs to know the design limit.
+	* **Audit Rule:** If stages.py modifies ANY "Constraint Variable" OR "Visible Variable" that is mentioned in the prompt, the prompt string MUST be dynamically updated to reflect the new value while explicitly keeping a record of the old value.
+	* **Format Requirement:** The prompt update logic must strictly follow the format: [new_value] (originally [old_value] in the source environment).
+	* **CRITICAL - Execution Verification:** You MUST actively dry-run or conceptually execute EVERY SINGLE regex logic block in stages.py to ensure it successfully captures the target string and accurately outputs the exact required format.
+	* *Example Check:* If a mass budget (Constraint) changes from 380kg to 200kg, the prompt must output: 200kg (originally 380kg in the source environment). Document ANY regex mismatches, failures to capture, or malformed string outputs.
 
-### 3. Hidden Physics Protection (The "Invisible Variable" Rule)
-* **Definition:** "Invisible Variables" are underlying environmental physical constants that are **NOT limits or constraints**, and cannot be directly observed by the naked eye (e.g., gravitational acceleration, global friction coefficients, wind force, earthquake amplitude/frequency).
-* **Audit Rule:** The exact numerical values, magnitudes, or directions of change (e.g., "gravity increased to -25", "friction reduced") of these Invisible Variables **MUST NOT** be mentioned in the prompt under any circumstances. The agent is forced to infer these specific anomalies through physical interaction and feedback.
-* **CRITICAL EXCEPTION:** Mentioning the mere *name* of the variable as a general warning is ONLY allowed within the `UNIFORM_SUFFIX` (see Sub-step 4 below). 
-* **Action:** Check EVERY line of `prompt.py` and the regex outputs in `stages.py`. Document EVERY instance where an INVISIBLE environmental constant's specific value or explicit change direction is leaked.
+	### 3. Hidden Physics Protection (The "Invisible Variable" Rule)
+	* **Rule:** If a physical quantity CANNOT be directly observed by looking at the scene — the agent cannot see "gravity = -10", "wind force = 100N", or "earthquake frequency = 2Hz" — then it is an Invisible Variable. Its exact value or direction of change must NEVER appear in prompt.py.
+	  Contrast: "the gap is 15m wide" (VISIBLE — you can see the gap). "max structure mass = 2000kg" (CONSTRAINT — it's a design limit the agent must respect).
+	* **IMPORTANT — Constraint beats Invisible:** If a variable is BOTH a design limit (CONSTRAINT) AND something the agent can't directly observe, it is still a Constraint Variable and MUST be exposed with its value. For example: joint_max_force/torque — the agent cannot "see" the breaking threshold but must respect it, so it goes in the prompt.
+	* **Audit Rule:** Document EVERY instance where an Invisible Variable's specific value or change direction is leaked in prompt.py or stages.py regex outputs.
+	* **UNIFORM_SUFFIX exception:** Only the VARIABLE NAME as a generic warning is allowed (e.g., "wind forces may change"). NEVER include specific values or directions.
 
-### 4. The `UNIFORM_SUFFIX` Audit (The "Union" Rule)
-* **Audit Rule:** The `UNIFORM_SUFFIX` (appended at the end of the prompt for mutated stages) MUST dynamically list the **UNION** of all physical variables that have been modified across Stage-1, Stage-2, Stage-3, and Stage-4 in `stages.py`.
-* **Format & Tone Restriction:** The suffix must ONLY provide a general warning about *what* might have changed (e.g., "Gravitational acceleration: Vertical loads may be significantly different."). It MUST NEVER pinpoint the exact mutations, specific values, or directions of change for any specific stage. The ideal scenario is telling the model *what* variables might change, but never *how* they change.
-* **Action:** Document EVERY instance where the `UNIFORM_SUFFIX` fails to include a modified variable from the union of all 4 stages, OR where it violates the tone by explicitly stating *how* a variable changes.
+	### 4. The UNIFORM_SUFFIX Audit (The "Union" Rule)
+	* **Audit Rule:** The UNIFORM_SUFFIX (appended at the end of the prompt for mutated stages) MUST dynamically list the UNION of ALL physical variables that have been modified across Stage-1, Stage-2, Stage-3, and Stage-4 in stages.py, no matter visible or invisible.
+	* **Format & Tone Restriction:** The suffix must ONLY provide a general warning about what might have changed (e.g., "Gravitational acceleration: Vertical loads may be significantly different."). It MUST NEVER pinpoint the exact mutations, specific values, or directions of change for any specific stage.
+	* **Action:** Document EVERY instance where the UNIFORM_SUFFIX fails to include a modified variable from the union of all 4 stages, OR where it violates the tone by explicitly stating how a variable changes.
 
----
-### ACTION REQUIRED based on your findings:
-**Final Deliverable:** Provide an exhaustively detailed list of all violations categorized by the steps above. If a category has no violations, explicitly state "No violations found for [Category]". Do not summarize; be hyper-specific.
+	### 5. Change Exposure ("_CE") Mode — NOT a Violation
+	* **What is "_CE"?** "_CE" stands for "Change Exposure" — an evaluation mode where the solver agent is intentionally shown the exact mutated/changed variables directly in the prompt. This is a deliberate design choice, NOT a bug or inconsistency.
+	* **Audit Rule:** Do NOT flag _CE stages as revealing "invisible variables" or as UNIFORM_SUFFIX violations. The CE mode exists precisely to expose variable changes to the agent.
+	* **Action:** If you encounter _CE in stage names or configs, skip it in your violation report. Only audit non-CE stages for invisible-variable leakage.
 
-**CRITICAL FIXING STEP:** After listing violations, immediately fix all violations in this turn, but obey STRICT RULE 3. If a fix would change baseline physics/default thresholds, do not apply it; mark it as "requires manual product decision".
-EOM
+	---
+	### ACTION REQUIRED based on your findings:
+	**Final Deliverable:** Provide an exhaustively detailed list of all violations categorized by the steps above. If a category has no violations, explicitly state "No violations found for [Category]". Do not summarize; be hyper-specific.
 
-# ==========================================
-# EXECUTION LOOP
-# ==========================================
-ITERATION=1
-while true; do
+	**CRITICAL MANDATE — YOU MUST USE THE Edit/WRITE TOOLS DIRECTLY:**
+	For EVERY violation you identify, you MUST immediately call the Edit or Write tool to fix it RIGHT NOW in the same response — do NOT just describe the fix in text. The auditor is expected to actually modify files. If a violation requires a fix, use the Edit tool on the actual file before writing your report summary. "Fix confirmed in text" is NOT acceptable — the Edit tool call must appear in your response.
+	ENDPROMPT
+
+    # Replace placeholder with actual TASK_DIR value
+    sed -i '' "s|TASK_DIR_PLACEHOLDER|${TASK_DIR}|g" "$PROMPT_FILE"
+    PROMPT=$(cat "$PROMPT_FILE")
+    rm -f "$PROMPT_FILE"
+
+    # ==========================================
+    # EXECUTION LOOP
+    # ==========================================
+    local ITERATION=1
+    while true; do
+        echo "========================================================"
+        echo "🔄 Iteration $ITERATION: Running audit on $TASK_DIR..."
+        echo "========================================================"
+        echo ""
+
+        echo "📤 Sending prompt to Claude (${#PROMPT} bytes)..."
+        echo "--- PROMPT PREVIEW (first 500 chars) ---"
+        echo "${PROMPT:0:500}"
+        echo "--- END PROMPT PREVIEW ---"
+        echo ""
+
+        OUTPUT=$(run_claude_with_fallback "$PROMPT")
+
+        echo "📥 Raw output from Claude (${#OUTPUT} bytes):"
+        echo "=========================================="
+        echo "$OUTPUT"
+        echo "=========================================="
+        echo ""
+
+        # Check if files actually changed
+        local DIFF_COUNT DIFF_FILE
+        DIFF_FILE=$(mktemp)
+        diff -ruN -x "__pycache__" "$ORIGINAL_STATE_DIR" "$TASK_DIR" > "$DIFF_FILE"
+        DIFF_COUNT=$(wc -l < "$DIFF_FILE")
+
+        echo "🔍 File change detection:"
+        echo "  Original state: $ORIGINAL_STATE_DIR"
+        echo "  Current state:  $TASK_DIR"
+        echo "  Diff lines:     $DIFF_COUNT"
+
+        if [ "$DIFF_COUNT" -gt 0 ]; then
+            echo "  ✅ Files were modified! Diff preview:"
+            head -30 "$DIFF_FILE"
+            if [ "$DIFF_COUNT" -gt 30 ]; then
+                echo "  ... ($(($DIFF_COUNT - 30)) more diff lines)"
+            fi
+        else
+            echo "  ⚠️  WARNING: No files were modified despite the report!"
+        fi
+        echo ""
+
+        if [ "$DIFF_COUNT" -eq 0 ]; then
+            echo "🛠️  Forcing model to output exact Edit commands..."
+
+            local FIX_PROMPT
+            FIX_PROMPT="You previously audited ${TASK_DIR} and found violations but did NOT actually call the Edit tool.
+Now produce ONLY the exact Edit commands needed, in this format (one per line):
+EDIT: file=\"relative/path/filename.py\" old_string=\"EXACT_old_text\" new_string=\"EXACT_new_text\"
+If no edits needed, reply exactly: NO_EDITS_NEEDED"
+
+            local FIX_OUTPUT
+            FIX_OUTPUT=$(run_claude_with_fallback "$FIX_PROMPT")
+
+            echo "--- Model edit commands response ---"
+            echo "$FIX_OUTPUT"
+            echo "------------------------------------"
+            echo ""
+
+            if echo "$FIX_OUTPUT" | grep -q "NO_EDITS_NEEDED"; then
+                echo "Model confirmed: no edits needed. Treating as CLEAN."
+            else
+                echo "Parsing and applying Edit commands..."
+                echo "$FIX_OUTPUT" | grep "^EDIT:" | while IFS= read -r line; do
+                    local EDIT_FILE OLD_STR NEW_STR
+                    EDIT_FILE=$(echo "$line" | sed 's/^EDIT: file="//' | sed 's/".*//')
+                    OLD_STR=$(echo "$line" | sed 's/.*old_string="//' | sed 's/".*new_string="/|||/g' | cut -d'|' -f1)
+                    NEW_STR=$(echo "$line" | sed 's/.*new_string="//' | sed 's/"$//')
+                    if [ -n "$EDIT_FILE" ] && [ -n "$OLD_STR" ] && [ -n "$NEW_STR" ]; then
+                        echo "  Applying: $EDIT_FILE"
+                        echo "  old: $OLD_STR"
+                        echo "  new: $NEW_STR"
+                        local FULL_PATH="$TASK_DIR/$EDIT_FILE"
+                        if [ -f "$FULL_PATH" ]; then
+                            cp "$FULL_PATH" "$FULL_PATH.bak"
+                            if echo "$OLD_STR" | grep -q '|||'; then
+                                local OLD_PART1 OLD_PART2
+                                OLD_PART1=$(echo "$OLD_STR" | cut -d'|' -f1)
+                                OLD_PART2=$(echo "$OLD_STR" | cut -d'|' -f2)
+                                sed -i '' "s|$OLD_PART1|$NEW_STR|g" "$FULL_PATH"
+                            else
+                                sed -i '' "s|$OLD_STR|$NEW_STR|g" "$FULL_PATH"
+                            fi
+                            echo "  ✅ Applied: $EDIT_FILE"
+                        else
+                            echo "  ❌ File not found: $FULL_PATH"
+                        fi
+                    fi
+                done
+            fi
+            echo ""
+        fi
+
+        rm -f "$DIFF_FILE"
+
+        echo "========================================================"
+        echo "🧠 Evaluating LLM Response for Completion Status..."
+
+        local CLASSIFY_PROMPT
+        CLASSIFY_PROMPT="Did the auditor find ANY violations?
+- If ZERO violations found (stated 'No violations' for all categories), reply CLEAN.
+- If ANY violations found or fixed, or report is ambiguous, reply DIRTY.
+Reply with ONLY the word CLEAN or DIRTY."
+
+        local CLASSIFICATION
+        CLASSIFICATION=$(run_claude_with_fallback "$CLASSIFY_PROMPT")
+        CLASSIFICATION=$(echo "$CLASSIFICATION" | xargs)
+
+        echo "Classification Result: [$CLASSIFICATION]"
+
+        if [ "$CLASSIFICATION" = "CLEAN" ]; then
+            echo "✅ Task $TASK_DIR is clean! Breaking loop."
+            break
+        else
+            echo "⚠️  Violations found. Restarting audit..."
+            ITERATION=$((ITERATION+1))
+        fi
+    done
+
+    # ==========================================
+    # GENERATE LOG / DIFF
+    # ==========================================
     echo "========================================================"
-    echo "🔄 Iteration $ITERATION: Running fresh audit on $TASK_DIR..."
-    echo "========================================================"
+    echo "📝 Generating revision patch log..."
 
-    OUTPUT=$(run_claude_with_fallback "$PROMPT")
+    local REL_PATH LOG_DIR LOG_FILE HANDOFF_FILE
+    REL_PATH=$(echo "$TASK_DIR" | sed 's|^tasks/||')
+    LOG_DIR="tasks/auto_audit_log/$REL_PATH"
+    mkdir -p "$LOG_DIR"
+    LOG_FILE="$LOG_DIR/revisions.patch"
 
-    echo "$OUTPUT"
-    echo "========================================================"
-    echo "🧠 Evaluating LLM Response for Completion Status..."
+    diff -ruN -x "__pycache__" "$ORIGINAL_STATE_DIR" "$TASK_DIR" > "$LOG_FILE"
 
-    read -r -d '' CLASSIFY_PROMPT << 'EOM'
-Analyze the following report from a code auditor.
-Did the auditor find ANY violations?
-- If the auditor found ZERO violations and the code is perfectly clean (e.g., stated "No violations found" for all categories), reply with exactly the word "CLEAN".
-- If the auditor found ANY violations (even if they fixed them), or if the report is ambiguous, reply with exactly the word "DIRTY".
-Reply with NOTHING ELSE but that single word.
-
-Report to analyze:
-$OUTPUT
-EOM
-
-    CLASSIFICATION=$(run_claude_with_fallback "$CLASSIFY_PROMPT")
-    CLASSIFICATION=$(echo "$CLASSIFICATION" | xargs)
-
-    echo "Classification Result: [$CLASSIFICATION]"
-
-    if [ "$CLASSIFICATION" = "CLEAN" ]; then
-        echo "✅ Task $TASK_DIR is clean! Breaking loop."
-        break
+    if [ -s "$LOG_FILE" ]; then
+        echo "✅ Success: Revisions saved to $LOG_FILE"
     else
-        echo "⚠️  Violations detected or fixes applied. Wiping context and restarting..."
-        ITERATION=$((ITERATION+1))
+        echo "ℹ️ No changes were made to the files during this audit."
+        rm -f "$LOG_FILE"
     fi
-done
 
-# ==========================================
-# GENERATE LOG / DIFF
-# ==========================================
-echo "========================================================"
-echo "📝 Generating revision patch log..."
+    rm -rf "$ORIGINAL_STATE_DIR"
 
-# Strip 'tasks/' from the start of the path if it exists to get 'Category/Task'
-REL_PATH=$(echo "$TASK_DIR" | sed 's|^tasks/||')
-LOG_DIR="tasks/auto_audit_log/$REL_PATH"
+    HANDOFF_FILE="$LOG_DIR/HANDOFF.md"
+    cat > "$HANDOFF_FILE" <<- 'EOF'
+	# Audit Handoff
+	## Timestamp: TIMESTAMP_PLACEHOLDER
+	## Task: TASK_DIR_PLACEHOLDER
+	## Spec: SPEC_PLACEHOLDER
+	## Total Iterations: ITER_PLACEHOLDER
+	## Last Run Status: CLEAN
+	## Log Files
+	- Revision patch: revisions.patch
+	EOF
+    sed -i '' "s|TIMESTAMP_PLACEHOLDER|$(date '+%Y-%m-%d %H:%M:%S %z')|g" "$HANDOFF_FILE"
+    sed -i '' "s|TASK_DIR_PLACEHOLDER|${TASK_DIR}|g" "$HANDOFF_FILE"
+    sed -i '' "s|SPEC_PLACEHOLDER|${TASK_SPEC}|g" "$HANDOFF_FILE"
+    sed -i '' "s|ITER_PLACEHOLDER|${ITERATION}|g" "$HANDOFF_FILE"
 
-# Ensure the log directory exists
-mkdir -p "$LOG_DIR"
-
-LOG_FILE="$LOG_DIR/revisions.patch"
-
-# Diff the original state against the current state
-# Ignore temporary pycache folders that might have been generated
-diff -ruN -x "__pycache__" "$ORIGINAL_STATE_DIR" "$TASK_DIR" > "$LOG_FILE"
-
-if [ -s "$LOG_FILE" ]; then
-    echo "✅ Success: Revisions saved to $LOG_FILE"
-else
-    echo "ℹ️ No changes were made to the files during this audit."
-    rm -f "$LOG_FILE"
-fi
-
-# Cleanup temp dir
-rm -rf "$ORIGINAL_STATE_DIR"
-
-# Generate HANDOFF.md for cross-session continuity
-HANDOFF_FILE="$LOG_DIR/HANDOFF.md"
-cat > "$HANDOFF_FILE" << EOF
-# Audit Handoff: $(basename "$TASK_DIR")
-## Timestamp: $(date '+%Y-%m-%d %H:%M:%S %z')
-## Task: $TASK_DIR
-## Spec: $TASK_SPEC
-## Total Iterations: $ITERATION
-
-## Last Run Status
-$(if [ "$CLASSIFICATION" = "CLEAN" ]; then echo "Status: CLEAN - All violations fixed"; else echo "Status: DIRTY - Iterations completed"; fi)
-
-## Log Files
-- Revision patch: revisions.patch
-EOF
-
-echo "📋 Handoff file generated: $HANDOFF_FILE"
-echo "========================================================"
+    echo "📋 Handoff file generated: $HANDOFF_FILE"
+    echo "========================================================"
 }
 
 for TASK_DIR in "${TASK_DIRS[@]}"; do
