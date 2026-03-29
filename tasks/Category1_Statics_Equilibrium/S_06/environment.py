@@ -10,12 +10,14 @@ import math
 class DaVinciSandbox:
     """DaVinci Sandbox environment wrapper for S-06: The Overhang"""
 
-    # FUNDAMENTAL DIFFICULTY INCREASE: 
+    # FUNDAMENTAL DIFFICULTY INCREASE:
     # Small blocks force multi-block stacking strategies (harmonic series).
-    MAX_BLOCK_LENGTH = 1.0 
+    MAX_BLOCK_LENGTH = 1.0
     MAX_BLOCK_HEIGHT = 0.2
     MAX_BLOCK_COUNT = 100 # INCREASED again to allow for ultra-stable stacks
-    START_ZONE_X_MAX = 0.0
+    # NOTE: START_ZONE_X_MAX is deprecated — spawn zone is controlled by
+    # terrain_config['spawn_zone'] and passed to evaluator via get_terrain_bounds().
+    # Do not use START_ZONE_X_MAX for spawn validation.
 
     def __init__(self, terrain_config=None, physics_config=None):
         terrain_config = terrain_config or {}
@@ -55,11 +57,15 @@ class DaVinciSandbox:
         self._create_terrain(terrain_config)
 
     def _create_terrain(self, terrain_config: dict):
-        floor_length = 20.0
+        # floor_length is configurable via terrain_config (default 20.0 for base task).
+        # With default floor_length=20.0 and center x=-10.0: table surface from x=-20 to x=0 (edge at x=0).
+        # Stage 4 sets floor_length=21.5 to extend the table to x=1.5,
+        # supporting its reference solution blocks at x up to 1.0 (rightmost block edge at x=1.6).
+        floor_length = terrain_config.get("floor_length", 20.0)
         floor_height = 1.0
         table_friction = terrain_config.get("table_friction", 0.8)
         angle_rad = math.radians(self._table_angle)
-        
+
         # Static or kinematic table
         # Pivot point is (0, 0)
         pos = (-10.0, -0.5)
@@ -137,12 +143,19 @@ class DaVinciSandbox:
 
     def get_terrain_bounds(self):
         bounds = {
+            # floor_length=20.0 (default), center x=-10.0, half-width=10.0 → table surface x ∈ [-20.0, 0.0]
+            # The right edge (where table surface ends and overhang region begins) is at x=0.0.
             "table": {"x": [-20.0, 0.0], "angle": self._table_angle},
             "edge_x": 0.0,
             "max_block_length": self.MAX_BLOCK_LENGTH,
             "max_block_height": self.MAX_BLOCK_HEIGHT,
             "max_block_count": self.MAX_BLOCK_COUNT,
+            # Default spawn zone: block centers x ∈ [-10.0, 0.0].
+            # A block centered at x=0.0 has its right edge at x=0.5, just within the table surface.
             "spawn_zone": self._terrain_config.get("spawn_zone", [-10.0, 0.0]),
             "ceiling_y": self._terrain_config.get("ceiling_y", 100.0),
+            # Explicitly expose constraint values so evaluator can adapt per stage
+            "max_total_mass": self._terrain_config.get("max_total_mass", 20000.0),
+            "stability_time": self._terrain_config.get("stability_time", 10.0),
         }
         return bounds

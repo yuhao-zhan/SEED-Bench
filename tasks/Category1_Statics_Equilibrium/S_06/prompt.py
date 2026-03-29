@@ -28,7 +28,7 @@ You cannot use joints or any form of artificial bonding. The structure must rely
 - **Table Height**: The table surface is at y=0.0.
 - **Surface Properties**: Both the table and the blocks provide friction, which you must utilize to stabilize the stack.
 - **Table Friction**: Table friction coefficient is 0.8.
-- **Block Friction**: Block friction coefficient is 0.6.
+- **Block Friction**: Block-to-block friction coefficient is 0.6.
 - **Goal**: Reach x >= 0.1m beyond the edge.
 - **Block Dimensions**: width <= 1.0m, height <= 0.2m.
 - **Spawn Rule**: Blocks must be initialized within the permitted build access zone: x in [-10.0, 0.0].
@@ -37,7 +37,7 @@ You cannot use joints or any form of artificial bonding. The structure must rely
 - **Support Boundary**: If any part of the structure falls below y = -5.0 m, the structure is considered to have left the support and the task fails.
 - **Clearance**: Watch out for overhead obstacles (ceilings) in some regions. Current clearance y: 100.0m.
 """,
-    
+
     'success_criteria': """
 ## Success Criteria
 1. **Static Stability**: The structure remains upright and relatively motionless for at least 10 seconds.
@@ -47,9 +47,12 @@ You cannot use joints or any form of artificial bonding. The structure must rely
 - **Primitive Limits**: Max block width = 1.0m, Max block height = 0.2m.
 - **Block Count**: Maximum of 100 blocks.
 - **Mass Budget**: Total mass must be <= 20000.0 units.
-- **Start Zone**: All initial block positions must be within the designated build access zone on the table.
+- **Stability Time**: Structure must remain motionless for at least 10.0 seconds.
+- **Start Zone / Build Access Zone**: All block centers must be placed within x in [-10.0, 0.0].
+- **Table Friction**: Table friction coefficient is 0.8.
+- **Block Friction**: Block-to-block friction coefficient is 0.6.
 - **APIs**: Use only the primitives documented below.
 """,
-    
+
     'primitives_api': API_INTRO + '\n' + '\n\n'.join(_api_data['S_06'].values()),
 }

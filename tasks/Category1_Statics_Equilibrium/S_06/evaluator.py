@@ -11,13 +11,20 @@ class Evaluator:
     def __init__(self, terrain_bounds, environment=None):
         self.terrain_bounds = terrain_bounds
         self.environment = environment
-        self.stability_time = 10.0
+        self.stability_time = terrain_bounds.get("stability_time", 10.0)  # from environment via get_terrain_bounds()
         self.target_overhang = 0.1
-        
-        # Override target parameters
+
+        # Override target parameters (terrain_bounds takes priority; also check environment._terrain_config)
         if environment and hasattr(environment, '_terrain_config'):
             self.target_overhang = environment._terrain_config.get("target_overhang", 0.1)
-            self.stability_time = environment._terrain_config.get("stability_time", 10.0)
+            # stability_time may be set via terrain_bounds (preferred) or environment._terrain_config
+            if "stability_time" not in terrain_bounds:
+                self.stability_time = environment._terrain_config.get("stability_time", 10.0)
+            # Block friction: must have explicit default (0.6) so evaluator is self-documenting.
+            # If terrain_config omits block_friction, fall back to the environment default.
+            self.block_friction = environment._terrain_config.get("block_friction", 0.6)
+            # Table friction: must have explicit default (0.8) for the same reason.
+            self.table_friction = environment._terrain_config.get("table_friction", 0.8)
         
         self.max_x_position = 0.0
         self.stability_start_time = None
@@ -38,10 +45,13 @@ class Evaluator:
         self.MAX_BLOCK_LENGTH = env_class.MAX_BLOCK_LENGTH
         self.MAX_BLOCK_HEIGHT = env_class.MAX_BLOCK_HEIGHT
         self.MAX_BLOCK_COUNT = env_class.MAX_BLOCK_COUNT
-        self.START_ZONE_X_MAX = env_class.START_ZONE_X_MAX
+        # NOTE: START_ZONE_X_MAX is deprecated and no longer defined on DaVinciSandbox.
+        # Spawn validation uses SPAWN_ZONE from terrain_bounds instead.
+        self.START_ZONE_X_MAX = None  # Deprecated; kept for compatibility only.
         self.SPAWN_ZONE = terrain_bounds.get("spawn_zone", [-10.0, 0.0])
-        self.MAX_TOTAL_MASS = 20000.0  # default; overridden from terrain_config when present
-        if environment and hasattr(environment, '_terrain_config'):
+        # max_total_mass: prefer terrain_bounds (set by environment.get_terrain_bounds()), fall back to _terrain_config
+        self.MAX_TOTAL_MASS = terrain_bounds.get("max_total_mass", 20000.0)
+        if self.MAX_TOTAL_MASS == 20000.0 and environment and hasattr(environment, '_terrain_config'):
             self.MAX_TOTAL_MASS = environment._terrain_config.get("max_total_mass", 20000.0)
         
         self.design_constraints_checked = False
