@@ -162,6 +162,7 @@ run_claude_with_fallback() {
     local PROMPT_CONTENT="$1"
     local SUCCESS=false
     local OUTPUT=""
+    local CLAUDE_RUN_CWD="${CLAUDE_WORKDIR:-$REPO_ROOT}"
 
     for MODEL in "${MODELS[@]}"; do
         if [[ " $BLACKLISTED_MODELS " =~ " $MODEL " ]]; then
@@ -174,7 +175,10 @@ run_claude_with_fallback() {
         TMP_ERR=$(mktemp)
         TMP_OUT=$(mktemp)
         API_START=$(date +%s)
-        claude -p --model "$MODEL" --permission-mode acceptEdits --dangerously-skip-permissions --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. ALL edits, writes, and bash commands are pre-approved — use them freely without asking. Complete the task by actively modifying files." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
+        (
+            cd "$CLAUDE_RUN_CWD" && \
+            claude -p --model "$MODEL" --permission-mode acceptEdits --dangerously-skip-permissions --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. ALL edits, writes, and bash commands are pre-approved — use them freely without asking. Complete the task by actively modifying files." "$PROMPT_CONTENT"
+        ) >"$TMP_OUT" 2>"$TMP_ERR"
         EXIT_CODE=$?
         API_END=$(date +%s)
         API_DURATION=$((API_END - API_START))
@@ -217,7 +221,7 @@ run_claude_with_fallback() {
 run_feedback_for_task() {
     local TASK_DIR ORIGINAL_STATE_DIR REL_PATH TASK_NAME JSON_BASE JSON_FILES
     TASK_DIR="${1%/}"
-    REL_PATH=$(echo "$TASK_DIR" | sed 's|^tasks/||')
+    REL_PATH=$(echo "$TASK_DIR" | sed "s|^$REPO_ROOT/tasks/||")
     TASK_NAME=$(basename "$REL_PATH")
     JSON_BASE="evaluation_results/${REL_PATH}/Qwen3-8B/baseline"
 
@@ -246,9 +250,12 @@ if [ -z "$JSON_FILES" ]; then
     JSON_FILES="${JSON_BASE}/all_Initial_to_Stage-1.json ${JSON_BASE}/all_Initial_to_Stage-2.json ${JSON_BASE}/all_Initial_to_Stage-3.json ${JSON_BASE}/all_Initial_to_Stage-4.json"
 fi
 
-read -r -d '' PROMPT_PHASE_1 << 'EOM'
+read -r -d '' PROMPT_PHASE_1 << EOM
 # Role & Objective
 You are an expert Embodied AI evaluator, physical simulation analyst, and code reviewer. I am providing you with complete JSON execution logs representing multiple iteration attempts by an LLM agent to solve a physics-based task.
+You are working on exactly one task: ${TASK_DIR}
+Your current working directory is this task directory.
+Do NOT inspect, summarize, or modify sibling tasks, other categories, or repository-wide reports unless this task explicitly imports them.
 
 The agent ultimately failed. Your objective is to conduct a meticulous forensic analysis of these JSON logs to determine the root causes of the failure.
 
@@ -291,6 +298,7 @@ Read and analyze the following JSON files:
 $JSON_FILES
 EOM
 
+CLAUDE_WORKDIR="$TASK_DIR"
 OUTPUT_PHASE1=$(run_claude_with_fallback "$PROMPT_PHASE_1")
 echo "$OUTPUT_PHASE1"
 echo "========================================================"
@@ -302,9 +310,12 @@ echo "========================================================"
 echo "🔧 PHASE 2: Forensic Feedback Optimization"
 echo "========================================================"
 
-read -r -d '' PROMPT_PHASE_2 << 'EOM'
+read -r -d '' PROMPT_PHASE_2 << EOM
 # Phase 2: Forensic Feedback Optimization
 Based on the Forensic Analysis provided below, immediately proceed to refactor the \`format_task_metrics(metrics)\` function within \`${TASK_DIR}/feedback.py\`.
+You are working on exactly one task: ${TASK_DIR}
+Your current working directory is this task directory.
+Do NOT inspect, summarize, or modify sibling tasks, other categories, or repository-wide reports unless this task explicitly imports them.
 
 ## Forensic Analysis (from Phase 1)
 $OUTPUT_PHASE1
@@ -358,6 +369,7 @@ After implementing the changes:
 **CRITICAL:** After your analysis, immediately use your tools to modify the files and implement the new tracking variables and the rewritten \`format_task_metrics\` function.
 EOM
 
+CLAUDE_WORKDIR="$TASK_DIR"
 OUTPUT_PHASE2=$(run_claude_with_fallback "$PROMPT_PHASE_2")
 echo "$OUTPUT_PHASE2"
 echo "========================================================"
@@ -375,9 +387,12 @@ while true; do
     echo "🔄 QA Iteration $ITERATION for $TASK_DIR..."
     echo "========================================================"
 
-    read -r -d '' PROMPT_QA << 'EOM'
+    read -r -d '' PROMPT_QA << EOM
 For ${TASK_NAME}
 # Strict Quality Assurance (QA) Code Auditor
+You are working on exactly one task: ${TASK_DIR}
+Your current working directory is this task directory.
+Do NOT inspect, summarize, or modify sibling tasks, other categories, or repository-wide reports unless this task explicitly imports them.
 
 ## 1. Role and Objective
 You are a Strict QA Code Auditor for a physics-based AI benchmark. Audit the newly generated \`feedback.py\` (specifically the \`format_task_metrics\` function) against the **GROUND TRUTH** files (\`${TASK_DIR}/environment.py\`, \`${TASK_DIR}/evaluator.py\`, \`${TASK_DIR}/prompt.py\`, and \`${TASK_DIR}/stages.py\`).
@@ -426,13 +441,14 @@ Execute the following 4 audits step-by-step. If \`format_task_metrics\` fails an
 Does this code provide high-resolution, objective data without hallucinating or spoiling the solution? If it is already perfect, do not change it.
 EOM
 
+    CLAUDE_WORKDIR="$TASK_DIR"
     OUTPUT_QA=$(run_claude_with_fallback "$PROMPT_QA")
     echo "$OUTPUT_QA"
 
     echo "========================================================"
     echo "🧠 Evaluating QA Response..."
 
-    read -r -d '' CLASSIFY_PROMPT << 'EOM'
+    read -r -d '' CLASSIFY_PROMPT << EOM
 Analyze the following QA audit report.
 Did the auditor find any issues that needed correcting?
 - If the auditor stated "Audit complete: No issues found" and made NO modifications, reply with exactly the word "CLEAN".
@@ -443,6 +459,7 @@ Report to analyze:
 $OUTPUT_QA
 EOM
 
+    CLAUDE_WORKDIR="$TASK_DIR"
     CLASSIFICATION=$(run_claude_with_fallback "$CLASSIFY_PROMPT")
     CLASSIFICATION=$(echo "$CLASSIFICATION" | xargs)
 

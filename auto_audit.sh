@@ -203,6 +203,7 @@ run_claude_with_fallback() {
     local PROMPT_CONTENT="$1"
     local SUCCESS=false
     local OUTPUT=""
+    local CLAUDE_RUN_CWD="${CLAUDE_WORKDIR:-$REPO_ROOT}"
 
     for MODEL in "${MODELS[@]}"; do
         # Check if the model is in the blacklist
@@ -218,7 +219,10 @@ run_claude_with_fallback() {
         TMP_ERR=$(mktemp)
         TMP_OUT=$(mktemp)
         API_START=$(date +%s)
-        claude -p --model "$MODEL" --permission-mode acceptEdits --dangerously-skip-permissions --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. ALL edits, writes, and bash commands are pre-approved — use them freely without asking. Complete the task by actively modifying files." "$PROMPT_CONTENT" >"$TMP_OUT" 2>"$TMP_ERR"
+        (
+            cd "$CLAUDE_RUN_CWD" && \
+            claude -p --model "$MODEL" --permission-mode acceptEdits --dangerously-skip-permissions --system-prompt "You are a helpful assistant with access to tools for reading and modifying files. ALL edits, writes, and bash commands are pre-approved — use them freely without asking. Complete the task by actively modifying files." "$PROMPT_CONTENT"
+        ) >"$TMP_OUT" 2>"$TMP_ERR"
         EXIT_CODE=$?
         API_END=$(date +%s)
         API_DURATION=$((API_END - API_START))
@@ -298,8 +302,11 @@ run_auto_audit_for_task() {
     cat > "$PROMPT_FILE" <<- 'ENDPROMPT'
 	# Objective
 	Conduct a strict audit of the task in the following directory: TASK_DIR_PLACEHOLDER
+	You will be launched with your current working directory set to THIS exact task directory.
 	Use your tools to systematically list and read all relevant code files there.
 	Your goal is to analyze the existing code for logic, consistency, and expected failure states, reporting any violations.
+	Do NOT inspect, summarize, or modify files from sibling tasks, other categories, or repository-wide audit reports unless this task directory explicitly imports them.
+	If you mention or edit any file outside this task directory, treat that as a mistake and restart your audit from the task-local files only.
 
 	## STRICT RULE 1: FIX MODE ENABLED
 	You are acting as an auditor AND an engineer. Your final output must consist of your analysis, a comprehensive list of violation cases, AND you MUST use your tools to modify and fix ANY and ALL violations you find.
@@ -378,6 +385,7 @@ run_auto_audit_for_task() {
         echo "--- END PROMPT PREVIEW ---"
         echo ""
 
+        CLAUDE_WORKDIR="$TASK_DIR"
         OUTPUT=$(run_claude_with_fallback "$PROMPT")
 
         echo "📥 Raw output from Claude (${#OUTPUT} bytes):"
@@ -412,7 +420,12 @@ run_auto_audit_for_task() {
             echo "🛠️  Forcing model to output exact Edit commands..."
 
             local FIX_PROMPT
-            FIX_PROMPT="You previously audited ${TASK_DIR} and found violations but did NOT actually call the Edit tool.
+            FIX_PROMPT="You are still working only inside ${TASK_DIR}.
+You previously audited ${TASK_DIR} and found violations but did NOT actually call the Edit tool.
+Here is your previous audit report:
+
+$OUTPUT
+
 Now produce ONLY the exact Edit commands needed, in this format (one per line):
 EDIT: file=\"relative/path/filename.py\" old_string=\"EXACT_old_text\" new_string=\"EXACT_new_text\"
 If no edits needed, reply exactly: NO_EDITS_NEEDED"
@@ -465,7 +478,11 @@ If no edits needed, reply exactly: NO_EDITS_NEEDED"
         echo "🧠 Evaluating LLM Response for Completion Status..."
 
         local CLASSIFY_PROMPT
-        CLASSIFY_PROMPT="Did the auditor find ANY violations?
+        CLASSIFY_PROMPT="You are classifying the following audit report for ${TASK_DIR}.
+
+$OUTPUT
+
+Did the auditor find ANY violations?
 - If ZERO violations found (stated 'No violations' for all categories), reply CLEAN.
 - If ANY violations found or fixed, or report is ambiguous, reply DIRTY.
 Reply with ONLY the word CLEAN or DIRTY."
@@ -492,7 +509,7 @@ Reply with ONLY the word CLEAN or DIRTY."
     echo "📝 Generating revision patch log..."
 
     local REL_PATH LOG_DIR LOG_FILE HANDOFF_FILE
-    REL_PATH=$(echo "$TASK_DIR" | sed 's|^tasks/||')
+    REL_PATH=$(echo "$TASK_DIR" | sed "s|^$REPO_ROOT/||" | sed 's|^tasks/||')
     LOG_DIR="tasks/auto_audit_log/$REL_PATH"
     mkdir -p "$LOG_DIR"
     LOG_FILE="$LOG_DIR/revisions.patch"
