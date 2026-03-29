@@ -109,6 +109,7 @@ class Evaluator:
                 'protection': f'Core receives < {self.max_core_force}N force',
                 'stability': 'Shelter does not collapse',
                 'height_limit': f'No beam above y={self.MAX_STRUCTURE_HEIGHT}m',
-                'mass_limit': f'Structure mass < {self.terrain_bounds.get("max_structure_mass", 300.0)}kg'
+                'mass_limit': f'Structure mass < {self.terrain_bounds.get("max_structure_mass", 300.0)}kg',
+                'core_force_limit': float(self.terrain_bounds.get("core_max_force", 150.0)),
             }
         }

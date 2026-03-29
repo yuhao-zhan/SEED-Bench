@@ -21,10 +21,37 @@ DEFAULT_FLOOR_FRICTION = 0.5
 DEFAULT_MAX_JOINT_FORCE = 1e12
 DEFAULT_MAX_JOINT_TORQUE = 1e12
 DEFAULT_HAS_WALLS = False
+DEFAULT_GRAVITY = (0, -10.0)
 
 
-def update_task_description_for_visible_changes(base_description: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+def update_task_description_for_visible_changes(
+    base_description: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+) -> str:
     description = base_description
+
+    # Update Bombardment (has_walls changes affect the bombardment description paragraph)
+    target_has_walls = bool(target_terrain_config.get("has_walls", DEFAULT_HAS_WALLS))
+    base_has_walls = bool(base_terrain_config.get("has_walls", DEFAULT_HAS_WALLS))
+    if target_has_walls != base_has_walls:
+        if target_has_walls:
+            # Add wall/ricochet context to the bombardment paragraph
+            description = re.sub(
+                r"(Boulders will spawn above the core, mostly targeting the center, but some will fall from the left and right sides\.)( The core is extremely delicate)",
+                r"\1 The scene is enclosed by lateral walls; debris ricochets and creates secondary impacts.\2",
+                description,
+                count=1
+            )
+        else:
+            description = re.sub(
+                r"(Boulders will spawn above the core, mostly targeting the center, but some will fall from the left and right sides\.) The scene is enclosed by lateral walls; debris ricochets and creates secondary impacts\.( The core is extremely delicate)",
+                r"\1\2",
+                description,
+                count=1
+            )
 
     # Update Bombardment (meteor count and spawn interval) when mutated
     target_meteor_count = int(target_terrain_config.get("meteor_count", DEFAULT_METEOR_COUNT))
@@ -108,9 +135,32 @@ def update_task_description_for_visible_changes(base_description: str, target_te
             count=1
         )
     if target_joint_torque != base_joint_torque:
+        # Capture torque number separately to show new value while preserving the "may be restricted" clause
         description = re.sub(
-            rf"maximum torque {_num} Nm in the nominal mission",
-            f"maximum torque {target_joint_torque:.1f} Nm (originally {base_joint_torque:.1f} Nm in the source environment) in the nominal mission",
+            rf"(maximum torque )({_num})( Nm in the nominal mission; these limits may be restricted in mission variants\.)",
+            rf"\g<1>{target_joint_torque:.1f}\g<3> (originally {base_joint_torque:.1f} Nm in the source environment)",
+            description,
+            count=1
+        )
+
+    # Update Wind Force (from terrain_config)
+    target_wind_force = float(target_terrain_config.get("wind_force", DEFAULT_WIND_FORCE))
+    base_wind_force = float(base_terrain_config.get("wind_force", DEFAULT_WIND_FORCE))
+    if target_wind_force != base_wind_force:
+        # Base text ends: "...horizontal force)."  — paren THEN period.
+        # Pattern [^)]+) captures "N/m of mass-proportional horizontal force" (no paren/period).
+        #   The trailing )\)\. matches: ')' = closes the wind_force paren, '.' = sentence period.
+        # After [3:] strips "(N/" leaving " of mass-proportional horizontal force" (leading space).
+        description = re.sub(
+            r"(- \*\*Wind\*\*: )No lateral wind in the nominal mission \(wind_force = -?[0-9]+\.?[0-9]* (N/m [^)]+)\)\.",
+            lambda m: f"{m.group(1)}No lateral wind in the nominal mission (wind_force = {target_wind_force:.1f} N/m (originally {base_wind_force:.1f} N/m in the source environment) {m.group(2)[3:]}",
+            description,
+            count=1
+        )
+        # Second pattern: already-mutated text (p1 anchor won't match after p1 fires).
+        description = re.sub(
+            r"(- \*\*Wind\*\*: )No lateral wind in the nominal mission \(wind_force = -?[0-9]+\.?[0-9]* N/m \(originally -?[0-9]+\.?[0-9]* N/m in the source environment\)\.",
+            lambda m: f"- **Wind**: No lateral wind in the nominal mission (wind_force = {target_wind_force:.1f} N/m (originally {base_wind_force:.1f} N/m in the source environment).",
             description,
             count=1
         )
@@ -132,10 +182,62 @@ def update_task_description_for_visible_changes(base_description: str, target_te
                 description
             )
 
+
+    # Update Gravitational Constant (from physics_config — NOT terrain_config)
+    if target_physics_config is None:
+        target_physics_config = {}
+    if base_physics_config is None:
+        base_physics_config = {}
+    target_gravity_y = float(target_physics_config.get("gravity", DEFAULT_GRAVITY)[1])
+    base_gravity_y = float(base_physics_config.get("gravity", DEFAULT_GRAVITY)[1])
+    if target_gravity_y != base_gravity_y:
+        # Replace in the UNIFORM_SUFFIX section (keeps "may be affected" clause)
+        # The UNIFORM_SUFFIX text ends with "; structural loads..." (semicolon, not period)
+        description = re.sub(
+            r"(- \*\*Gravitational Constant\*\*: )Downward acceleration may differ from nominal; structural loads and impact energy may be affected\.",
+            lambda m: f"{m.group(1)}Downward acceleration is {abs(target_gravity_y):.1f} m/s² (originally {abs(base_gravity_y):.1f} m/s² in the source environment); structural loads and impact energy may be affected.",
+            description,
+            count=1
+        )
+        # Also handle case where the pattern already has "is X m/s² (originally Y m/s²" from a prior run
+        description = re.sub(
+            r"(- \*\*Gravitational Constant\*\*: )Downward acceleration is \d+\.\d+ m/s² \(originally \d+\.\d+ m/s² in the source environment\); structural loads and impact energy may be affected\.",
+            lambda m: f"- **Gravitational Constant**: Downward acceleration is {abs(target_gravity_y):.1f} m/s² (originally {abs(base_gravity_y):.1f} m/s² in the source environment); structural loads and impact energy may be affected.",
+            description,
+            count=1
+        )
+        # Also replace in the Task Environment section (new "is X m/s²" format added to prompt.py)
+        description = re.sub(
+            r"(- \*\*Gravitational Constant\*\*: )Downward acceleration is \d+\.\d+ m/s² \(originally \d+\.\d+ m/s² in the source environment\)\.",
+            lambda m: f"- **Gravitational Constant**: Downward acceleration is {abs(target_gravity_y):.1f} m/s² (originally {abs(base_gravity_y):.1f} m/s² in the source environment).",
+            description,
+            count=1
+        )
+        # Also handle the base case in Task Environment (no "originally" yet)
+        description = re.sub(
+            r"(- \*\*Gravitational Constant\*\*: )Downward acceleration is (\d+\.\d+) m/s² \(structures weigh what you would expect on Earth; heavier members experience proportionally more stress under high gravity\)\.",
+            lambda m: f"- **Gravitational Constant**: Downward acceleration is {abs(target_gravity_y):.1f} m/s² (originally {abs(base_gravity_y):.1f} m/s² in the source environment); structures weigh what you would expect on Earth; heavier members experience proportionally more stress under high gravity.",
+            description,
+            count=1
+        )
+        # Also handle the base case in Task Environment (simple "is X m/s²." format)
+        description = re.sub(
+            r"(- \*\*Gravitational Constant\*\*: )Downward acceleration is \d+\.\d+ m/s²\.",
+            lambda m: f"- **Gravitational Constant**: Downward acceleration is {abs(target_gravity_y):.1f} m/s² (originally {abs(base_gravity_y):.1f} m/s² in the source environment).",
+            description,
+            count=1
+        )
+
     return description
 
 
-def update_success_criteria_for_visible_changes(base_success_criteria: str, target_terrain_config: Dict[str, Any], base_terrain_config: Dict[str, Any]) -> str:
+def update_success_criteria_for_visible_changes(
+    base_success_criteria: str,
+    target_terrain_config: Dict[str, Any],
+    base_terrain_config: Dict[str, Any],
+    target_physics_config: Dict[str, Any] = None,
+    base_physics_config: Dict[str, Any] = None,
+) -> str:
     criteria = base_success_criteria
     
     # Update Mass Budget
@@ -194,11 +296,36 @@ def update_success_criteria_for_visible_changes(base_success_criteria: str, targ
                 criteria
             )
 
+    # Update Gravitational Constant in success criteria (from physics_config)
+    if target_physics_config is None:
+        target_physics_config = {}
+    if base_physics_config is None:
+        base_physics_config = {}
+    target_gravity_y = float(target_physics_config.get("gravity", DEFAULT_GRAVITY)[1])
+    base_gravity_y = float(base_physics_config.get("gravity", DEFAULT_GRAVITY)[1])
+    if target_gravity_y != base_gravity_y:
+        # Handle "may differ from nominal" format (from UNIFORM_SUFFIX)
+        criteria = re.sub(
+            r"(- \*\*Gravitational Constant(\*\*)?: )Downward acceleration may differ from nominal\.",
+            lambda m: f"{m.group(1)}Downward acceleration is {abs(target_gravity_y):.1f} m/s² (originally {abs(base_gravity_y):.1f} m/s² in the source environment).",
+            criteria,
+            count=1
+        )
+        # Handle the new "is X m/s²." format added to success_criteria in prompt.py
+        criteria = re.sub(
+            r"(- \*\*Gravitational Constant(\*\*)?: )Downward acceleration is \d+\.\d+ m/s²\.",
+            lambda m: f"{m.group(1)}Downward acceleration is {abs(target_gravity_y):.1f} m/s² (originally {abs(base_gravity_y):.1f} m/s² in the source environment).",
+            criteria,
+            count=1
+        )
+
     return criteria
 
 # DYNAMICALLY GENERATED UNIFORM_SUFFIX based on the union of all mutated variables in Stages 1-4
-# Union of mutated variables: max_joint_force, max_joint_torque, wind_force, max_structure_mass,
-# meteor_restitution, has_walls, gravity, max_core_force, core_x (core_y unused but in union)
+# Union of mutated variables (exposed in suffix): max_joint_force, max_joint_torque, wind_force,
+# max_structure_mass, meteor_restitution, has_walls, gravity, max_core_force
+# NOTE: core_x is mutated in Stage-2 and Stage-4 but is NOT included in the suffix (it is a
+# Visible Variable; the agent can directly observe the core position in the scene).
 UNIFORM_SUFFIX = """
 Environmental Anomalies Detected
 Sensors indicate that this region exhibits non-standard physical properties.
@@ -210,7 +337,6 @@ While the following variables MIGHT have changed from the initial environment, N
  - **Lateral Boundaries (Containment)**: The scene may be enclosed by lateral walls, amplifying ricochets and horizontal debris paths.
  - **Gravitational Constant**: Downward acceleration may differ from nominal; structural loads and impact energy may be affected.
  - **Core Fragility**: The protected object's impact tolerance may differ from nominal.
- - **Core Position**: The location of the protected object may differ from the nominal environment, requiring different structural placement and coverage.
 
 Discovery via feedback: Your objective is to identify the underlying physical rules of this specific environment through trial and reasoning. Initial standard solutions may fail; analyze the failure mode (e.g., where a joint breaks or how a body moves) to infer the hidden constraints and adapt your design.
 """

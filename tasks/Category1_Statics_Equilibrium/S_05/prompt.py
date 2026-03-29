@@ -23,11 +23,15 @@ Protect a fragile Core (a sensitive circular object at x=10.0, y=1.0) from heavy
 Boulders will spawn above the core, mostly targeting the center, but some will fall from the left and right sides. The core is extremely delicate and will fail if subjected to significant impact forces.
 
 ## Task Environment
-- **Core**: A circular object centered at (10.0, 1.0). It fails if any single impact force exceeds 150 N (its structural tolerance).
+- **Core**: A circular object centered at (10.0, 1.0) with radius 0.5 m. It fails if any single impact force exceeds 150 N (its structural tolerance).
 - **Ground**: A static surface at y=0.0. Your shelter must be supported by the ground outside the designated keep-out zone.
 - **Lateral boundaries**: The scene has no lateral containment walls; the build zone is open at the sides.
-- **Boulders**: Boulders fall from a high altitude (y=15m). They target the build zone broadly. In the nominal mission, 12 boulders spawn from above (one every 30 simulation steps), and 4 additional boulders spawn from the left and right sides (every 90 steps). Success is evaluated only after the simulation has run at least 1000 steps and the full bombardment sequence has completed (i.e. at least meteor_count × spawn_interval steps, whichever is larger). You must design a structure to deflect or absorb these impacts.
+- **Boulders**: Boulders fall from a high altitude (y=15m). They target the build zone broadly. Boulder elasticity (restitution): 0.2 (low bounce — debris does not ricochet significantly). Density: 5.0 kg/m³ (affects impact force). In the nominal mission, 12 boulders spawn from above (one every 30 simulation steps), and 4 additional boulders spawn from the left and right sides (every 90 steps). Success is evaluated only after the simulation has run at least 1000 steps and the full bombardment sequence has completed (i.e. at least meteor_count × spawn_interval steps, whichever is larger). You must design a structure to deflect or absorb these impacts.
 - **Build Zone**: Structure must be built within x=[5, 15] m and y=[0, 8] m (beam centers and joint anchors must lie inside this region).
+- **Gravitational Constant**: Downward acceleration is 10.0 m/s² (structures weigh what you would expect on Earth; heavier members experience proportionally more stress under high gravity).
+- **Wind**: No lateral wind in the nominal mission (wind_force = 0 N/m of mass-proportional horizontal force).
+- **Ground Friction**: Floor friction coefficient = 0.5 (affects sliding of debris and beams).
+- **Structure Friction**: Beam friction coefficient = 0.5 (affects inter-beam contact behavior).
 - **Beam Dimensions**: 0.1 <= width, height <= 10.0 m.
 - **Joint Limits**: Joints and anchors have maximum linear force 1e12 N and maximum torque 1e12 Nm in the nominal mission; these limits may be restricted in mission variants. 
 
@@ -58,6 +62,7 @@ Design a shelter structure that:
 - **Mass Budget**: < 300 kg.
 - **Height Limit**: No beam center may be above y=7.5m.
 - **Core Force**: Peak force on core < 150 N.
+- **Gravitational Constant**: Downward acceleration is 10.0 m/s².
 - **APIs**: Use only the primitives documented below.
 """,
     
